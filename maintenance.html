@@ -1846,7 +1846,7 @@
   <script>
     (function () {
       'use strict';
-      const AI_API_BASE = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '' : 'https://vet-anesthesia-lhm.netlify.app';
+      const AI_API_PREFIX = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.pages.dev')) ? '/api' : ((typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '/.netlify/functions' : 'https://vet-anesthesia-lhm.netlify.app/.netlify/functions');
 
       // =========================================================================
       // 1. SPECIES DEFINITIONS (Grounded in AAHA 2020/2024 & Vet Anesthesia Data)
@@ -5201,7 +5201,7 @@
         };
 
         try {
-          const res = await fetch(AI_API_BASE + '/.netlify/functions/debrief', {
+          const res = await fetch(AI_API_PREFIX + '/debrief', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -6251,7 +6251,7 @@
           btnAiCase.textContent = '생성 중...';
           let c = null;
           try {
-            const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+            const res = await fetch(AI_API_PREFIX + '/ai', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ task: 'generate_case', species: state.speciesId })
@@ -6313,7 +6313,7 @@
         tutorAnswer.classList.remove('hidden');
         tutorAnswer.textContent = '임상 힌트를 정리하고 있습니다...';
         try {
-          const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+          const res = await fetch(AI_API_PREFIX + '/ai', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -6382,7 +6382,7 @@ ${recent}`;
           debriefSoapBody.classList.remove('hidden');
           let text = buildLocalSoapText();
           try {
-            const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+            const res = await fetch(AI_API_PREFIX + '/ai', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

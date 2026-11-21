@@ -304,7 +304,7 @@
   <script>
     (function () {
       'use strict';
-      const AI_API_BASE = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '' : 'https://vet-anesthesia-lhm.netlify.app';
+      const AI_API_PREFIX = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.pages.dev')) ? '/api' : ((typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '/.netlify/functions' : 'https://vet-anesthesia-lhm.netlify.app/.netlify/functions');
 
       const CASES = {
         routine: {
@@ -457,7 +457,7 @@
             let reply = c.ownerClue;
             let aiAbort = false;
             try {
-              const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+              const res = await fetch(AI_API_PREFIX + '/ai', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ task: 'roleplay', role: 'owner_preop', species: st.species === 'dog' ? '개' : '고양이', caseDesc: c.desc, clue: c.ownerClue, question: q })
               });
@@ -616,7 +616,7 @@
             revBox.classList.remove('hidden');
             revBox.textContent = localNote + ' (AI 조합 심사 요청 중...)';
             try {
-              const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+              const res = await fetch(AI_API_PREFIX + '/ai', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ task: 'review_drugs', species: st.species === 'dog' ? '개' : '고양이', caseName: c.name, premed: `${st.premedSed}+${st.premedOpi}`, induction: `${st.indDrug} (${st.indSpeed})` })
               });
@@ -772,7 +772,7 @@
         const out = document.getElementById('res-ai-out');
         out.classList.remove('hidden'); out.textContent = 'Gemini AI가 도입 로그를 분석 중입니다...';
         try {
-          const res = await fetch(AI_API_BASE + '/.netlify/functions/debrief', {
+          const res = await fetch(AI_API_PREFIX + '/debrief', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               species: st.species === 'dog' ? '개' : '고양이',
@@ -804,7 +804,7 @@
         const fallback = { name: '저알부민·빈혈 노령견', asa: 'ASA III–IV', wt: 7.2, desc: '12세 요크셔테리어(7.2kg), 단백소실성장병증(Alb 1.8 g/dL, PCV 23%). 혈압 유지와 저용량 적정 유도 필수.', hr: 136, map: 72, spo2: 97, rr: 24, tube: '5.5mm', ownerClue: '최근 설사가 잦았고 배가 살짝 불러서 검사하러 왔어요.', avoid: ['dex', 'ace', 'fast_bolus'] };
         let pick = fallback;
         try {
-          const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+          const res = await fetch(AI_API_PREFIX + '/ai', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ task: 'generate_case', phase: 'induction', species: st.species })
           });

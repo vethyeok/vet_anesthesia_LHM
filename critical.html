@@ -427,7 +427,7 @@
   <script>
     (function () {
       'use strict';
-      const AI_API_BASE = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '' : 'https://vet-anesthesia-lhm.netlify.app';
+      const AI_API_PREFIX = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.pages.dev')) ? '/api' : ((typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '/.netlify/functions' : 'https://vet-anesthesia-lhm.netlify.app/.netlify/functions');
       const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
       const PreopLabEngine = (() => {
@@ -1290,7 +1290,7 @@
           }
           let reply = c.ownerClue, aiAbort = false;
           try {
-            const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+            const res = await fetch(AI_API_PREFIX + '/ai', {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ task: 'roleplay', role: 'owner_preop', species: st.species === 'dog' ? '개' : '고양이', caseDesc: c.desc, clue: c.ownerClue, question: q })
             });
@@ -1605,7 +1605,7 @@
           }
           let reply = '네 선생님, 말씀하신 대로 보온과 호흡·상처 잘 살피고 4~6시간 뒤에 물부터 소량씩 줄게요. 감사합니다!', aiAbort = false;
           try {
-            const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+            const res = await fetch(AI_API_PREFIX + '/ai', {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ task: 'roleplay', role: 'owner_discharge', species: st.species === 'dog' ? '개' : '고양이', caseName: getCaseObj().name, vetAdvice: msg })
             });
@@ -2029,7 +2029,7 @@
         const out = document.getElementById('report-ai-out');
         out.classList.remove('hidden'); out.textContent = 'Gemini AI가 전주기(도입→유지→회복) 로그를 분석 중입니다...';
         try {
-          const res = await fetch(AI_API_BASE + '/.netlify/functions/debrief', {
+          const res = await fetch(AI_API_PREFIX + '/debrief', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ task: 'debrief', species: st.species==='dog'?'개':'고양이', scenario: '전주기 심화 - ' + getCaseObj().name, arrestReason: st.arrested ? '심정지' : (st.abortedByOwner ? '보호자 상담 중단' : '전주기 완료'), finalVitals: { hr: Math.round(st.hr), map: Math.round(st.map), spo2: Math.round(st.spo2), k: st.phys.serumK, ph: st.phys.arterialPH, rhythm: st.rhythm }, recentLogs: st.logs.slice(0, 18).map(l => `[${l.time}] ${l.msg}`) })
           });
@@ -2043,7 +2043,7 @@
         const out = document.getElementById('report-ai-out');
         out.classList.remove('hidden'); out.textContent = 'SOAP 전주기 마취기록지를 생성 중입니다...';
         try {
-          const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+          const res = await fetch(AI_API_PREFIX + '/ai', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ task: 'soap_record', species: st.species==='dog'?'개':'고양이', scenario: '전주기 심화 - ' + getCaseObj().name, duration: `${Math.floor(st.simSec/60)}분`, arrested: st.arrested, arrestReason: st.rhythm, finalVitals: { hr: Math.round(st.hr), map: Math.round(st.map), bt: st.bt.toFixed(1) }, recentLogs: st.logs.slice(0, 18).map(l => `[${l.time}] ${l.msg}`) })
           });
@@ -2081,7 +2081,7 @@
         const b = document.getElementById('btn-ai-case');
         b.disabled = true; b.textContent = '생성 중...';
         try {
-          const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+          const res = await fetch(AI_API_PREFIX + '/ai', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ task: 'generate_case', species: st.species })
           });

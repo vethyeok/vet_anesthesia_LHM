@@ -348,7 +348,7 @@
   <script>
     (function () {
       'use strict';
-      const AI_API_BASE = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '' : 'https://vet-anesthesia-lhm.netlify.app';
+      const AI_API_PREFIX = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.pages.dev')) ? '/api' : ((typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '/.netlify/functions' : 'https://vet-anesthesia-lhm.netlify.app/.netlify/functions');
 
       const CASES = {
         normal: {
@@ -670,7 +670,7 @@
         let reply = '네 선생님, 4~6시간 뒤에 물부터 소량씩 주고 따뜻하게 쉬게 하면서 호흡이랑 상처 잘 살펴볼게요. 감사합니다!';
         let aiAbort = false;
         try {
-          const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+          const res = await fetch(AI_API_PREFIX + '/ai', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ task: 'roleplay', role: 'owner_discharge', species: st.species === 'dog' ? '개' : '고양이', caseName: CASES[st.caseId].name, vetAdvice: msg })
           });
@@ -708,7 +708,7 @@
         const out = document.getElementById('res-ai-out');
         out.classList.remove('hidden'); out.textContent = 'Gemini AI가 회복 경과를 분석 중입니다...';
         try {
-          const res = await fetch(AI_API_BASE + '/.netlify/functions/debrief', {
+          const res = await fetch(AI_API_PREFIX + '/debrief', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               task: 'debrief',
@@ -732,7 +732,7 @@
         out.classList.remove('hidden'); out.textContent = 'SOAP 마취 회복 기록지를 생성 중입니다...';
         const fallbackSoap = `[SOAP 마취 회복 기록지]\nS: ${st.species === 'dog' ? '개' : '고양이'} · ${CASES[st.caseId].name}\nO: 최종 BT ${st.bt.toFixed(1)}°C, SpO₂ ${Math.round(st.spo2)}%, HR ${Math.round(st.hr)} bpm, EtIso ${st.etIso.toFixed(2)}%\nA: ${st.abortedByOwner ? '커뮤니케이션 실패로 상담 중단' : (st.extubated ? '발관 완료 및 회복실 모니터링 수행' : '발관 미완료')}\nP: 보온·산소·통증/흥분 모니터링 및 퇴원 주의사항 안내`;
         try {
-          const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+          const res = await fetch(AI_API_PREFIX + '/ai', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               task: 'soap_record',
