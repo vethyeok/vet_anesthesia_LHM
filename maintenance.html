@@ -5038,7 +5038,10 @@
           btnAiDebrief.textContent = '✦ AI 재분석';
           btnAiDebrief.disabled = false;
         } catch (err) {
-          debriefAiStatus.textContent = '현재 로컬/오프라인 환경이거나 Netlify 서버에 GEMINI_API_KEY가 아직 설정되지 않았습니다. 위의 [내장 임상 오답노트]를 바로 참고하세요!';
+          const isLocal = location.protocol === 'file:' || !navigator.onLine;
+          debriefAiStatus.textContent = isLocal
+            ? '현재 로컬/오프라인 환경입니다. 위의 [내장 임상 오답노트]를 바로 참고하세요!'
+            : `AI 분석 요청 실패 (${err && err.message ? err.message : '서버 연결 오류'}). 위의 [내장 임상 오답노트]를 먼저 참고하세요!`;
           btnAiDebrief.textContent = '✦ AI 분석 요청';
           btnAiDebrief.disabled = false;
         }

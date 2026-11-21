@@ -1,24 +1,36 @@
-// Netlify Serverless Function: Unified Gemini AI Backend for 3-Phase Veterinary Anesthesia Suite
+// Netlify Serverless Function (Modern Functions API): Unified Gemini AI Backend
 // Tasks: debrief | generate_case | review_drugs | tutor_hint | roleplay | soap_record
 // Required Netlify Environment Variable: GEMINI_API_KEY
 
-export async function handler(event) {
-  const headers = {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
-  };
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
-  if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+const CORS_HEADERS = {
+  'Content-Type': 'application/json; charset=utf-8',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
 
-  const apiKey = process.env.GEMINI_API_KEY;
+function jsonRes(obj, status = 200) {
+  return new Response(JSON.stringify(obj), { status, headers: CORS_HEADERS });
+}
+
+export default async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('', { status: 204, headers: CORS_HEADERS });
+  }
+  if (req.method !== 'POST') {
+    return jsonRes({ error: 'Method Not Allowed' }, 405);
+  }
+
+  const apiKey =
+    (typeof Netlify !== 'undefined' && Netlify.env && Netlify.env.get('GEMINI_API_KEY')) ||
+    process.env.GEMINI_API_KEY;
+
   if (!apiKey) {
-    return { statusCode: 503, headers, body: JSON.stringify({ error: 'Netlify 환경변수에 GEMINI_API_KEY가 설정되지 않았습니다.' }) };
+    return jsonRes({ error: 'Netlify 환경변수에 GEMINI_API_KEY가 설정되지 않았습니다.' }, 503);
   }
 
   try {
-    const body = JSON.parse(event.body || '{}');
+    const body = await req.json().catch(() => ({}));
     const task = body.task || 'debrief';
     let prompt = '';
     let expectJson = false;
@@ -47,29 +59,45 @@ export async function handler(event) {
 환자: ${body.species} / ${body.scenario}, 상태: ${body.arrestReason}, 지표: ${JSON.stringify(body.finalVitals || {})}, 로그: ${(body.recentLogs || []).join(' | ')}`;
     }
 
-    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: expectJson ? 0.6 : 0.35, maxOutputTokens: 600 }
-      })
-    });
+    const envModel =
+      (typeof Netlify !== 'undefined' && Netlify.env && Netlify.env.get('GEMINI_MODEL')) ||
+      process.env.GEMINI_MODEL;
+    const models = envModel ? [envModel] : ['gemini-2.5-flash', 'gemini-2.0-flash'];
 
-    if (resp.status === 429) return { statusCode: 429, headers, body: JSON.stringify({ error: '무료 API 한도에 도달했습니다. 잠시 후 다시 시도하세요.' }) };
-    if (!resp.ok) return { statusCode: 502, headers, body: JSON.stringify({ error: `Gemini API 오류 (${resp.status})` }) };
+    let resp = null;
+    let errText = '';
+    for (const model of models) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: expectJson ? 0.6 : 0.35, maxOutputTokens: 700 }
+        })
+      });
+      if (resp.ok) break;
+      if (resp.status === 429) {
+        return jsonRes({ error: '무료 API 한도에 도달했습니다. 잠시 후 다시 시도하세요.' }, 429);
+      }
+      const errBody = await resp.json().catch(() => ({}));
+      errText = errBody?.error?.message || `HTTP ${resp.status}`;
+      if (resp.status !== 404) break;
+    }
+
+    if (!resp || !resp.ok) {
+      return jsonRes({ error: `Gemini API 오류 (${resp ? resp.status : 'NET'}): ${errText}` }, 502);
+    }
 
     const data = await resp.json();
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
     if (expectJson) {
-      const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```$/,'').trim();
+      const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
       const caseData = JSON.parse(cleaned);
-      return { statusCode: 200, headers, body: JSON.stringify({ caseData }) };
+      return jsonRes({ caseData }, 200);
     }
-    return { statusCode: 200, headers, body: JSON.stringify({ text: rawText, analysis: rawText }) };
+    return jsonRes({ text: rawText, analysis: rawText }, 200);
   } catch (err) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'AI 분석 처리 중 오류가 발생했습니다.' }) };
+    return jsonRes({ error: `AI 분석 처리 오류: ${err && err.message ? err.message : '알 수 없는 오류'}` }, 500);
   }
-}
+};
