@@ -62,7 +62,7 @@ export default async (req) => {
     const envModel =
       (typeof Netlify !== 'undefined' && Netlify.env && Netlify.env.get('GEMINI_MODEL')) ||
       process.env.GEMINI_MODEL;
-    const models = envModel ? [envModel] : ['gemini-2.5-flash', 'gemini-2.0-flash'];
+    const models = envModel ? [envModel] : ['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.8-flash'];
 
     let resp = null;
     let errText = '';
@@ -73,7 +73,7 @@ export default async (req) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: expectJson ? 0.6 : 0.35, maxOutputTokens: 700 }
+          generationConfig: { maxOutputTokens: 2048 }
         })
       });
       if (resp.ok) break;
@@ -90,7 +90,9 @@ export default async (req) => {
     }
 
     const data = await resp.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    const rawText = parts.filter((p) => !p.thought && p.text).map((p) => p.text).join('').trim()
+      || parts.map((p) => p.text || '').join('').trim();
     if (expectJson) {
       const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
       const caseData = JSON.parse(cleaned);
