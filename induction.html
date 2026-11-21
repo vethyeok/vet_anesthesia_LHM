@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>수의 마취 도입–전환 시뮬레이터 — Premedication · Induction · Intubation</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #070b12; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; min-height: 100vh; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    button, select, input { font-family: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: transparent; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .hidden { display: none !important; }
+    .app-wrap { max-width: 1360px; margin: 0 auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+    .topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; background: rgba(15,23,42,0.95); border: 1px solid #1e293b; border-radius: 12px; padding: 8px 12px; }
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .logo-box { width: 32px; height: 32px; border-radius: 8px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color: #34d399; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .title { font-size: 14px; font-weight: 800; color: #fff; }
+    .sub { font-size: 11px; color: #94a3b8; }
+    .controls-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .seg { display: inline-flex; background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 2px; }
+    .seg button { padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; color: #cbd5e1; }
+    .seg button.active { background: #38bdf8; color: #020617; }
+    select.sel { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 5px 8px; font-size: 12px; color: #f1f5f9; max-width: 280px; }
+    .btn { padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #334155; background: #0f172a; color: #e2e8f0; transition: 0.15s; }
+    .btn:hover { background: #1e293b; }
+    .btn-primary { background: #10b981; color: #020617; border-color: #10b981; font-weight: 800; }
+    .btn-primary:hover { background: #34d399; }
+    .btn-amber { background: #fbbf24; color: #020617; border-color: #fbbf24; font-weight: 800; }
+    .btn-sky { background: rgba(14,165,233,0.18); color: #7dd3fc; border-color: rgba(56,189,248,0.45); }
+    .btn-rose { background: #f43f5e; color: #fff; border-color: #f43f5e; font-weight: 800; }
+    .btn-indigo { background: rgba(99,102,241,0.2); color: #a5f3fc; border-color: rgba(129,140,248,0.45); }
+
+    /* Stepper */
+    .stepper { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 6px; }
+    .step-pill { text-align: center; padding: 6px 4px; border-radius: 7px; font-size: 10px; font-weight: 700; color: #64748b; background: #020617; border: 1px solid #1e293b; }
+    .step-pill.active { background: rgba(56,189,248,0.18); color: #7dd3fc; border-color: rgba(56,189,248,0.55); }
+    .step-pill.done { background: rgba(16,185,129,0.15); color: #6ee7b7; border-color: rgba(16,185,129,0.4); }
+
+    /* Main Grid */
+    .main-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 1024px) { .main-grid { grid-template-columns: 7fr 5fr; align-items: start; } }
+    .card { background: rgba(15,23,42,0.92); border: 1px solid #1e293b; border-radius: 12px; padding: 12px; }
+    .card-title { font-size: 12px; font-weight: 800; color: #7dd3fc; letter-spacing: 0.03em; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+
+    /* Monitor Waveforms */
+    .wave-box { background: #05080f; border: 1px solid #1e293b; border-radius: 10px; overflow: hidden; }
+    .wave-row { display: grid; grid-template-columns: 1fr 120px; border-bottom: 1px solid #1e293b; }
+    .wave-row:last-child { border-bottom: none; }
+    .cv-wrap { position: relative; height: 62px; background-image: linear-gradient(to right, rgba(148,163,184,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.05) 1px, transparent 1px); background-size: 20px 20px; }
+    .cv-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .num-col { padding: 6px 8px; display: flex; flex-direction: column; justify-content: space-between; background: rgba(2,6,23,0.7); border-left: 1px solid #1e293b; }
+    .num-lbl { font-size: 10px; font-weight: 700; }
+    .num-val { font-size: 24px; font-weight: 800; line-height: 1; }
+    .num-sub { font-size: 9.5px; color: #94a3b8; }
+
+    .vital-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+    .v-card { background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 8px; }
+    .v-card .lbl { font-size: 10px; color: #94a3b8; font-weight: 700; }
+    .v-card .val { font-size: 17px; font-weight: 800; margin-top: 2px; }
+
+    .alarm-bar { margin-top: 8px; padding: 8px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #1e293b; background: #020617; color: #cbd5e1; }
+    .alarm-bar.warn { background: rgba(120,53,15,0.35); border-color: rgba(245,158,11,0.55); color: #fde68a; }
+    .alarm-bar.danger { background: rgba(127,29,29,0.45); border-color: rgba(244,63,94,0.7); color: #fecdd3; }
+    .alarm-bar.good { background: rgba(6,78,59,0.35); border-color: rgba(16,185,129,0.5); color: #a7f3d0; }
+
+    /* Option buttons inside step panel */
+    .opt-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
+    .opt-btn { text-align: left; padding: 8px 10px; border-radius: 9px; border: 1px solid #334155; background: #020617; color: #e2e8f0; transition: 0.15s; }
+    .opt-btn:hover { border-color: #38bdf8; }
+    .opt-btn.selected { border-color: #38bdf8; background: rgba(14,165,233,0.18); box-shadow: 0 0 0 1px rgba(56,189,248,0.4); }
+    .opt-btn .ot { font-size: 12px; font-weight: 800; color: #f8fafc; }
+    .opt-btn .od { font-size: 10px; color: #94a3b8; margin-top: 2px; line-height: 1.35; }
+
+    .feedback-box { margin-top: 8px; padding: 9px 10px; border-radius: 9px; font-size: 11.5px; line-height: 1.5; border: 1px solid rgba(56,189,248,0.35); background: rgba(15,23,42,0.95); color: #e2e8f0; }
+    .chat-box { margin-top: 8px; background: #020617; border: 1px solid #1e293b; border-radius: 9px; padding: 8px; max-height: 150px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 6px; }
+    .chat-msg { padding: 6px 8px; border-radius: 7px; line-height: 1.45; }
+    .chat-msg.owner { background: rgba(30,41,59,0.85); color: #e2e8f0; border-left: 2px solid #fbbf24; }
+    .chat-msg.vet { background: rgba(14,165,233,0.18); color: #bae6fd; border-left: 2px solid #38bdf8; }
+
+    .log-list { max-height: 140px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+    .log-item { padding: 3px 6px; border-left: 2px solid #475569; color: #cbd5e1; }
+    .log-item.good { border-color: #10b981; color: #a7f3d0; }
+    .log-item.warn { border-color: #f59e0b; color: #fde68a; }
+    .log-item.danger { border-color: #f43f5e; color: #fecdd3; }
+
+    /* Modal / Start Screen */
+    .overlay { position: fixed; inset: 0; z-index: 50; background: rgba(2,6,23,0.9); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-card { width: 100%; max-width: 480px; max-height: 90dvh; overflow-y: auto; background: #0f172a; border: 2px solid rgba(56,189,248,0.45); border-radius: 16px; padding: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
+    footer { text-align: center; padding: 8px 12px; font-size: 10px; color: #64748b; border-top: 1px solid #1e293b; background: #020617; margin-top: 8px; }
+    input[type="range"] { width: 100%; accent-color: #38bdf8; }
+  </style>
+</head>
+<body>
+  <!-- Standby Start Screen -->
+  <div id="start-screen" class="overlay" role="dialog" aria-modal="true">
+    <div class="modal-card" style="text-align:center; border-color: rgba(16,185,129,0.45);">
+      <div class="logo-box" style="margin: 0 auto 10px; width:46px; height:46px; border-radius:14px;">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h3l2-7 4 14 3-9 2 2h4"/></svg>
+      </div>
+      <div style="font-size:10px; font-weight:800; letter-spacing:0.12em; color:#34d399;">PHASE 1 · PREMEDICATION &amp; INDUCTION</div>
+      <h1 style="font-size:22px; font-weight:800; color:#fff; margin-top:4px;">마취 도입–전환 시뮬레이터</h1>
+      <div style="margin-top:14px; padding:12px; border-radius:10px; background:rgba(120,53,15,0.28); border:1px solid rgba(245,158,11,0.4); text-align:left; font-size:11px; line-height:1.55; color:#fef3c7;">
+        <strong style="color:#fcd34d;">교육·훈련용 안내</strong><br/>
+        본 시뮬레이터는 수의학 마취 모니터링의 이해를 돕기 위해 제작된 <strong>교육·훈련용 프로그램</strong>입니다. 생리학적 반응과 약물 효과는 학습 목적에 맞춰 단순화되어 실제 환자의 임상 반응과 다를 수 있으며, 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
+      </div>
+      <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
+        <button id="btn-start" type="button" class="btn btn-primary" style="padding:11px; font-size:13px;">▶ 도입 시뮬레이터 시작</button>
+        <button id="btn-credits" type="button" class="btn" style="padding:9px;">크레딧</button>
+        <button id="btn-portal" type="button" class="btn btn-sky" style="padding:8px;">🏠 3단계 통합 포털 (도입 · 유지 · 회복)</button>
+      </div>
+      <div style="margin-top:12px; font-size:10px; color:#64748b;">© 2026 DVM 이혁민 · All rights reserved.</div>
+    </div>
+  </div>
+
+  <!-- Credits Modal -->
+  <div id="credits-modal" class="overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width:320px; text-align:center;">
+      <div style="font-size:10px; font-weight:800; letter-spacing:0.1em; color:#7dd3fc;">CREDITS</div>
+      <h2 style="font-size:17px; font-weight:800; color:#fff; margin-top:4px;">제작 정보</h2>
+      <div style="margin-top:14px; background:#020617; border:1px solid #1e293b; border-radius:10px; padding:12px; font-size:12px;">
+        <div style="display:flex; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #1e293b;"><span style="color:#94a3b8;">제작</span><strong style="color:#fff;">DVM 이혁민</strong></div>
+        <div style="display:flex; justify-content:space-between; padding-top:8px;"><span style="color:#94a3b8;">제작 도구</span><strong style="color:#67e8f9;">Gemini</strong></div>
+      </div>
+      <button id="btn-credits-close" type="button" class="btn btn-primary" style="width:100%; margin-top:14px; padding:9px;">닫기</button>
+    </div>
+  </div>
+
+  <!-- Result & Hybrid Debrief Modal -->
+  <div id="result-modal" class="overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width:540px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+        <div>
+          <div style="font-size:10px; font-weight:800; color:#34d399; letter-spacing:0.1em;">INDUCTION COMPLETE · DEBRIEFING</div>
+          <h2 id="res-title" style="font-size:18px; font-weight:800; color:#fff; margin-top:2px;">도입–유지 전환 평가 리포트</h2>
+        </div>
+        <button id="btn-res-close" type="button" class="btn">닫기</button>
+      </div>
+      <div id="res-score-box" style="margin-top:10px; padding:10px; border-radius:10px; background:#020617; border:1px solid #334155; display:flex; justify-content:space-between; align-items:center;"></div>
+      <div id="res-local-body" style="margin-top:10px; font-size:12px; line-height:1.55; color:#e2e8f0; display:flex; flex-direction:column; gap:6px;"></div>
+      <div style="margin-top:12px; padding:10px; border-radius:10px; border:1px solid rgba(129,140,248,0.45); background:rgba(30,27,75,0.25);">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap;">
+          <strong style="font-size:12px; color:#67e8f9;">✦ AI 심층 로그 분석 &amp; SOAP 기록지</strong>
+          <div style="display:flex; gap:6px;">
+            <button id="btn-res-ai" type="button" class="btn btn-sky">✦ AI 해설</button>
+            <button id="btn-res-soap" type="button" class="btn btn-primary">📄 SOAP 생성</button>
+          </div>
+        </div>
+        <pre id="res-ai-out" class="hidden" style="margin-top:8px; background:#020617; border:1px solid #1e293b; border-radius:8px; padding:8px; font-size:11px; line-height:1.5; white-space:pre-wrap; color:#e2e8f0; max-height:180px; overflow-y:auto;"></pre>
+      </div>
+      <button id="btn-res-restart" type="button" class="btn btn-amber" style="width:100%; margin-top:12px; padding:10px;">새 케이스 / 다시 연습하기</button>
+    </div>
+  </div>
+
+  <div class="app-wrap">
+    <!-- Top Header -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-box">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h3l2-7 4 14 3-9 2 2h4"/></svg>
+        </div>
+        <div>
+          <div class="title">마취 도입–전환 시뮬레이터</div>
+          <div class="sub">전처치 · 전산소화 · 유도 · 삽관 · 유지 전환</div>
+        </div>
+      </div>
+      <div class="controls-row">
+        <div class="seg" role="group" aria-label="축종">
+          <button id="sp-dog" type="button" class="active">개</button>
+          <button id="sp-cat" type="button">고양이</button>
+        </div>
+        <select id="case-select" class="sel" aria-label="도입 케이스 선택">
+          <option value="routine">1. [기초] 건강한 성견/성묘 중성화 (ASA I–II)</option>
+          <option value="boas">2. [중급] 단두종(BOAS) / 고양이 후두경련 위험</option>
+          <option value="cardiac">3. [중급] 심장병 환자 (개 MMVD C / 고양이 HCM)</option>
+          <option value="gdv">4. [심화] 응급 GDV / 패혈증 쇼크 (ASA IV-E)</option>
+          <option value="icp">5. [심화] 뇌질환(ICP 상승) / 제왕절개</option>
+        </select>
+        <button id="btn-ai-new-case" type="button" class="btn btn-indigo">✦ AI 랜덤환자</button>
+        <button id="btn-reset" type="button" class="btn">초기화</button>
+        <button id="btn-open-start" type="button" class="btn">시작화면</button>
+      </div>
+    </header>
+
+    <!-- 6-Stage Stepper -->
+    <div class="stepper" id="stepper">
+      <div class="step-pill active" data-step="1">1. 평가·문진</div>
+      <div class="step-pill" data-step="2">2. 전처치</div>
+      <div class="step-pill" data-step="3">3. 전산소화</div>
+      <div class="step-pill" data-step="4">4. 유도제</div>
+      <div class="step-pill" data-step="5">5. 삽관·확인</div>
+      <div class="step-pill" data-step="6">6. 유지 전환</div>
+    </div>
+
+    <!-- Main 2-Column Workspace -->
+    <main class="main-grid">
+      <!-- Left: Live Monitor + Patient Info + Log -->
+      <section style="display:flex; flex-direction:column; gap:10px;">
+        <div class="card">
+          <div class="card-title">
+            <span id="case-header-title">개 8.0 kg · ASA I–II</span>
+            <span id="score-badge" class="mono" style="color:#fbbf24;">안전 점수 100점</span>
+          </div>
+          <p id="case-desc" style="font-size:12px; color:#cbd5e1; line-height:1.5;"></p>
+
+          <div class="wave-box" style="margin-top:8px;">
+            <div class="wave-row">
+              <div class="cv-wrap"><canvas id="cv-ecg"></canvas></div>
+              <div class="num-col"><span class="num-lbl" style="color:#4ade80;">ECG · HR</span><span id="v-hr" class="num-val mono" style="color:#4ade80;">105</span><span id="v-rhythm" class="num-sub">NSR</span></div>
+            </div>
+            <div class="wave-row">
+              <div class="cv-wrap"><canvas id="cv-spo2"></canvas></div>
+              <div class="num-col"><span class="num-lbl" style="color:#38bdf8;">PLETH · SpO₂</span><span id="v-spo2" class="num-val mono" style="color:#38bdf8;">99</span><span id="v-spo2-sub" class="num-sub">정상 산소화</span></div>
+            </div>
+            <div class="wave-row">
+              <div class="cv-wrap"><canvas id="cv-co2"></canvas></div>
+              <div class="num-col"><span class="num-lbl" style="color:#facc15;">CO₂ · ETCO₂</span><span id="v-co2" class="num-val mono" style="color:#facc15;">--</span><span id="v-co2-sub" class="num-sub">미삽관</span></div>
+            </div>
+          </div>
+
+          <div class="vital-strip">
+            <div class="v-card"><div class="lbl">혈압 MAP (mmHg)</div><div id="v-map" class="val mono" style="color:#fb7185;">88</div></div>
+            <div class="v-card"><div class="lbl">기도 / 진정 상태</div><div id="v-airway" class="val" style="font-size:13px; color:#6ee7b7;">의식 명료</div></div>
+            <div class="v-card"><div class="lbl">호흡 상태 (RR)</div><div id="v-rr" class="val mono" style="color:#facc15;">20 /min</div></div>
+          </div>
+
+          <div id="alarm-bar" class="alarm-bar good">안정 상태 — 1단계 환자 평가 및 보호자 문진 후 전처치를 진행하세요.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>실시간 도입 처치 로그</span><span id="stage-label" style="color:#94a3b8; font-size:11px;">Step 1 / 6</span></div>
+          <div id="log-list" class="log-list"></div>
+        </div>
+      </section>
+
+      <!-- Right: Step-by-Step Interactive Action Panel -->
+      <aside class="card" id="action-panel"></aside>
+    </main>
+  </div>
+
+  <footer>
+    <strong style="color:#94a3b8;">마취 도입–전환 시뮬레이터 · © 2026 DVM 이혁민.</strong> All rights reserved. · 본 시뮬레이터는 수의학 교육·훈련용 프로그램으로 실제 환자의 임상 반응과 다를 수 있으며, 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const CASES = {
+        routine: {
+          name: '건강한 성견/성묘 중성화', asa: 'ASA I–II',
+          dog: { wt: 8.0, desc: '2세 중성화 예정 건강한 성견(8 kg). 신체검사·혈액검사 정상, 심잡음 없음.', hr: 105, map: 92, spo2: 99, rr: 20, tube: '6.5mm', ownerClue: '어젯밤 10시부터 금식했고 평소 건강해요. 약 먹는 건 없어요.' },
+          cat: { wt: 4.0, desc: '1세 중성화 예정 건강한 성묘(4 kg). 신체검사 정상. 고양이는 후두경련 예방을 위해 삽관 전 국소 리도카인 스프레이가 권장됩니다.', hr: 155, map: 96, spo2: 99, rr: 26, tube: '4.0mm', ownerClue: '금식 잘 지켰고 평소 기침이나 구토 전혀 없었어요.' },
+          avoid: [], goodPremed: ['dex', 'ace', 'midaz'], goodInd: ['propofol', 'alfaxalone', 'ket_midaz']
+        },
+        boas: {
+          name: '단두종(BOAS) / 후두경련 위험', asa: 'ASA III',
+          dog: { wt: 10.0, desc: '4세 프렌치불독(10 kg). 연구개 과장·비공 협착으로 평소 코골이 심함. 전산소화 없이 유도 무호흡 발생 시 SpO₂가 급락합니다.', hr: 118, map: 94, spo2: 96, rr: 28, tube: '5.5mm (소구경)', ownerClue: '평소 흥분하면 캑캑거리고 가끔 아침에 흰 거품을 토해요.' },
+          cat: { wt: 4.2, desc: '3세 페르시안(4.2 kg). 긴장도 높고 단두형 기도 구조. 전산소화 및 후두 리도카인 스프레이 누락 시 심각한 후두경련 위험.', hr: 175, map: 98, spo2: 97, rr: 32, tube: '3.5mm', ownerClue: '이동장에서도 입 벌리고 숨 쉴 정도로 스트레스를 많이 받아요.' },
+          avoid: ['no_preox'], goodPremed: ['ace', 'midaz'], goodInd: ['propofol', 'alfaxalone']
+        },
+        cardiac: {
+          name: '심장병 환자 (MMVD C / HCM)', asa: 'ASA III–IV',
+          dog: { wt: 6.5, desc: '11세 말티즈(6.5 kg), MMVD Stage C(폐수종 병력). 혈압 변동과 과도한 후부하 증가(α₂ 효능제)·빈맥(Ketamine)을 피해야 합니다.', hr: 132, map: 84, spo2: 97, rr: 26, tube: '5.5mm', ownerClue: '피모벤단하고 이뇨제를 매일 먹고 있어요. 아침 약은 먹이고 왔어요.' },
+          cat: { wt: 4.5, desc: '7세 브리티시숏헤어(4.5 kg), HCM(비대성 심근병증). 빈맥과 심근 산소소비 증가(Ketamine) 절대 금기! 안정적 심박수 유지가 핵심.', hr: 184, map: 92, spo2: 97, rr: 28, tube: '4.0mm', ownerClue: '심장 초음파에서 벽이 두껍다고 했고 아테놀롤 복용 중이에요.' },
+          avoid: ['ket_midaz', 'dex_dog_mmvd'], goodPremed: ['midaz'], goodInd: ['alfaxalone', 'propofol']
+        },
+        gdv: {
+          name: '응급 GDV / 패혈증 쇼크', asa: 'ASA IV-E',
+          dog: { wt: 26.0, desc: '8세 대형견(26 kg), 위확장염전(GDV) 응급. 빈맥·저혈압·탈수 동반. 저용량 Co-induction과 천천히 적정 투여 필수(급속 Propofol 시 쇼크 악화!).', hr: 152, map: 64, spo2: 96, rr: 30, tube: '9.5mm', ownerClue: '2시간 전 밥 먹고 뛰어놀다 갑자기 배가 빵빵해지고 헛구역질했어요.' },
+          cat: { wt: 3.8, desc: '6세 패혈성 복막염 고양이(3.8 kg). 심한 저혈압·빈맥 상태. α₂ 효능제·Acepromazine·급속 볼루스 유도를 피하고 혈역학 안정 유도 필수.', hr: 196, map: 62, spo2: 96, rr: 32, tube: '4.0mm', ownerClue: '이틀 전부터 밥을 못 먹고 어젯밤부터 기력이 완전히 떨어졌어요.' },
+          avoid: ['dex', 'ace', 'fast_bolus'], goodPremed: ['midaz'], goodInd: ['alfaxalone', 'ket_midaz']
+        },
+        icp: {
+          name: '뇌질환(ICP 상승) / 제왕절개', asa: 'ASA III–IV',
+          dog: { wt: 9.0, desc: '6세 시추(9 kg), 뇌종양 의심 MRI(두개내압 상승 위험). 기침·구토·고탄산혈증·Ketamine(뇌혈류/ICP↑)을 피하고 부드럽고 신속한 기도 확보 필수.', hr: 84, map: 102, spo2: 98, rr: 18, tube: '6.0mm', ownerClue: '어제 경련을 한 번 했고 아침에 물은 조금 마셨어요.' },
+          cat: { wt: 4.1, desc: '2세 임신 말기 제왕절개 고양이(4.1 kg). FRC 감소로 전산소화 필수, α₂ 효능제·고용량 진정제는 태아 억제를 유발하므로 최소화해야 합니다.', hr: 170, map: 86, spo2: 97, rr: 30, tube: '4.0mm', ownerClue: '진통 시작한 지 4시간 넘었는데 새끼가 안 나와서 응급으로 왔어요.' },
+          avoid: ['ket_midaz', 'dex', 'no_preox'], goodPremed: ['midaz', 'none'], goodInd: ['propofol', 'alfaxalone']
+        }
+      };
+
+      const st = {
+        species: 'dog', caseId: 'routine', customCase: null,
+        step: 1, score: 100, paused: true,
+        hr: 105, map: 92, spo2: 99, rr: 20, etco2: 0,
+        intubated: false, esophageal: false, laryngospasm: false, apnea: false,
+        premedSed: 'midaz', premedOpi: 'methadone',
+        preox: true, indDrug: 'propofol', indSpeed: 'slow',
+        tubeSize: 'fit', lidoSpray: false, cuffInflated: false,
+        o2Flow: 1.5, isoInit: 1.5, aplOpen: true,
+        aiReviewText: '', mistakes: [], goodPoints: [], logs: [],
+        ownerAsked: false
+      };
+
+      const el = {
+        spDog: document.getElementById('sp-dog'), spCat: document.getElementById('sp-cat'),
+        caseSel: document.getElementById('case-select'),
+        headerTitle: document.getElementById('case-header-title'),
+        caseDesc: document.getElementById('case-desc'),
+        scoreBadge: document.getElementById('score-badge'),
+        vHr: document.getElementById('v-hr'), vRhythm: document.getElementById('v-rhythm'),
+        vSpo2: document.getElementById('v-spo2'), vSpo2Sub: document.getElementById('v-spo2-sub'),
+        vCo2: document.getElementById('v-co2'), vCo2Sub: document.getElementById('v-co2-sub'),
+        vMap: document.getElementById('v-map'), vAirway: document.getElementById('v-airway'), vRr: document.getElementById('v-rr'),
+        alarmBar: document.getElementById('alarm-bar'), stageLabel: document.getElementById('stage-label'),
+        logList: document.getElementById('log-list'), panel: document.getElementById('action-panel'),
+        cvEcg: document.getElementById('cv-ecg'), cvSpo2: document.getElementById('cv-spo2'), cvCo2: document.getElementById('cv-co2')
+      };
+
+      function getCase() {
+        if (st.customCase) return st.customCase;
+        const c = CASES[st.caseId];
+        return { name: c.name, asa: c.asa, avoid: c.avoid, ...c[st.species] };
+      }
+
+      function addLog(msg, tone = 'info') {
+        const now = new Date();
+        const t = `${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+        st.logs.unshift({ t, msg, tone });
+        el.logList.innerHTML = st.logs.slice(0, 20).map(l => `<div class="log-item ${l.tone}"><span class="mono" style="color:#64748b;margin-right:6px;">${l.t}</span>${l.msg}</div>`).join('');
+      }
+
+      function setAlarm(msg, tone = 'good') {
+        el.alarmBar.textContent = msg;
+        el.alarmBar.className = 'alarm-bar ' + tone;
+      }
+
+      function updateVitalsUI() {
+        const c = getCase();
+        el.headerTitle.textContent = `${st.species === 'dog' ? '개' : '고양이'} ${c.wt} kg · ${c.asa} · ${c.name}`;
+        el.caseDesc.textContent = c.desc;
+        el.scoreBadge.textContent = `안전 점수 ${Math.max(0, st.score)}점`;
+        el.vHr.textContent = Math.round(st.hr);
+        el.vRhythm.textContent = st.hr < (st.species === 'dog' ? 60 : 100) ? '서맥' : (st.hr > (st.species === 'dog' ? 140 : 195) ? '빈맥' : 'NSR');
+        el.vSpo2.textContent = Math.round(st.spo2);
+        el.vSpo2Sub.textContent = st.spo2 < 90 ? '저산소 경고!' : (st.spo2 < 95 ? '주의' : '정상 산소화');
+        el.vCo2.textContent = st.intubated ? (st.esophageal ? '0' : Math.round(st.etco2)) : '--';
+        el.vCo2Sub.textContent = !st.intubated ? '미삽관' : (st.esophageal ? '파형 소실(식도 의심!)' : '정상 사각파');
+        el.vMap.textContent = Math.round(st.map);
+        el.vRr.textContent = st.apnea ? '0 (무호흡)' : `${Math.round(st.rr)} /min`;
+        el.stageLabel.textContent = `Step ${st.step} / 6`;
+        document.querySelectorAll('.step-pill').forEach(p => {
+          const n = Number(p.dataset.step);
+          p.className = 'step-pill' + (n === st.step ? ' active' : (n < st.step ? ' done' : ''));
+        });
+      }
+
+      function resetSim() {
+        const c = getCase();
+        st.step = 1; st.score = 100;
+        st.hr = c.hr; st.map = c.map; st.spo2 = c.spo2; st.rr = c.rr; st.etco2 = 40;
+        st.intubated = false; st.esophageal = false; st.laryngospasm = false; st.apnea = false;
+        st.premedSed = 'midaz'; st.premedOpi = 'methadone';
+        st.preox = true; st.indDrug = 'propofol'; st.indSpeed = 'slow';
+        st.tubeSize = 'fit'; st.lidoSpray = false; st.cuffInflated = false;
+        st.o2Flow = 1.5; st.isoInit = 1.5; st.aplOpen = true;
+        st.aiReviewText = ''; st.mistakes = []; st.goodPoints = []; st.logs = []; st.ownerAsked = false;
+        el.vAirway.textContent = '의식 명료';
+        addLog(`[케이스 시작] ${st.species === 'dog' ? '개' : '고양이'} · ${c.name} (${c.asa})`, 'info');
+        setAlarm('1단계: 환자 신체검사 및 보호자 문진으로 숨겨진 위험 요인을 확인하세요.', 'good');
+        updateVitalsUI();
+        renderStep();
+      }
+
+      function renderStep() {
+        const c = getCase();
+        if (st.step === 1) {
+          el.panel.innerHTML = `
+            <div class="card-title"><span>1단계 · 환자 평가 &amp; 보호자 AI 문진</span></div>
+            <p style="font-size:12px; color:#cbd5e1; line-height:1.5;">마취 전 보호자에게 금식 여부, 복용 약물, 기저 증상을 문진해 위험 요인을 파악하세요.</p>
+            <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:8px;">
+              <button type="button" class="btn btn-sky q-owner">금식과 음수는 잘 지켰나요?</button>
+              <button type="button" class="btn btn-sky q-owner">현재 복용 중인 약이나 증상이 있나요?</button>
+            </div>
+            <div style="display:flex; gap:6px; margin-top:8px;">
+              <input id="owner-q-input" type="text" placeholder="보호자에게 직접 질문하기..." style="flex:1; background:#020617; border:1px solid #334155; border-radius:8px; padding:6px 8px; font-size:12px;" />
+              <button id="btn-ask-owner" type="button" class="btn btn-amber">문진</button>
+            </div>
+            <div id="owner-chat" class="chat-box">
+              <div class="chat-msg owner"><strong>보호자:</strong> 선생님, 우리 아이 마취 안전하게 잘 되겠죠? 궁금한 거 물어보세요.</div>
+            </div>
+            <button id="btn-next-1" type="button" class="btn btn-primary" style="width:100%; margin-top:12px; padding:10px; font-size:12px;">2단계: 전처치 약물 선택으로 →</button>`;
+          const chat = document.getElementById('owner-chat');
+          const inp = document.getElementById('owner-q-input');
+          async function askOwner(q) {
+            if (!q) return;
+            st.ownerAsked = true;
+            chat.innerHTML += `<div class="chat-msg vet"><strong>수의사:</strong> ${q}</div>`;
+            let reply = c.ownerClue;
+            try {
+              const res = await fetch('/.netlify/functions/ai', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task: 'roleplay', role: 'owner_preop', species: st.species === 'dog' ? '개' : '고양이', caseDesc: c.desc, clue: c.ownerClue, question: q })
+              });
+              if (res.ok) { const d = await res.json(); if (d && d.text) reply = d.text; }
+            } catch (e) {}
+            chat.innerHTML += `<div class="chat-msg owner"><strong>보호자:</strong> ${reply}</div>`;
+            chat.scrollTop = chat.scrollHeight;
+            addLog(`[보호자 문진] "${q}" → 주요 병력 확인`, 'good');
+          }
+          document.querySelectorAll('.q-owner').forEach(b => b.addEventListener('click', () => askOwner(b.textContent)));
+          document.getElementById('btn-ask-owner').addEventListener('click', () => { askOwner(inp.value.trim()); inp.value = ''; });
+          document.getElementById('btn-next-1').addEventListener('click', () => {
+            if (st.ownerAsked) st.goodPoints.push('도입 전 보호자 문진으로 금식·복약·병력 단서를 확인함');
+            else { st.score -= 5; st.mistakes.push('보호자 문진 생략 (금식·복약 여부 미확인)'); }
+            st.step = 2; updateVitalsUI(); renderStep();
+          });
+        } else if (st.step === 2) {
+          el.panel.innerHTML = `
+            <div class="card-title"><span>2단계 · 전처치 약물(Premedication) 선택</span></div>
+            <div style="font-size:11px; font-weight:700; color:#94a3b8;">① 진정제 선택</div>
+            <div class="opt-grid">
+              <button type="button" class="opt-btn sed-opt ${st.premedSed==='dex'?'selected':''}" data-v="dex"><div class="ot">Dexmedetomidine</div><div class="od">강력 진정·MAC 절감 / 서맥·혈관수축(심장·쇼크 주의)</div></button>
+              <button type="button" class="opt-btn sed-opt ${st.premedSed==='ace'?'selected':''}" data-v="ace"><div class="ot">Acepromazine</div><div class="od">부드러운 진정 / 혈관확장·저혈압(쇼크·GDV 금기)</div></button>
+              <button type="button" class="opt-btn sed-opt ${st.premedSed==='midaz'?'selected':''}" data-v="midaz"><div class="ot">Midazolam</div><div class="od">심혈관 영향 최소 / 노령·심장·쇼크 환자에 안전</div></button>
+              <button type="button" class="opt-btn sed-opt ${st.premedSed==='none'?'selected':''}" data-v="none"><div class="ot">진정제 생략</div><div class="od">제왕절개·극도 쇠약 시 고려 (유도제 요구량↑)</div></button>
+            </div>
+            <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-top:10px;">② 진통제(Opioid) 선택</div>
+            <div class="opt-grid">
+              <button type="button" class="opt-btn opi-opt ${st.premedOpi==='methadone'?'selected':''}" data-v="methadone"><div class="ot">Methadone (μ 효능제)</div><div class="od">강력한 수술 통증 차단 · 유도제 절감</div></button>
+              <button type="button" class="opt-btn opi-opt ${st.premedOpi==='butorphanol'?'selected':''}" data-v="butorphanol"><div class="ot">Butorphanol (κ 효능제)</div><div class="od">경도 진정·진통 / 강한 수술 통증에는 부족</div></button>
+            </div>
+            <button id="btn-apply-premed" type="button" class="btn btn-primary" style="width:100%; margin-top:12px; padding:10px;">전처치 투여 및 3단계(전산소화)로 →</button>`;
+          document.querySelectorAll('.sed-opt').forEach(b => b.addEventListener('click', () => { st.premedSed = b.dataset.v; renderStep(); }));
+          document.querySelectorAll('.opi-opt').forEach(b => b.addEventListener('click', () => { st.premedOpi = b.dataset.v; renderStep(); }));
+          document.getElementById('btn-apply-premed').addEventListener('click', () => {
+            el.vAirway.textContent = st.premedSed === 'none' ? '각성 유지' : '진정 상태';
+            if (st.premedSed === 'dex') {
+              st.hr = Math.max(42, st.hr - (st.species === 'dog' ? 38 : 48));
+              st.map = Math.min(130, st.map + 14);
+              if (st.caseId === 'gdv' || (st.caseId === 'cardiac' && st.species === 'dog') || st.caseId === 'icp') {
+                st.score -= 18;
+                st.mistakes.push(`${c.name} 환자에서 Dexmedetomidine 선택 (과도한 후부하 증가/서맥/태아·혈역학 부담)`);
+                setAlarm('주의! 이 환자군에서 Dexmedetomidine은 심혈관 부담·서맥 위험이 큽니다.', 'danger');
+              } else {
+                st.goodPoints.push('적절한 α₂ 효능제 전처치로 진정 및 유도제 절감 확보');
+                setAlarm('Dexmedetomidine 전처치 완료 — 반사성 서맥 및 혈압 상승 관찰 중.', 'warn');
+              }
+            } else if (st.premedSed === 'ace') {
+              st.map -= 14;
+              if (st.caseId === 'gdv') {
+                st.score -= 18;
+                st.mistakes.push('쇼크/GDV 환자에서 Acepromazine 선택 → 혈관확장 저혈압 악화');
+                setAlarm('경고! 쇼크 환자에서 Acepromazine 투여로 혈압(MAP)이 급락했습니다!', 'danger');
+              } else {
+                st.goodPoints.push('Acepromazine으로 부드러운 진정 유도');
+                setAlarm('Acepromazine 전처치 완료 — 경도 혈압 하강 관찰.', 'good');
+              }
+            } else if (st.premedSed === 'midaz') {
+              st.goodPoints.push('심혈관 안정성이 높은 Midazolam 전처치 선택');
+              setAlarm('Midazolam + 진통제 전처치 완료 — 심혈관 지표 안정 유지.', 'good');
+            }
+            addLog(`[전처치 투여] 진정: ${st.premedSed}, 진통: ${st.premedOpi}`, 'info');
+            st.step = 3; updateVitalsUI(); renderStep();
+          });
+        } else if (st.step === 3) {
+          el.panel.innerHTML = `
+            <div class="card-title"><span>3단계 · 전산소화 (Preoxygenation)</span></div>
+            <p style="font-size:12px; color:#cbd5e1; line-height:1.5;">유도 전 100% O₂로 3분간 전산소화를 시행하면 폐의 질소가 산소로 치환되어 유도 무호흡 시 저산소증까지 안전 시간이 3~5배 늘어납니다.</p>
+            <div class="opt-grid" style="margin-top:10px;">
+              <button type="button" class="opt-btn preox-opt ${st.preox?'selected':''}" data-v="1"><div class="ot">✅ 100% O₂ 3분 전산소화</div><div class="od">안전 무호흡 시간 확보 (단두종·고양이·임신·쇼크 필수)</div></button>
+              <button type="button" class="opt-btn preox-opt ${!st.preox?'selected':''}" data-v="0"><div class="ot">⏭ 전산소화 생략</div><div class="od">시간 단축 / 유도 무호흡 시 SpO₂ 급락 위험</div></button>
+            </div>
+            <button id="btn-next-3" type="button" class="btn btn-primary" style="width:100%; margin-top:12px; padding:10px;">4단계: 유도제 선택으로 →</button>`;
+          document.querySelectorAll('.preox-opt').forEach(b => b.addEventListener('click', () => { st.preox = b.dataset.v === '1'; renderStep(); }));
+          document.getElementById('btn-next-3').addEventListener('click', () => {
+            if (st.preox) {
+              st.spo2 = Math.min(100, st.spo2 + 2);
+              st.goodPoints.push('유도 전 100% O₂ 전산소화로 안전 무호흡 시간 확보');
+              addLog('[전산소화 완료] 100% O₂ 3분 공급 — 폐포 산소 예비력 확보', 'good');
+              setAlarm('전산소화 완료 — 이제 환자에 맞는 유도제와 주입 속도를 선택하세요.', 'good');
+            } else {
+              if (c.avoid.includes('no_preox') || st.caseId === 'gdv') {
+                st.score -= 15;
+                st.mistakes.push(`${c.name} 환자에서 전산소화 생략 → 유도 중 저산소혈증 위험 급증`);
+                setAlarm('경고! 고위험 환자에서 전산소화를 생략했습니다 — 유도 무호흡 시 SpO₂ 급락 주의!', 'warn');
+              }
+              addLog('[전산소화 생략] 바로 마취 유도로 진행', 'warn');
+            }
+            st.step = 4; updateVitalsUI(); renderStep();
+          });
+        } else if (st.step === 4) {
+          el.panel.innerHTML = `
+            <div class="card-title"><span>4단계 · 유도제 선택 &amp; 주입 속도 (AI 즉석 심사)</span></div>
+            <div style="font-size:11px; font-weight:700; color:#94a3b8;">① 유도제 선택</div>
+            <div class="opt-grid" style="grid-template-columns:1fr;">
+              <button type="button" class="opt-btn ind-opt ${st.indDrug==='propofol'?'selected':''}" data-v="propofol"><div class="ot">Propofol (2–4 mg/kg to effect)</div><div class="od">빠르고 부드러운 유도 / 급속 주입 시 무호흡·저혈압 유발</div></button>
+              <button type="button" class="opt-btn ind-opt ${st.indDrug==='alfaxalone'?'selected':''}" data-v="alfaxalone"><div class="ot">Alfaxalone (1–2 mg/kg to effect)</div><div class="od">심혈관 안정성 우수 (심장병·쇼크 환자에 유리)</div></button>
+              <button type="button" class="opt-btn ind-opt ${st.indDrug==='ket_midaz'?'selected':''}" data-v="ket_midaz"><div class="ot">Ketamine + Midazolam</div><div class="od">교감신경 자극으로 혈압 유지 / HCM 빈맥·ICP 상승 환자 금기!</div></button>
+            </div>
+            <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-top:10px;">② 정맥 주입 속도</div>
+            <div class="opt-grid">
+              <button type="button" class="opt-btn spd-opt ${st.indSpeed==='slow'?'selected':''}" data-v="slow"><div class="ot">천천히 적정 투여 (30–60초)</div><div class="od">to effect — 무호흡·저혈압 최소화</div></button>
+              <button type="button" class="opt-btn spd-opt ${st.indSpeed==='fast'?'selected':''}" data-v="fast"><div class="ot">급속 볼루스 투여 (5–10초)</div><div class="od">유도 무호흡·혈압 급락 위험 증가</div></button>
+            </div>
+            <div id="ai-drug-review" class="feedback-box hidden"></div>
+            <button id="btn-run-ind" type="button" class="btn btn-amber" style="width:100%; margin-top:12px; padding:10px;">유도제 투여 &amp; AI 즉석 조합 심사 →</button>`;
+          document.querySelectorAll('.ind-opt').forEach(b => b.addEventListener('click', () => { st.indDrug = b.dataset.v; renderStep(); }));
+          document.querySelectorAll('.spd-opt').forEach(b => b.addEventListener('click', () => { st.indSpeed = b.dataset.v; renderStep(); }));
+          document.getElementById('btn-run-ind').addEventListener('click', async () => {
+            el.vAirway.textContent = '마취 유도 완료 (삽관 필요)';
+            let localNote = '';
+            if (st.indDrug === 'ket_midaz' && (st.caseId === 'cardiac' || st.caseId === 'icp')) {
+              st.score -= 22; st.hr += 38; st.map += 12;
+              st.mistakes.push(`${c.name} 환자에서 Ketamine 선택 (빈맥·심근산소소비↑ 또는 두개내압 ICP 상승 금기)`);
+              localNote = '⚠️ 금기 조합: 심장병(특히 HCM)이나 두개내압(ICP) 상승 환자에서 Ketamine은 빈맥과 ICP 급등을 유발합니다.';
+              setAlarm(localNote, 'danger');
+            } else {
+              st.goodPoints.push(`${c.name} 환자에 적합한 유도제(${st.indDrug}) 선택`);
+              localNote = `✅ ${st.indDrug} 선택은 현재 환자군에 적절합니다.`;
+            }
+            if (st.indSpeed === 'fast') {
+              st.apnea = true; st.rr = 0;
+              st.map = Math.max(40, st.map - (st.indDrug === 'propofol' ? 24 : 14));
+              st.spo2 = st.preox ? Math.max(93, st.spo2 - 3) : Math.max(82, st.spo2 - 14);
+              st.score -= 15;
+              st.mistakes.push('유도제 급속 볼루스 투여 → 유도 무호흡 및 혈압(MAP) 급락 발생');
+              localNote += ' 단, 급속 볼루스 투여로 유도 무호흡과 저혈압이 발생했습니다!';
+              setAlarm('유도 무호흡 & 혈압 저하 발생! 신속히 삽관 후 산소·환기를 공급하세요!', 'danger');
+            } else {
+              st.map = Math.max(55, st.map - 6);
+              st.rr = Math.max(8, st.rr - 8);
+              if (!st.preox && st.caseId === 'boas') st.spo2 = 88;
+              st.goodPoints.push('천천히 적정 투여(to effect)로 유도 무호흡·저혈압 최소화');
+              localNote += ' 천천히 적정 투여해 혈역학 변화가 안정적입니다.';
+            }
+            addLog(`[유도 투여] ${st.indDrug} (${st.indSpeed === 'slow' ? '천천히 적정' : '급속 볼루스'})`, st.indSpeed === 'fast' ? 'danger' : 'good');
+            // Optional AI 2-line review
+            const revBox = document.getElementById('ai-drug-review');
+            revBox.classList.remove('hidden');
+            revBox.textContent = localNote + ' (AI 조합 심사 요청 중...)';
+            try {
+              const res = await fetch('/.netlify/functions/ai', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task: 'review_drugs', species: st.species === 'dog' ? '개' : '고양이', caseName: c.name, premed: `${st.premedSed}+${st.premedOpi}`, induction: `${st.indDrug} (${st.indSpeed})` })
+              });
+              if (res.ok) { const d = await res.json(); if (d && d.text) { st.aiReviewText = d.text; revBox.textContent = '✦ AI 심사: ' + d.text; } else revBox.textContent = localNote; }
+              else revBox.textContent = localNote;
+            } catch (e) { revBox.textContent = localNote; }
+            updateVitalsUI();
+            const btn = document.getElementById('btn-run-ind');
+            btn.textContent = '5단계: 기관내삽관 진행 →';
+            btn.className = 'btn btn-primary';
+            btn.onclick = () => { st.step = 5; updateVitalsUI(); renderStep(); };
+          });
+        } else if (st.step === 5) {
+          const isCat = st.species === 'cat';
+          el.panel.innerHTML = `
+            <div class="card-title"><span>5단계 · 기관내삽관(Intubation) &amp; ETCO₂ 확인</span></div>
+            <div style="font-size:11px; font-weight:700; color:#94a3b8;">① 기관내튜브 크기 선택 (권장: ${c.tube})</div>
+            <div class="opt-grid" style="grid-template-columns:repeat(3,1fr);">
+              <button type="button" class="opt-btn tb-opt ${st.tubeSize==='fit'?'selected':''}" data-v="fit"><div class="ot">${c.tube}</div><div class="od">적정 크기</div></button>
+              <button type="button" class="opt-btn tb-opt ${st.tubeSize==='big'?'selected':''}" data-v="big"><div class="ot">너무 큼</div><div class="od">기도 손상 위험</div></button>
+              <button type="button" class="opt-btn tb-opt ${st.tubeSize==='small'?'selected':''}" data-v="small"><div class="ot">너무 작음</div><div class="od">저항↑·누출</div></button>
+            </div>
+            ${isCat ? `
+            <div style="margin-top:8px;">
+              <button id="btn-lido-spray" type="button" class="btn ${st.lidoSpray?'btn-primary':'btn-amber'}" style="width:100%; padding:8px;">
+                ${st.lidoSpray ? '✅ 고양이 후두 Lidocaine 2% 스프레이 도포 완료' : '고양이 후두 Lidocaine 2% 스프레이 도포 (후두경련 예방)'}
+              </button>
+            </div>` : ''}
+            <div style="display:flex; gap:6px; margin-top:10px;">
+              <button id="btn-intubate" type="button" class="btn btn-amber" style="flex:1; padding:10px;">기관내삽관 실시</button>
+              <button id="btn-cuff" type="button" class="btn ${st.cuffInflated?'btn-primary':''}" style="flex:1; padding:10px;">${st.cuffInflated ? '✅ 커프 팽창 완료' : '커프 팽창(Leak 체크)'}</button>
+            </div>
+            ${st.esophageal ? `
+            <div class="feedback-box" style="border-color:#f43f5e; background:rgba(127,29,29,0.4); color:#fecdd3;">
+              🚨 <strong>식도삽관 의심!</strong> ETCO₂ 파형이 0 mmHg 평선입니다. 즉시 발관 후 후두개를 직접 확인하며 재삽관하세요!
+              <button id="btn-reintubate" type="button" class="btn btn-rose" style="width:100%; margin-top:8px; padding:8px;">즉시 발관 및 기관 재삽관</button>
+            </div>` : ''}
+            ${st.intubated && !st.esophageal ? `<button id="btn-next-5" type="button" class="btn btn-primary" style="width:100%; margin-top:10px; padding:10px;">6단계: 마취기 연결 &amp; 유지 전환 →</button>` : ''}`;
+          document.querySelectorAll('.tb-opt').forEach(b => b.addEventListener('click', () => { st.tubeSize = b.dataset.v; renderStep(); }));
+          const spBtn = document.getElementById('btn-lido-spray');
+          if (spBtn) spBtn.addEventListener('click', () => { st.lidoSpray = true; st.goodPoints.push('고양이 삽관 전 후두 리도카인 스프레이로 후두경련 예방'); addLog('[후두 처치] 고양이 후두 Lidocaine 2% 국소 도포 완료', 'good'); renderStep(); });
+          document.getElementById('btn-cuff').addEventListener('click', () => { st.cuffInflated = true; addLog('[커프 팽창] 15–20 cmH₂O 압력에서 누출 없음 확인', 'good'); renderStep(); });
+          document.getElementById('btn-intubate').addEventListener('click', () => {
+            if (isCat && !st.lidoSpray) {
+              st.laryngospasm = true; st.spo2 = Math.max(82, st.spo2 - 9); st.score -= 15;
+              st.mistakes.push('고양이 삽관 전 후두 리도카인 스프레이 생략 → 일시적 후두경련·SpO₂ 저하');
+              setAlarm('고양이 후두경련 발생! 리도카인 스프레이 도포 후 부드럽게 재시도하세요.', 'danger');
+              addLog('[합병증] 고양이 후두경련 발생 (리도카인 스프레이 미실시)', 'danger');
+            }
+            if (st.tubeSize !== 'fit') {
+              st.score -= 10;
+              st.mistakes.push(`부적절한 기관내튜브 크기 선택 (${st.tubeSize})`);
+            }
+            // Simulate 30% realistic chance of accidental esophageal intubation on first attempt in intermediate/advanced cases to train ETCO2 verification!
+            st.intubated = true;
+            if (!st.esophageal && (st.caseId === 'boas' || st.caseId === 'gdv') && !st.reintubatedDone) {
+              st.esophageal = true;
+              el.vAirway.textContent = 'ETCO₂ 0 (식도삽관!)';
+              setAlarm('경고! ETCO₂ 파형이 전혀 나타나지 않습니다 — 식도삽관 여부를 즉시 확인하세요!', 'danger');
+              addLog('[삽관 확인] ETCO₂ 파형 소실(0 mmHg) — 식도삽관 의심!', 'danger');
+            } else {
+              st.esophageal = false; st.etco2 = 42; st.apnea = false; st.rr = 12; st.spo2 = Math.min(100, Math.max(96, st.spo2 + 6));
+              el.vAirway.textContent = '기관내삽관 확보 (정상)';
+              setAlarm('정상 ETCO₂ 사각파 확인! 커프 팽창 후 6단계 마취기 연결로 넘어가세요.', 'good');
+              addLog('[기관내삽관 성공] ETCO₂ 사각파 확인 완료', 'good');
+            }
+            updateVitalsUI(); renderStep();
+          });
+          const reBtn = document.getElementById('btn-reintubate');
+          if (reBtn) reBtn.addEventListener('click', () => {
+            st.reintubatedDone = true; st.esophageal = false; st.etco2 = 44; st.apnea = false; st.rr = 12; st.spo2 = 98;
+            st.goodPoints.push('ETCO₂ 파형 소실을 보고 식도삽관을 즉시 감별·재삽관 완료');
+            el.vAirway.textContent = '기관내삽관 확보 (정상)';
+            setAlarm('재삽관 성공! 정상 ETCO₂ 사각파 및 SpO₂ 회복 확인.', 'good');
+            addLog('[재삽관 성공] 식도삽관 교정 후 정상 ETCO₂ 파형 확인', 'good');
+            updateVitalsUI(); renderStep();
+          });
+          const next5 = document.getElementById('btn-next-5');
+          if (next5) next5.addEventListener('click', () => {
+            if (!st.cuffInflated) { st.score -= 10; st.mistakes.push('기관내튜브 커프 팽창 누락 (가스 누출·오연 위험)'); }
+            st.step = 6; updateVitalsUI(); renderStep();
+          });
+        } else if (st.step === 6) {
+          el.panel.innerHTML = `
+            <div class="card-title"><span>6단계 · 마취기 연결 &amp; 유지기 안전 전환</span></div>
+            <div style="display:flex; flex-direction:column; gap:10px; font-size:12px;">
+              <div>
+                <div style="display:flex; justify-content:space-between;"><span>신선가스 O₂ 유량</span><strong id="d-o2" class="mono" style="color:#38bdf8;">${st.o2Flow.toFixed(1)} L/min</strong></div>
+                <input id="sl-o2" type="range" min="0.5" max="3.0" step="0.5" value="${st.o2Flow}" />
+              </div>
+              <div>
+                <div style="display:flex; justify-content:space-between;"><span>초기 Isoflurane 기화기</span><strong id="d-iso" class="mono" style="color:#f0abfc;">${st.isoInit.toFixed(1)}%</strong></div>
+                <input id="sl-iso" type="range" min="0.5" max="4.0" step="0.5" value="${st.isoInit}" />
+              </div>
+              <div>
+                <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-bottom:4px;">APL(Pop-off) 밸브 최종 확인</div>
+                <div class="opt-grid">
+                  <button type="button" class="opt-btn apl-opt ${st.aplOpen?'selected':''}" data-v="1"><div class="ot">✅ 완전 열림 (0 cmH₂O)</div><div class="od">안전한 유지기 전환</div></button>
+                  <button type="button" class="opt-btn apl-opt ${!st.aplOpen?'selected':''}" data-v="0"><div class="ot">⚠️ 잠금 상태 유지</div><div class="od">기도 과압·기흉·심정지 위험</div></button>
+                </div>
+              </div>
+            </div>
+            <button id="btn-finish" type="button" class="btn btn-primary" style="width:100%; margin-top:14px; padding:11px; font-size:13px;">✅ 유지기 전환 완료 및 최종 평가 보기</button>`;
+          document.getElementById('sl-o2').addEventListener('input', (e) => { st.o2Flow = Number(e.target.value); document.getElementById('d-o2').textContent = st.o2Flow.toFixed(1) + ' L/min'; });
+          document.getElementById('sl-iso').addEventListener('input', (e) => { st.isoInit = Number(e.target.value); document.getElementById('d-iso').textContent = st.isoInit.toFixed(1) + '%'; });
+          document.querySelectorAll('.apl-opt').forEach(b => b.addEventListener('click', () => { st.aplOpen = b.dataset.v === '1'; renderStep(); }));
+          document.getElementById('btn-finish').addEventListener('click', finishInduction);
+        }
+      }
+
+      function finishInduction() {
+        const c = getCase();
+        if (!st.aplOpen) { st.score -= 25; st.mistakes.push('유지기 전환 시 APL(Pop-off) 밸브를 열지 않음 (치명적 기도 과압 위험)'); }
+        else st.goodPoints.push('마취기 연결 직후 APL 밸브 완전 개방(0 cmH₂O) 확인');
+        if (st.isoInit > 2.5) { st.score -= 12; st.mistakes.push(`초기 Isoflurane 과다 설정(${st.isoInit.toFixed(1)}%) → 유지기 초반 저혈압 유발`); }
+        const finalScore = Math.max(0, st.score);
+        const grade = finalScore >= 90 ? 'S' : finalScore >= 75 ? 'A' : finalScore >= 60 ? 'B' : 'C';
+        document.getElementById('res-score-box').innerHTML = `
+          <div><div style="font-size:10px; color:#94a3b8;">최종 도입 안전 등급</div><div class="mono" style="font-size:28px; font-weight:800; color:#fbbf24;">${grade} <span style="font-size:16px; color:#fff;">(${finalScore}점)</span></div></div>
+          <div style="text-align:right; font-size:11px; color:#cbd5e1;"><div>${st.species === 'dog' ? '개' : '고양이'} · ${c.name}</div><div style="color:#94a3b8;">O₂ ${st.o2Flow.toFixed(1)} L/min · Iso ${st.isoInit.toFixed(1)}%</div></div>`;
+        document.getElementById('res-local-body').innerHTML = `
+          ${st.mistakes.length ? `<div style="padding:8px; border-radius:8px; background:rgba(127,29,29,0.3); border:1px solid rgba(244,63,94,0.4);"><strong style="color:#fda4af;">보완이 필요한 항목</strong>${st.mistakes.map(m => `<div>• ${m}</div>`).join('')}</div>` : '<div style="padding:8px; border-radius:8px; background:rgba(6,78,59,0.3); border:1px solid rgba(16,185,129,0.4); color:#a7f3d0;"><strong>완벽한 도입–전환!</strong> 주요 합병증 없이 안전하게 유지기로 전환했습니다.</div>'}
+          <div style="padding:8px; border-radius:8px; background:#020617; border:1px solid #1e293b;"><strong style="color:#6ee7b7;">잘 수행한 항목</strong>${st.goodPoints.map(g => `<div>• ${g}</div>`).join('')}</div>`;
+        document.getElementById('res-ai-out').classList.add('hidden');
+        document.getElementById('result-modal').classList.remove('hidden');
+      }
+
+      // AI Debrief & SOAP buttons in Result Modal
+      document.getElementById('btn-res-ai').addEventListener('click', async () => {
+        const out = document.getElementById('res-ai-out');
+        out.classList.remove('hidden'); out.textContent = 'Gemini AI가 도입 로그를 분석 중입니다...';
+        try {
+          const res = await fetch('/.netlify/functions/debrief', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              species: st.species === 'dog' ? '개' : '고양이',
+              scenario: '[마취 도입] ' + getCase().name,
+              difficulty: '도입–전환',
+              duration: '6단계 완료',
+              arrested: st.score < 50,
+              arrestReason: st.mistakes.join(' / ') || '안정적 도입 완료',
+              finalVitals: { hr: Math.round(st.hr), spo2: Math.round(st.spo2), map: Math.round(st.map), etco2: st.etco2 },
+              recentLogs: st.logs.slice(0, 18).map(l => `[${l.t}] ${l.msg}`)
+            })
+          });
+          if (res.ok) { const d = await res.json(); if (d && d.analysis) { out.textContent = d.analysis; return; } }
+        } catch (e) {}
+        out.textContent = '로컬/오프라인 환경이거나 Netlify GEMINI_API_KEY가 미설정 상태입니다. 위의 내장 평가 리포트를 참고하세요.';
+      });
+
+      document.getElementById('btn-res-soap').addEventListener('click', () => {
+        const c = getCase();
+        const out = document.getElementById('res-ai-out');
+        out.classList.remove('hidden');
+        out.textContent = `[마취 도입 기록지 (SOAP)]\n• 환자: ${st.species === 'dog' ? '개' : '고양이'} ${c.wt}kg (${c.asa}) — ${c.name}\n• 전처치: ${st.premedSed} + ${st.premedOpi} / 전산소화: ${st.preox ? '3분 실시' : '미실시'}\n• 유도/삽관: ${st.indDrug} (${st.indSpeed}), 튜브 ${st.tubeSize}, 커프 ${st.cuffInflated ? '확인' : '미확인'}\n• 유지 전환: O₂ ${st.o2Flow.toFixed(1)} L/min, Iso ${st.isoInit.toFixed(1)}%, APL ${st.aplOpen ? '열림(0)' : '잠김'}\n• 최종 평가: ${Math.max(0, st.score)}점`;
+      });
+
+      // AI Random Dynamic Patient Generator
+      document.getElementById('btn-ai-new-case').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-ai-new-case');
+        btn.textContent = '생성 중...';
+        const fallback = { name: '저알부민·빈혈 노령견', asa: 'ASA III–IV', wt: 7.2, desc: '12세 요크셔테리어(7.2kg), 단백소실성장병증(Alb 1.8 g/dL, PCV 23%). 혈압 유지와 저용량 적정 유도 필수.', hr: 136, map: 72, spo2: 97, rr: 24, tube: '5.5mm', ownerClue: '최근 설사가 잦았고 배가 살짝 불러서 검사하러 왔어요.', avoid: ['dex', 'ace', 'fast_bolus'] };
+        let pick = fallback;
+        try {
+          const res = await fetch('/.netlify/functions/ai', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task: 'generate_case', phase: 'induction', species: st.species })
+          });
+          if (res.ok) { const d = await res.json(); if (d && d.caseData && d.caseData.summary) pick = { ...fallback, name: d.caseData.title, asa: d.caseData.asa || 'ASA III', desc: d.caseData.summary, hr: Number(d.caseData.baseHR) || 120, map: Number(d.caseData.baseMAP) || 75 }; }
+        } catch (e) {}
+        st.customCase = pick;
+        btn.textContent = '✦ AI 랜덤환자';
+        resetSim();
+      });
+
+      // Live Sweeping Waveforms
+      const BUF = 240;
+      const ecgB = new Array(BUF).fill(0), spB = new Array(BUF).fill(-0.4), co2B = new Array(BUF).fill(-0.75);
+      let wx = 0, cx = 0, eP = 0, cP = 0, cSub = 0;
+
+      function syncCv(cv) {
+        const r = cv.parentElement.getBoundingClientRect();
+        const w = Math.floor(r.width * Math.min(window.devicePixelRatio || 1, 2));
+        const h = Math.floor(r.height * Math.min(window.devicePixelRatio || 1, 2));
+        if (w > 10 && h > 10 && (cv.width !== w || cv.height !== h)) { cv.width = w; cv.height = h; }
+      }
+      function drawWave(cv, buf, cur, col) {
+        syncCv(cv);
+        const ctx = cv.getContext('2d'), w = cv.width, h = cv.height;
+        if (w < 10 || h < 10) return;
+        ctx.clearRect(0, 0, w, h);
+        ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.8, h * 0.025); ctx.beginPath();
+        let on = false;
+        for (let i = 0; i < buf.length; i++) {
+          if ((i - cur + buf.length) % buf.length < 7) { on = false; continue; }
+          const x = (i / (buf.length - 1)) * w, y = h * 0.55 - buf[i] * h * 0.38;
+          if (!on) { ctx.moveTo(x, y); on = true; } else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      function loop() {
+        if (!st.paused) {
+          wx = (wx + 1) % BUF;
+          eP = (eP + (st.hr / 60) * (1 / 60)) % 1;
+          let ey = 0;
+          if (eP > 0.12 && eP < 0.22) ey = 0.16 * Math.sin(((eP - 0.12) / 0.1) * Math.PI);
+          else if (eP >= 0.28 && eP < 0.33) ey = 0.95 * Math.sin(((eP - 0.28) / 0.05) * Math.PI);
+          else if (eP > 0.48 && eP < 0.65) ey = 0.25 * Math.sin(((eP - 0.48) / 0.17) * Math.PI);
+          ecgB[wx] = ey;
+          spB[wx] = (Math.sin(eP * Math.PI * 2) * 0.55) * Math.max(0.2, Math.min(1, (st.map - 30) / 60));
+          if (++cSub >= 5) {
+            cSub = 0; cx = (cx + 1) % BUF;
+            if (!st.intubated || st.esophageal || st.apnea) {
+              co2B[cx] = -0.75;
+            } else {
+              cP = (cP + (st.rr / 60) * (5 / 60)) % 1;
+              co2B[cx] = cP > 0.1 && cP < 0.58 ? 0.65 : -0.75;
+            }
+          }
+          drawWave(el.cvEcg, ecgB, wx, '#22c55e');
+          drawWave(el.cvSpo2, spB, wx, '#38bdf8');
+          drawWave(el.cvCo2, co2B, cx, '#facc15');
+        }
+        requestAnimationFrame(loop);
+      }
+
+      // Wire Controls
+      el.spDog.addEventListener('click', () => { st.species = 'dog'; st.customCase = null; el.spDog.classList.add('active'); el.spCat.classList.remove('active'); resetSim(); });
+      el.spCat.addEventListener('click', () => { st.species = 'cat'; st.customCase = null; el.spCat.classList.add('active'); el.spDog.classList.remove('active'); resetSim(); });
+      el.caseSel.addEventListener('change', (e) => { st.caseId = e.target.value; st.customCase = null; resetSim(); });
+      document.getElementById('btn-reset').addEventListener('click', resetSim);
+      document.getElementById('btn-start').addEventListener('click', () => { document.getElementById('start-screen').classList.add('hidden'); st.paused = false; });
+      document.getElementById('btn-open-start').addEventListener('click', () => { st.paused = true; document.getElementById('start-screen').classList.remove('hidden'); });
+      document.getElementById('btn-credits').addEventListener('click', () => document.getElementById('credits-modal').classList.remove('hidden'));
+      document.getElementById('btn-credits-close').addEventListener('click', () => document.getElementById('credits-modal').classList.add('hidden'));
+      document.getElementById('btn-res-close').addEventListener('click', () => document.getElementById('result-modal').classList.add('hidden'));
+      document.getElementById('btn-res-restart').addEventListener('click', () => { document.getElementById('result-modal').classList.add('hidden'); resetSim(); });
+      document.getElementById('btn-portal').addEventListener('click', () => { if (window.location.protocol.startsWith('http')) window.location.href = './'; });
+
+      resetSim();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

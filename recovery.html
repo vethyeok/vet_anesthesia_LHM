@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>수의 마취 종료·회복 시뮬레이터 — Emergence · Extubation · Recovery</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #070b12; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; min-height: 100vh; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    button, select, input { font-family: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: transparent; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .hidden { display: none !important; }
+    .app-wrap { max-width: 1360px; margin: 0 auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+    .topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; background: rgba(15,23,42,0.95); border: 1px solid #1e293b; border-radius: 12px; padding: 8px 12px; }
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .logo-box { width: 32px; height: 32px; border-radius: 8px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .title { font-size: 14px; font-weight: 800; color: #fff; }
+    .sub { font-size: 11px; color: #94a3b8; }
+    .controls-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .seg { display: inline-flex; background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 2px; }
+    .seg button { padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; color: #cbd5e1; }
+    .seg button.active { background: #38bdf8; color: #020617; }
+    select.sel { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 5px 8px; font-size: 12px; color: #f1f5f9; max-width: 290px; }
+    .btn { padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #334155; background: #0f172a; color: #e2e8f0; transition: 0.15s; }
+    .btn:hover { background: #1e293b; }
+    .btn-primary { background: #10b981; color: #020617; border-color: #10b981; font-weight: 800; }
+    .btn-primary:hover { background: #34d399; }
+    .btn-amber { background: #fbbf24; color: #020617; border-color: #fbbf24; font-weight: 800; }
+    .btn-sky { background: rgba(14,165,233,0.18); color: #7dd3fc; border-color: rgba(56,189,248,0.45); }
+    .btn-rose { background: #f43f5e; color: #fff; border-color: #f43f5e; font-weight: 800; }
+    .btn-violet { background: rgba(139,92,246,0.2); color: #ddd6fe; border-color: rgba(167,139,250,0.45); }
+
+    .stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 6px; }
+    .step-pill { text-align: center; padding: 6px 4px; border-radius: 7px; font-size: 10.5px; font-weight: 700; color: #64748b; background: #020617; border: 1px solid #1e293b; }
+    .step-pill.active { background: rgba(56,189,248,0.18); color: #7dd3fc; border-color: rgba(56,189,248,0.55); }
+    .step-pill.done { background: rgba(16,185,129,0.15); color: #6ee7b7; border-color: rgba(16,185,129,0.4); }
+
+    .main-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 1024px) { .main-grid { grid-template-columns: 7fr 5fr; align-items: start; } }
+    .card { background: rgba(15,23,42,0.92); border: 1px solid #1e293b; border-radius: 12px; padding: 12px; }
+    .card-title { font-size: 12px; font-weight: 800; color: #7dd3fc; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+
+    .wave-box { background: #05080f; border: 1px solid #1e293b; border-radius: 10px; overflow: hidden; }
+    .wave-row { display: grid; grid-template-columns: 1fr 124px; border-bottom: 1px solid #1e293b; }
+    .wave-row:last-child { border-bottom: none; }
+    .cv-wrap { position: relative; height: 60px; background-image: linear-gradient(to right, rgba(148,163,184,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.05) 1px, transparent 1px); background-size: 20px 20px; }
+    .cv-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .num-col { padding: 6px 8px; display: flex; flex-direction: column; justify-content: space-between; background: rgba(2,6,23,0.7); border-left: 1px solid #1e293b; }
+    .num-lbl { font-size: 10px; font-weight: 700; }
+    .num-val { font-size: 23px; font-weight: 800; line-height: 1; }
+    .num-sub { font-size: 9.5px; color: #94a3b8; }
+
+    .vital-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+    @media (max-width: 639px) { .vital-strip { grid-template-columns: repeat(2, 1fr); } }
+    .v-card { background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 7px 8px; }
+    .v-card .lbl { font-size: 10px; color: #94a3b8; font-weight: 700; }
+    .v-card .val { font-size: 15px; font-weight: 800; margin-top: 2px; }
+
+    .reflex-bar { margin-top: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .rf-box { background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 7px; text-align: center; }
+    .rf-box .rl { font-size: 10px; color: #94a3b8; }
+    .rf-box .rv { font-size: 12px; font-weight: 800; margin-top: 2px; }
+
+    .alarm-bar { margin-top: 8px; padding: 8px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #1e293b; background: #020617; color: #cbd5e1; }
+    .alarm-bar.warn { background: rgba(120,53,15,0.35); border-color: rgba(245,158,11,0.55); color: #fde68a; }
+    .alarm-bar.danger { background: rgba(127,29,29,0.45); border-color: rgba(244,63,94,0.7); color: #fecdd3; }
+    .alarm-bar.good { background: rgba(6,78,59,0.35); border-color: rgba(16,185,129,0.5); color: #a7f3d0; }
+
+    .act-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 8px; }
+    .act-btn { text-align: left; padding: 9px 10px; border-radius: 9px; border: 1px solid #334155; background: #020617; color: #e2e8f0; transition: 0.15s; }
+    .act-btn:hover { border-color: #38bdf8; }
+    .act-btn .at { font-size: 11.5px; font-weight: 800; color: #f8fafc; }
+    .act-btn .ad { font-size: 10px; color: #94a3b8; margin-top: 2px; line-height: 1.35; }
+
+    .chat-box { margin-top: 8px; background: #020617; border: 1px solid #1e293b; border-radius: 9px; padding: 8px; max-height: 140px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 6px; }
+    .chat-msg { padding: 6px 8px; border-radius: 7px; line-height: 1.45; }
+    .chat-msg.owner { background: rgba(30,41,59,0.85); color: #e2e8f0; border-left: 2px solid #fbbf24; }
+    .chat-msg.vet { background: rgba(16,185,129,0.16); color: #a7f3d0; border-left: 2px solid #10b981; }
+
+    .log-list { max-height: 135px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+    .log-item { padding: 3px 6px; border-left: 2px solid #475569; color: #cbd5e1; }
+    .log-item.good { border-color: #10b981; color: #a7f3d0; }
+    .log-item.warn { border-color: #f59e0b; color: #fde68a; }
+    .log-item.danger { border-color: #f43f5e; color: #fecdd3; }
+
+    .overlay { position: fixed; inset: 0; z-index: 50; background: rgba(2,6,23,0.9); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-card { width: 100%; max-width: 480px; max-height: 90dvh; overflow-y: auto; background: #0f172a; border: 2px solid rgba(56,189,248,0.45); border-radius: 16px; padding: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
+    footer { text-align: center; padding: 8px 12px; font-size: 10px; color: #64748b; border-top: 1px solid #1e293b; background: #020617; margin-top: 8px; }
+    input[type="range"] { width: 100%; accent-color: #38bdf8; }
+  </style>
+</head>
+<body>
+  <!-- Standby Start Screen -->
+  <div id="start-screen" class="overlay" role="dialog" aria-modal="true">
+    <div class="modal-card" style="text-align:center; border-color: rgba(56,189,248,0.45);">
+      <div class="logo-box" style="margin: 0 auto 10px; width:46px; height:46px; border-radius:14px;">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h3l2-7 4 14 3-9 2 2h4"/></svg>
+      </div>
+      <div style="font-size:10px; font-weight:800; letter-spacing:0.12em; color:#38bdf8;">PHASE 3 · EMERGENCE &amp; RECOVERY</div>
+      <h1 style="font-size:22px; font-weight:800; color:#fff; margin-top:4px;">마취 종료·회복 시뮬레이터</h1>
+      <div style="margin-top:14px; padding:12px; border-radius:10px; background:rgba(120,53,15,0.28); border:1px solid rgba(245,158,11,0.4); text-align:left; font-size:11px; line-height:1.55; color:#fef3c7;">
+        <strong style="color:#fcd34d;">교육·훈련용 안내</strong><br/>
+        본 시뮬레이터는 수의학 마취 모니터링의 이해를 돕기 위해 제작된 <strong>교육·훈련용 프로그램</strong>입니다. 생리학적 반응과 약물 효과는 학습 목적에 맞춰 단순화되어 실제 환자의 임상 반응과 다를 수 있으며, 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
+      </div>
+      <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
+        <button id="btn-start" type="button" class="btn btn-primary" style="padding:11px; font-size:13px;">▶ 회복 시뮬레이터 시작</button>
+        <button id="btn-credits" type="button" class="btn" style="padding:9px;">크레딧</button>
+        <button id="btn-portal" type="button" class="btn btn-sky" style="padding:8px;">🏠 3단계 통합 포털 (도입 · 유지 · 회복)</button>
+      </div>
+      <div style="margin-top:12px; font-size:10px; color:#64748b;">© 2026 DVM 이혁민 · All rights reserved.</div>
+    </div>
+  </div>
+
+  <!-- Credits Modal -->
+  <div id="credits-modal" class="overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width:320px; text-align:center;">
+      <div style="font-size:10px; font-weight:800; letter-spacing:0.1em; color:#7dd3fc;">CREDITS</div>
+      <h2 style="font-size:17px; font-weight:800; color:#fff; margin-top:4px;">제작 정보</h2>
+      <div style="margin-top:14px; background:#020617; border:1px solid #1e293b; border-radius:10px; padding:12px; font-size:12px;">
+        <div style="display:flex; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #1e293b;"><span style="color:#94a3b8;">제작</span><strong style="color:#fff;">DVM 이혁민</strong></div>
+        <div style="display:flex; justify-content:space-between; padding-top:8px;"><span style="color:#94a3b8;">제작 도구</span><strong style="color:#67e8f9;">Gemini</strong></div>
+      </div>
+      <button id="btn-credits-close" type="button" class="btn btn-primary" style="width:100%; margin-top:14px; padding:9px;">닫기</button>
+    </div>
+  </div>
+
+  <!-- Final Debriefing & SOAP Modal -->
+  <div id="result-modal" class="overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width:540px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+        <div>
+          <div style="font-size:10px; font-weight:800; color:#34d399; letter-spacing:0.1em;">RECOVERY COMPLETE · DEBRIEFING</div>
+          <h2 style="font-size:18px; font-weight:800; color:#fff; margin-top:2px;">마취 회복 평가 리포트</h2>
+        </div>
+        <button id="btn-res-close" type="button" class="btn">닫기</button>
+      </div>
+      <div id="res-score-box" style="margin-top:10px; padding:10px; border-radius:10px; background:#020617; border:1px solid #334155; display:flex; justify-content:space-between; align-items:center;"></div>
+      <div id="res-local-body" style="margin-top:10px; font-size:12px; line-height:1.55; color:#e2e8f0; display:flex; flex-direction:column; gap:6px;"></div>
+      <div style="margin-top:12px; padding:10px; border-radius:10px; border:1px solid rgba(129,140,248,0.45); background:rgba(30,27,75,0.25);">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap;">
+          <strong style="font-size:12px; color:#67e8f9;">✦ AI 심층 로그 분석 &amp; SOAP 기록지</strong>
+          <div style="display:flex; gap:6px;">
+            <button id="btn-res-ai" type="button" class="btn btn-sky">✦ AI 해설</button>
+            <button id="btn-res-soap" type="button" class="btn btn-primary">📄 SOAP 생성</button>
+          </div>
+        </div>
+        <pre id="res-ai-out" class="hidden" style="margin-top:8px; background:#020617; border:1px solid #1e293b; border-radius:8px; padding:8px; font-size:11px; line-height:1.5; white-space:pre-wrap; color:#e2e8f0; max-height:180px; overflow-y:auto;"></pre>
+      </div>
+      <button id="btn-res-restart" type="button" class="btn btn-amber" style="width:100%; margin-top:12px; padding:10px;">새 케이스 / 다시 연습하기</button>
+    </div>
+  </div>
+
+  <div class="app-wrap">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-box">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h3l2-7 4 14 3-9 2 2h4"/></svg>
+        </div>
+        <div>
+          <div class="title">마취 종료·회복 시뮬레이터</div>
+          <div class="sub">기화기 OFF · EtIso 배출 · 발관 판정 · 회복실 처치</div>
+        </div>
+      </div>
+      <div class="controls-row">
+        <div class="seg" role="group" aria-label="축종">
+          <button id="sp-dog" type="button" class="active">개</button>
+          <button id="sp-cat" type="button">고양이</button>
+        </div>
+        <select id="case-select" class="sel" aria-label="회복 케이스 선택">
+          <option value="normal">1. [기초] 일반 수술 정상 회복 (적정 발관)</option>
+          <option value="boas">2. [중급] 단두종(BOAS) 회복기 상부기도 폐쇄</option>
+          <option value="hypo">3. [중급] 심한 저체온(35.2°C) 지연 회복 &amp; 오한</option>
+          <option value="dysphoria">4. [심화] 불쾌감(Dysphoria) vs 급성 통증 감별</option>
+          <option value="emergency">5. [심화] 회복기 응급 (후두경련 / α₂ 급속 길항)</option>
+        </select>
+        <button id="btn-reset" type="button" class="btn">초기화</button>
+        <button id="btn-open-start" type="button" class="btn">시작화면</button>
+      </div>
+    </header>
+
+    <div class="stepper">
+      <div class="step-pill active" data-step="1">1. 기화기 OFF·세척</div>
+      <div class="step-pill" data-step="2">2. 반사 평가·발관</div>
+      <div class="step-pill" data-step="3">3. 회복실 모니터링</div>
+      <div class="step-pill" data-step="4">4. 퇴원 안내·평가</div>
+    </div>
+
+    <main class="main-grid">
+      <section style="display:flex; flex-direction:column; gap:10px;">
+        <div class="card">
+          <div class="card-title">
+            <span id="case-hdr">개 8.0 kg · 일반 수술 정상 회복</span>
+            <span id="score-badge" class="mono" style="color:#fbbf24;">회복 점수 100점</span>
+          </div>
+          <p id="case-desc" style="font-size:12px; color:#cbd5e1; line-height:1.5;"></p>
+
+          <div class="wave-box" style="margin-top:8px;">
+            <div class="wave-row">
+              <div class="cv-wrap"><canvas id="cv-ecg"></canvas></div>
+              <div class="num-col"><span class="num-lbl" style="color:#4ade80;">ECG · HR</span><span id="v-hr" class="num-val mono" style="color:#4ade80;">90</span><span id="v-hr-sub" class="num-sub">안정</span></div>
+            </div>
+            <div class="wave-row">
+              <div class="cv-wrap"><canvas id="cv-spo2"></canvas></div>
+              <div class="num-col"><span class="num-lbl" style="color:#38bdf8;">PLETH · SpO₂</span><span id="v-spo2" class="num-val mono" style="color:#38bdf8;">99</span><span id="v-spo2-sub" class="num-sub">정상 산소화</span></div>
+            </div>
+            <div class="wave-row">
+              <div class="cv-wrap"><canvas id="cv-co2"></canvas></div>
+              <div class="num-col"><span class="num-lbl" style="color:#facc15;">ETCO₂ / EtIso</span><span id="v-co2" class="num-val mono" style="color:#facc15;">43</span><span id="v-etiso" class="num-sub mono" style="color:#f0abfc;">EtIso 1.5%</span></div>
+            </div>
+          </div>
+
+          <div class="vital-strip">
+            <div class="v-card"><div class="lbl">체온 BT (°C)</div><div id="v-bt" class="val mono" style="color:#c4b5fd;">37.8°C</div></div>
+            <div class="v-card"><div class="lbl">혈압 MAP</div><div id="v-map" class="val mono" style="color:#fb7185;">82 mmHg</div></div>
+            <div class="v-card"><div class="lbl">자발호흡 RR</div><div id="v-rr" class="val mono" style="color:#facc15;">8 /min</div></div>
+            <div class="v-card"><div class="lbl">행동 / 기도음</div><div id="v-behav" class="val" style="font-size:12px; color:#6ee7b7;">깊은 수면</div></div>
+          </div>
+
+          <div class="reflex-bar">
+            <div class="rf-box"><div class="rl">안검반사</div><div id="rf-eye" class="rv" style="color:#94a3b8;">소실</div></div>
+            <div class="rf-box"><div class="rl">턱 긴장도</div><div id="rf-jaw" class="rv" style="color:#94a3b8;">완전 이완</div></div>
+            <div class="rf-box"><div class="rl">연하반사 (Swallow)</div><div id="rf-swal" class="rv" style="color:#94a3b8;">0회 (없음)</div></div>
+          </div>
+
+          <div id="alarm-bar" class="alarm-bar good">수술이 종료되었습니다. 기화기를 0%로 끄고 O₂ 유량을 높여 마취가스를 배출하세요.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>회복실 처치·이벤트 로그</span><span id="clock" class="mono" style="color:#34d399;">00:00</span></div>
+          <div id="log-list" class="log-list"></div>
+        </div>
+      </section>
+
+      <!-- Right: Recovery Controls & Complication Handling -->
+      <aside style="display:flex; flex-direction:column; gap:10px;">
+        <div class="card">
+          <div class="card-title"><span>1) 마취기 종료 · 산소 세척 · 발관</span><span id="ext-badge" class="mono" style="font-size:10px; color:#fbbf24;">삽관 유지 중</span></div>
+          <div style="display:flex; flex-direction:column; gap:8px; font-size:12px;">
+            <div>
+              <div style="display:flex; justify-content:space-between;"><span>Isoflurane 기화기</span><strong id="d-iso" class="mono" style="color:#f0abfc;">1.5%</strong></div>
+              <input id="sl-iso" type="range" min="0" max="2.5" step="0.5" value="1.5" />
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between;"><span>O₂ 유량 (세척 속도)</span><strong id="d-o2" class="mono" style="color:#38bdf8;">1.5 L/min</strong></div>
+              <input id="sl-o2" type="range" min="0.5" max="3.0" step="0.5" value="1.5" />
+            </div>
+          </div>
+          <div class="act-grid">
+            <button id="btn-iso-off" type="button" class="act-btn" style="border-color:rgba(16,185,129,0.5);"><div class="at" style="color:#6ee7b7;">기화기 즉시 OFF (0%)</div><div class="ad">O₂ 2.5 L/min으로 가스 세척 시작</div></button>
+            <button id="btn-bag" type="button" class="act-btn"><div class="at" style="color:#fde68a;">보조 배깅 (1회)</div><div class="ad">과배깅 시 ETCO₂↓로 자발호흡 지연!</div></button>
+            <button id="btn-extubate" type="button" class="act-btn" style="grid-column:span 2; border-color:rgba(251,191,36,0.6); background:rgba(120,53,15,0.25);"><div class="at" style="color:#fbbf24; text-align:center;">🩺 커프 바람 빼고 발관(Extubation) 실시</div><div class="ad" style="text-align:center;">연하반사(2회↑) &amp; EtIso ≤ 0.4% &amp; 자발호흡 확인 후 발관 권장 (BOAS는 더 각성 후!)</div></button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>2) 회복실 모니터링 처치</span></div>
+          <div class="act-grid">
+            <button id="btn-o2-supp" type="button" class="act-btn"><div class="at" style="color:#7dd3fc;">산소 공급 (Flow-by/케이지)</div><div class="ad">발관 후 저산소·천명·오한 시 산소화 유지</div></button>
+            <button id="btn-warm" type="button" class="act-btn"><div class="at" style="color:#fcd34d;">능동 가온 (Bair Hugger)</div><div class="ad">저체온·오한(Shivering) 교정</div></button>
+            <button id="btn-analgesia" type="button" class="act-btn"><div class="at" style="color:#6ee7b7;">진통제 (Methadone IV)</div><div class="ad">수술 부위 압통·빈맥 등 실제 통증 완화</div></button>
+            <button id="btn-sedate" type="button" class="act-btn"><div class="at" style="color:#ddd6fe;">진정제 (소량 Dex/Ace)</div><div class="ad">불쾌감(Dysphoria)·BOAS 흥분 진정</div></button>
+            <button id="btn-naloxone" type="button" class="act-btn"><div class="at" style="color:#a7f3d0;">Naloxone 소량 적정</div><div class="ad">오피오이드 불쾌감·호흡억제 역전</div></button>
+            <button id="btn-atip-im" type="button" class="act-btn"><div class="at" style="color:#fde68a;">Atipamezole IM (권장)</div><div class="ad">α₂ 서맥·지연회복 안전 역전</div></button>
+            <button id="btn-atip-iv" type="button" class="act-btn" style="border-color:rgba(244,63,94,0.45);"><div class="at" style="color:#fda4af;">Atipamezole 급속 IV (주의)</div><div class="ad">급속 혈관확장·저혈압·흥분 부작용</div></button>
+            <button id="btn-reintubate" type="button" class="act-btn" style="border-color:rgba(56,189,248,0.45);"><div class="at" style="color:#7dd3fc;">기도 재확보 / 재삽관</div><div class="ad">BOAS 폐쇄·고양이 후두경련 응급</div></button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>3) 보호자 퇴원 안내 AI 롤플레이 &amp; 종료</span></div>
+          <div style="display:flex; gap:6px;">
+            <input id="dc-input" type="text" placeholder="보호자 퇴원 주의사항 입력 (예: 금식·체온·상처 관리)..." style="flex:1; background:#020617; border:1px solid #334155; border-radius:8px; padding:6px 8px; font-size:11.5px;" />
+            <button id="btn-dc-send" type="button" class="btn btn-sky">안내</button>
+          </div>
+          <div id="dc-chat" class="chat-box">
+            <div class="chat-msg owner"><strong>보호자:</strong> 선생님, 아이가 깨어나면 집에 가서 밥이랑 물은 언제부터 줘도 될까요? 주의할 점 알려주세요!</div>
+          </div>
+          <button id="btn-finish-rec" type="button" class="btn btn-primary" style="width:100%; margin-top:10px; padding:10px; font-size:12px;">✅ 회복 완료 및 최종 평가 리포트 보기</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <footer>
+    <strong style="color:#94a3b8;">마취 종료·회복 시뮬레이터 · © 2026 DVM 이혁민.</strong> All rights reserved. · 본 시뮬레이터는 수의학 교육·훈련용 프로그램으로 실제 환자의 임상 반응과 다를 수 있으며, 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const CASES = {
+        normal: {
+          name: '일반 수술 정상 회복', desc: '중성화 수술 종료 직후. 기화기를 끄고 EtIso가 0.4% 이하로 내려가며 연하반사가 2회 이상 돌아왔을 때 발관하세요.',
+          bt: 37.8, hr: 90, map: 84, etco2: 43, idealSwallow: 2, issue: 'none'
+        },
+        boas: {
+          name: '단두종(BOAS) 회복기 상부기도 폐쇄', desc: '프렌치불독/페르시안. 완전히 각성(연하반사 3회↑·턱 긴장 회복)하기 전에 조기 발관하면 흡기성 천명과 SpO₂ 급락이 발생합니다!',
+          bt: 37.6, hr: 112, map: 86, etco2: 46, idealSwallow: 3, issue: 'boas'
+        },
+        hypo: {
+          name: '심한 저체온(35.2°C) 지연 회복 & 오한', desc: '체온 35.2°C로 마취가스 배출이 느리고 각성 시 오한(Shivering)으로 산소소비가 급증합니다. 능동 가온 + 산소 공급이 필수입니다.',
+          bt: 35.2, hr: 62, map: 66, etco2: 47, idealSwallow: 2, issue: 'hypo'
+        },
+        dysphoria: {
+          name: '불쾌감(Dysphoria) vs 급성 통증 감별', desc: '발관 후 낑낑대며 머리를 흔들고 진정되지 않습니다. 상처 촉진 반응은 없고 동공 산대·방향감각 상실 → 오피오이드 불쾌감(Dysphoria) 상태!',
+          bt: 37.7, hr: 126, map: 92, etco2: 39, idealSwallow: 2, issue: 'dysphoria'
+        },
+        emergency: {
+          name: '회복기 응급 (후두경련 / α₂ 길항 주의)', desc: '고양이 후두경련 또는 Dexmedetomidine 지연 회복 상황. α₂ 역전 시 급속 IV 대신 반드시 IM 투여를 선택하고 기도 폐쇄 시 산소/재삽관하세요.',
+          bt: 36.6, hr: 58, map: 94, etco2: 48, idealSwallow: 2, issue: 'emergency'
+        }
+      };
+
+      const st = {
+        species: 'dog', caseId: 'normal', paused: true, sec: 0, score: 100,
+        iso: 1.5, etIso: 1.5, o2: 1.5, hr: 90, spo2: 99, etco2: 43, map: 84, bt: 37.8, rr: 8,
+        swallows: 0, extubated: false, o2Supp: false, warming: false,
+        complicationActive: false, complicationSolved: false, bagCount15: 0,
+        step: 1, mistakes: [], goods: [], logs: [], dischargeDone: false
+      };
+
+      const el = {
+        hdr: document.getElementById('case-hdr'), desc: document.getElementById('case-desc'),
+        score: document.getElementById('score-badge'), clock: document.getElementById('clock'),
+        hr: document.getElementById('v-hr'), hrSub: document.getElementById('v-hr-sub'),
+        spo2: document.getElementById('v-spo2'), spo2Sub: document.getElementById('v-spo2-sub'),
+        co2: document.getElementById('v-co2'), etiso: document.getElementById('v-etiso'),
+        bt: document.getElementById('v-bt'), map: document.getElementById('v-map'),
+        rr: document.getElementById('v-rr'), behav: document.getElementById('v-behav'),
+        rfEye: document.getElementById('rf-eye'), rfJaw: document.getElementById('rf-jaw'), rfSwal: document.getElementById('rf-swal'),
+        alarm: document.getElementById('alarm-bar'), extBadge: document.getElementById('ext-badge'),
+        slIso: document.getElementById('sl-iso'), dIso: document.getElementById('d-iso'),
+        slO2: document.getElementById('sl-o2'), dO2: document.getElementById('d-o2'),
+        logList: document.getElementById('log-list'),
+        cvEcg: document.getElementById('cv-ecg'), cvSpo2: document.getElementById('cv-spo2'), cvCo2: document.getElementById('cv-co2')
+      };
+
+      function addLog(msg, tone = 'info') {
+        const t = `${String(Math.floor(st.sec / 60)).padStart(2,'0')}:${String(st.sec % 60).padStart(2,'0')}`;
+        st.logs.unshift({ t, msg, tone });
+        el.logList.innerHTML = st.logs.slice(0, 20).map(l => `<div class="log-item ${l.tone}"><span class="mono" style="color:#64748b;margin-right:6px;">${l.t}</span>${l.msg}</div>`).join('');
+      }
+      function setAlarm(msg, tone = 'good') { el.alarm.textContent = msg; el.alarm.className = 'alarm-bar ' + tone; }
+
+      function updateUI() {
+        const c = CASES[st.caseId];
+        el.hdr.textContent = `${st.species === 'dog' ? '개 8.0 kg' : '고양이 4.0 kg'} · ${c.name}`;
+        el.desc.textContent = c.desc;
+        el.score.textContent = `회복 점수 ${Math.max(0, st.score)}점`;
+        el.clock.textContent = `${String(Math.floor(st.sec / 60)).padStart(2,'0')}:${String(st.sec % 60).padStart(2,'0')}`;
+        el.hr.textContent = Math.round(st.hr);
+        el.spo2.textContent = Math.round(st.spo2);
+        el.spo2Sub.textContent = st.spo2 < 90 ? '심각한 저산소!' : (st.spo2 < 95 ? '산소 보충 필요' : '정상 산소화');
+        el.co2.textContent = st.extubated ? '--' : Math.round(st.etco2);
+        el.etiso.textContent = `EtIso ${st.etIso.toFixed(2)}%`;
+        el.bt.textContent = `${st.bt.toFixed(1)}°C`;
+        el.map.textContent = `${Math.round(st.map)} mmHg`;
+        el.rr.textContent = `${Math.round(st.rr)} /min`;
+        el.extBadge.textContent = st.extubated ? '발관 완료' : '삽관 유지 중';
+
+        el.rfEye.textContent = st.etIso < 0.7 ? '복귀 (약함→양호)' : '소실';
+        el.rfEye.style.color = st.etIso < 0.7 ? '#6ee7b7' : '#94a3b8';
+        el.rfJaw.textContent = st.etIso < 0.55 ? '긴장도 회복' : '완전 이완';
+        el.rfJaw.style.color = st.etIso < 0.55 ? '#6ee7b7' : '#94a3b8';
+        el.rfSwal.textContent = st.swallows >= c.idealSwallow ? `${st.swallows}회 (발관 적기!)` : `${st.swallows}회`;
+        el.rfSwal.style.color = st.swallows >= c.idealSwallow ? '#fbbf24' : '#94a3b8';
+
+        document.querySelectorAll('.step-pill').forEach(p => {
+          const n = Number(p.dataset.step);
+          p.className = 'step-pill' + (n === st.step ? ' active' : (n < st.step ? ' done' : ''));
+        });
+      }
+
+      function resetSim() {
+        const c = CASES[st.caseId];
+        st.sec = 0; st.score = 100; st.iso = 1.5; st.etIso = 1.5; st.o2 = 1.5;
+        st.hr = st.species === 'cat' ? c.hr + 38 : c.hr;
+        st.spo2 = 99; st.etco2 = c.etco2; st.map = c.map; st.bt = c.bt; st.rr = 8;
+        st.swallows = 0; st.extubated = false; st.o2Supp = false; st.warming = false;
+        st.complicationActive = false; st.complicationSolved = false; st.bagCount15 = 0;
+        st.step = 1; st.mistakes = []; st.goods = []; st.logs = []; st.dischargeDone = false;
+        el.slIso.value = '1.5'; el.dIso.textContent = '1.5%';
+        el.slO2.value = '1.5'; el.dO2.textContent = '1.5 L/min';
+        el.behav.textContent = '깊은 수면';
+        addLog(`[회복 시작] ${st.species === 'dog' ? '개' : '고양이'} · ${c.name}`, 'info');
+        setAlarm('1단계: 기화기를 0%로 끄고 O₂ 유량을 높여 EtIso를 배출하세요.', 'good');
+        updateUI();
+      }
+
+      // 1-second Recovery Physiology Loop
+      setInterval(() => {
+        if (st.paused) return;
+        st.sec++;
+        const c = CASES[st.caseId];
+        // EtIso washout governed by O2 flow & body temperature (hypothermia slows washout!)
+        const tempFactor = st.bt < 36.2 ? 0.55 : 1.0;
+        const washRate = (0.045 + st.o2 * 0.032) * tempFactor;
+        st.etIso = Math.max(0, st.etIso + (st.iso - st.etIso) * washRate);
+        if (st.iso === 0 && st.step === 1 && st.etIso < 0.8) st.step = 2;
+
+        // Spontaneous RR & Swallowing recovery
+        if (st.etIso < 0.65 && st.etco2 >= 34) {
+          st.rr = Math.min(20, st.rr + 0.6);
+        } else if (st.etco2 < 32) {
+          st.rr = Math.max(2, st.rr - 0.5); // Hyperventilation suppresses CO2 drive!
+        }
+        if (st.etIso < 0.48 && !st.extubated && st.sec % 4 === 0) {
+          st.swallows++;
+          if (st.swallows === c.idealSwallow) {
+            setAlarm(`연하반사 ${st.swallows}회 확인! EtIso ${st.etIso.toFixed(2)}% — 지금이 발관(Extubation) 적기입니다!`, 'good');
+            el.behav.textContent = '연하반사·각성 시작';
+          } else if (st.swallows >= c.idealSwallow + 3) {
+            el.behav.textContent = '튜브 저작·흥분!';
+            setAlarm('지연 발관 경고! 환자가 튜브를 씹으려 합니다 — 즉시 발관하세요!', 'warn');
+          }
+        }
+
+        // Body temp drift
+        if (st.warming) st.bt = Math.min(38.2, st.bt + 0.08);
+        else if (st.bt < 36.8) st.bt = Math.max(34.6, st.bt - 0.02);
+
+        // Case-specific recovery room complications after extubation (or during emergence)
+        if (st.extubated && !st.complicationSolved) {
+          if (c.issue === 'hypo' && !st.warming) {
+            el.behav.textContent = '심한 오한 (Shivering)';
+            st.spo2 = Math.max(88, st.spo2 - (st.o2Supp ? 0.2 : 0.9));
+            setAlarm('저체온 오한으로 산소소비 급증! 능동 가온(Bair Hugger)과 산소 공급을 즉시 켜세요!', 'danger');
+          } else if (c.issue === 'dysphoria' && !st.complicationActive) {
+            st.complicationActive = true;
+            st.hr += 24; el.behav.textContent = '불쾌감(발성·동공산대·촉진무반응)';
+            setAlarm('회복기 불쾌감(Dysphoria) 발생! 상처 압통은 없는데 발성·혼란 지속 → 진정제 또는 소량 Naloxone 고려!', 'warn');
+            addLog('[회복실 이벤트] 불쾌감(Dysphoria) 증상 발현 — 통증과 감별 필요', 'warn');
+          } else if (c.issue === 'emergency' && !st.complicationActive) {
+            st.complicationActive = true;
+            st.spo2 = 86; el.behav.textContent = st.species === 'cat' ? '후두경련·흡기 천명!' : 'α₂ 서맥·지연회복!';
+            setAlarm(st.species === 'cat' ? '응급! 고양이 발관 후 후두경련(SpO₂ 86%) — 산소 공급 및 필요 시 재삽관!' : 'α₂ 효능제 지연 회복·서맥 — Atipamezole IM 투여를 선택하세요 (급속 IV 금지!)', 'danger');
+            addLog('[회복실 응급] ' + el.behav.textContent, 'danger');
+          } else if (st.complicationActive && c.issue === 'boas') {
+            st.spo2 = Math.max(80, st.spo2 - (st.o2Supp ? 0.3 : 1.2));
+          }
+        }
+        if (st.o2Supp && !st.complicationActive) st.spo2 = Math.min(100, st.spo2 + 1.2);
+        updateUI();
+      }, 1000);
+
+      // Controls
+      el.slIso.addEventListener('input', (e) => { st.iso = Number(e.target.value); el.dIso.textContent = st.iso.toFixed(1) + '%'; });
+      el.slO2.addEventListener('input', (e) => { st.o2 = Number(e.target.value); el.dO2.textContent = st.o2.toFixed(1) + ' L/min'; });
+      document.getElementById('btn-iso-off').addEventListener('click', () => {
+        st.iso = 0; st.o2 = 2.5; el.slIso.value = '0'; el.dIso.textContent = '0.0%'; el.slO2.value = '2.5'; el.dO2.textContent = '2.5 L/min';
+        st.goods.push('수술 종료 즉시 기화기 OFF(0%) 및 고유량 O₂ 세척 시행');
+        addLog('[기화기 OFF] Isoflurane 0% · O₂ 2.5 L/min 세척 시작', 'good');
+        setAlarm('마취가스 세척 중 — EtIso 감소와 연하반사 복귀를 관찰하세요.', 'good');
+      });
+      document.getElementById('btn-bag').addEventListener('click', () => {
+        if (st.extubated) return;
+        st.etco2 = Math.max(24, st.etco2 - 2.2);
+        st.bagCount15++;
+        if (st.etco2 < 32) {
+          st.score -= 6;
+          st.mistakes.push('회복기 과배깅(ETCO₂ < 32 mmHg) → 자발호흡 복귀 지연');
+          setAlarm('주의! 회복 중 과배깅으로 ETCO₂가 낮아져 자발호흡 복귀가 지연됩니다!', 'warn');
+          addLog('[보조 배깅] 과환기(ETCO₂ 저하)로 자발호흡 자극 감소', 'warn');
+        } else {
+          addLog('[보조 배깅] 1회 환기 지원 완료', 'info');
+        }
+        updateUI();
+      });
+      document.getElementById('btn-extubate').addEventListener('click', () => {
+        if (st.extubated) return;
+        const c = CASES[st.caseId];
+        st.extubated = true; st.step = 3;
+        if (st.swallows < c.idealSwallow || st.etIso > 0.55) {
+          st.score -= 22;
+          st.mistakes.push(`조기 발관 (연하반사 ${st.swallows}회 · EtIso ${st.etIso.toFixed(2)}%)`);
+          if (c.issue === 'boas') {
+            st.complicationActive = true; st.spo2 = 85; el.behav.textContent = 'BOAS 상부기도 폐쇄·천명!';
+            setAlarm('긴급! 단두종 조기 발관으로 상부기도 폐쇄(SpO₂ 85%)! 산소 공급·진정 또는 재삽관 필요!', 'danger');
+          } else {
+            st.spo2 = Math.max(89, st.spo2 - 7);
+            setAlarm('조기 발관! 아직 기도 보호 반사가 불충분합니다 — 산소 공급 및 기도 개통 유지!', 'warn');
+          }
+          addLog(`[조기 발관] 연하반사 ${st.swallows}회 · EtIso ${st.etIso.toFixed(2)}%`, 'danger');
+        } else if (st.swallows >= c.idealSwallow + 3) {
+          st.score -= 10;
+          st.mistakes.push('지연 발관으로 인한 튜브 저작·흥분 위험');
+          setAlarm('지연 발관 완료 — 회복실 모니터링을 이어가세요.', 'warn');
+          addLog('[지연 발관] 튜브 저작 시작 후 발관 완료', 'warn');
+        } else {
+          st.goods.push(`최적 타이밍 발관 성공 (연하반사 ${st.swallows}회 · EtIso ${st.etIso.toFixed(2)}%)`);
+          el.behav.textContent = '안정 각성 중';
+          setAlarm('완벽한 발관 타이밍! 이제 회복실 모니터링 및 합병증 처치를 확인하세요.', 'good');
+          addLog(`[적정 발관 성공] 연하반사 ${st.swallows}회 · EtIso ${st.etIso.toFixed(2)}%`, 'good');
+        }
+        updateUI();
+      });
+
+      document.getElementById('btn-o2-supp').addEventListener('click', () => {
+        st.o2Supp = true; st.spo2 = Math.min(100, st.spo2 + 8);
+        st.goods.push('회복실 산소 공급(Flow-by/케이지)으로 저산소 예방');
+        addLog('[산소 공급] 회복실 100% O₂ Flow-by 적용', 'good'); updateUI();
+      });
+      document.getElementById('btn-warm').addEventListener('click', () => {
+        st.warming = true;
+        if (CASES[st.caseId].issue === 'hypo') { st.complicationSolved = true; st.spo2 = Math.min(99, st.spo2 + 6); el.behav.textContent = '체온 회복·안정'; setAlarm('능동 가온 적용! 오한이 가라앉고 체온이 서서히 회복됩니다.', 'good'); }
+        st.goods.push('회복실 능동 가온(Bair Hugger) 적용');
+        addLog('[능동 가온] Bair Hugger ON — 체온 회복 시작', 'good'); updateUI();
+      });
+      document.getElementById('btn-analgesia').addEventListener('click', () => {
+        if (CASES[st.caseId].issue === 'dysphoria') {
+          st.score -= 12; st.mistakes.push('오피오이드 불쾌감(Dysphoria) 환자에게 진통제 추가 투여 → 불쾌감 악화');
+          setAlarm('주의! 통증이 아니라 오피오이드 불쾌감(Dysphoria)입니다 — 진정제 또는 소량 Naloxone을 선택하세요!', 'danger');
+          addLog('[오처치] 불쾌감 환자에 Methadone 추가 투여로 흥분 악화', 'danger');
+        } else {
+          st.hr = Math.max(70, st.hr - 12); addLog('[진통 처치] Methadone IV 투여 — 술후 통증 관리', 'good');
+        }
+        updateUI();
+      });
+      document.getElementById('btn-sedate').addEventListener('click', () => {
+        if (CASES[st.caseId].issue === 'dysphoria' || CASES[st.caseId].issue === 'boas') {
+          st.complicationSolved = true; st.complicationActive = false; st.hr = Math.max(85, st.hr - 22); st.spo2 = Math.min(99, st.spo2 + 6);
+          el.behav.textContent = '진정·안정 회복';
+          st.goods.push('불쾌감/단두종 흥분에 적절한 소량 진정제 투여로 안정화');
+          setAlarm('안정화 성공! 흥분과 호흡 곤란이 가라앉았습니다.', 'good');
+          addLog('[진정 처치] 소량 진정제 투여 — 불쾌감/기도 흥분 안정화', 'good');
+        } else {
+          addLog('[진정 처치] 소량 진정제 투여', 'info');
+        }
+        updateUI();
+      });
+      document.getElementById('btn-naloxone').addEventListener('click', () => {
+        if (CASES[st.caseId].issue === 'dysphoria') {
+          st.complicationSolved = true; st.complicationActive = false; el.behav.textContent = '불쾌감 해소·안정';
+          st.goods.push('Naloxone 소량 적정으로 오피오이드 불쾌감 해소');
+          setAlarm('Naloxone 적정 투여로 불쾌감이 깔끔하게 해소되었습니다!', 'good');
+          addLog('[길항 처치] Naloxone 소량 적정 투여 — 불쾌감 해소', 'good');
+        } else {
+          addLog('[길항 처치] Naloxone 투여 (진통 효과 감소 주의)', 'warn');
+        }
+        updateUI();
+      });
+      document.getElementById('btn-atip-im').addEventListener('click', () => {
+        st.hr += 24;
+        if (CASES[st.caseId].issue === 'emergency') { st.complicationSolved = true; st.complicationActive = false; el.behav.textContent = '안전 각성·안정'; setAlarm('Atipamezole IM 투여로 서맥과 지연 회복이 안전하게 교정되었습니다!', 'good'); }
+        st.goods.push('Atipamezole을 안전한 IM 경로로 투여');
+        addLog('[α₂ 길항] Atipamezole IM 투여 — 안전한 서맥·진정 역전', 'good'); updateUI();
+      });
+      document.getElementById('btn-atip-iv').addEventListener('click', () => {
+        st.score -= 20; st.map = Math.max(46, st.map - 32); st.hr += 45;
+        st.mistakes.push('Atipamezole 급속 IV 투여 → 급격한 혈관확장 저혈압·흥분 부작용 유발');
+        setAlarm('경고! Atipamezole 급속 IV 투여로 MAP가 급락하고 급성 흥분이 발생했습니다!', 'danger');
+        addLog('[부작용] Atipamezole 급속 IV → 저혈압(MAP↓)·흥분 발생', 'danger'); updateUI();
+      });
+      document.getElementById('btn-reintubate').addEventListener('click', () => {
+        st.complicationSolved = true; st.complicationActive = false; st.spo2 = 98; el.behav.textContent = '기도 재확보 완료';
+        st.goods.push('응급 기도 폐쇄/후두경련 시 신속한 기도 재확보 수행');
+        setAlarm('기도 재확보 완료! SpO₂ 98%로 회복되었습니다.', 'good');
+        addLog('[응급 처치] 기도 재확보 및 100% O₂ 공급 완료', 'good'); updateUI();
+      });
+
+      // Discharge Roleplay
+      const dcChat = document.getElementById('dc-chat');
+      const dcInput = document.getElementById('dc-input');
+      document.getElementById('btn-dc-send').addEventListener('click', async () => {
+        const msg = dcInput.value.trim(); if (!msg) return;
+        dcInput.value = ''; st.dischargeDone = true; st.step = 4;
+        dcChat.innerHTML += `<div class="chat-msg vet"><strong>수의사:</strong> ${msg}</div>`;
+        let reply = '네 선생님, 4~6시간 뒤에 물부터 소량씩 주고 따뜻하게 쉬게 하면서 호흡이랑 상처 잘 살펴볼게요. 감사합니다!';
+        try {
+          const res = await fetch('/.netlify/functions/ai', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task: 'roleplay', role: 'owner_discharge', species: st.species === 'dog' ? '개' : '고양이', caseName: CASES[st.caseId].name, vetAdvice: msg })
+          });
+          if (res.ok) { const d = await res.json(); if (d && d.text) reply = d.text; }
+        } catch (e) {}
+        dcChat.innerHTML += `<div class="chat-msg owner"><strong>보호자:</strong> ${reply}</div>`;
+        dcChat.scrollTop = dcChat.scrollHeight;
+        st.goods.push('보호자 퇴원 주의사항(금식·체온·상처·응급 증상) 안내 완료');
+        addLog('[퇴원 안내] 보호자 주의사항 설명 완료', 'good'); updateUI();
+      });
+
+      document.getElementById('btn-finish-rec').addEventListener('click', () => {
+        const c = CASES[st.caseId];
+        if (!st.extubated) { st.score -= 15; st.mistakes.push('발관을 완료하지 않고 종료함'); }
+        const finalScore = Math.max(0, st.score);
+        const grade = finalScore >= 90 ? 'S' : finalScore >= 75 ? 'A' : finalScore >= 60 ? 'B' : 'C';
+        document.getElementById('res-score-box').innerHTML = `
+          <div><div style="font-size:10px; color:#94a3b8;">최종 회복 관리 등급</div><div class="mono" style="font-size:28px; font-weight:800; color:#fbbf24;">${grade} <span style="font-size:16px; color:#fff;">(${finalScore}점)</span></div></div>
+          <div style="text-align:right; font-size:11px; color:#cbd5e1;"><div>${st.species === 'dog' ? '개' : '고양이'} · ${c.name}</div><div style="color:#94a3b8;">최종 BT ${st.bt.toFixed(1)}°C · SpO₂ ${Math.round(st.spo2)}%</div></div>`;
+        document.getElementById('res-local-body').innerHTML = `
+          ${st.mistakes.length ? `<div style="padding:8px; border-radius:8px; background:rgba(127,29,29,0.3); border:1px solid rgba(244,63,94,0.4);"><strong style="color:#fda4af;">보완이 필요한 항목</strong>${st.mistakes.map(m => `<div>• ${m}</div>`).join('')}</div>` : '<div style="padding:8px; border-radius:8px; background:rgba(6,78,59,0.3); border:1px solid rgba(16,185,129,0.4); color:#a7f3d0;"><strong>안전한 마취 회복 완료!</strong> 적정 발관과 합병증 대응이 모두 훌륭했습니다.</div>'}
+          <div style="padding:8px; border-radius:8px; background:#020617; border:1px solid #1e293b;"><strong style="color:#6ee7b7;">잘 수행한 항목</strong>${st.goods.map(g => `<div>• ${g}</div>`).join('')}</div>`;
+        document.getElementById('res-ai-out').classList.add('hidden');
+        document.getElementById('result-modal').classList.remove('hidden');
+      });
+
+      document.getElementById('btn-res-ai').addEventListener('click', async () => {
+        const out = document.getElementById('res-ai-out');
+        out.classList.remove('hidden'); out.textContent = 'Gemini AI가 회복실 로그를 분석 중입니다...';
+        try {
+          const res = await fetch('/.netlify/functions/debrief', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              species: st.species === 'dog' ? '개' : '고양이',
+              scenario: '[마취 회복] ' + CASES[st.caseId].name,
+              difficulty: '종료·회복',
+              duration: el.clock.textContent,
+              arrested: st.score < 50,
+              arrestReason: st.mistakes.join(' / ') || '안정적 회복 완료',
+              finalVitals: { hr: Math.round(st.hr), spo2: Math.round(st.spo2), bt: st.bt.toFixed(1), map: Math.round(st.map), etIso: st.etIso.toFixed(2) },
+              recentLogs: st.logs.slice(0, 18).map(l => `[${l.t}] ${l.msg}`)
+            })
+          });
+          if (res.ok) { const d = await res.json(); if (d && d.analysis) { out.textContent = d.analysis; return; } }
+        } catch (e) {}
+        out.textContent = '로컬/오프라인 환경이거나 Netlify GEMINI_API_KEY가 미설정 상태입니다. 위의 내장 평가 리포트를 참고하세요.';
+      });
+
+      document.getElementById('btn-res-soap').addEventListener('click', () => {
+        const out = document.getElementById('res-ai-out');
+        out.classList.remove('hidden');
+        out.textContent = `[마취 회복 기록지 (SOAP)]\n• 환자/케이스: ${st.species === 'dog' ? '개' : '고양이'} / ${CASES[st.caseId].name}\n• 발관 여부: ${st.extubated ? '발관 완료' : '미발관'} (연하반사 ${st.swallows}회, 최종 EtIso ${st.etIso.toFixed(2)}%)\n• 회복실 지표: HR ${Math.round(st.hr)}, SpO₂ ${Math.round(st.spo2)}%, BT ${st.bt.toFixed(1)}°C, MAP ${Math.round(st.map)} mmHg\n• 보조 처치: 산소(${st.o2Supp ? 'ON' : 'OFF'}), 가온(${st.warming ? 'ON' : 'OFF'}), 퇴원 안내(${st.dischargeDone ? '완료' : '미실시'})\n• 최종 점수: ${Math.max(0, st.score)}점`;
+      });
+
+      // Live Waveforms
+      const BUF = 240;
+      const ecgB = new Array(BUF).fill(0), spB = new Array(BUF).fill(-0.4), co2B = new Array(BUF).fill(-0.75);
+      let wx = 0, cx = 0, eP = 0, cP = 0, cSub = 0;
+      function syncCv(cv) {
+        const r = cv.parentElement.getBoundingClientRect();
+        const w = Math.floor(r.width * Math.min(window.devicePixelRatio || 1, 2));
+        const h = Math.floor(r.height * Math.min(window.devicePixelRatio || 1, 2));
+        if (w > 10 && h > 10 && (cv.width !== w || cv.height !== h)) { cv.width = w; cv.height = h; }
+      }
+      function drawWave(cv, buf, cur, col) {
+        syncCv(cv);
+        const ctx = cv.getContext('2d'), w = cv.width, h = cv.height;
+        if (w < 10 || h < 10) return;
+        ctx.clearRect(0, 0, w, h);
+        ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.8, h * 0.025); ctx.beginPath();
+        let on = false;
+        for (let i = 0; i < buf.length; i++) {
+          if ((i - cur + buf.length) % buf.length < 7) { on = false; continue; }
+          const x = (i / (buf.length - 1)) * w, y = h * 0.55 - buf[i] * h * 0.38;
+          if (!on) { ctx.moveTo(x, y); on = true; } else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      function loop() {
+        if (!st.paused) {
+          wx = (wx + 1) % BUF;
+          eP = (eP + (st.hr / 60) * (1 / 60)) % 1;
+          let ey = 0;
+          if (eP > 0.12 && eP < 0.22) ey = 0.16 * Math.sin(((eP - 0.12) / 0.1) * Math.PI);
+          else if (eP >= 0.28 && eP < 0.33) ey = 0.95 * Math.sin(((eP - 0.28) / 0.05) * Math.PI);
+          else if (eP > 0.48 && eP < 0.65) ey = 0.25 * Math.sin(((eP - 0.48) / 0.17) * Math.PI);
+          ecgB[wx] = ey;
+          spB[wx] = Math.sin(eP * Math.PI * 2) * 0.55;
+          if (++cSub >= 5) {
+            cSub = 0; cx = (cx + 1) % BUF;
+            if (st.extubated) co2B[cx] = -0.75;
+            else { cP = (cP + (Math.max(4, st.rr) / 60) * (5 / 60)) % 1; co2B[cx] = cP > 0.1 && cP < 0.58 ? 0.65 : -0.75; }
+          }
+          drawWave(el.cvEcg, ecgB, wx, '#22c55e');
+          drawWave(el.cvSpo2, spB, wx, '#38bdf8');
+          drawWave(el.cvCo2, co2B, cx, '#facc15');
+        }
+        requestAnimationFrame(loop);
+      }
+
+      document.getElementById('sp-dog').addEventListener('click', (e) => { st.species = 'dog'; e.target.classList.add('active'); document.getElementById('sp-cat').classList.remove('active'); resetSim(); });
+      document.getElementById('sp-cat').addEventListener('click', (e) => { st.species = 'cat'; e.target.classList.add('active'); document.getElementById('sp-dog').classList.remove('active'); resetSim(); });
+      document.getElementById('case-select').addEventListener('change', (e) => { st.caseId = e.target.value; resetSim(); });
+      document.getElementById('btn-reset').addEventListener('click', resetSim);
+      document.getElementById('btn-start').addEventListener('click', () => { document.getElementById('start-screen').classList.add('hidden'); st.paused = false; });
+      document.getElementById('btn-open-start').addEventListener('click', () => { st.paused = true; document.getElementById('start-screen').classList.remove('hidden'); });
+      document.getElementById('btn-credits').addEventListener('click', () => document.getElementById('credits-modal').classList.remove('hidden'));
+      document.getElementById('btn-credits-close').addEventListener('click', () => document.getElementById('credits-modal').classList.add('hidden'));
+      document.getElementById('btn-res-close').addEventListener('click', () => document.getElementById('result-modal').classList.add('hidden'));
+      document.getElementById('btn-res-restart').addEventListener('click', () => { document.getElementById('result-modal').classList.add('hidden'); resetSim(); });
+      document.getElementById('btn-portal').addEventListener('click', () => { if (window.location.protocol.startsWith('http')) window.location.href = './'; });
+
+      resetSim();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
