@@ -88,6 +88,44 @@
     .modal-card { width: 100%; max-width: 480px; max-height: 90dvh; overflow-y: auto; background: #0f172a; border: 2px solid rgba(56,189,248,0.45); border-radius: 16px; padding: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
     footer { text-align: center; padding: 8px 12px; font-size: 10px; color: #64748b; border-top: 1px solid #1e293b; background: #020617; margin-top: 8px; }
     input[type="range"] { width: 100%; accent-color: #38bdf8; }
+  
+    body { word-break: keep-all; }
+    .step-pill { white-space: nowrap; word-break: keep-all; }
+    @media (max-width: 767px) {
+      .stepper { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 5px !important; }
+      .step-pill { font-size: 11.5px !important; padding: 7px 6px !important; }
+    }
+    .score-summary-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .score-summary-left { white-space: nowrap; flex-shrink: 0; }
+    .score-summary-right { text-align: right; font-size: 11px; color: #cbd5e1; }
+    @media (max-width: 520px) {
+      .score-summary-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .score-summary-right { text-align: left; }
+    }
+  
+    .lab-modal-backdrop { position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; background: rgba(2,6,23,0.84); backdrop-filter: blur(4px); padding: 12px; }
+    .lab-modal-backdrop.hidden { display: none !important; }
+    .lab-modal-card { width: 100%; max-width: 720px; max-height: 88vh; display: flex; flex-direction: column; border-radius: 14px; border: 1px solid #334155; background: #0b1220; color: #e2e8f0; box-shadow: 0 24px 60px rgba(0,0,0,0.65); overflow: hidden; }
+    .lab-modal-hdr { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #1e293b; background: #0f172a; }
+    .lab-modal-body { padding: 14px 16px; overflow-y: auto; font-size: 12px; }
+    .lab-tabs { display: flex; gap: 6px; padding: 8px 16px; background: #080d18; border-bottom: 1px solid #1e293b; flex-wrap: wrap; }
+    .lab-tab { padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #94a3b8; font-size: 11.5px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .lab-tab.active { background: #0284c7; border-color: #38bdf8; color: #fff; }
+    .lab-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-bottom: 10px; }
+    .lab-table th, .lab-table td { padding: 5px 8px; border-bottom: 1px solid #1e293b; text-align: left; }
+    .lab-table th { color: #94a3b8; font-weight: 700; background: #0f172a; font-size: 10.5px; }
+    .lab-val-hi { color: #fb7185; font-weight: 800; }
+    .lab-val-lo { color: #38bdf8; font-weight: 800; }
+    .lab-val-ok { color: #e2e8f0; font-weight: 600; }
+    .lab-flag { display: inline-block; padding: 1px 5px; border-radius: 4px; font-size: 9.5px; font-weight: 800; margin-left: 4px; }
+    .lab-flag-hi { background: rgba(244,63,94,0.2); color: #fda4af; border: 1px solid rgba(244,63,94,0.45); }
+    .lab-flag-lo { background: rgba(56,189,248,0.2); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.45); }
+  
+    /* Mobile bottom dead space for floating Powered by Netlify badge & safe-area */
+    @media (max-width: 1023px) {
+      body { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
+      footer { padding-bottom: 24px !important; }
+    }
   </style>
 </head>
 <body>
@@ -106,7 +144,7 @@
       <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
         <button id="btn-start" type="button" class="btn btn-primary" style="padding:11px; font-size:13px;">▶ 회복 시뮬레이터 시작</button>
         <button id="btn-credits" type="button" class="btn" style="padding:9px;">크레딧</button>
-        <button id="btn-portal" type="button" class="btn btn-sky" style="padding:8px;">🏠 3단계 통합 포털 (도입 · 유지 · 회복)</button>
+        <button id="btn-portal" type="button" class="btn btn-sky" style="padding:8px;">🏠 시작화면 (도입 · 유지 · 회복)</button>
       </div>
       <div style="margin-top:12px; font-size:10px; color:#64748b;">© 2026 DVM 이혁민 · All rights reserved.</div>
     </div>
@@ -174,6 +212,7 @@
           <option value="dysphoria">4. [심화] 불쾌감(Dysphoria) vs 급성 통증 감별</option>
           <option value="emergency">5. [심화] 회복기 응급 (후두경련 / α₂ 급속 길항)</option>
         </select>
+        <button id="btn-preop-lab" type="button" class="btn" style="background:rgba(14,165,233,0.18); border-color:rgba(56,189,248,0.45); color:#7dd3fc;">마취전 혈액검사</button>
         <button id="btn-reset" type="button" class="btn">초기화</button>
         <button id="btn-open-start" type="button" class="btn">시작화면</button>
       </div>
@@ -286,9 +325,30 @@
     <strong style="color:#94a3b8;">마취 종료·회복 시뮬레이터 · © 2026 DVM 이혁민.</strong> All rights reserved. · 본 시뮬레이터는 수의학 교육·훈련용 프로그램으로 실제 환자의 임상 반응과 다를 수 있으며, 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
   </footer>
 
+  
+  <div id="preop-lab-modal" class="lab-modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="마취 전 혈액검사 결과">
+    <div class="lab-modal-card">
+      <div class="lab-modal-hdr">
+        <div>
+          <div style="font-size:10px; color:#38bdf8; font-weight:800; letter-spacing:0.06em;">PRE-ANESTHETIC LAB PANEL</div>
+          <div id="preop-lab-title" style="font-size:14px; font-weight:800; color:#fff;">마취 전 혈액검사 결과</div>
+        </div>
+        <button id="btn-preop-lab-close" type="button" class="btn">닫기</button>
+      </div>
+      <div id="preop-lab-meta" style="padding:8px 16px; background:#09101f; border-bottom:1px solid #1e293b; font-size:11px; color:#cbd5e1;"></div>
+      <div class="lab-tabs" id="preop-lab-tabs">
+        <button type="button" class="lab-tab active" data-labtab="vbg">정맥혈액가스 (VBG 8+13)</button>
+        <button type="button" class="lab-tab" data-labtab="chem">Chemistry</button>
+        <button type="button" class="lab-tab" data-labtab="cbc">CBC (5-Diff·PLT)</button>
+      </div>
+      <div class="lab-modal-body" id="preop-lab-body"></div>
+    </div>
+  </div>
+
   <script>
     (function () {
       'use strict';
+      const AI_API_BASE = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '' : 'https://vet-anesthesia-lhm.netlify.app';
 
       const CASES = {
         normal: {
@@ -380,7 +440,7 @@
         st.spo2 = 99; st.etco2 = c.etco2; st.map = c.map; st.bt = c.bt; st.rr = 8;
         st.swallows = 0; st.extubated = false; st.o2Supp = false; st.warming = false;
         st.complicationActive = false; st.complicationSolved = false; st.bagCount15 = 0;
-        st.step = 1; st.mistakes = []; st.goods = []; st.logs = []; st.dischargeDone = false;
+        st.step = 1; st.mistakes = []; st.abortedByOwner = false; if (typeof dcInput !== 'undefined' && dcInput) dcInput.disabled = false; st.goods = []; st.logs = []; st.dischargeDone = false;
         el.slIso.value = '1.5'; el.dIso.textContent = '1.5%';
         el.slO2.value = '1.5'; el.dO2.textContent = '1.5 L/min';
         el.behav.textContent = '깊은 수면';
@@ -563,127 +623,666 @@
       // Discharge Roleplay
       const dcChat = document.getElementById('dc-chat');
       const dcInput = document.getElementById('dc-input');
+      
+      function isAbusiveMessage(raw) {
+        const t = String(raw || '').toLowerCase();
+        const norm = t.replace(/[\s`~!@#$%^&*()_\-+=\[\]{};:'",.<>/?\\|0-9]/g, '');
+        const patterns = [
+          /씨발|시발|씨빨|시빨|씹|썅|쌍년|쌍놈|병신|븅신|빙신|개새|새끼|새키|쉐끼|지랄|ㅈㄹ|ㅅㅂ|ㅆㅂ|ㅂㅅ|ㅄ|존나|졸라|ㅈㄴ|꺼져|꺼지|닥쳐|닥치|죽어|죽여|뒤져|디져|엿먹|좆|보지|자지|걸레|창녀|미친놈|미친년|미쳤|개소리|헛소리|쓰레기|호구|등신|머저리|찐따|패버|쳐맞|때려|개같|엿같|니애미|느금|애미|애비/,
+          /fuck|shit|bitch|asshole|bastard|cunt|dick|stfu|gtfo|idiot|moron/
+        ];
+        return patterns.some((re) => re.test(t) || re.test(norm));
+      }
+
+      function openRecoveryDebrief(abortedByOwner = false) {
+        const c = CASES[st.caseId];
+        if (!abortedByOwner && !st.extubated) { st.score -= 15; st.mistakes.push('발관을 완료하지 않고 종료함'); }
+        const finalScore = abortedByOwner ? 0 : Math.max(0, st.score);
+        const grade = abortedByOwner ? 'F' : (finalScore >= 90 ? 'S' : finalScore >= 75 ? 'A' : finalScore >= 60 ? 'B' : 'C');
+        document.getElementById('res-score-box').innerHTML = `
+          <div class="score-summary-row" style="width:100%;">
+            <div class="score-summary-left"><div style="font-size:11px; color:#94a3b8; white-space:nowrap;">최종 회복 관리 등급</div><div class="mono" style="font-size:26px; font-weight:800; color:${grade === 'F' ? '#fb7185' : '#fbbf24'}; white-space:nowrap;">${grade} <span style="font-size:16px; color:#fff; white-space:nowrap;">(${finalScore}점)</span></div></div>
+            <div class="score-summary-right"><div>${st.species === 'dog' ? '개' : '고양이'} · ${c.name}</div><div style="color:#94a3b8;">최종 BT ${st.bt.toFixed(1)}°C · SpO₂ ${Math.round(st.spo2)}%</div></div>
+          </div>`;
+        document.getElementById('res-local-body').innerHTML = `
+          ${st.mistakes.length ? `<div style="padding:8px; border-radius:8px; background:rgba(127,29,29,0.3); border:1px solid rgba(244,63,94,0.4);"><strong style="color:#fda4af;">보완이 필요한 항목</strong>${st.mistakes.map(m => `<div>• ${m}</div>`).join('')}</div>` : '<div style="padding:8px; border-radius:8px; background:rgba(6,78,59,0.3); border:1px solid rgba(16,185,129,0.4); color:#a7f3d0;"><strong>안전한 마취 회복 완료!</strong> 적정 발관과 합병증 대응이 모두 훌륭했습니다.</div>'}
+          <div style="padding:8px; border-radius:8px; background:rgba(15,23,42,0.8); border:1px solid #334155;"><strong>잘 수행한 항목</strong>${st.goods.length ? st.goods.map(g => `<div style="color:#6ee7b7;">✓ ${g}</div>`).join('') : '<div style="color:#94a3b8;">기록 없음</div>'}</div>`;
+        const aiOut = document.getElementById('res-ai-out');
+        if (aiOut) { aiOut.textContent = ''; aiOut.classList.add('hidden'); }
+        document.getElementById('result-modal').classList.remove('hidden');
+      }
+
       document.getElementById('btn-dc-send').addEventListener('click', async () => {
-        const msg = dcInput.value.trim(); if (!msg) return;
-        dcInput.value = ''; st.dischargeDone = true; st.step = 4;
+        const msg = dcInput.value.trim(); if (!msg || st.abortedByOwner) return;
+        dcInput.value = '';
         dcChat.innerHTML += `<div class="chat-msg vet"><strong>수의사:</strong> ${msg}</div>`;
+        if (isAbusiveMessage(msg)) {
+          const abortReply = '선생님, 수술 끝난 아이 보호자한테 지금 뭐라고 하신 거예요?! 이런 병원에서는 더 이상 설명 못 듣겠습니다. 당장 항의하고 퇴실하겠습니다!';
+          dcChat.innerHTML += `<div class="chat-msg owner" style="border-color:#f43f5e; background:rgba(136,19,55,0.35); color:#fecdd3;"><strong>보호자 (상담 중단):</strong> ${abortReply}</div>`;
+          dcChat.scrollTop = dcChat.scrollHeight;
+          st.abortedByOwner = true; st.score = 0; dcInput.disabled = true;
+          st.mistakes.unshift(`퇴원 상담 중 부적절한 언행("${msg.slice(0, 30)}")으로 보호자 신뢰 붕괴 → 상담 즉시 중단`);
+          addLog('[커뮤니케이션 실패] 퇴원 안내 중 부적절한 언행으로 보호자 상담 중단 → 시뮬레이션 즉시 실패', 'bad');
+          updateUI();
+          setTimeout(() => openRecoveryDebrief(true), 850);
+          return;
+        }
         let reply = '네 선생님, 4~6시간 뒤에 물부터 소량씩 주고 따뜻하게 쉬게 하면서 호흡이랑 상처 잘 살펴볼게요. 감사합니다!';
+        let aiAbort = false;
         try {
-          const res = await fetch('/.netlify/functions/ai', {
+          const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ task: 'roleplay', role: 'owner_discharge', species: st.species === 'dog' ? '개' : '고양이', caseName: CASES[st.caseId].name, vetAdvice: msg })
           });
-          if (res.ok) { const d = await res.json(); if (d && d.text) reply = d.text; }
+          if (res.ok) {
+            const d = await res.json();
+            if (d && d.text) {
+              if (d.text.trim().startsWith('[ABORT]')) {
+                aiAbort = true;
+                reply = d.text.replace(/^\[ABORT\]\s*/i, '').trim() || '이런 태도로는 더 이상 상담을 이어갈 수 없습니다. 당장 항의하겠습니다!';
+              } else {
+                reply = d.text;
+              }
+            }
+          }
         } catch (e) {}
+        if (aiAbort) {
+          dcChat.innerHTML += `<div class="chat-msg owner" style="border-color:#f43f5e; background:rgba(136,19,55,0.35); color:#fecdd3;"><strong>보호자 (상담 중단):</strong> ${reply}</div>`;
+          dcChat.scrollTop = dcChat.scrollHeight;
+          st.abortedByOwner = true; st.score = 0; dcInput.disabled = true;
+          st.mistakes.unshift(`퇴원 상담 중 부적절한 언행("${msg.slice(0, 30)}")으로 보호자 신뢰 붕괴 → 상담 즉시 중단`);
+          addLog('[커뮤니케이션 실패] 퇴원 안내 중 부적절한 언행으로 보호자 상담 중단 → 시뮬레이션 즉시 실패', 'bad');
+          updateUI();
+          setTimeout(() => openRecoveryDebrief(true), 850);
+          return;
+        }
         dcChat.innerHTML += `<div class="chat-msg owner"><strong>보호자:</strong> ${reply}</div>`;
         dcChat.scrollTop = dcChat.scrollHeight;
         st.goods.push('보호자 퇴원 주의사항(금식·체온·상처·응급 증상) 안내 완료');
         addLog('[퇴원 안내] 보호자 주의사항 설명 완료', 'good'); updateUI();
       });
 
-      document.getElementById('btn-finish-rec').addEventListener('click', () => {
-        const c = CASES[st.caseId];
-        if (!st.extubated) { st.score -= 15; st.mistakes.push('발관을 완료하지 않고 종료함'); }
-        const finalScore = Math.max(0, st.score);
-        const grade = finalScore >= 90 ? 'S' : finalScore >= 75 ? 'A' : finalScore >= 60 ? 'B' : 'C';
-        document.getElementById('res-score-box').innerHTML = `
-          <div><div style="font-size:10px; color:#94a3b8;">최종 회복 관리 등급</div><div class="mono" style="font-size:28px; font-weight:800; color:#fbbf24;">${grade} <span style="font-size:16px; color:#fff;">(${finalScore}점)</span></div></div>
-          <div style="text-align:right; font-size:11px; color:#cbd5e1;"><div>${st.species === 'dog' ? '개' : '고양이'} · ${c.name}</div><div style="color:#94a3b8;">최종 BT ${st.bt.toFixed(1)}°C · SpO₂ ${Math.round(st.spo2)}%</div></div>`;
-        document.getElementById('res-local-body').innerHTML = `
-          ${st.mistakes.length ? `<div style="padding:8px; border-radius:8px; background:rgba(127,29,29,0.3); border:1px solid rgba(244,63,94,0.4);"><strong style="color:#fda4af;">보완이 필요한 항목</strong>${st.mistakes.map(m => `<div>• ${m}</div>`).join('')}</div>` : '<div style="padding:8px; border-radius:8px; background:rgba(6,78,59,0.3); border:1px solid rgba(16,185,129,0.4); color:#a7f3d0;"><strong>안전한 마취 회복 완료!</strong> 적정 발관과 합병증 대응이 모두 훌륭했습니다.</div>'}
-          <div style="padding:8px; border-radius:8px; background:#020617; border:1px solid #1e293b;"><strong style="color:#6ee7b7;">잘 수행한 항목</strong>${st.goods.map(g => `<div>• ${g}</div>`).join('')}</div>`;
-        document.getElementById('res-ai-out').classList.add('hidden');
-        document.getElementById('result-modal').classList.remove('hidden');
-      });
+      document.getElementById('btn-finish-rec').addEventListener('click', () => openRecoveryDebrief(false));
 
       document.getElementById('btn-res-ai').addEventListener('click', async () => {
         const out = document.getElementById('res-ai-out');
-        out.classList.remove('hidden'); out.textContent = 'Gemini AI가 회복실 로그를 분석 중입니다...';
+        out.classList.remove('hidden'); out.textContent = 'Gemini AI가 회복 경과를 분석 중입니다...';
         try {
-          const res = await fetch('/.netlify/functions/debrief', {
+          const res = await fetch(AI_API_BASE + '/.netlify/functions/debrief', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              task: 'debrief',
               species: st.species === 'dog' ? '개' : '고양이',
-              scenario: '[마취 회복] ' + CASES[st.caseId].name,
-              difficulty: '종료·회복',
-              duration: el.clock.textContent,
-              arrested: st.score < 50,
-              arrestReason: st.mistakes.join(' / ') || '안정적 회복 완료',
-              finalVitals: { hr: Math.round(st.hr), spo2: Math.round(st.spo2), bt: st.bt.toFixed(1), map: Math.round(st.map), etIso: st.etIso.toFixed(2) },
-              recentLogs: st.logs.slice(0, 18).map(l => `[${l.t}] ${l.msg}`)
+              scenario: '회복기 - ' + CASES[st.caseId].name,
+              arrestReason: st.abortedByOwner ? '보호자 상담 중단(부적절한 언행)' : (st.mistakes[0] || '안전 회복 완료'),
+              finalVitals: { hr: Math.round(st.hr), spo2: Math.round(st.spo2), bt: Number(st.bt.toFixed(1)), etIso: Number(st.etIso.toFixed(2)) },
+              recentLogs: st.logs.slice(0, 15)
             })
           });
-          if (res.ok) { const d = await res.json(); if (d && d.analysis) { out.textContent = d.analysis; return; } }
-        } catch (e) {}
-        out.textContent = '로컬/오프라인 환경이거나 Netlify GEMINI_API_KEY가 미설정 상태입니다. 위의 내장 평가 리포트를 참고하세요.';
+          const d = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(d.error || 'HTTP ' + res.status);
+          out.textContent = d.analysis || d.text || 'AI 분석 결과가 비어 있습니다.';
+        } catch (err) {
+          out.textContent = 'AI 분석 요청 실패 (' + (err && err.message ? err.message : '오프라인') + '). 위의 내장 평가 항목을 참고하세요.';
+        }
       });
 
-      document.getElementById('btn-res-soap').addEventListener('click', () => {
+      document.getElementById('btn-res-soap').addEventListener('click', async () => {
         const out = document.getElementById('res-ai-out');
-        out.classList.remove('hidden');
-        out.textContent = `[마취 회복 기록지 (SOAP)]\n• 환자/케이스: ${st.species === 'dog' ? '개' : '고양이'} / ${CASES[st.caseId].name}\n• 발관 여부: ${st.extubated ? '발관 완료' : '미발관'} (연하반사 ${st.swallows}회, 최종 EtIso ${st.etIso.toFixed(2)}%)\n• 회복실 지표: HR ${Math.round(st.hr)}, SpO₂ ${Math.round(st.spo2)}%, BT ${st.bt.toFixed(1)}°C, MAP ${Math.round(st.map)} mmHg\n• 보조 처치: 산소(${st.o2Supp ? 'ON' : 'OFF'}), 가온(${st.warming ? 'ON' : 'OFF'}), 퇴원 안내(${st.dischargeDone ? '완료' : '미실시'})\n• 최종 점수: ${Math.max(0, st.score)}점`;
+        out.classList.remove('hidden'); out.textContent = 'SOAP 마취 회복 기록지를 생성 중입니다...';
+        const fallbackSoap = `[SOAP 마취 회복 기록지]\nS: ${st.species === 'dog' ? '개' : '고양이'} · ${CASES[st.caseId].name}\nO: 최종 BT ${st.bt.toFixed(1)}°C, SpO₂ ${Math.round(st.spo2)}%, HR ${Math.round(st.hr)} bpm, EtIso ${st.etIso.toFixed(2)}%\nA: ${st.abortedByOwner ? '커뮤니케이션 실패로 상담 중단' : (st.extubated ? '발관 완료 및 회복실 모니터링 수행' : '발관 미완료')}\nP: 보온·산소·통증/흥분 모니터링 및 퇴원 주의사항 안내`;
+        try {
+          const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              task: 'soap_record',
+              species: st.species === 'dog' ? '개' : '고양이',
+              scenario: '회복기 - ' + CASES[st.caseId].name,
+              duration: '회복실',
+              arrested: !!st.abortedByOwner,
+              arrestReason: st.abortedByOwner ? '보호자 상담 중단' : '',
+              finalVitals: { hr: Math.round(st.hr), spo2: Math.round(st.spo2), bt: Number(st.bt.toFixed(1)) },
+              recentLogs: st.logs.slice(0, 15)
+            })
+          });
+          const d = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(d.error || 'HTTP ' + res.status);
+          out.textContent = d.text || fallbackSoap;
+        } catch (err) {
+          out.textContent = fallbackSoap;
+        }
       });
 
-      // Live Waveforms
-      const BUF = 240;
-      const ecgB = new Array(BUF).fill(0), spB = new Array(BUF).fill(-0.4), co2B = new Array(BUF).fill(-0.75);
-      let wx = 0, cx = 0, eP = 0, cP = 0, cSub = 0;
-      function syncCv(cv) {
-        const r = cv.parentElement.getBoundingClientRect();
-        const w = Math.floor(r.width * Math.min(window.devicePixelRatio || 1, 2));
-        const h = Math.floor(r.height * Math.min(window.devicePixelRatio || 1, 2));
-        if (w > 10 && h > 10 && (cv.width !== w || cv.height !== h)) { cv.width = w; cv.height = h; }
-      }
-      function drawWave(cv, buf, cur, col) {
-        syncCv(cv);
-        const ctx = cv.getContext('2d'), w = cv.width, h = cv.height;
-        if (w < 10 || h < 10) return;
-        ctx.clearRect(0, 0, w, h);
-        ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.8, h * 0.025); ctx.beginPath();
-        let on = false;
-        for (let i = 0; i < buf.length; i++) {
-          if ((i - cur + buf.length) % buf.length < 7) { on = false; continue; }
-          const x = (i / (buf.length - 1)) * w, y = h * 0.55 - buf[i] * h * 0.38;
-          if (!on) { ctx.moveTo(x, y); on = true; } else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-      }
-      function loop() {
-        if (!st.paused) {
-          wx = (wx + 1) % BUF;
-          eP = (eP + (st.hr / 60) * (1 / 60)) % 1;
-          let ey = 0;
-          if (eP > 0.12 && eP < 0.22) ey = 0.16 * Math.sin(((eP - 0.12) / 0.1) * Math.PI);
-          else if (eP >= 0.28 && eP < 0.33) ey = 0.95 * Math.sin(((eP - 0.28) / 0.05) * Math.PI);
-          else if (eP > 0.48 && eP < 0.65) ey = 0.25 * Math.sin(((eP - 0.48) / 0.17) * Math.PI);
-          ecgB[wx] = ey;
-          spB[wx] = Math.sin(eP * Math.PI * 2) * 0.55;
-          if (++cSub >= 5) {
-            cSub = 0; cx = (cx + 1) % BUF;
-            if (st.extubated) co2B[cx] = -0.75;
-            else { cP = (cP + (Math.max(4, st.rr) / 60) * (5 / 60)) % 1; co2B[cx] = cP > 0.1 && cP < 0.58 ? 0.65 : -0.75; }
-          }
-          drawWave(el.cvEcg, ecgB, wx, '#22c55e');
-          drawWave(el.cvSpo2, spB, wx, '#38bdf8');
-          drawWave(el.cvCo2, co2B, cx, '#facc15');
-        }
-        requestAnimationFrame(loop);
-      }
-
-      document.getElementById('sp-dog').addEventListener('click', (e) => { st.species = 'dog'; e.target.classList.add('active'); document.getElementById('sp-cat').classList.remove('active'); resetSim(); });
-      document.getElementById('sp-cat').addEventListener('click', (e) => { st.species = 'cat'; e.target.classList.add('active'); document.getElementById('sp-dog').classList.remove('active'); resetSim(); });
+      document.getElementById('sp-dog').addEventListener('click', () => { st.species = 'dog'; document.getElementById('sp-dog').classList.add('active'); document.getElementById('sp-cat').classList.remove('active'); resetSim(); });
+      document.getElementById('sp-cat').addEventListener('click', () => { st.species = 'cat'; document.getElementById('sp-cat').classList.add('active'); document.getElementById('sp-dog').classList.remove('active'); resetSim(); });
       document.getElementById('case-select').addEventListener('change', (e) => { st.caseId = e.target.value; resetSim(); });
-      document.getElementById('btn-reset').addEventListener('click', resetSim);
-      document.getElementById('btn-start').addEventListener('click', () => { document.getElementById('start-screen').classList.add('hidden'); st.paused = false; });
-      document.getElementById('btn-open-start').addEventListener('click', () => { st.paused = true; document.getElementById('start-screen').classList.remove('hidden'); });
+      document.getElementById('btn-reset').addEventListener('click', () => { if (dcInput) dcInput.disabled = false; resetSim(); });
+      document.getElementById('btn-open-start').addEventListener('click', () => document.getElementById('start-screen').classList.remove('hidden'));
+      document.getElementById('btn-start').addEventListener('click', () => document.getElementById('start-screen').classList.add('hidden'));
       document.getElementById('btn-credits').addEventListener('click', () => document.getElementById('credits-modal').classList.remove('hidden'));
       document.getElementById('btn-credits-close').addEventListener('click', () => document.getElementById('credits-modal').classList.add('hidden'));
+
       document.getElementById('btn-res-close').addEventListener('click', () => document.getElementById('result-modal').classList.add('hidden'));
       document.getElementById('btn-res-restart').addEventListener('click', () => { document.getElementById('result-modal').classList.add('hidden'); resetSim(); });
       document.getElementById('btn-portal').addEventListener('click', () => { if (window.location.protocol.startsWith('http')) window.location.href = './'; });
 
+      
+      // === Live Recovery Physiology Ticker & Dual-Speed Waveform Engine (ECG/SpO2 25mm/s, ETCO2 4mm/s) ===
+      const rBufLen = 280;
+      const rEcgBuf = new Array(rBufLen).fill(0);
+      const rSpo2Buf = new Array(rBufLen).fill(0);
+      const rCo2Buf = new Array(rBufLen).fill(0);
+      let rPtr = 0, rCo2Ptr = 0, rCo2Acc = 0, rBeatPhase = 0, rRespPhase = 0, rLastTs = performance.now(), rUiAcc = 0;
+
+      function drawRecWave(id, buf, color, scaleY, baseY, cursor) {
+        const cv = document.getElementById(id);
+        if (!cv) return;
+        const rect = cv.getBoundingClientRect();
+        if (rect.width > 10 && (cv.width !== Math.round(rect.width) || cv.height !== Math.round(rect.height))) {
+          cv.width = Math.round(rect.width); cv.height = Math.round(rect.height);
+        }
+        const ctx = cv.getContext('2d');
+        const W = cv.width || 280, H = cv.height || 58;
+        ctx.fillStyle = '#020617'; ctx.fillRect(0, 0, W, H);
+        ctx.strokeStyle = color; ctx.lineWidth = 1.7; ctx.beginPath();
+        let started = false;
+        for (let i = 0; i < rBufLen; i++) {
+          if (Math.abs(i - cursor) < 5) { started = false; continue; }
+          const x = (i / (rBufLen - 1)) * W;
+          const y = H * baseY - buf[i] * H * scaleY;
+          if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      function loop(ts) {
+        const dt = Math.min(0.1, Math.max(0.001, (ts - rLastTs) / 1000));
+        rLastTs = ts;
+        if (!st.abortedByOwner) {
+          st.sec += dt;
+          const c = CASES[st.caseId];
+          // EtIso washout (slower in severe hypothermia)
+          const washMult = st.bt < 36.2 ? 0.045 : 0.095;
+          const o2Boost = st.o2 >= 2.0 ? 1.35 : 1.0;
+          st.etIso = Math.max(0, Math.min(4, st.etIso + (st.iso - st.etIso) * washMult * o2Boost * dt));
+          // Body temperature
+          if (st.warming) st.bt = Math.min(38.4, st.bt + 0.025 * dt);
+          else st.bt = Math.max(34.2, st.bt - (c.issue === 'hypo' ? 0.015 : 0.008) * dt);
+          // Spontaneous RR & swallowing return as EtIso drops
+          if (st.iso === 0 && st.etIso < 0.85) {
+            const targetRR = st.species === 'cat' ? 18 : 14;
+            st.rr = st.rr + (targetRR - st.rr) * 0.08 * dt;
+            if (st.etIso < 0.55 && Math.random() < (st.bt < 36.2 ? 0.14 : 0.34) * dt) {
+              st.swallows = Math.min(5, st.swallows + 1);
+            }
+          }
+          // ETCO2 drift
+          const targetCo2 = st.extubated ? 38 : Math.max(26, Math.min(68, 44 * (12 / Math.max(5, st.rr))));
+          st.etco2 = st.etco2 + (targetCo2 - st.etco2) * 0.12 * dt;
+          // SpO2 recovery or complication drift
+          const targetSpo2 = (st.complicationActive && !st.complicationSolved) ? 84 : (st.o2Supp ? 99 : 97);
+          st.spo2 = Math.max(68, Math.min(100, st.spo2 + (targetSpo2 - st.spo2) * 0.12 * dt));
+
+          rUiAcc += dt;
+          if (rUiAcc >= 0.25) { rUiAcc = 0; updateUI(); }
+        }
+
+        // Advance ECG & Pleth at 25 mm/s, Capnography (ETCO2) at 4 mm/s!
+        const bps = Math.max(0.4, st.hr / 60);
+        const steps = 2;
+        const g = (ph, c, w, a) => a * Math.exp(-Math.pow((ph - c) / w, 2));
+        for (let k = 0; k < steps; k++) {
+          rBeatPhase = (rBeatPhase + (dt / steps) * bps) % 1;
+          rRespPhase = (rRespPhase + (dt / steps) * (Math.max(4, st.rr) / 60)) % 1;
+          rEcgBuf[rPtr] = g(rBeatPhase, 0.16, 0.028, 0.15) - g(rBeatPhase, 0.28, 0.011, 0.14) + g(rBeatPhase, 0.31, 0.015, 1.0) - g(rBeatPhase, 0.34, 0.014, 0.25) + g(rBeatPhase, 0.54, 0.048, 0.28);
+          rSpo2Buf[rPtr] = Math.pow(Math.max(0, Math.sin(rBeatPhase * Math.PI)), 1.6) * (st.spo2 / 100);
+          rPtr = (rPtr + 1) % rBufLen;
+        }
+        // Slow 4 mm/s sweep for ETCO2 (4/25 = 0.16x ECG sweep speed)
+        rCo2Acc += steps * (4 / 25);
+        while (rCo2Acc >= 1) {
+          rCo2Acc -= 1;
+          const capVal = st.extubated ? 0 : (rRespPhase > 0.28 && rRespPhase < 0.78 ? (st.etco2 / 55) * (0.9 + 0.1 * rRespPhase) : 0);
+          rCo2Buf[rCo2Ptr] = capVal;
+          rCo2Ptr = (rCo2Ptr + 1) % rBufLen;
+        }
+
+        drawRecWave('cv-ecg', rEcgBuf, '#4ade80', 0.36, 0.58, rPtr);
+        drawRecWave('cv-spo2', rSpo2Buf, '#38bdf8', 0.65, 0.82, rPtr);
+        drawRecWave('cv-co2', rCo2Buf, '#facc15', 0.68, 0.85, rCo2Ptr);
+        requestAnimationFrame(loop);
+      }
+
       resetSim();
       requestAnimationFrame(loop);
+    
+      // === Pre-Op Blood Panel Integration ===
+      const PreopLabEngine = (() => {
+        const cl = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+        const rd = (v, d = 1) => Number(Number(v).toFixed(d));
+        const rnd = (lo, hi, d = 1) => rd(lo + Math.random() * (hi - lo), d);
+
+        const REF = {
+          dog: {
+            pH: [7.35, 7.45], pCO2: [35, 45], pO2: [35, 50], Na: [142, 152], K: [3.8, 5.2], Cl: [108, 118], iCa: [1.15, 1.38], Hct: [37, 55],
+            ALP: [20, 150], ALT: [10, 100], AST: [15, 55], GGT: [0, 11], BUN: [7, 27], Crea: [0.5, 1.6], Phos: [2.5, 6.8], Ca: [8.6, 11.8],
+            TG: [25, 150], Tchol: [110, 320], Glu: [70, 125], TP: [5.2, 8.2], ALB: [2.5, 4.0], Glob: [2.5, 4.5], Mg: [1.6, 2.5],
+            CRP: [0, 10], cPL: [0, 200], proBNP: [0, 900], T4: [1.0, 4.0], Cortisol: [1.0, 6.0], SDMA: [0, 14],
+            RBC: [5.5, 8.5], HGB: [12.0, 18.0], HCT: [37, 55], MCV: [60, 77], MCH: [19.5, 24.5], MCHC: [32, 36], RDW: [12, 16], RETIC: [10, 110], ReticHGB: [22.3, 29.6],
+            WBC: [5.5, 16.9], Neu: [2.0, 12.0], Lym: [0.5, 4.9], Mono: [0.3, 2.0], Eos: [0.1, 1.49], Baso: [0.0, 0.1],
+            PLT: [175, 500], MPV: [8.7, 13.2], PCT: [0.14, 0.46]
+          },
+          cat: {
+            pH: [7.31, 7.42], pCO2: [32, 42], pO2: [35, 50], Na: [147, 156], K: [3.6, 5.2], Cl: [115, 126], iCa: [1.12, 1.35], Hct: [30, 45],
+            ALP: [14, 111], ALT: [12, 115], AST: [15, 50], GGT: [0, 4], BUN: [16, 36], Crea: [0.8, 2.0], Phos: [3.1, 7.5], Ca: [8.2, 11.2],
+            TG: [20, 120], Tchol: [75, 220], Glu: [70, 150], TP: [5.7, 8.9], ALB: [2.3, 3.9], Glob: [2.8, 5.1], Mg: [1.8, 2.6],
+            SAA: [0, 5], fPL: [0, 3.5], proBNP: [0, 100], T4: [0.8, 4.7], Cortisol: [0.5, 5.0], SDMA: [0, 14],
+            RBC: [6.5, 11.5], HGB: [9.5, 15.5], HCT: [30, 45], MCV: [39, 55], MCH: [13, 17], MCHC: [31, 35], RDW: [14, 18], RETIC: [3, 50], ReticHGB: [13.2, 20.8],
+            WBC: [5.5, 19.5], Neu: [2.5, 12.5], Lym: [1.5, 7.0], Mono: [0.0, 0.85], Eos: [0.1, 1.5], Baso: [0.0, 0.1],
+            PLT: [155, 640], MPV: [11.4, 21.6], PCT: [0.15, 0.55]
+          }
+        };
+
+        function computeVBG13(m, bt = 38.0) {
+          const pH = m.pH, pCO2 = m.pCO2, pO2 = m.pO2;
+          const pHT = rd(pH - 0.0147 * (bt - 37.0), 3);
+          const pCO2T = rd(pCO2 * Math.pow(10, 0.019 * (bt - 37.0)), 1);
+          const pO2T = rd(pO2 * Math.pow(10, 0.025 * (bt - 37.0)), 1);
+          const cHCO3 = rd(0.0307 * pCO2 * Math.pow(10, pH - 6.1), 1);
+          const ctCO2 = rd(cHCO3 + 0.0307 * pCO2, 1);
+          const cHCO3std = rd(cHCO3 + 0.25 * (40 - pCO2) * 0.4, 1);
+          const ctHb = rd(m.Hct / 3.0, 1);
+          const BEecf = rd((cHCO3 - 24.8) + 16.2 * (pH - 7.4), 1);
+          const BEB = rd((1 - 0.014 * ctHb) * ((cHCO3 - 24.8) + (1.43 * ctHb + 7.7) * (pH - 7.4)), 1);
+          const iCa74 = rd(m.iCa * (1 - 0.53 * (7.4 - pH)), 2);
+          const pO2Aa = rd(Math.max(2.0, (150 - pCO2 / 0.8) - pO2), 1);
+          const p50 = 28 * Math.pow(10, 0.48 * (7.4 - pH));
+          const sO2 = rd(cl((Math.pow(pO2, 2.7) / (Math.pow(pO2, 2.7) + Math.pow(p50, 2.7))) * 100, 25, 99), 1);
+          const AGK = rd((m.Na + m.K) - (m.Cl + cHCO3), 1);
+          return { pHT, pCO2T, pO2T, ctCO2, cHCO3, cHCO3std, BEecf, BEB, ctHb, iCa74, pO2Aa, sO2, AGK };
+        }
+
+        function buildCBC(sp, ov = {}) {
+          const isCat = sp === 'cat';
+          const HCT = ov.HCT ?? (isCat ? 38.2 : 45.4);
+          const HGB = ov.HGB ?? rd(HCT / 3.02, 1);
+          const MCV = ov.MCV ?? (isCat ? 46.5 : 68.4);
+          const RBC = ov.RBC ?? rd((HCT * 10) / MCV, 2);
+          const MCH = rd((HGB * 10) / Math.max(1, RBC), 1);
+          const MCHC = rd((HGB * 100) / Math.max(1, HCT), 1);
+          const RDW = ov.RDW ?? (isCat ? 15.8 : 13.8);
+          const RETIC = ov.RETIC ?? (isCat ? 24 : 52);
+          const ReticHGB = ov.ReticHGB ?? (isCat ? 16.5 : 25.8);
+          const WBC = ov.WBC ?? (isCat ? 10.4 : 9.8);
+          const neuP = ov.neuP ?? (isCat ? 62 : 68);
+          const lymP = ov.lymP ?? (isCat ? 28 : 22);
+          const monoP = ov.monoP ?? 5.5;
+          const eosP = ov.eosP ?? 4.0;
+          const basoP = rd(Math.max(0.1, 100 - neuP - lymP - monoP - eosP), 1);
+          const PLT = ov.PLT ?? (isCat ? 295 : 280);
+          const MPV = ov.MPV ?? (isCat ? 14.5 : 10.4);
+          const PCT = rd(cl((PLT * MPV) / 10000, 0.05, 0.8), 2);
+          return {
+            RBC, HGB, HCT, MCV, MCH, MCHC, RDW, RETIC, ReticHGB, WBC,
+            Neu: rd(WBC * neuP / 100, 2), neuP,
+            Lym: rd(WBC * lymP / 100, 2), lymP,
+            Mono: rd(WBC * monoP / 100, 2), monoP,
+            Eos: rd(WBC * eosP / 100, 2), eosP,
+            Baso: rd(WBC * basoP / 100, 2), basoP,
+            PLT, MPV, PCT
+          };
+        }
+
+        function buildChem(sp, tier, ov = {}) {
+          const isCat = sp === 'cat';
+          const base = {
+            ALP: ov.ALP ?? (isCat ? 48 : 68), ALT: ov.ALT ?? (isCat ? 46 : 42), AST: ov.AST ?? (isCat ? 28 : 31),
+            GGT: ov.GGT ?? (isCat ? 1.5 : 4.2), BUN: ov.BUN ?? (isCat ? 23 : 16), Crea: ov.Crea ?? (isCat ? 1.3 : 1.0),
+            Phos: ov.Phos ?? (isCat ? 4.6 : 4.1), Ca: ov.Ca ?? (isCat ? 9.5 : 10.1), TG: ov.TG ?? (isCat ? 52 : 68),
+            Tchol: ov.Tchol ?? (isCat ? 138 : 198), Glu: ov.Glu ?? (isCat ? 108 : 96), TP: ov.TP ?? (isCat ? 6.9 : 6.6),
+            ALB: ov.ALB ?? (isCat ? 3.2 : 3.3), Mg: ov.Mg ?? (isCat ? 2.1 : 2.0)
+          };
+          base.Glob = rd(Math.max(1.2, base.TP - base.ALB), 1);
+          const out = {};
+          const keys7 = ['ALP', 'ALT', 'BUN', 'Crea', 'Glu', 'TP', 'ALB'];
+          const keys15 = ['ALP', 'ALT', 'AST', 'GGT', 'BUN', 'Crea', 'Phos', 'Ca', 'TG', 'Tchol', 'Glu', 'TP', 'ALB', 'Glob', 'Mg'];
+          const useKeys = tier === 'chemi7' ? keys7 : keys15;
+          useKeys.forEach((k) => { out[k] = base[k]; });
+          if (ov.specials) Object.keys(ov.specials).forEach((sk) => { out[sk] = ov.specials[sk]; });
+          return out;
+        }
+
+        function generate(scenarioId, sp, customMeta = null) {
+          const isCat = sp === 'cat';
+          let panelLabel = '';
+          let note = '';
+          let hasVBG = true, hasChem = true, hasCBC = true;
+          let chemTier = 'full';
+          let bt = 38.0;
+          let vbgM = {
+            pH: isCat ? 7.36 : 7.39, pCO2: isCat ? 37 : 40, pO2: 42,
+            Na: isCat ? 151 : 146, K: isCat ? 4.2 : 4.4, Cl: isCat ? 120 : 113,
+            iCa: isCat ? 1.24 : 1.26, Hct: isCat ? 38 : 45
+          };
+          let cbcOv = {};
+          let chemOv = {};
+          let hiddenTrue = { lactate: 1.3, alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 0 };
+
+          // Exact dedicated profiles for ALL fixed cases across all 4 modes
+          if (scenarioId === 'routine' || scenarioId === 'ind_routine' || scenarioId === 'rec_normal') {
+            panelLabel = '어린 건강 환자 최소 기본 패널 (CBC + Chemi 7종)';
+            note = '건강한 젊은 성견/성묘로 기본 수술 전 검사(CBC + Chemi 7종)만 시행되었습니다. 정맥가스·특수 마커는 생략되었습니다.';
+            hasVBG = false; chemTier = 'chemi7';
+          } else if (scenarioId === 'neuro' || scenarioId === 'ind_icp' || scenarioId === 'crit_boas_icp') {
+            panelLabel = '노령·신경계 정밀 패널 (CBC + 확장 Chemi + T4/Cortisol/SDMA + VBG)';
+            note = '두개내압 상승 위험이 있는 노령 환자로 내분비(T4·Cortisol)·신장(SDMA)·정맥혈액가스까지 풀검사가 완료되었습니다.';
+            vbgM = { ...vbgM, Na: isCat ? 154 : 149, pCO2: scenarioId === 'crit_boas_icp' ? 47 : (isCat ? 39 : 42), Hct: scenarioId === 'crit_boas_icp' ? (isCat ? 43 : 48) : vbgM.Hct };
+            cbcOv = { HCT: vbgM.Hct };
+            chemOv = { specials: { ...(isCat ? { SAA: 3.4 } : { CRP: 6.8 }), T4: isCat ? 2.4 : 2.1, Cortisol: 8.6, SDMA: 11 } };
+            hiddenTrue = { lactate: 1.5, alpha2: 0, opioid: 20, histamine: 0, icp: 20, lungWater: 0 };
+          } else if (scenarioId === 'sepsis' || scenarioId === 'crit_sepsis') {
+            panelLabel = '담낭파열·패혈성 복막염 응급 풀패널 (CBC 5-Diff + 확장 Chemi + CRP/SAA + VBG)';
+            note = '담낭파열·패혈성 복막염 응급 환자로 극심한 간담도 효소(ALP/GGT)·염증수치 상승, 저알부민·저혈당·대사성 산증이 확인됩니다.';
+            bt = 37.1;
+            vbgM = { pH: 7.21, pCO2: 33, pO2: 34, Na: isCat ? 144 : 139, K: 3.5, Cl: isCat ? 112 : 104, iCa: 1.09, Hct: isCat ? 31 : 33 };
+            cbcOv = { HCT: vbgM.Hct, WBC: 26.8, neuP: 86, lymP: 7, monoP: 5.5, eosP: 1.0, PLT: 132 };
+            chemOv = {
+              ALP: isCat ? 385 : 1420, ALT: isCat ? 410 : 540, AST: 320, GGT: isCat ? 22 : 68,
+              BUN: isCat ? 42 : 34, Crea: isCat ? 2.2 : 1.9, Glu: 59, TP: 4.8, ALB: 1.9, Tchol: 365,
+              specials: { ...(isCat ? { SAA: 94, fPL: 8.2 } : { CRP: 148, cPL: 480 }), SDMA: 18 }
+            };
+            hiddenTrue = { lactate: 4.8, alpha2: 0, opioid: 30, histamine: 12, icp: 10, lungWater: 8 };
+          } else if (scenarioId === 'ind_gdv') {
+            panelLabel = '초응급 GDV·패혈증 쇼크 단축 패널 (VBG 8+13 + 응급 PCV/Alb/Glu)';
+            note = '위확장염전(GDV)·쇼크로 즉각 감압·수술이 필요해 전체 화학/CBC는 생략하고 정맥혈액가스와 응급 지표만 확인했습니다.';
+            bt = 37.3; hasCBC = false; chemTier = 'chemi7';
+            vbgM = { pH: 7.19, pCO2: 32, pO2: 31, Na: isCat ? 145 : 140, K: 3.3, Cl: isCat ? 109 : 102, iCa: 1.08, Hct: isCat ? 49 : 55 };
+            chemOv = { ALP: isCat ? 130 : 280, ALT: 195, BUN: 39, Crea: 2.1, Glu: 64, TP: 5.0, ALB: 2.1 };
+            hiddenTrue = { lactate: 5.8, alpha2: 0, opioid: 25, histamine: 10, icp: 10, lungWater: 4 };
+          } else if (scenarioId === 'cardiac' || scenarioId === 'ind_cardiac' || scenarioId === 'crit_cardiac') {
+            panelLabel = '노령 심장병 정밀 패널 (CBC + 확장 Chemi + proBNP + SDMA + VBG)';
+            note = '심부전(개 MMVD Stage C / 고양이 HCM) 노령 환자로 proBNP가 뚜렷하게 상승되어 있으며 수액 과부하 시 폐수종 위험이 높습니다.';
+            vbgM = { ...vbgM, K: isCat ? 3.9 : 3.8, pH: isCat ? 7.34 : 7.36 };
+            chemOv = {
+              BUN: isCat ? 38 : 35, Crea: isCat ? 1.9 : 1.7,
+              specials: { proBNP: isCat ? 640 : 2850, SDMA: 16, T4: isCat ? 3.8 : 2.0, ...(isCat ? { SAA: 4.1 } : { CRP: 8.2 }) }
+            };
+            hiddenTrue = { lactate: 2.1, alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 18 };
+          } else if (scenarioId === 'boas' || scenarioId === 'ind_boas' || scenarioId === 'rec_boas') {
+            panelLabel = '단두종(BOAS) 호흡기 패널 (CBC + Chemi 7종 + VBG)';
+            note = '만성 상부기도 협착으로 경도의 만성 고탄산혈증(pCO₂↑), 보상성 중탄산 상승 및 상대적 적혈구증가(HCT↑)가 관찰됩니다.';
+            vbgM = { ...vbgM, pH: isCat ? 7.33 : 7.36, pCO2: isCat ? 46 : 49, Hct: isCat ? 43 : 51 };
+            cbcOv = { HCT: vbgM.Hct };
+            chemTier = 'chemi7';
+            hiddenTrue = { lactate: 1.4, alpha2: 15, opioid: 20, histamine: 0, icp: 11, lungWater: 0 };
+          } else if (scenarioId === 'csection') {
+            panelLabel = '응급 제왕절개 산과 단축 패널 (VBG + Chemi 7종 + CBC)';
+            note = '응급 분만 환자로 임신성 생리적 희석 빈혈(HCT↓), 경도 저알부민 및 이온화 칼슘(iCa²⁺) 저하 경향이 관찰됩니다.';
+            vbgM = { ...vbgM, pH: isCat ? 7.33 : 7.36, pCO2: isCat ? 31 : 33, iCa: 1.07, Hct: isCat ? 28 : 31.5 };
+            cbcOv = { HCT: vbgM.Hct, WBC: 15.8, neuP: 76, lymP: 16 };
+            chemTier = 'chemi7';
+            chemOv = { ALB: 2.3, TP: 5.1, Glu: 72 };
+            hiddenTrue = { lactate: 2.2, alpha2: 0, opioid: 10, histamine: 0, icp: 10, lungWater: 0 };
+          } else if (scenarioId === 'ckd' || scenarioId === 'crit_hyperk') {
+            const isCritK = scenarioId === 'crit_hyperk';
+            panelLabel = isCritK ? '요로폐쇄 고칼륨혈증 응급 풀패널 (CBC + 확장 Chemi + SDMA + VBG)' : '만성신부전·요로폐색 정밀 패널 (CBC + 확장 Chemi + SDMA + VBG)';
+            note = `심한 고질소혈증(BUN/Crea/SDMA↑), 고인산, 고칼륨혈증(K⁺ ${isCritK ? '7.8' : '6.9'}), 대사성 산증 및 비재생성 빈혈이 확인됩니다.`;
+            vbgM = { pH: isCritK ? 7.20 : 7.21, pCO2: 34, pO2: 38, Na: isCat ? 148 : 143, K: isCritK ? 7.8 : 6.9, Cl: isCat ? 114 : 107, iCa: 1.06, Hct: isCat ? 25 : 29 };
+            cbcOv = { HCT: vbgM.Hct, RETIC: isCat ? 9 : 18, PLT: 225 };
+            chemOv = {
+              BUN: isCritK ? 98 : 88, Crea: isCritK ? 5.9 : 4.8, Phos: isCritK ? 9.4 : 8.9, Ca: 8.3, ALB: 2.7,
+              specials: { SDMA: isCritK ? 38 : 34, ...(isCat ? { SAA: 14.5, proBNP: 145 } : { CRP: 21, proBNP: 420 }) }
+            };
+            hiddenTrue = { lactate: 2.8, alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 6 };
+          } else if (scenarioId === 'thoracic' || scenarioId === 'crit_hemorrhage') {
+            const isHem = scenarioId === 'crit_hemorrhage';
+            panelLabel = isHem ? '초응급 비장 출혈 쇼크 단축 패널 (VBG + 응급 CBC · Chemi 생략)' : '초응급 흉부외상·기흉 단축 패널 (VBG + 응급 CBC · Chemi 생략)';
+            note = isHem ? '급성 혈복강 출혈 쇼크로 즉시 개복이 필요해 Chemistry는 생략하고 VBG와 응급 CBC(HCT 19%, PLT 110)만 확보했습니다.' : '급성 흉부외상으로 시간이 촉박해 정맥혈액가스와 응급 혈구검사만 시행 후 수술실로 직행했습니다.';
+            hasChem = false;
+            vbgM = { pH: isHem ? 7.24 : 7.25, pCO2: isHem ? 34 : 52, pO2: isHem ? 35 : 29, Na: isCat ? 149 : 144, K: 4.7, Cl: isCat ? 116 : 110, iCa: 1.16, Hct: isHem ? 19 : (isCat ? 26 : 29) };
+            cbcOv = { HCT: vbgM.Hct, PLT: isHem ? 110 : 142, RETIC: isHem ? 92 : 48, WBC: 16.4, neuP: 78 };
+            hiddenTrue = { lactate: isHem ? 5.2 : 4.4, alpha2: 0, opioid: 35, histamine: 0, icp: 11, lungWater: 4 };
+          } else if (scenarioId === 'hypothermia' || scenarioId === 'rec_hypo') {
+            panelLabel = '노령 소형견/묘 저체온 정밀 패널 (CBC + 확장 Chemi + T4/SDMA + VBG)';
+            note = '체온 35.2–35.6°C 노령 소형 환자로 저체온에 따른 혈액가스 체온 보정치 pH(T)·pCO₂(T)와 경도 저혈당에 유의하세요.';
+            bt = scenarioId === 'rec_hypo' ? 35.2 : 35.6;
+            vbgM = { ...vbgM, pH: 7.31, pCO2: 44, Hct: isCat ? 33 : 39 };
+            cbcOv = { HCT: vbgM.Hct };
+            chemOv = { Glu: 62, ALB: 2.6, specials: { T4: isCat ? 1.0 : 0.85, SDMA: 13 } };
+            hiddenTrue = { lactate: 1.9, alpha2: 25, opioid: 25, histamine: 0, icp: 10, lungWater: 0 };
+          } else if (scenarioId === 'rec_dysphoria') {
+            panelLabel = '정형외과 수술 성견/성묘 확장 패널 (CBC + 확장 Chemi 15종 + CRP/SAA + VBG)';
+            note = '골절·인대 수술 전 시행한 확장 검사로 경도 염증 수치(CRP/SAA↑)와 스트레스성 백혈구 증가가 관찰되며 장기능·전해질은 안정적입니다.';
+            cbcOv = { WBC: 17.6, neuP: 79, lymP: 13 };
+            chemOv = { AST: 68, specials: { ...(isCat ? { SAA: 22 } : { CRP: 34 }), Cortisol: 7.4 } };
+            hiddenTrue = { lactate: 1.6, alpha2: 0, opioid: 45, histamine: 0, icp: 10, lungWater: 0 };
+          } else if (scenarioId === 'rec_emergency') {
+            panelLabel = '중년 성견/성묘 회복기 응급 확장 패널 (CBC + 확장 Chemi 15종 + VBG)';
+            note = '중년 환자로 확장 화학·혈액가스 검사를 시행했으며 경도 간효소 상승과 스트레스성 고혈당이 관찰됩니다.';
+            chemOv = { ALP: isCat ? 95 : 172, ALT: isCat ? 88 : 118, Glu: isCat ? 168 : 134, specials: { Cortisol: 7.8, SDMA: 12 } };
+            hiddenTrue = { lactate: 1.7, alpha2: 45, opioid: 30, histamine: 0, icp: 10, lungWater: 0 };
+          } else {
+            // Dynamic / Random (Case 10 or AI-generated patient)
+            const txt = ((customMeta?.title || '') + ' ' + (customMeta?.summary || '') + ' ' + (customMeta?.caution || '')).toLowerCase();
+            if (customMeta && customMeta.lab && typeof customMeta.lab === 'object') {
+              const L = customMeta.lab;
+              if (L.panelTier === 'emerg_none') {
+                return {
+                  performed: false,
+                  panelLabel: '초응급 직행 — 마취 전 혈액검사 미실시',
+                  note: `${customMeta.title || '응급 환자'} — 채혈 여유 없이 즉시 마취에 진입했습니다. 수술 중 [혈액검사]로 현장 확인하세요.`,
+                  vbg: null, chem: null, cbc: null,
+                  hiddenTrue: {
+                    pH: cl(Number(L.pH)||7.28, 6.95, 7.55), pCO2: cl(Number(L.pCO2)||42, 20, 75),
+                    Na: cl(Number(L.Na)||146, 128, 168), K: cl(Number(L.K)||4.6, 2.6, 8.8),
+                    Cl: cl(Number(L.Cl)||112, 92, 134), iCa: cl(Number(L.iCa)||1.18, 0.8, 1.55),
+                    Hct: cl(Number(L.HCT)||30, 14, 62), ALB: cl(Number(L.ALB)||2.4, 1.3, 4.4),
+                    Glu: cl(Number(L.Glu)||88, 35, 340), lactate: cl(Number(L.lactate)||3.4, 0.7, 12),
+                    alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 5, PLT: cl(Number(L.PLT)||180, 45, 600)
+                  }
+                };
+              }
+              if (L.pH != null) vbgM.pH = cl(Number(L.pH), 6.98, 7.55);
+              if (L.pCO2 != null) vbgM.pCO2 = cl(Number(L.pCO2), 20, 72);
+              if (L.Na != null) vbgM.Na = cl(Number(L.Na), 128, 168);
+              if (L.K != null) vbgM.K = cl(Number(L.K), 2.6, 8.9);
+              if (L.Cl != null) vbgM.Cl = cl(Number(L.Cl), 92, 134);
+              if (L.iCa != null) vbgM.iCa = cl(Number(L.iCa), 0.82, 1.55);
+              if (L.HCT != null) { vbgM.Hct = cl(Number(L.HCT), 14, 62); cbcOv.HCT = vbgM.Hct; }
+              if (L.WBC != null) cbcOv.WBC = cl(Number(L.WBC), 2.0, 45.0);
+              if (L.PLT != null) cbcOv.PLT = cl(Number(L.PLT), 40, 700);
+              if (L.ALP != null) chemOv.ALP = cl(Number(L.ALP), 10, 2500);
+              if (L.ALT != null) chemOv.ALT = cl(Number(L.ALT), 10, 1500);
+              if (L.BUN != null) chemOv.BUN = cl(Number(L.BUN), 5, 160);
+              if (L.Crea != null) chemOv.Crea = cl(Number(L.Crea), 0.4, 12.0);
+              if (L.ALB != null) chemOv.ALB = cl(Number(L.ALB), 1.3, 4.5);
+              if (L.Glu != null) chemOv.Glu = cl(Number(L.Glu), 35, 360);
+              if (L.lactate != null) hiddenTrue.lactate = cl(Number(L.lactate), 0.7, 12.0);
+              if (L.panelTier === 'chemi7') { chemTier = 'chemi7'; hasVBG = false; }
+              else { chemTier = 'full'; hasVBG = true; }
+              panelLabel = `AI 생성 환자 맞춤형 패널 (${chemTier === 'chemi7' ? 'CBC + Chemi 7종' : 'CBC + 확장 Chemi + VBG'})`;
+            } else {
+              const isEmergNone = !customMeta && Math.random() < 0.16;
+              if (isEmergNone) {
+                return {
+                  performed: false,
+                  panelLabel: '초응급 직행 — 마취 전 혈액검사 미실시',
+                  note: '생명이 위급한 초응급 상황으로 채혈 여유 없이 즉시 마취·수술에 진입했습니다. 수술 중 [혈액검사] 버튼으로 현장 POC Lab을 확인하세요.',
+                  vbg: null, chem: null, cbc: null,
+                  hiddenTrue: {
+                    pH: rnd(7.20, 7.34, 2), pCO2: rnd(34, 48, 0), Na: isCat ? rnd(145, 155, 0) : rnd(140, 150, 0),
+                    K: rnd(3.7, 6.8, 1), Cl: isCat ? rnd(112, 123, 0) : rnd(106, 117, 0), iCa: rnd(1.08, 1.28, 2),
+                    Hct: isCat ? rnd(22, 36, 1) : rnd(24, 42, 1), ALB: rnd(1.9, 3.0, 1), Glu: rnd(56, 118, 0),
+                    lactate: rnd(2.8, 6.2, 1), alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 5, PLT: rnd(120, 260, 0)
+                  }
+                };
+              }
+              const roll = Math.random();
+              if (txt.includes('고칼륨') || txt.includes('요로') || txt.includes('요도') || txt.includes('신부전')) {
+                vbgM.K = rnd(6.8, 8.3, 1); vbgM.pH = rnd(7.16, 7.26, 2); vbgM.iCa = rnd(1.02, 1.14, 2);
+                chemOv = { BUN: rnd(70, 115, 0), Crea: rnd(4.2, 7.8, 1), Phos: rnd(7.5, 11.2, 1), specials: { SDMA: rnd(26, 48, 0) } };
+                hiddenTrue.lactate = rnd(2.4, 4.2, 1);
+              } else if (txt.includes('저혈당') || txt.includes('인슐린')) {
+                chemOv = { Glu: rnd(40, 56, 0), specials: { Cortisol: rnd(1.2, 5.0, 1) } };
+                vbgM.pH = rnd(7.30, 7.38, 2);
+              } else if (txt.includes('빈혈') || txt.includes('출혈') || txt.includes('비장') || txt.includes('혈복강')) {
+                vbgM.Hct = rnd(17, 24, 1); cbcOv = { HCT: vbgM.Hct, PLT: rnd(95, 155, 0), RETIC: rnd(65, 145, 0) };
+                chemOv = { TP: rnd(4.2, 5.1, 1), ALB: rnd(1.8, 2.3, 1), specials: isCat ? { SAA: rnd(20, 60, 0) } : { CRP: rnd(35, 95, 0) } };
+                hiddenTrue.lactate = rnd(3.5, 6.5, 1);
+              } else if (txt.includes('담낭') || txt.includes('간') || txt.includes('패혈')) {
+                chemOv = { ALP: isCat ? rnd(260, 480, 0) : rnd(950, 1850, 0), ALT: rnd(320, 720, 0), GGT: rnd(18, 75, 0), ALB: rnd(1.8, 2.3, 1), Glu: rnd(58, 78, 0), specials: isCat ? { SAA: rnd(60, 120, 0) } : { CRP: rnd(90, 170, 0) } };
+                cbcOv = { WBC: rnd(22, 34, 1), neuP: 85, lymP: 8 };
+                vbgM.pH = rnd(7.20, 7.30, 2); hiddenTrue.lactate = rnd(3.2, 5.8, 1);
+              } else if (txt.includes('아나필락') || txt.includes('조영제')) {
+                hiddenTrue.histamine = 78; hiddenTrue.lactate = rnd(2.2, 3.8, 1);
+                chemTier = 'chemi7'; hasVBG = roll > 0.35;
+              } else if (txt.includes('심장') || txt.includes('hcm') || txt.includes('mmvd')) {
+                chemOv = { specials: { proBNP: isCat ? rnd(350, 820, 0) : rnd(1600, 3400, 0), SDMA: rnd(12, 20, 0) } };
+                hiddenTrue.lungWater = rnd(12, 24, 0);
+              } else {
+                const isYoung = roll < 0.32;
+                if (isYoung) {
+                  chemTier = Math.random() < 0.68 ? 'chemi7' : 'full';
+                  hasVBG = chemTier === 'full';
+                  panelLabel = chemTier === 'chemi7' ? '랜덤 젊은 환자 최소 패널 (CBC + Chemi 7종)' : '랜덤 젊은 환자 확장 패널 (CBC + 확장 Chemi + VBG)';
+                } else {
+                  chemTier = 'full'; hasVBG = true;
+                  vbgM.K = rnd(3.5, 6.2, 1); vbgM.pH = rnd(7.25, 7.41, 2); vbgM.Hct = isCat ? rnd(25, 42, 1) : rnd(28, 48, 1);
+                  cbcOv = { HCT: vbgM.Hct, WBC: rnd(6.5, 22.0, 1) };
+                  chemOv = { ALB: rnd(2.0, 3.4, 1), Glu: rnd(62, 138, 0), ALP: isCat ? rnd(35, 180, 0) : rnd(50, 420, 0), specials: { SDMA: rnd(9, 24, 0), ...(isCat ? { SAA: rnd(2, 38, 1) } : { CRP: rnd(4, 65, 1) }) } };
+                  hiddenTrue.lactate = rnd(1.4, 3.8, 1);
+                  panelLabel = '랜덤 노령/복합 환자 확장 패널 (CBC + 확장 Chemi + VBG)';
+                }
+              }
+            }
+            if (!panelLabel) panelLabel = hasVBG ? '동적 생성 환자 정밀 패널 (CBC + Chemi + VBG)' : '동적 생성 환자 기본 패널 (CBC + Chemi 7종)';
+            note = customMeta ? `${customMeta.title} 환자의 상태에 맞춰 생성된 마취 전 혈액검사 결과입니다.` : '실전 랜덤 환자의 연령·병태생리에 맞춰 생성된 마취 전 혈액검사 결과입니다.';
+          }
+
+          const vbgCalc = computeVBG13(vbgM, bt);
+          const chem = hasChem ? buildChem(sp, chemTier, chemOv) : null;
+          const cbc = hasCBC ? buildCBC(sp, { HCT: vbgM.Hct, ...cbcOv }) : null;
+          return {
+            performed: true, species: sp, panelLabel, note, bt,
+            vbg: hasVBG ? { measured: vbgM, calc: vbgCalc } : null,
+            chem, chemTier, cbc,
+            hiddenTrue: {
+              pH: vbgM.pH, pCO2: vbgM.pCO2, Na: vbgM.Na, K: vbgM.K, Cl: vbgM.Cl, iCa: vbgM.iCa,
+              Hct: cbc ? cbc.HCT : vbgM.Hct,
+              ALB: chem && chem.ALB != null ? chem.ALB : (isCat ? 3.1 : 3.2),
+              Glu: chem && chem.Glu != null ? chem.Glu : (isCat ? 105 : 95),
+              PLT: cbc ? cbc.PLT : 260,
+              BE: vbgCalc.BEecf,
+              ...hiddenTrue
+            }
+          };
+        }
+
+        function flagHtml(sp, key, val) {
+          const r = REF[sp]?.[key];
+          if (!r || val == null || isNaN(val)) return { cls: 'lab-val-ok', badge: '', refText: '-' };
+          const refText = `${r[0]}–${r[1]}`;
+          if (val > r[1]) return { cls: 'lab-val-hi', badge: '<span class="lab-flag lab-flag-hi">H</span>', refText };
+          if (val < r[0]) return { cls: 'lab-val-lo', badge: '<span class="lab-flag lab-flag-lo">L</span>', refText };
+          return { cls: 'lab-val-ok', badge: '', refText };
+        }
+
+        function renderTabHtml(lab, tab) {
+          if (!lab || !lab.performed) {
+            return `<div style="padding:16px; border-radius:10px; background:rgba(127,29,29,0.25); border:1px solid rgba(244,63,94,0.45); color:#fecdd3; line-height:1.6;">
+              <strong style="font-size:13px;">⚠ 마취 전 혈액검사 미실시 (초응급 직행)</strong><br>
+              ${lab ? lab.note : '검사 기록이 없습니다.'}
+            </div>`;
+          }
+          const sp = lab.species || 'dog';
+          if (tab === 'vbg') {
+            if (!lab.vbg) return `<div style="padding:14px; border-radius:10px; background:#0f172a; border:1px solid #334155; color:#94a3b8;">이 환자는 마취 전 <strong>정맥혈액가스(VBG)</strong> 검사를 시행하지 않았습니다.</div>`;
+            const m = lab.vbg.measured, c = lab.vbg.calc;
+            const mRows = [
+              ['pH', m.pH.toFixed(2), '', 'pH'], ['pCO₂', m.pCO2.toFixed(1), 'mmHg', 'pCO2'], ['pO₂ (정맥)', m.pO2.toFixed(1), 'mmHg', 'pO2'],
+              ['Na⁺', m.Na.toFixed(1), 'mmol/L', 'Na'], ['K⁺', m.K.toFixed(1), 'mmol/L', 'K'], ['Cl⁻', m.Cl.toFixed(1), 'mmol/L', 'Cl'],
+              ['Ca²⁺ (iCa)', m.iCa.toFixed(2), 'mmol/L', 'iCa'], ['Hct', m.Hct.toFixed(1), '%', 'Hct']
+            ];
+            const cRows = [
+              ['pH(T)', c.pHT.toFixed(3), `체온 ${lab.bt.toFixed(1)}°C 보정`], ['pCO₂(T)', c.pCO2T.toFixed(1), 'mmHg'], ['pO₂(T)', c.pO2T.toFixed(1), 'mmHg'],
+              ['ctCO₂ (tCO₂)', c.ctCO2.toFixed(1), 'mmol/L'], ['cHCO₃⁻', c.cHCO3.toFixed(1), 'mmol/L'], ['cHCO₃⁻(std)', c.cHCO3std.toFixed(1), 'mmol/L'],
+              ['BE(ecf)', (c.BEecf >= 0 ? '+' : '') + c.BEecf.toFixed(1), 'mmol/L'], ['BE(B)', (c.BEB >= 0 ? '+' : '') + c.BEB.toFixed(1), 'mmol/L'],
+              ['ctHb (tHb)', c.ctHb.toFixed(1), 'g/dL'], ['Ca²⁺(7.4)', c.iCa74.toFixed(2), 'mmol/L'],
+              ['pO₂(A-a)', c.pO2Aa.toFixed(1), 'mmHg (추정)'], ['sO₂', c.sO2.toFixed(1), '%'], ['Anion gap(K)', c.AGK.toFixed(1), 'mEq/L']
+            ];
+            return `<div style="font-weight:800; color:#7dd3fc; margin-bottom:6px;">측정항목 (8종)</div>
+              <table class="lab-table"><thead><tr><th>항목</th><th>결과</th><th>단위</th><th>참고치</th></tr></thead><tbody>
+                ${mRows.map(([nm, val, u, k]) => { const fl = flagHtml(sp, k, Number(val)); return `<tr><td>${nm}</td><td class="${fl.cls}">${val}${fl.badge}</td><td style="color:#94a3b8;">${u}</td><td style="color:#64748b;">${fl.refText}</td></tr>`; }).join('')}
+              </tbody></table>
+              <div style="font-weight:800; color:#a5b4fc; margin:10px 0 6px;">계산항목 (13종)</div>
+              <table class="lab-table"><thead><tr><th>항목</th><th>계산값</th><th>단위 / 비고</th></tr></thead><tbody>
+                ${cRows.map(([nm, val, u]) => `<tr><td>${nm}</td><td class="lab-val-ok">${val}</td><td style="color:#94a3b8;">${u}</td></tr>`).join('')}
+              </tbody></table>`;
+          }
+          if (tab === 'chem') {
+            if (!lab.chem) return `<div style="padding:14px; border-radius:10px; background:#0f172a; border:1px solid #334155; color:#94a3b8;">이 환자는 응급 상황으로 마취 전 <strong>Chemistry</strong> 패널을 시행하지 않았습니다.</div>`;
+            const units = { ALP:'U/L', ALT:'U/L', AST:'U/L', GGT:'U/L', BUN:'mg/dL', Crea:'mg/dL', Phos:'mg/dL', Ca:'mg/dL', TG:'mg/dL', Tchol:'mg/dL', Glu:'mg/dL', TP:'g/dL', ALB:'g/dL', Glob:'g/dL', Mg:'mg/dL', CRP:'mg/L', SAA:'µg/mL', cPL:'µg/L', fPL:'µg/L', proBNP:'pmol/L', T4:'µg/dL', Cortisol:'µg/dL', SDMA:'µg/dL' };
+            const rows = Object.entries(lab.chem).map(([k, v]) => {
+              const fl = flagHtml(sp, k, Number(v));
+              return `<tr><td><strong>${k}</strong></td><td class="${fl.cls}">${v}${fl.badge}</td><td style="color:#94a3b8;">${units[k] || ''}</td><td style="color:#64748b;">${fl.refText}</td></tr>`;
+            }).join('');
+            return `<div style="font-size:11px; color:#94a3b8; margin-bottom:6px;">검사 범위: ${lab.chemTier === 'chemi7' ? '기본 7종 (Chemi 7)' : '확장 Chemistry + 특수 마커'}</div>
+              <table class="lab-table"><thead><tr><th>항목</th><th>결과</th><th>단위</th><th>참고치</th></tr></thead><tbody>${rows}</tbody></table>`;
+          }
+          if (tab === 'cbc') {
+            if (!lab.cbc) return `<div style="padding:14px; border-radius:10px; background:#0f172a; border:1px solid #334155; color:#94a3b8;">이 환자는 응급 상황으로 마취 전 <strong>CBC</strong> 검사를 시행하지 않았습니다.</div>`;
+            const c = lab.cbc;
+            const rbcRows = [['RBC', c.RBC, 'M/µL', 'RBC'], ['HGB', c.HGB, 'g/dL', 'HGB'], ['HCT', c.HCT, '%', 'HCT'], ['MCV', c.MCV, 'fL', 'MCV'], ['MCH', c.MCH, 'pg', 'MCH'], ['MCHC', c.MCHC, 'g/dL', 'MCHC'], ['RDW', c.RDW, '%', 'RDW'], ['RETIC', c.RETIC, 'K/µL', 'RETIC'], ['Retic-HGB', c.ReticHGB, 'pg', 'ReticHGB']];
+            const wbcRows = [['WBC (총 백혈구)', c.WBC, 'K/µL', 'WBC', ''], ['Neutrophils (호중구)', c.Neu, 'K/µL', 'Neu', `${c.neuP}%`], ['Lymphocytes (림프구)', c.Lym, 'K/µL', 'Lym', `${c.lymP}%`], ['Monocytes (단핵구)', c.Mono, 'K/µL', 'Mono', `${c.monoP}%`], ['Eosinophils (호산구)', c.Eos, 'K/µL', 'Eos', `${c.eosP}%`], ['Basophils (호염기구)', c.Baso, 'K/µL', 'Baso', `${c.basoP}%`]];
+            const pltRows = [['PLT (혈소판)', c.PLT, 'K/µL', 'PLT'], ['MPV', c.MPV, 'fL', 'MPV'], ['PCT', c.PCT, '%', 'PCT']];
+            return `<div style="font-weight:800; color:#fda4af; margin-bottom:6px;">적혈구 (RBC · Retic)</div>
+              <table class="lab-table"><thead><tr><th>항목</th><th>결과</th><th>단위</th><th>참고치</th></tr></thead><tbody>
+                ${rbcRows.map(([nm, val, u, k]) => { const fl = flagHtml(sp, k, Number(val)); return `<tr><td>${nm}</td><td class="${fl.cls}">${val}${fl.badge}</td><td style="color:#94a3b8;">${u}</td><td style="color:#64748b;">${fl.refText}</td></tr>`; }).join('')}
+              </tbody></table>
+              <div style="font-weight:800; color:#7dd3fc; margin:10px 0 6px;">백혈구 (WBC · 5-Diff 감별계수)</div>
+              <table class="lab-table"><thead><tr><th>항목</th><th>절대수치</th><th>비율</th><th>참고치</th></tr></thead><tbody>
+                ${wbcRows.map(([nm, val, u, k, pct]) => { const fl = flagHtml(sp, k, Number(val)); return `<tr><td>${nm}</td><td class="${fl.cls}">${val} ${u}${fl.badge}</td><td style="color:#cbd5e1;">${pct || '-'}</td><td style="color:#64748b;">${fl.refText}</td></tr>`; }).join('')}
+              </tbody></table>
+              <div style="font-weight:800; color:#fcd34d; margin:10px 0 6px;">혈소판 (PLT)</div>
+              <table class="lab-table"><thead><tr><th>항목</th><th>결과</th><th>단위</th><th>참고치</th></tr></thead><tbody>
+                ${pltRows.map(([nm, val, u, k]) => { const fl = flagHtml(sp, k, Number(val)); return `<tr><td>${nm}</td><td class="${fl.cls}">${val}${fl.badge}</td><td style="color:#94a3b8;">${u}</td><td style="color:#64748b;">${fl.refText}</td></tr>`; }).join('')}
+              </tbody></table>`;
+          }
+          return '';
+        }
+        return { generate, computeVBG13, flagHtml, renderTabHtml, REF };
+      })();
+      let activePreopTab = 'vbg';
+      let currentPreopLab = null;
+      let lastLabKey = '';
+      function refreshPreopLab(force = false) {
+        const info = ({ caseId: st.caseId, species: st.species, title: (CASES[st.caseId] ? CASES[st.caseId].name : st.caseId), customTitle: '', customMeta: null });
+        const map = { normal: 'rec_normal', boas: 'rec_boas', hypo: 'rec_hypo', dysphoria: 'rec_dysphoria', emergency: 'rec_emergency' };
+        const mappedId = map[info.caseId] || 'random';
+        const key = mappedId + '|' + info.species + '|' + (info.customTitle || '');
+        if (!force && currentPreopLab && lastLabKey === key) return currentPreopLab;
+        lastLabKey = key;
+        currentPreopLab = PreopLabEngine.generate(mappedId, info.species, info.customMeta || null);
+        return currentPreopLab;
+      }
+      function openPreopLabModal() {
+        const info = ({ caseId: st.caseId, species: st.species, title: (CASES[st.caseId] ? CASES[st.caseId].name : st.caseId), customTitle: '', customMeta: null });
+        const lab = refreshPreopLab(false);
+        document.getElementById('preop-lab-title').textContent = '마취 전 혈액검사 · ' + info.title;
+        document.getElementById('preop-lab-meta').innerHTML = `<strong>${lab.panelLabel}</strong> — ${lab.note}`;
+        document.getElementById('preop-lab-body').innerHTML = PreopLabEngine.renderTabHtml(lab, activePreopTab);
+        document.getElementById('preop-lab-modal').classList.remove('hidden');
+      }
+      document.getElementById('btn-preop-lab')?.addEventListener('click', openPreopLabModal);
+      document.getElementById('btn-preop-lab-close')?.addEventListener('click', () => document.getElementById('preop-lab-modal')?.classList.add('hidden'));
+      document.querySelectorAll('#preop-lab-tabs .lab-tab').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          activePreopTab = btn.dataset.labtab;
+          document.querySelectorAll('#preop-lab-tabs .lab-tab').forEach((b) => b.classList.toggle('active', b === btn));
+          document.getElementById('preop-lab-body').innerHTML = PreopLabEngine.renderTabHtml(refreshPreopLab(false), activePreopTab);
+        });
+      });
+
     })();
   </script>
 </body>

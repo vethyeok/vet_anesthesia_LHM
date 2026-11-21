@@ -630,6 +630,77 @@
       padding-top: 6px !important;
       padding-bottom: 6px !important;
     }
+  
+    /* Mobile visibility & anti-line-wrap improvements */
+    body { word-break: keep-all; }
+    #hdr-action-group button { white-space: nowrap; word-break: keep-all; }
+    @media (max-width: 1023px) {
+      #hdr-action-group {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+        width: 100% !important;
+      }
+      #hdr-action-group button {
+        width: 100% !important;
+        padding: 7px 4px !important;
+        font-size: 11px !important;
+        text-align: center !important;
+        justify-content: center !important;
+      }
+      #mobile-6tab-bar {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 5px !important;
+        padding: 5px !important;
+      }
+      #mobile-6tab-bar button {
+        white-space: nowrap !important;
+        word-break: keep-all !important;
+        font-size: 11px !important;
+        padding: 7px 4px !important;
+        line-height: 1.2 !important;
+      }
+    }
+  
+    /* === Pre-op Lab / POC Lab / 27-Var Hidden Physiology Modals === */
+    .lab-modal-backdrop { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; background: rgba(2,6,23,0.82); backdrop-filter: blur(4px); padding: 12px; }
+    .lab-modal-backdrop.hidden { display: none !important; }
+    .lab-modal-card { width: 100%; max-width: 720px; max-height: 88vh; display: flex; flex-direction: column; border-radius: 14px; border: 1px solid #334155; background: #0b1220; color: #e2e8f0; box-shadow: 0 24px 60px rgba(0,0,0,0.65); overflow: hidden; }
+    .lab-modal-hdr { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #1e293b; background: #0f172a; }
+    .lab-modal-body { padding: 14px 16px; overflow-y: auto; font-size: 12px; }
+    .lab-tabs { display: flex; gap: 6px; padding: 8px 16px; background: #080d18; border-bottom: 1px solid #1e293b; flex-wrap: wrap; }
+    .lab-tab { padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #94a3b8; font-size: 11.5px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .lab-tab.active { background: #0284c7; border-color: #38bdf8; color: #fff; }
+    .lab-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-bottom: 10px; }
+    .lab-table th, .lab-table td { padding: 5px 8px; border-bottom: 1px solid #1e293b; text-align: left; }
+    .lab-table th { color: #94a3b8; font-weight: 700; background: #0f172a; font-size: 10.5px; }
+    .lab-val-hi { color: #fb7185; font-weight: 800; }
+    .lab-val-lo { color: #38bdf8; font-weight: 800; }
+    .lab-val-ok { color: #e2e8f0; font-weight: 600; }
+    .lab-flag { display: inline-block; padding: 1px 5px; border-radius: 4px; font-size: 9.5px; font-weight: 800; margin-left: 4px; }
+    .lab-flag-hi { background: rgba(244,63,94,0.2); color: #fda4af; border: 1px solid rgba(244,63,94,0.45); }
+    .lab-flag-lo { background: rgba(56,189,248,0.2); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.45); }
+    .poc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    @media (min-width: 560px) { .poc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .poc-item { padding: 9px 10px; border-radius: 10px; border: 1px solid #1e293b; background: #0f172a; }
+    .poc-item.abn-hi { border-color: rgba(244,63,94,0.55); background: rgba(136,19,55,0.22); }
+    .poc-item.abn-lo { border-color: rgba(56,189,248,0.55); background: rgba(12,74,110,0.25); }
+    .phys-sys-card { border: 1px solid #1e293b; background: #0f172a; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+    .phys-sys-title { font-size: 11.5px; font-weight: 800; color: #38bdf8; margin-bottom: 8px; display: flex; justify-content: space-between; }
+    .phys-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    @media (min-width: 600px) { .phys-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .phys-cell { padding: 6px 8px; border-radius: 8px; background: #020617; border: 1px solid #1e293b; }
+    .phys-bar-bg { height: 4px; border-radius: 99px; background: #1e293b; margin-top: 4px; overflow: hidden; }
+    .phys-bar-fill { height: 100%; border-radius: 99px; transition: width 0.25s; }
+    .status-pill-btn { white-space: nowrap; word-break: keep-all; padding: 3px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 700; cursor: pointer; transition: all 0.15s; border: 1px solid #334155; }
+    .status-pill-btn:disabled { opacity: 0.42; cursor: not-allowed; }
+  
+    /* Mobile bottom dead space for floating Powered by Netlify badge & safe-area */
+    @media (max-width: 1023px) {
+      body { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
+      footer { padding-bottom: 24px !important; }
+    }
   </style>
 </head>
 <body class="min-h-screen antialiased selection:bg-sky-500/30">
@@ -658,7 +729,7 @@
           크레딧
         </button>
         <button id="btn-go-portal" type="button" class="w-full rounded-xl border border-sky-500/40 bg-sky-500/15 py-2 text-xs font-bold text-sky-200 transition hover:bg-sky-500/25">
-          🏠 3단계 통합 포털 (도입 · 유지 · 회복)
+          🏠 시작화면 (도입 · 유지 · 회복)
         </button>
       </div>
 
@@ -750,7 +821,7 @@
             <option value="random">10. [최종 게임 모드] 실시간 랜덤 오류·돌발 테스트 (점수제)</option>
         </select>
 
-        <div class="flex items-center gap-1.5">
+        <div id="hdr-action-group" class="flex items-center gap-1.5">
           <button id="btn-tutorial" type="button" class="rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/25">
             튜토리얼
           </button>
@@ -1070,6 +1141,9 @@
           <button id="btn-secret-rescue" type="button" class="hidden items-center gap-1 rounded-md border border-amber-400/70 bg-gradient-to-r from-amber-500/30 to-yellow-400/20 px-2 py-0.5 text-[10px] font-extrabold text-amber-200 shadow-md shadow-amber-500/20 transition hover:brightness-110 active:scale-95">
             <span>★ 긴급소생 (1회)</span>
           </button>
+          <button id="btn-preop-lab" type="button" class="status-pill-btn" style="background:rgba(14,165,233,0.16); border-color:rgba(56,189,248,0.45); color:#7dd3fc;" title="환자의 마취 전 혈액검사 결과 열기">마취전 혈액검사</button>
+          <button id="btn-poc-lab" type="button" class="status-pill-btn" style="background:rgba(244,63,94,0.16); border-color:rgba(251,113,133,0.45); color:#fda4af;" title="수술 중 현장 채혈(POC Lab) 스냅샷 검사">혈액검사</button>
+          <button id="btn-phys-state" type="button" class="status-pill-btn" style="background:rgba(139,92,246,0.18); border-color:rgba(167,139,250,0.45); color:#ddd6fe;" title="초급 모드 또는 사망(심정지) 후에만 내부 27개 생리 상태 열람 가능">상태</button>
           <span id="patient-summary" class="hidden font-medium text-slate-300 sm:inline">건강한 성견 · 중성화 수술 유지기</span>
         </div>
         <div class="flex items-center gap-3 text-xs">
@@ -1299,7 +1373,7 @@
       </div><!-- /mobile-sticky-monitor -->
 
       <!-- Mobile 6-Tab Control Bar (Visible only on < 1024px) -->
-      <div class="grid grid-cols-6 gap-1 rounded-xl border border-slate-800 bg-slate-900/95 p-1 lg:hidden" role="tablist" aria-label="모바일 6분할 조작 메뉴">
+      <div id="mobile-6tab-bar" class="grid grid-cols-6 gap-1 rounded-xl border border-slate-800 bg-slate-900/95 p-1 lg:hidden" role="tablist" aria-label="모바일 6분할 조작 메뉴">
         <button id="mtab-bag" type="button" class="rounded-lg bg-amber-400 px-0.5 py-1.5 text-[9px] font-extrabold text-slate-950 transition">
           배깅·APL·장치
         </button>
@@ -1715,9 +1789,64 @@
   </div>
 
 
+  
+  <!-- Pre-Op Blood Panel Modal (VBG 8+13 / Chemistry / CBC 5-Diff) -->
+  <div id="preop-lab-modal" class="lab-modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="마취 전 혈액검사 결과">
+    <div class="lab-modal-card">
+      <div class="lab-modal-hdr">
+        <div>
+          <div style="font-size:10px; color:#38bdf8; font-weight:800; letter-spacing:0.06em;">PRE-ANESTHETIC LAB PANEL</div>
+          <div id="preop-lab-title" style="font-size:14px; font-weight:800; color:#fff;">마취 전 혈액검사 결과</div>
+        </div>
+        <button id="btn-preop-lab-close" type="button" class="status-pill-btn" style="background:#1e293b; color:#e2e8f0; padding:5px 10px;">닫기</button>
+      </div>
+      <div id="preop-lab-meta" style="padding:8px 16px; background:#09101f; border-bottom:1px solid #1e293b; font-size:11px; color:#cbd5e1;"></div>
+      <div class="lab-tabs" id="preop-lab-tabs">
+        <button type="button" class="lab-tab active" data-labtab="vbg">정맥혈액가스 (VBG 8+13)</button>
+        <button type="button" class="lab-tab" data-labtab="chem">Chemistry</button>
+        <button type="button" class="lab-tab" data-labtab="cbc">CBC (5-Diff·PLT)</button>
+      </div>
+      <div class="lab-modal-body" id="preop-lab-body"></div>
+    </div>
+  </div>
+
+  <!-- Intra-Op POC Lab Snapshot Modal (ONLY PCV, Alb, Na, K, Cl, iCa, Glu, pH, BE, Lactate) -->
+  <div id="poc-lab-modal" class="lab-modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="수술 중 혈액검사 스냅샷">
+    <div class="lab-modal-card" style="max-width:560px;">
+      <div class="lab-modal-hdr">
+        <div>
+          <div style="font-size:10px; color:#fda4af; font-weight:800; letter-spacing:0.06em;">INTRA-OP POC LAB SNAPSHOT</div>
+          <div style="font-size:14px; font-weight:800; color:#fff;">수술 중 현장 혈액검사 (채혈 스냅샷)</div>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <button id="btn-poc-redraw" type="button" class="status-pill-btn" style="background:rgba(244,63,94,0.2); border-color:rgba(251,113,133,0.5); color:#fecdd3; padding:5px 10px;">재채혈</button>
+          <button id="btn-poc-lab-close" type="button" class="status-pill-btn" style="background:#1e293b; color:#e2e8f0; padding:5px 10px;">닫기</button>
+        </div>
+      </div>
+      <div id="poc-lab-meta" style="padding:8px 16px; background:#09101f; border-bottom:1px solid #1e293b; font-size:11px; color:#94a3b8;"></div>
+      <div class="lab-modal-body" id="poc-lab-body"></div>
+    </div>
+  </div>
+
+  <!-- Hidden 27-Variable Physiology State Modal (Unlocked ONLY in Easy mode or Arrested) -->
+  <div id="phys-state-modal" class="lab-modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="내부 생리 상태">
+    <div class="lab-modal-card" style="max-width:780px;">
+      <div class="lab-modal-hdr">
+        <div>
+          <div style="font-size:10px; color:#c4b5fd; font-weight:800; letter-spacing:0.06em;">HIDDEN PHYSIOLOGY ENGINE · 27 VARIABLES</div>
+          <div style="font-size:14px; font-weight:800; color:#fff;">내부 생리 상태 (초급 · 사망 후 복기 전용)</div>
+        </div>
+        <button id="btn-phys-state-close" type="button" class="status-pill-btn" style="background:#1e293b; color:#e2e8f0; padding:5px 10px;">닫기</button>
+      </div>
+      <div id="phys-state-meta" style="padding:8px 16px; background:#09101f; border-bottom:1px solid #1e293b; font-size:11px; color:#cbd5e1;"></div>
+      <div class="lab-modal-body" id="phys-state-body"></div>
+    </div>
+  </div>
+
   <script>
     (function () {
       'use strict';
+      const AI_API_BASE = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '' : 'https://vet-anesthesia-lhm.netlify.app';
 
       // =========================================================================
       // 1. SPECIES DEFINITIONS (Grounded in AAHA 2020/2024 & Vet Anesthesia Data)
@@ -2535,6 +2664,7 @@
         state.manualWavePulse = 0;
 
         state.pip = prof.init.pip;
+        if (typeof PreopLabEngine !== 'undefined' && typeof initPhysiologyFromLab === 'function') { initPhysiologyFromLab(PreopLabEngine.generate(state.scenarioId, state.speciesId, state.customAiMeta || null)); syncPhysStateButton(); }
         state.rr = prof.init.rr;
         state.peep = prof.thoracic ? 3 : 0;
         state.o2Flow = 1.5;
@@ -2944,6 +3074,7 @@
       function triggerArrest(causeText) {
         if (state.arrested) return;
         state.arrested = true;
+        if (typeof syncPhysStateButton === 'function') syncPhysStateButton();
         state.viability = 0;
         state.arrestCause = causeText;
         state.trueHR = 0;
@@ -2988,6 +3119,7 @@
       }
 
       function computePhysiology(dt, immediate = false) {
+        if (typeof stepHiddenPhysiology === 'function' && dt > 0) stepHiddenPhysiology(dt);
         if (state.arrested) return;
 
         const sp = SPECIES[state.speciesId];
@@ -3033,40 +3165,43 @@
             });
             let ev = null;
             if (pool.length > 0) {
-              if (state.difficulty === 'hard') {
-                const artPool = pool.filter((e) => e.startsWith('art_'));
-                const realPool = pool.filter((e) => !e.startsWith('art_'));
-                if (artPool.length > 0 && realPool.length > 0) {
-                  const chosenPool = Math.random() < 0.2 ? artPool : realPool;
-                  ev = chosenPool[Math.floor(Math.random() * chosenPool.length)];
-                } else {
-                  ev = pool[Math.floor(Math.random() * pool.length)];
-                }
+              const devicePool = pool.filter((e) => e.startsWith('art_') || e === 'sodalime');
+              const clinicalPool = pool.filter((e) => !e.startsWith('art_') && e !== 'sodalime');
+              const deviceProb = state.difficulty === 'easy' ? 0.05 : (state.difficulty === 'normal' ? 0.02 : 0.005);
+              if (devicePool.length > 0 && clinicalPool.length > 0) {
+                const chosenPool = Math.random() < deviceProb ? devicePool : clinicalPool;
+                ev = chosenPool[Math.floor(Math.random() * chosenPool.length)];
+              } else if (clinicalPool.length > 0) {
+                ev = clinicalPool[Math.floor(Math.random() * clinicalPool.length)];
               } else {
-                ev = pool[Math.floor(Math.random() * pool.length)];
+                ev = devicePool[Math.floor(Math.random() * devicePool.length)];
               }
             }
             if (ev === 'bleed') {
               state.dynBleed = Math.min(28, state.dynBleed + 16);
               state.bleedStartFluid = state.fluidCum;
               state.activeCrises.bleed = true;
+              if (state.phys) { state.phys.preloadVol = clamp(state.phys.preloadVol - 16, 45, 135); state.phys.pcv = clamp(state.phys.pcv - 3.8, 12, 65); state.phys.albumin = clamp(state.phys.albumin - 0.25, 1.1, 4.8); state.phys.coagReserve = clamp(state.phys.coagReserve - 12, 30, 100); state.phys.lactate = clamp(state.phys.lactate + 0.9, 0.8, 15); }
               addLog('[랜덤 돌발] 수술 중 급성 출혈 발생! (저혈량성 저혈압·창백 점막 — 수액 볼루스로 혈압 회복 필요)', 'danger');
               showToast('돌발 이벤트: 수술 중 급성 출혈 발생!', 'danger');
             } else if (ev === 'vagal') {
               state.dynVagalActive = true;
               state.vagalStartAtropineDoses = state.atropineDoses;
               state.activeCrises.vagal = true;
+              if (state.phys) { state.phys.vagalTone = clamp(state.phys.vagalTone + 48, 0, 100); }
               addLog('[랜덤 돌발] 장간막/안구 견인으로 급성 미주신경 반사(서맥·저혈압) 발생! Atropine IV 투여 필요', 'danger');
               showToast('돌발 이벤트: 급성 미주신경 반사 (서맥)!', 'danger');
             } else if (ev === 'pain') {
               state.dynPainActive = true;
               state.activeCrises.pain = true;
+              if (state.phys) { state.phys.nociception = clamp(state.phys.nociception + 52, 0, 100); state.phys.vo2 = clamp(state.phys.vo2 + 28, 70, 200); state.phys.arrhythmiaRisk = clamp(state.phys.arrhythmiaRisk + 16, 0, 100); }
               addLog('[랜덤 돌발] 강한 수술 통증 자극! (HR·혈압 급상승 — TLK CRI 또는 마취 심도 상향 필요)', 'warn');
               showToast('돌발 이벤트: 강한 수술 통증 자극!', 'warn');
             } else if (ev === 'vpc') {
               state.dynVpcActive = true;
               state.vpcStartLidoDoses = state.lidocaineDoses;
               state.activeCrises.vpc = true;
+              if (state.phys) { state.phys.arrhythmiaRisk = clamp(state.phys.arrhythmiaRisk + 45, 0, 100); }
               addLog('[랜덤 돌발] 심실성 조기수축(VPC) 다발성 출현! (ECG 확인 후 Lidocaine IV 투여 필요)', 'danger');
               showToast('돌발 이벤트: 다발성 VPC 출현!', 'danger');
             } else if (ev === 'apnea') {
@@ -3074,18 +3209,21 @@
               state.apneaActive = true;
               state.manualBreathTimestamps = [];
               state.activeCrises.apnea = true;
+              if (state.phys) { state.phys.vqMismatch = clamp(state.phys.vqMismatch + 14, 4, 65); state.phys.icp = clamp(state.phys.icp + 4, 6, 45); }
               setVentModeUI();
               addLog('[랜덤 돌발] 갑작스런 자발호흡 정지(무호흡)! APL 15 조절 후 수동 배깅 또는 PCV 전환 필요', 'danger');
               showToast('돌발 이벤트: 무호흡 발생! 배깅 필요!', 'danger');
             } else if (ev === 'apl_closed') {
               state.aplPressure = 38;
               state.activeCrises.apl_closed = true;
+              if (state.phys) { state.phys.intrathoracicP = clamp(state.phys.intrathoracicP + 22, 4, 45); state.phys.icp = clamp(state.phys.icp + 8, 6, 45); }
               updateAplUI();
               addLog('[랜덤 돌발] 실수로 APL(Pop-off) 밸브가 잠겼습니다! 즉시 0으로 열어주세요!', 'danger');
               showToast('돌발 이벤트: APL 밸브 잠김 감지!', 'danger');
             } else if (ev === 'sodalime') {
               state.sodaLimeFault = true;
               state.activeCrises.sodalime = true;
+              if (state.phys) { state.phys.icp = clamp(state.phys.icp + 4, 6, 45); }
               addLog('[랜덤 돌발] 소다라임 소진 / 일방향 밸브 고장! FiCO₂ 상승 및 Capnograph 기저선 들림 (장치 점검 필요)', 'warn');
               showToast('돌발 이벤트: FiCO₂ 상승 (소다라임/밸브 확인)!', 'warn');
             } else if (ev === 'art_spo2') {
@@ -3483,6 +3621,7 @@
         const prof = getProfile();
 
         el.simClock.textContent = formatClock(state.simSeconds);
+        const _pm = document.getElementById('phys-state-modal'); if (_pm && !_pm.classList.contains('hidden') && typeof renderPhysStateModal === 'function') renderPhysStateModal();
         const hrPill = state.arrested ? '0' : (state.artifact === 'ecg_lead' ? '--' : String(state.dispHR));
         const spo2Pill = state.arrested ? '--' : String(state.dispSpO2);
         const co2Pill = state.arrested ? '0' : String(state.dispETCO2);
@@ -4156,6 +4295,7 @@
       });
 
       el.scenarioSelect.addEventListener('change', (e) => {
+        state.customAiMeta = null;
         const nextId = e.target.value;
         if (state.scenarioId === 'random' && nextId !== 'random') {
           openScoreResetConfirm(
@@ -4590,6 +4730,15 @@
         const sp = SPECIES[state.speciesId];
         const prof = getProfile();
         state.fluidCum += sp.bolusDose;
+        if (state.phys) {
+          const p = state.phys;
+          p.preloadVol = clamp(p.preloadVol + 10, 45, 138);
+          p.pcv = clamp(p.pcv - 2.2, 12, 65);
+          p.albumin = clamp(p.albumin - 0.22, 1.1, 4.8);
+          p.serumK = clamp(p.serumK - 0.15, 2.5, 9.5);
+          p.urineOutput = clamp(p.urineOutput + 0.25, 0, 6);
+          if (prof.cardiac || p.albumin < 2.2) p.lungWater = clamp(p.lungWater + 14, 0, 100);
+        }
         computePhysiology(0);
         renderMonitorUI();
         if (prof.cardiac) {
@@ -4606,6 +4755,15 @@
         if (state.arrested) return;
         const prof = getProfile();
         state.ephedrineDoses++;
+        if (state.phys) {
+          const p = state.phys;
+          const acidPen = p.arterialPH < 7.20 ? 0.45 : 1.0;
+          const volPen = p.preloadVol < 75 ? 0.55 : 1.0;
+          p.svr = clamp(p.svr + Math.round(14 * acidPen * volPen), 40, 155);
+          p.contractility = clamp(p.contractility + Math.round(8 * acidPen), 40, 130);
+          p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + (state.ephedrineDoses >= 3 ? 28 : 10), 0, 100);
+          p.vo2 = clamp(p.vo2 + 10, 70, 200);
+        }
         state.ephedrineTime = 90;
         if (state.ephedrineDoses >= 3 || (prof.cardiac === 'hcm' && state.ephedrineDoses >= 2)) {
           state.ephToxicity = clamp(state.ephToxicity + 36, 0, 100);
@@ -4632,6 +4790,24 @@
         const sp = SPECIES[state.speciesId];
         const prof = getProfile();
         state.atropineDoses++;
+        if (state.phys) {
+          const p = state.phys;
+          if (p.serumK > 6.5) {
+            addLog(`Atropine 무반응 주의 — 고칼륨혈증(K⁺ ${p.serumK.toFixed(1)}) 서맥은 Atropine에 잘 듣지 않습니다! 10% Ca-Gluconate가 우선입니다.`, 'danger');
+            showToast('고칼륨 서맥은 Atropine에 반응이 약합니다! Ca-Gluconate를 투여하세요.', 'danger');
+            state.atropineTime = 15;
+          } else if (p.alpha2Tone > 35) {
+            state.trueMAP = clamp(state.trueMAP + 28, 30, 175);
+            p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + 28, 0, 100);
+            addLog('Atropine 위험 — α₂ 혈관수축 상태에서 투여해 중증 고혈압·VPC 부정맥 유발!', 'danger');
+            showToast('주의! α₂ 서맥에 Atropine 투여 → 중증 고혈압·부정맥 위험!', 'danger');
+          } else if (p.icp > 22) {
+            addLog('Atropine 경고 — 두개내압 상승(쿠싱 반사) 서맥입니다! Atropine보다 환기(ETCO₂ 하강)로 뇌압을 낮추세요.', 'danger');
+            showToast('쿠싱 반사 서맥! Atropine 대신 환기로 ETCO₂·뇌압을 낮추세요!', 'danger');
+          } else {
+            p.vagalTone = Math.max(0, p.vagalTone - 28);
+          }
+        }
         state.atropineTime = 90;
         const wasHigh = state.trueHR > sp.hrMax - 10;
         if (state.atropineDoses >= 3 || ((prof.cardiac || wasHigh) && state.atropineDoses >= 2)) {
@@ -4652,6 +4828,7 @@
         if (state.arrested) return;
         const sp = SPECIES[state.speciesId];
         state.lidocaineDoses++;
+        if (state.phys) state.phys.arrhythmiaRisk = Math.max(0, state.phys.arrhythmiaRisk - 32);
         state.lidocaineTime = 90;
         if (state.lidocaineDoses >= sp.lidoToxicLimit) {
           state.lidoToxicity = clamp(state.lidoToxicity + (state.speciesId === 'cat' ? 42 : 28), 0, 100);
@@ -4803,6 +4980,7 @@
       // Difficulty Selector (초급 / 중급 / 고급)
       function setDifficulty(level) {
         state.difficulty = level;
+        if (typeof syncPhysStateButton === 'function') syncPhysStateButton();
         state.gameBest = loadBestScore(level);
         updateScoreHUD();
         const idle = 'rounded-md px-2 py-1.5 text-xs font-semibold transition text-slate-300 hover:text-white';
@@ -5023,7 +5201,7 @@
         };
 
         try {
-          const res = await fetch('/.netlify/functions/debrief', {
+          const res = await fetch(AI_API_BASE + '/.netlify/functions/debrief', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -5077,85 +5255,985 @@
       if (dsubMetab) dsubMetab.addEventListener('click', () => setDrugSubtab('metab'));
       if (dsubRev) dsubRev.addEventListener('click', () => setDrugSubtab('rev'));
 
+      
+      // =========================================================================
+      // SHARED PRE-OP LAB PANEL ENGINE (VBG 8+13 / Chemistry / CBC 5-Diff)
+      // + 27-VARIABLE HIDDEN PHYSIOLOGY ENGINE & DRUG CASCADE INTERACTIONS
+      // =========================================================================
+      const PreopLabEngine = (() => {
+        const cl = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+        const rd = (v, d = 1) => Number(Number(v).toFixed(d));
+        const rnd = (lo, hi, d = 1) => rd(lo + Math.random() * (hi - lo), d);
+
+        const REF = {
+          dog: {
+            pH: [7.35, 7.45], pCO2: [35, 45], pO2: [35, 50], Na: [142, 152], K: [3.8, 5.2], Cl: [108, 118], iCa: [1.15, 1.38], Hct: [37, 55],
+            ALP: [20, 150], ALT: [10, 100], AST: [15, 55], GGT: [0, 11], BUN: [7, 27], Crea: [0.5, 1.6], Phos: [2.5, 6.8], Ca: [8.6, 11.8],
+            TG: [25, 150], Tchol: [110, 320], Glu: [70, 125], TP: [5.2, 8.2], ALB: [2.5, 4.0], Glob: [2.5, 4.5], Mg: [1.6, 2.5],
+            CRP: [0, 10], cPL: [0, 200], proBNP: [0, 900], T4: [1.0, 4.0], Cortisol: [1.0, 6.0], SDMA: [0, 14],
+            RBC: [5.5, 8.5], HGB: [12.0, 18.0], HCT: [37, 55], MCV: [60, 77], MCH: [19.5, 24.5], MCHC: [32, 36], RDW: [12, 16], RETIC: [10, 110], ReticHGB: [22.3, 29.6],
+            WBC: [5.5, 16.9], Neu: [2.0, 12.0], Lym: [0.5, 4.9], Mono: [0.3, 2.0], Eos: [0.1, 1.49], Baso: [0.0, 0.1],
+            PLT: [175, 500], MPV: [8.7, 13.2], PCT: [0.14, 0.46]
+          },
+          cat: {
+            pH: [7.31, 7.42], pCO2: [32, 42], pO2: [35, 50], Na: [147, 156], K: [3.6, 5.2], Cl: [115, 126], iCa: [1.12, 1.35], Hct: [30, 45],
+            ALP: [14, 111], ALT: [12, 115], AST: [15, 50], GGT: [0, 4], BUN: [16, 36], Crea: [0.8, 2.0], Phos: [3.1, 7.5], Ca: [8.2, 11.2],
+            TG: [20, 120], Tchol: [75, 220], Glu: [70, 150], TP: [5.7, 8.9], ALB: [2.3, 3.9], Glob: [2.8, 5.1], Mg: [1.8, 2.6],
+            SAA: [0, 5], fPL: [0, 3.5], proBNP: [0, 100], T4: [0.8, 4.7], Cortisol: [0.5, 5.0], SDMA: [0, 14],
+            RBC: [6.5, 11.5], HGB: [9.5, 15.5], HCT: [30, 45], MCV: [39, 55], MCH: [13, 17], MCHC: [31, 35], RDW: [14, 18], RETIC: [3, 50], ReticHGB: [13.2, 20.8],
+            WBC: [5.5, 19.5], Neu: [2.5, 12.5], Lym: [1.5, 7.0], Mono: [0.0, 0.85], Eos: [0.1, 1.5], Baso: [0.0, 0.1],
+            PLT: [155, 640], MPV: [11.4, 21.6], PCT: [0.15, 0.55]
+          }
+        };
+
+        function computeVBG13(m, bt = 38.0) {
+          const pH = m.pH, pCO2 = m.pCO2, pO2 = m.pO2;
+          const pHT = rd(pH - 0.0147 * (bt - 37.0), 3);
+          const pCO2T = rd(pCO2 * Math.pow(10, 0.019 * (bt - 37.0)), 1);
+          const pO2T = rd(pO2 * Math.pow(10, 0.025 * (bt - 37.0)), 1);
+          const cHCO3 = rd(0.0307 * pCO2 * Math.pow(10, pH - 6.1), 1);
+          const ctCO2 = rd(cHCO3 + 0.0307 * pCO2, 1);
+          const cHCO3std = rd(cHCO3 + 0.25 * (40 - pCO2) * 0.4, 1);
+          const ctHb = rd(m.Hct / 3.0, 1);
+          const BEecf = rd((cHCO3 - 24.8) + 16.2 * (pH - 7.4), 1);
+          const BEB = rd((1 - 0.014 * ctHb) * ((cHCO3 - 24.8) + (1.43 * ctHb + 7.7) * (pH - 7.4)), 1);
+          const iCa74 = rd(m.iCa * (1 - 0.53 * (7.4 - pH)), 2);
+          const pO2Aa = rd(Math.max(2.0, (150 - pCO2 / 0.8) - pO2), 1);
+          const p50 = 28 * Math.pow(10, 0.48 * (7.4 - pH));
+          const sO2 = rd(cl((Math.pow(pO2, 2.7) / (Math.pow(pO2, 2.7) + Math.pow(p50, 2.7))) * 100, 25, 99), 1);
+          const AGK = rd((m.Na + m.K) - (m.Cl + cHCO3), 1);
+          return { pHT, pCO2T, pO2T, ctCO2, cHCO3, cHCO3std, BEecf, BEB, ctHb, iCa74, pO2Aa, sO2, AGK };
+        }
+
+        function buildCBC(sp, ov = {}) {
+          const isCat = sp === 'cat';
+          const HCT = ov.HCT ?? (isCat ? 38.2 : 45.4);
+          const HGB = ov.HGB ?? rd(HCT / 3.02, 1);
+          const MCV = ov.MCV ?? (isCat ? 46.5 : 68.4);
+          const RBC = ov.RBC ?? rd((HCT * 10) / MCV, 2);
+          const MCH = rd((HGB * 10) / Math.max(1, RBC), 1);
+          const MCHC = rd((HGB * 100) / Math.max(1, HCT), 1);
+          const RDW = ov.RDW ?? (isCat ? 15.8 : 13.8);
+          const RETIC = ov.RETIC ?? (isCat ? 24 : 52);
+          const ReticHGB = ov.ReticHGB ?? (isCat ? 16.5 : 25.8);
+          const WBC = ov.WBC ?? (isCat ? 10.4 : 9.8);
+          const neuP = ov.neuP ?? (isCat ? 62 : 68);
+          const lymP = ov.lymP ?? (isCat ? 28 : 22);
+          const monoP = ov.monoP ?? 5.5;
+          const eosP = ov.eosP ?? 4.0;
+          const basoP = rd(Math.max(0.1, 100 - neuP - lymP - monoP - eosP), 1);
+          const PLT = ov.PLT ?? (isCat ? 295 : 280);
+          const MPV = ov.MPV ?? (isCat ? 14.5 : 10.4);
+          const PCT = rd(cl((PLT * MPV) / 10000, 0.05, 0.8), 2);
+          return {
+            RBC, HGB, HCT, MCV, MCH, MCHC, RDW, RETIC, ReticHGB, WBC,
+            Neu: rd(WBC * neuP / 100, 2), neuP,
+            Lym: rd(WBC * lymP / 100, 2), lymP,
+            Mono: rd(WBC * monoP / 100, 2), monoP,
+            Eos: rd(WBC * eosP / 100, 2), eosP,
+            Baso: rd(WBC * basoP / 100, 2), basoP,
+            PLT, MPV, PCT
+          };
+        }
+
+        function buildChem(sp, tier, ov = {}) {
+          const isCat = sp === 'cat';
+          const base = {
+            ALP: ov.ALP ?? (isCat ? 48 : 68), ALT: ov.ALT ?? (isCat ? 46 : 42), AST: ov.AST ?? (isCat ? 28 : 31),
+            GGT: ov.GGT ?? (isCat ? 1.5 : 4.2), BUN: ov.BUN ?? (isCat ? 23 : 16), Crea: ov.Crea ?? (isCat ? 1.3 : 1.0),
+            Phos: ov.Phos ?? (isCat ? 4.6 : 4.1), Ca: ov.Ca ?? (isCat ? 9.5 : 10.1), TG: ov.TG ?? (isCat ? 52 : 68),
+            Tchol: ov.Tchol ?? (isCat ? 138 : 198), Glu: ov.Glu ?? (isCat ? 108 : 96), TP: ov.TP ?? (isCat ? 6.9 : 6.6),
+            ALB: ov.ALB ?? (isCat ? 3.2 : 3.3), Mg: ov.Mg ?? (isCat ? 2.1 : 2.0)
+          };
+          base.Glob = rd(Math.max(1.2, base.TP - base.ALB), 1);
+          const out = {};
+          const keys7 = ['ALP', 'ALT', 'BUN', 'Crea', 'Glu', 'TP', 'ALB'];
+          const keys15 = ['ALP', 'ALT', 'AST', 'GGT', 'BUN', 'Crea', 'Phos', 'Ca', 'TG', 'Tchol', 'Glu', 'TP', 'ALB', 'Glob', 'Mg'];
+          const useKeys = tier === 'chemi7' ? keys7 : keys15;
+          useKeys.forEach((k) => { out[k] = base[k]; });
+          if (ov.specials) Object.keys(ov.specials).forEach((sk) => { out[sk] = ov.specials[sk]; });
+          return out;
+        }
+
+        function generate(scenarioId, sp, customMeta = null) {
+          const isCat = sp === 'cat';
+          let panelLabel = '';
+          let note = '';
+          let hasVBG = true, hasChem = true, hasCBC = true;
+          let chemTier = 'full';
+          let bt = 38.0;
+          let vbgM = {
+            pH: isCat ? 7.36 : 7.39, pCO2: isCat ? 37 : 40, pO2: 42,
+            Na: isCat ? 151 : 146, K: isCat ? 4.2 : 4.4, Cl: isCat ? 120 : 113,
+            iCa: isCat ? 1.24 : 1.26, Hct: isCat ? 38 : 45
+          };
+          let cbcOv = {};
+          let chemOv = {};
+          let hiddenTrue = { lactate: 1.3, alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 0 };
+
+          // Exact dedicated profiles for ALL fixed cases across all 4 modes
+          if (scenarioId === 'routine' || scenarioId === 'ind_routine' || scenarioId === 'rec_normal') {
+            panelLabel = '어린 건강 환자 최소 기본 패널 (CBC + Chemi 7종)';
+            note = '건강한 젊은 성견/성묘로 기본 수술 전 검사(CBC + Chemi 7종)만 시행되었습니다. 정맥가스·특수 마커는 생략되었습니다.';
+            hasVBG = false; chemTier = 'chemi7';
+          } else if (scenarioId === 'neuro' || scenarioId === 'ind_icp' || scenarioId === 'crit_boas_icp') {
+            panelLabel = '노령·신경계 정밀 패널 (CBC + 확장 Chemi + T4/Cortisol/SDMA + VBG)';
+            note = '두개내압 상승 위험이 있는 노령 환자로 내분비(T4·Cortisol)·신장(SDMA)·정맥혈액가스까지 풀검사가 완료되었습니다.';
+            vbgM = { ...vbgM, Na: isCat ? 154 : 149, pCO2: scenarioId === 'crit_boas_icp' ? 47 : (isCat ? 39 : 42), Hct: scenarioId === 'crit_boas_icp' ? (isCat ? 43 : 48) : vbgM.Hct };
+            cbcOv = { HCT: vbgM.Hct };
+            chemOv = { specials: { ...(isCat ? { SAA: 3.4 } : { CRP: 6.8 }), T4: isCat ? 2.4 : 2.1, Cortisol: 8.6, SDMA: 11 } };
+            hiddenTrue = { lactate: 1.5, alpha2: 0, opioid: 20, histamine: 0, icp: 20, lungWater: 0 };
+          } else if (scenarioId === 'sepsis' || scenarioId === 'crit_sepsis') {
+            panelLabel = '담낭파열·패혈성 복막염 응급 풀패널 (CBC 5-Diff + 확장 Chemi + CRP/SAA + VBG)';
+            note = '담낭파열·패혈성 복막염 응급 환자로 극심한 간담도 효소(ALP/GGT)·염증수치 상승, 저알부민·저혈당·대사성 산증이 확인됩니다.';
+            bt = 37.1;
+            vbgM = { pH: 7.21, pCO2: 33, pO2: 34, Na: isCat ? 144 : 139, K: 3.5, Cl: isCat ? 112 : 104, iCa: 1.09, Hct: isCat ? 31 : 33 };
+            cbcOv = { HCT: vbgM.Hct, WBC: 26.8, neuP: 86, lymP: 7, monoP: 5.5, eosP: 1.0, PLT: 132 };
+            chemOv = {
+              ALP: isCat ? 385 : 1420, ALT: isCat ? 410 : 540, AST: 320, GGT: isCat ? 22 : 68,
+              BUN: isCat ? 42 : 34, Crea: isCat ? 2.2 : 1.9, Glu: 59, TP: 4.8, ALB: 1.9, Tchol: 365,
+              specials: { ...(isCat ? { SAA: 94, fPL: 8.2 } : { CRP: 148, cPL: 480 }), SDMA: 18 }
+            };
+            hiddenTrue = { lactate: 4.8, alpha2: 0, opioid: 30, histamine: 12, icp: 10, lungWater: 8 };
+          } else if (scenarioId === 'ind_gdv') {
+            panelLabel = '초응급 GDV·패혈증 쇼크 단축 패널 (VBG 8+13 + 응급 PCV/Alb/Glu)';
+            note = '위확장염전(GDV)·쇼크로 즉각 감압·수술이 필요해 전체 화학/CBC는 생략하고 정맥혈액가스와 응급 지표만 확인했습니다.';
+            bt = 37.3; hasCBC = false; chemTier = 'chemi7';
+            vbgM = { pH: 7.19, pCO2: 32, pO2: 31, Na: isCat ? 145 : 140, K: 3.3, Cl: isCat ? 109 : 102, iCa: 1.08, Hct: isCat ? 49 : 55 };
+            chemOv = { ALP: isCat ? 130 : 280, ALT: 195, BUN: 39, Crea: 2.1, Glu: 64, TP: 5.0, ALB: 2.1 };
+            hiddenTrue = { lactate: 5.8, alpha2: 0, opioid: 25, histamine: 10, icp: 10, lungWater: 4 };
+          } else if (scenarioId === 'cardiac' || scenarioId === 'ind_cardiac' || scenarioId === 'crit_cardiac') {
+            panelLabel = '노령 심장병 정밀 패널 (CBC + 확장 Chemi + proBNP + SDMA + VBG)';
+            note = '심부전(개 MMVD Stage C / 고양이 HCM) 노령 환자로 proBNP가 뚜렷하게 상승되어 있으며 수액 과부하 시 폐수종 위험이 높습니다.';
+            vbgM = { ...vbgM, K: isCat ? 3.9 : 3.8, pH: isCat ? 7.34 : 7.36 };
+            chemOv = {
+              BUN: isCat ? 38 : 35, Crea: isCat ? 1.9 : 1.7,
+              specials: { proBNP: isCat ? 640 : 2850, SDMA: 16, T4: isCat ? 3.8 : 2.0, ...(isCat ? { SAA: 4.1 } : { CRP: 8.2 }) }
+            };
+            hiddenTrue = { lactate: 2.1, alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 18 };
+          } else if (scenarioId === 'boas' || scenarioId === 'ind_boas' || scenarioId === 'rec_boas') {
+            panelLabel = '단두종(BOAS) 호흡기 패널 (CBC + Chemi 7종 + VBG)';
+            note = '만성 상부기도 협착으로 경도의 만성 고탄산혈증(pCO₂↑), 보상성 중탄산 상승 및 상대적 적혈구증가(HCT↑)가 관찰됩니다.';
+            vbgM = { ...vbgM, pH: isCat ? 7.33 : 7.36, pCO2: isCat ? 46 : 49, Hct: isCat ? 43 : 51 };
+            cbcOv = { HCT: vbgM.Hct };
+            chemTier = 'chemi7';
+            hiddenTrue = { lactate: 1.4, alpha2: 15, opioid: 20, histamine: 0, icp: 11, lungWater: 0 };
+          } else if (scenarioId === 'csection') {
+            panelLabel = '응급 제왕절개 산과 단축 패널 (VBG + Chemi 7종 + CBC)';
+            note = '응급 분만 환자로 임신성 생리적 희석 빈혈(HCT↓), 경도 저알부민 및 이온화 칼슘(iCa²⁺) 저하 경향이 관찰됩니다.';
+            vbgM = { ...vbgM, pH: isCat ? 7.33 : 7.36, pCO2: isCat ? 31 : 33, iCa: 1.07, Hct: isCat ? 28 : 31.5 };
+            cbcOv = { HCT: vbgM.Hct, WBC: 15.8, neuP: 76, lymP: 16 };
+            chemTier = 'chemi7';
+            chemOv = { ALB: 2.3, TP: 5.1, Glu: 72 };
+            hiddenTrue = { lactate: 2.2, alpha2: 0, opioid: 10, histamine: 0, icp: 10, lungWater: 0 };
+          } else if (scenarioId === 'ckd' || scenarioId === 'crit_hyperk') {
+            const isCritK = scenarioId === 'crit_hyperk';
+            panelLabel = isCritK ? '요로폐쇄 고칼륨혈증 응급 풀패널 (CBC + 확장 Chemi + SDMA + VBG)' : '만성신부전·요로폐색 정밀 패널 (CBC + 확장 Chemi + SDMA + VBG)';
+            note = `심한 고질소혈증(BUN/Crea/SDMA↑), 고인산, 고칼륨혈증(K⁺ ${isCritK ? '7.8' : '6.9'}), 대사성 산증 및 비재생성 빈혈이 확인됩니다.`;
+            vbgM = { pH: isCritK ? 7.20 : 7.21, pCO2: 34, pO2: 38, Na: isCat ? 148 : 143, K: isCritK ? 7.8 : 6.9, Cl: isCat ? 114 : 107, iCa: 1.06, Hct: isCat ? 25 : 29 };
+            cbcOv = { HCT: vbgM.Hct, RETIC: isCat ? 9 : 18, PLT: 225 };
+            chemOv = {
+              BUN: isCritK ? 98 : 88, Crea: isCritK ? 5.9 : 4.8, Phos: isCritK ? 9.4 : 8.9, Ca: 8.3, ALB: 2.7,
+              specials: { SDMA: isCritK ? 38 : 34, ...(isCat ? { SAA: 14.5, proBNP: 145 } : { CRP: 21, proBNP: 420 }) }
+            };
+            hiddenTrue = { lactate: 2.8, alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 6 };
+          } else if (scenarioId === 'thoracic' || scenarioId === 'crit_hemorrhage') {
+            const isHem = scenarioId === 'crit_hemorrhage';
+            panelLabel = isHem ? '초응급 비장 출혈 쇼크 단축 패널 (VBG + 응급 CBC · Chemi 생략)' : '초응급 흉부외상·기흉 단축 패널 (VBG + 응급 CBC · Chemi 생략)';
+            note = isHem ? '급성 혈복강 출혈 쇼크로 즉시 개복이 필요해 Chemistry는 생략하고 VBG와 응급 CBC(HCT 19%, PLT 110)만 확보했습니다.' : '급성 흉부외상으로 시간이 촉박해 정맥혈액가스와 응급 혈구검사만 시행 후 수술실로 직행했습니다.';
+            hasChem = false;
+            vbgM = { pH: isHem ? 7.24 : 7.25, pCO2: isHem ? 34 : 52, pO2: isHem ? 35 : 29, Na: isCat ? 149 : 144, K: 4.7, Cl: isCat ? 116 : 110, iCa: 1.16, Hct: isHem ? 19 : (isCat ? 26 : 29) };
+            cbcOv = { HCT: vbgM.Hct, PLT: isHem ? 110 : 142, RETIC: isHem ? 92 : 48, WBC: 16.4, neuP: 78 };
+            hiddenTrue = { lactate: isHem ? 5.2 : 4.4, alpha2: 0, opioid: 35, histamine: 0, icp: 11, lungWater: 4 };
+          } else if (scenarioId === 'hypothermia' || scenarioId === 'rec_hypo') {
+            panelLabel = '노령 소형견/묘 저체온 정밀 패널 (CBC + 확장 Chemi + T4/SDMA + VBG)';
+            note = '체온 35.2–35.6°C 노령 소형 환자로 저체온에 따른 혈액가스 체온 보정치 pH(T)·pCO₂(T)와 경도 저혈당에 유의하세요.';
+            bt = scenarioId === 'rec_hypo' ? 35.2 : 35.6;
+            vbgM = { ...vbgM, pH: 7.31, pCO2: 44, Hct: isCat ? 33 : 39 };
+            cbcOv = { HCT: vbgM.Hct };
+            chemOv = { Glu: 62, ALB: 2.6, specials: { T4: isCat ? 1.0 : 0.85, SDMA: 13 } };
+            hiddenTrue = { lactate: 1.9, alpha2: 25, opioid: 25, histamine: 0, icp: 10, lungWater: 0 };
+          } else if (scenarioId === 'rec_dysphoria') {
+            panelLabel = '정형외과 수술 성견/성묘 확장 패널 (CBC + 확장 Chemi 15종 + CRP/SAA + VBG)';
+            note = '골절·인대 수술 전 시행한 확장 검사로 경도 염증 수치(CRP/SAA↑)와 스트레스성 백혈구 증가가 관찰되며 장기능·전해질은 안정적입니다.';
+            cbcOv = { WBC: 17.6, neuP: 79, lymP: 13 };
+            chemOv = { AST: 68, specials: { ...(isCat ? { SAA: 22 } : { CRP: 34 }), Cortisol: 7.4 } };
+            hiddenTrue = { lactate: 1.6, alpha2: 0, opioid: 45, histamine: 0, icp: 10, lungWater: 0 };
+          } else if (scenarioId === 'rec_emergency') {
+            panelLabel = '중년 성견/성묘 회복기 응급 확장 패널 (CBC + 확장 Chemi 15종 + VBG)';
+            note = '중년 환자로 확장 화학·혈액가스 검사를 시행했으며 경도 간효소 상승과 스트레스성 고혈당이 관찰됩니다.';
+            chemOv = { ALP: isCat ? 95 : 172, ALT: isCat ? 88 : 118, Glu: isCat ? 168 : 134, specials: { Cortisol: 7.8, SDMA: 12 } };
+            hiddenTrue = { lactate: 1.7, alpha2: 45, opioid: 30, histamine: 0, icp: 10, lungWater: 0 };
+          } else {
+            // Dynamic / Random (Case 10 or AI-generated patient)
+            const txt = ((customMeta?.title || '') + ' ' + (customMeta?.summary || '') + ' ' + (customMeta?.caution || '')).toLowerCase();
+            if (customMeta && customMeta.lab && typeof customMeta.lab === 'object') {
+              const L = customMeta.lab;
+              if (L.panelTier === 'emerg_none') {
+                return {
+                  performed: false,
+                  panelLabel: '초응급 직행 — 마취 전 혈액검사 미실시',
+                  note: `${customMeta.title || '응급 환자'} — 채혈 여유 없이 즉시 마취에 진입했습니다. 수술 중 [혈액검사]로 현장 확인하세요.`,
+                  vbg: null, chem: null, cbc: null,
+                  hiddenTrue: {
+                    pH: cl(Number(L.pH)||7.28, 6.95, 7.55), pCO2: cl(Number(L.pCO2)||42, 20, 75),
+                    Na: cl(Number(L.Na)||146, 128, 168), K: cl(Number(L.K)||4.6, 2.6, 8.8),
+                    Cl: cl(Number(L.Cl)||112, 92, 134), iCa: cl(Number(L.iCa)||1.18, 0.8, 1.55),
+                    Hct: cl(Number(L.HCT)||30, 14, 62), ALB: cl(Number(L.ALB)||2.4, 1.3, 4.4),
+                    Glu: cl(Number(L.Glu)||88, 35, 340), lactate: cl(Number(L.lactate)||3.4, 0.7, 12),
+                    alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 5, PLT: cl(Number(L.PLT)||180, 45, 600)
+                  }
+                };
+              }
+              if (L.pH != null) vbgM.pH = cl(Number(L.pH), 6.98, 7.55);
+              if (L.pCO2 != null) vbgM.pCO2 = cl(Number(L.pCO2), 20, 72);
+              if (L.Na != null) vbgM.Na = cl(Number(L.Na), 128, 168);
+              if (L.K != null) vbgM.K = cl(Number(L.K), 2.6, 8.9);
+              if (L.Cl != null) vbgM.Cl = cl(Number(L.Cl), 92, 134);
+              if (L.iCa != null) vbgM.iCa = cl(Number(L.iCa), 0.82, 1.55);
+              if (L.HCT != null) { vbgM.Hct = cl(Number(L.HCT), 14, 62); cbcOv.HCT = vbgM.Hct; }
+              if (L.WBC != null) cbcOv.WBC = cl(Number(L.WBC), 2.0, 45.0);
+              if (L.PLT != null) cbcOv.PLT = cl(Number(L.PLT), 40, 700);
+              if (L.ALP != null) chemOv.ALP = cl(Number(L.ALP), 10, 2500);
+              if (L.ALT != null) chemOv.ALT = cl(Number(L.ALT), 10, 1500);
+              if (L.BUN != null) chemOv.BUN = cl(Number(L.BUN), 5, 160);
+              if (L.Crea != null) chemOv.Crea = cl(Number(L.Crea), 0.4, 12.0);
+              if (L.ALB != null) chemOv.ALB = cl(Number(L.ALB), 1.3, 4.5);
+              if (L.Glu != null) chemOv.Glu = cl(Number(L.Glu), 35, 360);
+              if (L.lactate != null) hiddenTrue.lactate = cl(Number(L.lactate), 0.7, 12.0);
+              if (L.panelTier === 'chemi7') { chemTier = 'chemi7'; hasVBG = false; }
+              else { chemTier = 'full'; hasVBG = true; }
+              panelLabel = `AI 생성 환자 맞춤형 패널 (${chemTier === 'chemi7' ? 'CBC + Chemi 7종' : 'CBC + 확장 Chemi + VBG'})`;
+            } else {
+              const isEmergNone = !customMeta && Math.random() < 0.16;
+              if (isEmergNone) {
+                return {
+                  performed: false,
+                  panelLabel: '초응급 직행 — 마취 전 혈액검사 미실시',
+                  note: '생명이 위급한 초응급 상황으로 채혈 여유 없이 즉시 마취·수술에 진입했습니다. 수술 중 [혈액검사] 버튼으로 현장 POC Lab을 확인하세요.',
+                  vbg: null, chem: null, cbc: null,
+                  hiddenTrue: {
+                    pH: rnd(7.20, 7.34, 2), pCO2: rnd(34, 48, 0), Na: isCat ? rnd(145, 155, 0) : rnd(140, 150, 0),
+                    K: rnd(3.7, 6.8, 1), Cl: isCat ? rnd(112, 123, 0) : rnd(106, 117, 0), iCa: rnd(1.08, 1.28, 2),
+                    Hct: isCat ? rnd(22, 36, 1) : rnd(24, 42, 1), ALB: rnd(1.9, 3.0, 1), Glu: rnd(56, 118, 0),
+                    lactate: rnd(2.8, 6.2, 1), alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 5, PLT: rnd(120, 260, 0)
+                  }
+                };
+              }
+              const roll = Math.random();
+              if (txt.includes('고칼륨') || txt.includes('요로') || txt.includes('요도') || txt.includes('신부전')) {
+                vbgM.K = rnd(6.8, 8.3, 1); vbgM.pH = rnd(7.16, 7.26, 2); vbgM.iCa = rnd(1.02, 1.14, 2);
+                chemOv = { BUN: rnd(70, 115, 0), Crea: rnd(4.2, 7.8, 1), Phos: rnd(7.5, 11.2, 1), specials: { SDMA: rnd(26, 48, 0) } };
+                hiddenTrue.lactate = rnd(2.4, 4.2, 1);
+              } else if (txt.includes('저혈당') || txt.includes('인슐린')) {
+                chemOv = { Glu: rnd(40, 56, 0), specials: { Cortisol: rnd(1.2, 5.0, 1) } };
+                vbgM.pH = rnd(7.30, 7.38, 2);
+              } else if (txt.includes('빈혈') || txt.includes('출혈') || txt.includes('비장') || txt.includes('혈복강')) {
+                vbgM.Hct = rnd(17, 24, 1); cbcOv = { HCT: vbgM.Hct, PLT: rnd(95, 155, 0), RETIC: rnd(65, 145, 0) };
+                chemOv = { TP: rnd(4.2, 5.1, 1), ALB: rnd(1.8, 2.3, 1), specials: isCat ? { SAA: rnd(20, 60, 0) } : { CRP: rnd(35, 95, 0) } };
+                hiddenTrue.lactate = rnd(3.5, 6.5, 1);
+              } else if (txt.includes('담낭') || txt.includes('간') || txt.includes('패혈')) {
+                chemOv = { ALP: isCat ? rnd(260, 480, 0) : rnd(950, 1850, 0), ALT: rnd(320, 720, 0), GGT: rnd(18, 75, 0), ALB: rnd(1.8, 2.3, 1), Glu: rnd(58, 78, 0), specials: isCat ? { SAA: rnd(60, 120, 0) } : { CRP: rnd(90, 170, 0) } };
+                cbcOv = { WBC: rnd(22, 34, 1), neuP: 85, lymP: 8 };
+                vbgM.pH = rnd(7.20, 7.30, 2); hiddenTrue.lactate = rnd(3.2, 5.8, 1);
+              } else if (txt.includes('아나필락') || txt.includes('조영제')) {
+                hiddenTrue.histamine = 78; hiddenTrue.lactate = rnd(2.2, 3.8, 1);
+                chemTier = 'chemi7'; hasVBG = roll > 0.35;
+              } else if (txt.includes('심장') || txt.includes('hcm') || txt.includes('mmvd')) {
+                chemOv = { specials: { proBNP: isCat ? rnd(350, 820, 0) : rnd(1600, 3400, 0), SDMA: rnd(12, 20, 0) } };
+                hiddenTrue.lungWater = rnd(12, 24, 0);
+              } else {
+                const isYoung = roll < 0.32;
+                if (isYoung) {
+                  chemTier = Math.random() < 0.68 ? 'chemi7' : 'full';
+                  hasVBG = chemTier === 'full';
+                  panelLabel = chemTier === 'chemi7' ? '랜덤 젊은 환자 최소 패널 (CBC + Chemi 7종)' : '랜덤 젊은 환자 확장 패널 (CBC + 확장 Chemi + VBG)';
+                } else {
+                  chemTier = 'full'; hasVBG = true;
+                  vbgM.K = rnd(3.5, 6.2, 1); vbgM.pH = rnd(7.25, 7.41, 2); vbgM.Hct = isCat ? rnd(25, 42, 1) : rnd(28, 48, 1);
+                  cbcOv = { HCT: vbgM.Hct, WBC: rnd(6.5, 22.0, 1) };
+                  chemOv = { ALB: rnd(2.0, 3.4, 1), Glu: rnd(62, 138, 0), ALP: isCat ? rnd(35, 180, 0) : rnd(50, 420, 0), specials: { SDMA: rnd(9, 24, 0), ...(isCat ? { SAA: rnd(2, 38, 1) } : { CRP: rnd(4, 65, 1) }) } };
+                  hiddenTrue.lactate = rnd(1.4, 3.8, 1);
+                  panelLabel = '랜덤 노령/복합 환자 확장 패널 (CBC + 확장 Chemi + VBG)';
+                }
+              }
+            }
+            if (!panelLabel) panelLabel = hasVBG ? '동적 생성 환자 정밀 패널 (CBC + Chemi + VBG)' : '동적 생성 환자 기본 패널 (CBC + Chemi 7종)';
+            note = customMeta ? `${customMeta.title} 환자의 상태에 맞춰 생성된 마취 전 혈액검사 결과입니다.` : '실전 랜덤 환자의 연령·병태생리에 맞춰 생성된 마취 전 혈액검사 결과입니다.';
+          }
+
+          const vbgCalc = computeVBG13(vbgM, bt);
+          const chem = hasChem ? buildChem(sp, chemTier, chemOv) : null;
+          const cbc = hasCBC ? buildCBC(sp, { HCT: vbgM.Hct, ...cbcOv }) : null;
+          return {
+            performed: true, species: sp, panelLabel, note, bt,
+            vbg: hasVBG ? { measured: vbgM, calc: vbgCalc } : null,
+            chem, chemTier, cbc,
+            hiddenTrue: {
+              pH: vbgM.pH, pCO2: vbgM.pCO2, Na: vbgM.Na, K: vbgM.K, Cl: vbgM.Cl, iCa: vbgM.iCa,
+              Hct: cbc ? cbc.HCT : vbgM.Hct,
+              ALB: chem && chem.ALB != null ? chem.ALB : (isCat ? 3.1 : 3.2),
+              Glu: chem && chem.Glu != null ? chem.Glu : (isCat ? 105 : 95),
+              PLT: cbc ? cbc.PLT : 260,
+              BE: vbgCalc.BEecf,
+              ...hiddenTrue
+            }
+          };
+        }
+
+        function flagHtml(sp, key, val) {
+          const r = REF[sp]?.[key];
+          if (!r || val == null || isNaN(val)) return { cls: 'lab-val-ok', badge: '', refText: '-' };
+          const refText = `${r[0]}–${r[1]}`;
+          if (val > r[1]) return { cls: 'lab-val-hi', badge: '<span class="lab-flag lab-flag-hi">H</span>', refText };
+          if (val < r[0]) return { cls: 'lab-val-lo', badge: '<span class="lab-flag lab-flag-lo">L</span>', refText };
+          return { cls: 'lab-val-ok', badge: '', refText };
+        }
+
+        function renderTabHtml(lab, tab) {
+          if (!lab || !lab.performed) {
+            return `<div style="padding:16px; border-radius:10px; background:rgba(127,29,29,0.25); border:1px solid rgba(244,63,94,0.45); color:#fecdd3; line-height:1.6;">
+              <strong style="font-size:13px;">⚠ 마취 전 혈액검사 미실시 (초응급 직행)</strong><br>
+              ${lab ? lab.note : '검사 기록이 없습니다.'}
+            </div>`;
+          }
+          const sp = lab.species || 'dog';
+          if (tab === 'vbg') {
+            if (!lab.vbg) return `<div style="padding:14px; border-radius:10px; background:#0f172a; border:1px solid #334155; color:#94a3b8;">이 환자는 마취 전 <strong>정맥혈액가스(VBG)</strong> 검사를 시행하지 않았습니다.</div>`;
+            const m = lab.vbg.measured, c = lab.vbg.calc;
+            const mRows = [
+              ['pH', m.pH.toFixed(2), '', 'pH'], ['pCO₂', m.pCO2.toFixed(1), 'mmHg', 'pCO2'], ['pO₂ (정맥)', m.pO2.toFixed(1), 'mmHg', 'pO2'],
+              ['Na⁺', m.Na.toFixed(1), 'mmol/L', 'Na'], ['K⁺', m.K.toFixed(1), 'mmol/L', 'K'], ['Cl⁻', m.Cl.toFixed(1), 'mmol/L', 'Cl'],
+              ['Ca²⁺ (iCa)', m.iCa.toFixed(2), 'mmol/L', 'iCa'], ['Hct', m.Hct.toFixed(1), '%', 'Hct']
+            ];
+            const cRows = [
+              ['pH(T)', c.pHT.toFixed(3), `체온 ${lab.bt.toFixed(1)}°C 보정`], ['pCO₂(T)', c.pCO2T.toFixed(1), 'mmHg'], ['pO₂(T)', c.pO2T.toFixed(1), 'mmHg'],
+              ['ctCO₂ (tCO₂)', c.ctCO2.toFixed(1), 'mmol/L'], ['cHCO₃⁻', c.cHCO3.toFixed(1), 'mmol/L'], ['cHCO₃⁻(std)', c.cHCO3std.toFixed(1), 'mmol/L'],
+              ['BE(ecf)', (c.BEecf >= 0 ? '+' : '') + c.BEecf.toFixed(1), 'mmol/L'], ['BE(B)', (c.BEB >= 0 ? '+' : '') + c.BEB.toFixed(1), 'mmol/L'],
+              ['ctHb (tHb)', c.ctHb.toFixed(1), 'g/dL'], ['Ca²⁺(7.4)', c.iCa74.toFixed(2), 'mmol/L'],
+              ['pO₂(A-a)', c.pO2Aa.toFixed(1), 'mmHg (추정)'], ['sO₂', c.sO2.toFixed(1), '%'], ['Anion gap(K)', c.AGK.toFixed(1), 'mEq/L']
+            ];
+            return `<div style="font-weight:800; color:#7dd3fc; margin-bottom:6px;">측정항목 (8종)</div>
+              <table class="lab-table"><thead><tr><th>항목</th><th>결과</th><th>단위</th><th>참고치</th></tr></thead><tbody>
+                ${mRows.map(([nm, val, u, k]) => { const fl = flagHtml(sp, k, Number(val)); return `<tr><td>${nm}</td><td class="${fl.cls}">${val}${fl.badge}</td><td style="color:#94a3b8;">${u}</td><td style="color:#64748b;">${fl.refText}</td></tr>`; }).join('')}
+              </tbody></table>
+              <div style="font-weight:800; color:#a5b4fc; margin:10px 0 6px;">계산항목 (13종)</div>
+              <table class="lab-table"><thead><tr><th>항목</th><th>계산값</th><th>단위 / 비고</th></tr></thead><tbody>
+                ${cRows.map(([nm, val, u]) => `<tr><td>${nm}</td><td class="lab-val-ok">${val}</td><td style="color:#94a3b8;">${u}</td></tr>`).join('')}
+              </tbody></table>`;
+          }
+          if (tab === 'chem') {
+            if (!lab.chem) return `<div style="padding:14px; border-radius:10px; background:#0f172a; border:1px solid #334155; color:#94a3b8;">이 환자는 응급 상황으로 마취 전 <strong>Chemistry</strong> 패널을 시행하지 않았습니다.</div>`;
+            const units = { ALP:'U/L', ALT:'U/L', AST:'U/L', GGT:'U/L', BUN:'mg/dL', Crea:'mg/dL', Phos:'mg/dL', Ca:'mg/dL', TG:'mg/dL', Tchol:'mg/dL', Glu:'mg/dL', TP:'g/dL', ALB:'g/dL', Glob:'g/dL', Mg:'mg/dL', CRP:'mg/L', SAA:'µg/mL', cPL:'µg/L', fPL:'µg/L', proBNP:'pmol/L', T4:'µg/dL', Cortisol:'µg/dL', SDMA:'µg/dL' };
+            const rows = Object.entries(lab.chem).map(([k, v]) => {
+              const fl = flagHtml(sp, k, Number(v));
+              return `<tr><td><strong>${k}</strong></td><td class="${fl.cls}">${v}${fl.badge}</td><td style="color:#94a3b8;">${units[k] || ''}</td><td style="color:#64748b;">${fl.refText}</td></tr>`;
+            }).join('');
+            return `<div style="font-size:11px; color:#94a3b8; margin-bottom:6px;">검사 범위: ${lab.chemTier === 'chemi7' ? '기본 7종 (Chemi 7)' : '확장 Chemistry + 특수 마커'}</div>
+              <table class="lab-table"><thead><tr><th>항목</th><th>결과</th><th>단위</th><th>참고치</th></tr></thead><tbody>${rows}</tbody></table>`;
+          }
+          if (tab === 'cbc') {
+            if (!lab.cbc) return `<div style="padding:14px; border-radius:10px; background:#0f172a; border:1px solid #334155; color:#94a3b8;">이 환자는 응급 상황으로 마취 전 <strong>CBC</strong> 검사를 시행하지 않았습니다.</div>`;
+            const c = lab.cbc;
+            const rbcRows = [['RBC', c.RBC, 'M/µL', 'RBC'], ['HGB', c.HGB, 'g/dL', 'HGB'], ['HCT', c.HCT, '%', 'HCT'], ['MCV', c.MCV, 'fL', 'MCV'], ['MCH', c.MCH, 'pg', 'MCH'], ['MCHC', c.MCHC, 'g/dL', 'MCHC'], ['RDW', c.RDW, '%', 'RDW'], ['RETIC', c.RETIC, 'K/µL', 'RETIC'], ['Retic-HGB', c.ReticHGB, 'pg', 'ReticHGB']];
+            const wbcRows = [['WBC (총 백혈구)', c.WBC, 'K/µL', 'WBC', ''], ['Neutrophils (호중구)', c.Neu, 'K/µL', 'Neu', `${c.neuP}%`], ['Lymphocytes (림프구)', c.Lym, 'K/µL', 'Lym', `${c.lymP}%`], ['Monocytes (단핵구)', c.Mono, 'K/µL', 'Mono', `${c.monoP}%`], ['Eosinophils (호산구)', c.Eos, 'K/µL', 'Eos', `${c.eosP}%`], ['Basophils (호염기구)', c.Baso, 'K/µL', 'Baso', `${c.basoP}%`]];
+            const pltRows = [['PLT (혈소판)', c.PLT, 'K/µL', 'PLT'], ['MPV', c.MPV, 'fL', 'MPV'], ['PCT', c.PCT, '%', 'PCT']];
+            return `<div style="font-weight:800; color:#fda4af; margin-bottom:6px;">적혈구 (RBC · Retic)</div>
+              <table class="lab-table"><thead><tr><th>항목</th><th>결과</th><th>단위</th><th>참고치</th></tr></thead><tbody>
+                ${rbcRows.map(([nm, val, u, k]) => { const fl = flagHtml(sp, k, Number(val)); return `<tr><td>${nm}</td><td class="${fl.cls}">${val}${fl.badge}</td><td style="color:#94a3b8;">${u}</td><td style="color:#64748b;">${fl.refText}</td></tr>`; }).join('')}
+              </tbody></table>
+              <div style="font-weight:800; color:#7dd3fc; margin:10px 0 6px;">백혈구 (WBC · 5-Diff 감별계수)</div>
+              <table class="lab-table"><thead><tr><th>항목</th><th>절대수치</th><th>비율</th><th>참고치</th></tr></thead><tbody>
+                ${wbcRows.map(([nm, val, u, k, pct]) => { const fl = flagHtml(sp, k, Number(val)); return `<tr><td>${nm}</td><td class="${fl.cls}">${val} ${u}${fl.badge}</td><td style="color:#cbd5e1;">${pct || '-'}</td><td style="color:#64748b;">${fl.refText}</td></tr>`; }).join('')}
+              </tbody></table>
+              <div style="font-weight:800; color:#fcd34d; margin:10px 0 6px;">혈소판 (PLT)</div>
+              <table class="lab-table"><thead><tr><th>항목</th><th>결과</th><th>단위</th><th>참고치</th></tr></thead><tbody>
+                ${pltRows.map(([nm, val, u, k]) => { const fl = flagHtml(sp, k, Number(val)); return `<tr><td>${nm}</td><td class="${fl.cls}">${val}${fl.badge}</td><td style="color:#94a3b8;">${u}</td><td style="color:#64748b;">${fl.refText}</td></tr>`; }).join('')}
+              </tbody></table>`;
+          }
+          return '';
+        }
+        return { generate, computeVBG13, flagHtml, renderTabHtml, REF };
+      })();
+
+      // 27-Variable Hidden Physiology State (Initialized from Pre-Op Lab!)
+      function initPhysiologyFromLab(lab) {
+        const sp = state.speciesId;
+        const prof = getProfile();
+        const ht = (lab && lab.hiddenTrue) ? lab.hiddenTrue : { pH: 7.38, pCO2: 40, Na: 146, K: 4.3, Cl: 113, iCa: 1.24, Hct: 42, ALB: 3.2, Glu: 96, PLT: 270, BE: 0, lactate: 1.3, alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 0 };
+        if (lab) { lab._sc = state.scenarioId; lab._sp = state.speciesId; } state.preopLab = lab;
+        state.drugCounts = { epi: 0, cal: 0, dex: 0, prbc: 0, bicarb: 0, furo: 0, nalox: 0, atip: 0 };
+        state.phys = {
+          // 1. 심혈관·혈역학 (4)
+          preloadVol: clamp(100 - (prof.hypovolemia || 0) * 0.6, 55, 120),
+          svr: prof.sepsis ? 72 : (ht.alpha2 > 10 ? 118 : 100),
+          contractility: prof.cardiac ? 78 : 100,
+          arrhythmiaRisk: prof.vpcProb ? Math.round(prof.vpcProb * 60) : 8,
+          // 2. 혈액·교질·관류 (4)
+          pcv: ht.Hct,
+          albumin: ht.ALB,
+          lactate: ht.lactate,
+          coagReserve: clamp(Math.round((ht.PLT / 220) * 100), 35, 100),
+          // 3. 호흡·심폐 (5)
+          lungWater: ht.lungWater || 0,
+          compliance: Math.round((prof.compliance || 0.9) * 100),
+          vqMismatch: prof.obstructive ? 18 : 6,
+          airwayResistance: prof.obstructive ? 52 : (ht.histamine > 40 ? 68 : 14),
+          intrathoracicP: Math.round(state.pip * 0.45),
+          // 4. 전해질·산염기·대사 (7 + Na/Cl tracked for POC Lab)
+          serumNa: ht.Na,
+          serumK: ht.K,
+          serumCl: ht.Cl,
+          myoStability: ht.K > 6.5 ? clamp(100 - (ht.K - 6.0) * 28, 25, 85) : 98,
+          ionizedCa: ht.iCa,
+          bloodGlucose: ht.Glu,
+          baseExcess: ht.BE ?? Number(((ht.pH - 7.4) * 45).toFixed(1)),
+          arterialPH: ht.pH,
+          vo2: 100,
+          // 5. 수용체·자율신경 (4)
+          alpha2Tone: ht.alpha2 || 0,
+          opioidTone: ht.opioid ?? 25,
+          nociception: 22,
+          vagalTone: prof.obstructive ? 38 : 18,
+          // 6. 신경·면역·신장 (3)
+          icp: ht.icp || (prof.neuroICP ? 19 : 10),
+          histamineTone: ht.histamine || 0,
+          urineOutput: prof.ckd ? 0.4 : 1.5
+        };
+        // Sync initial pulmonary edema if lungWater elevated
+        if (state.phys.lungWater > 10) state.pulmonaryEdema = Math.max(state.pulmonaryEdema || 0, state.phys.lungWater * 0.12);
+      }
+
+      function stepHiddenPhysiology(dt) {
+        if (!state.phys || state.arrested || dt <= 0) return;
+        const p = state.phys;
+        const prof = getProfile();
+        // 1. Update intrathoracicP from Paw/PEEP
+        p.intrathoracicP = clamp(Math.round(state.circuitPaw * 0.45 + (state.peep || 0) * 0.7), 3, 40);
+        // 2. Continuous fluid rate, CRI pumps (TLK/Norepi/Dobut), and Isoflurane -> 27-var phys
+        const fluidRate = state.fluidRate || 0;
+        if (fluidRate === 0) {
+          p.preloadVol = clamp(p.preloadVol - 0.12 * dt, 45, 138);
+        } else if (fluidRate > 5) {
+          p.preloadVol = clamp(p.preloadVol + (fluidRate - 5) * 0.06 * dt, 45, 138);
+          if (fluidRate > 8) {
+            p.pcv = clamp(p.pcv - (fluidRate - 8) * 0.055 * dt, 12, 65);
+            p.albumin = clamp(p.albumin - (fluidRate - 8) * 0.012 * dt, 1.1, 4.8);
+          }
+          if (prof.cardiac || p.albumin < 2.2) {
+            p.lungWater = clamp(p.lungWater + Math.max(0, fluidRate - 4) * 0.08 * dt, 0, 100);
+          }
+        }
+        // TLK CRI -> opioidTone up, nociception & arrhythmiaRisk down
+        if (state.tlkCri) {
+          p.opioidTone = clamp(p.opioidTone + (78 - p.opioidTone) * 0.12 * dt, 0, 100);
+          p.nociception = clamp(p.nociception + (8 - p.nociception) * 0.14 * dt, 0, 100);
+          p.arrhythmiaRisk = clamp(p.arrhythmiaRisk - 0.6 * dt, 4, 100);
+        }
+        // Norepinephrine CRI -> SVR up (blunted in severe acidosis)
+        const acidMult = p.arterialPH < 7.20 ? 0.5 : 1.0;
+        const isoSvrDrop = Math.max(0, (state.etIso || 1.4) - 1.2) * 14;
+        const targetSvr = clamp((prof.sepsis ? 74 : 100) + (state.norepiCri || 0) * 32 * acidMult + (p.alpha2Tone * 0.3) - isoSvrDrop - (p.histamineTone * 0.45), 38, 165);
+        p.svr = clamp(p.svr + (targetSvr - p.svr) * 0.12 * dt, 38, 165);
+        // Dobutamine CRI -> contractility up (and arrhythmiaRisk/VO2 at high doses)
+        const targetCont = clamp((prof.cardiac ? 78 : 98) + (state.dobutCri || 0) * 3.2 * acidMult - Math.max(0, (state.etIso || 1.4) - 1.5) * 12, 40, 130);
+        p.contractility = clamp(p.contractility + (targetCont - p.contractility) * 0.12 * dt, 40, 130);
+        if ((state.dobutCri || 0) >= 8) {
+          p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + 0.45 * dt, 0, 100);
+        }
+        // 3. Bleeding / hypovolemia drain
+        if (state.dynBleed > 0 || prof.hypovolemia > 0) {
+          p.preloadVol = clamp(p.preloadVol - 0.08 * dt, 45, 135);
+          p.pcv = clamp(p.pcv - 0.015 * dt, 12, 65);
+        }
+        // 4. Arterial pH = respiratory (ETCO2) + metabolic (baseExcess)
+        const respDelta = (40 - state.trueETCO2) * 0.008;
+        const metDelta = p.baseExcess * 0.015;
+        p.arterialPH = Number(clamp(7.40 + respDelta + metDelta, 6.85, 7.65).toFixed(2));
+        // 5. Low MAP / anemia -> lactate rises, urineOutput falls, BE drops
+        if (state.trueMAP < 60 || p.pcv < 22) {
+          p.lactate = clamp(p.lactate + 0.025 * dt, 0.6, 15.0);
+          p.baseExcess = clamp(p.baseExcess - 0.03 * dt, -22, 12);
+          p.urineOutput = clamp(p.urineOutput - 0.03 * dt, 0.0, 5.0);
+          if (p.urineOutput < 0.4) p.serumK = clamp(p.serumK + 0.006 * dt, 2.5, 9.5);
+        } else {
+          p.lactate = clamp(p.lactate - 0.008 * dt, 0.8, 15.0);
+          p.urineOutput = clamp(p.urineOutput + (prof.ckd ? 0.004 : 0.015) * dt, 0.2, 3.0);
+        }
+        // 6. Myocardial stability vs serumK
+        if (p.serumK > 6.5) {
+          p.myoStability = clamp(p.myoStability - (p.serumK - 6.3) * 0.45 * dt, 5, 100);
+        } else {
+          p.myoStability = clamp(p.myoStability + 0.4 * dt, 10, 100);
+        }
+        // 7. ICP vs ETCO2 & intrathoracicP
+        if (prof.neuroICP || p.icp > 14) {
+          const icpTarget = 14 + Math.max(0, state.trueETCO2 - 38) * 0.65 + Math.max(0, p.intrathoracicP - 12) * 0.4;
+          p.icp = clamp(p.icp + (icpTarget - p.icp) * 0.08 * dt, 6, 45);
+        }
+        // 8. Histamine anaphylaxis effect
+        if (p.histamineTone > 20) {
+          p.svr = clamp(p.svr - 0.35 * dt, 40, 145);
+          p.airwayResistance = clamp(p.airwayResistance + 0.3 * dt, 10, 95);
+          p.preloadVol = clamp(p.preloadVol - 0.18 * dt, 45, 130);
+        }
+        // 9. Feed hidden physiology BACK into visible monitor hemodynamics!
+        // Severe hyperkalemia without Ca-Gluconate protection -> bradycardia + viability drop
+        if (p.serumK > 6.6 && p.myoStability < 55) {
+          state.trueHR = clamp(state.trueHR - 0.4 * dt, 22, 240);
+          state.viability = clamp(state.viability - 0.35 * dt, 0, 100);
+        }
+        // Severe hypoglycemia -> bradycardia + hypotension
+        if (p.bloodGlucose < 55) {
+          state.trueHR = clamp(state.trueHR - 0.22 * dt, 30, 240);
+          state.trueMAP = clamp(state.trueMAP - 0.18 * dt, 25, 150);
+        }
+        // Severe anemia or low albumin -> compensatory tachycardia + hypotension
+        if (p.pcv < 22) {
+          state.trueHR = clamp(state.trueHR + 0.25 * dt, 35, 240);
+          state.trueMAP = clamp(state.trueMAP - 0.15 * dt, 25, 150);
+        }
+        // Lung water -> feeds pulmonaryEdema & drops SpO2
+        if (p.lungWater > 25) {
+          state.pulmonaryEdema = clamp((state.pulmonaryEdema || 0) + 0.04 * dt, 0, 35);
+        }
+        // Cushing reflex if ICP > 24
+        if (p.icp > 24) {
+          state.trueMAP = clamp(state.trueMAP + 0.25 * dt, 30, 165);
+          state.trueHR = clamp(state.trueHR - 0.25 * dt, 28, 220);
+        }
+        // VO2 rises with pain/tachycardia
+        p.vo2 = clamp(Math.round(100 + Math.max(0, p.nociception - 30) * 0.8 + Math.max(0, state.trueHR - 135) * 0.3), 70, 200);
+        if ((state.peep || 0) >= 3) p.vqMismatch = clamp(p.vqMismatch - 0.35 * dt, 4, 65);
+        if (state.trueBT < 36.2) { p.coagReserve = clamp(p.coagReserve - 0.08 * dt, 30, 100); p.bloodGlucose = clamp(p.bloodGlucose - 0.06 * dt, 35, 380); }
+        // If phys-state-modal is currently open (Easy mode or Arrested), live-refresh it
+        const physModal = document.getElementById('phys-state-modal');
+        if (physModal && !physModal.classList.contains('hidden')) renderPhysStateModal();
+      }
+
+      // =========================================================================
+      // UI BINDINGS FOR: [마취전 혈액검사], [혈액검사 (POC Lab)], [상태 (27변수)]
+      // =========================================================================
+      let activePreopTab = 'vbg';
+      function openPreopLabModal() {
+        const modal = document.getElementById('preop-lab-modal');
+        if (!modal) return;
+        const lab = (state.preopLab && state.preopLab._sc === state.scenarioId && state.preopLab._sp === state.speciesId) ? state.preopLab : Object.assign(PreopLabEngine.generate(state.scenarioId, state.speciesId, state.customAiMeta || null), { _sc: state.scenarioId, _sp: state.speciesId });
+        state.preopLab = lab;
+        state.drugCounts = { epi: 0, cal: 0, dex: 0, prbc: 0, bicarb: 0, furo: 0, nalox: 0, atip: 0 };
+        document.getElementById('preop-lab-title').textContent = `마취 전 혈액검사 · ${SCENARIOS[state.scenarioId]?.name || '환자'}`;
+        document.getElementById('preop-lab-meta').innerHTML = `<strong>${lab.panelLabel}</strong> — ${lab.note}`;
+        document.getElementById('preop-lab-body').innerHTML = PreopLabEngine.renderTabHtml(lab, activePreopTab);
+        modal.classList.remove('hidden');
+      }
+
+      function renderPocLabModal() {
+        if (!state.phys && typeof PreopLabEngine !== 'undefined') initPhysiologyFromLab(PreopLabEngine.generate(state.scenarioId, state.speciesId, state.customAiMeta || null));
+        const p = state.phys;
+        if (!p) return;
+        const sp = state.speciesId;
+        const mins = String(Math.floor(state.simSeconds / 60)).padStart(2, '0');
+        const secs = String(Math.floor(state.simSeconds % 60)).padStart(2, '0');
+        document.getElementById('poc-lab-meta').textContent = `채혈 시점: 경과 ${mins}:${secs} · 축종: ${sp === 'dog' ? '개' : '고양이'} · 현장 간이 혈액가스/전해질 스냅샷 (10종)`;
+        const items = [
+          { lbl: 'PCV', val: p.pcv.toFixed(1), u: '%', k: 'Hct' },
+          { lbl: 'Alb', val: p.albumin.toFixed(1), u: 'g/dL', k: 'ALB' },
+          { lbl: 'Na⁺', val: p.serumNa.toFixed(1), u: 'mmol/L', k: 'Na' },
+          { lbl: 'K⁺', val: p.serumK.toFixed(1), u: 'mmol/L', k: 'K' },
+          { lbl: 'Cl⁻', val: p.serumCl.toFixed(1), u: 'mmol/L', k: 'Cl' },
+          { lbl: 'iCa²⁺', val: p.ionizedCa.toFixed(2), u: 'mmol/L', k: 'iCa' },
+          { lbl: 'Glu', val: Math.round(p.bloodGlucose), u: 'mg/dL', k: 'Glu' },
+          { lbl: 'pH', val: p.arterialPH.toFixed(2), u: '', k: 'pH' },
+          { lbl: 'BE', val: (p.baseExcess >= 0 ? '+' : '') + p.baseExcess.toFixed(1), u: 'mmol/L', k: null, ref: '-4 ~ +4', hi: p.baseExcess > 4, lo: p.baseExcess < -4 },
+          { lbl: 'Lactate', val: p.lactate.toFixed(1), u: 'mmol/L', k: null, ref: '< 2.5', hi: p.lactate >= 2.5, lo: false }
+        ];
+        document.getElementById('poc-lab-body').innerHTML = `<div class="poc-grid">${items.map((it) => {
+          let cls = 'poc-item', vCls = 'lab-val-ok', badge = '', refTxt = it.ref || '';
+          if (it.k) {
+            const fl = PreopLabEngine.flagHtml(sp, it.k, Number(it.val));
+            vCls = fl.cls; badge = fl.badge; refTxt = fl.refText;
+            if (vCls === 'lab-val-hi') cls += ' abn-hi';
+            if (vCls === 'lab-val-lo') cls += ' abn-lo';
+          } else {
+            if (it.hi) { cls += ' abn-hi'; vCls = 'lab-val-hi'; badge = '<span class="lab-flag lab-flag-hi">H</span>'; }
+            if (it.lo) { cls += ' abn-lo'; vCls = 'lab-val-lo'; badge = '<span class="lab-flag lab-flag-lo">L</span>'; }
+          }
+          return `<div class="${cls}"><div style="font-size:10.5px; color:#94a3b8; font-weight:700;">${it.lbl}</div><div class="${vCls}" style="font-size:18px; margin:2px 0;">${it.val} <span style="font-size:10.5px; color:#94a3b8; font-weight:500;">${it.u}</span>${badge}</div><div style="font-size:9.5px; color:#64748b;">참고치 ${refTxt}</div></div>`;
+        }).join('')}</div>`;
+      }
+
+      function canViewPhysState() {
+        return state.difficulty === 'easy' || state.arrested === true;
+      }
+
+      function syncPhysStateButton() {
+        const btn = document.getElementById('btn-phys-state');
+        if (!btn) return;
+        const ok = canViewPhysState();
+        btn.style.opacity = ok ? '1' : '0.42';
+        btn.title = ok ? '27개 내부 생리 상태 열기/닫기' : '초급 단계 또는 사망(심정지) 후에만 열 수 있습니다';
+        if (!ok) {
+          const m = document.getElementById('phys-state-modal');
+          if (m) m.classList.add('hidden');
+        }
+      }
+
+      function renderPhysStateModal() {
+        if (!state.phys && typeof PreopLabEngine !== 'undefined') initPhysiologyFromLab(PreopLabEngine.generate(state.scenarioId, state.speciesId, state.customAiMeta || null));
+        const p = state.phys;
+        if (!p) return;
+        const cpp = Math.max(0, Math.round(state.trueMAP - p.icp));
+        document.getElementById('phys-state-meta').innerHTML = state.arrested
+          ? '<strong style="color:#fda4af;">사망(심정지) 후 내부 생리 복기 모드</strong> — 사망 시점의 6개 계통 27개 숨은 생리 지표를 확인하세요.'
+          : '<strong style="color:#7dd3fc;">초급 학습 모드 실시간 X-Ray</strong> — 약물 투여 시 27개 내부 지표가 연쇄 변동하는 과정을 실시간으로 관찰할 수 있습니다.';
+        const cell = (lbl, val, pct, col = '#38bdf8') => `
+          <div class="phys-cell">
+            <div style="display:flex; justify-content:space-between; font-size:10.5px;"><span style="color:#94a3b8;">${lbl}</span><strong style="color:#f8fafc;">${val}</strong></div>
+            <div class="phys-bar-bg"><div class="phys-bar-fill" style="width:${clamp(pct,0,100)}%; background:${col};"></div></div>
+          </div>`;
+        const groups = [
+          ['1. 심혈관·혈역학 (4)', [
+            cell('유효 순환 혈량', `${Math.round(p.preloadVol)}%`, p.preloadVol, p.preloadVol < 80 ? '#fb7185' : '#34d399'),
+            cell('전신혈관저항(SVR)', `${Math.round(p.svr)}%`, p.svr / 1.4, p.svr < 75 ? '#fb7185' : '#38bdf8'),
+            cell('심근 수축력', `${Math.round(p.contractility)}%`, p.contractility, p.contractility < 70 ? '#fbbf24' : '#34d399'),
+            cell('부정맥 역치(VPC)', `${Math.round(p.arrhythmiaRisk)}`, p.arrhythmiaRisk, p.arrhythmiaRisk > 45 ? '#fb7185' : '#38bdf8')
+          ]],
+          ['2. 혈액·교질·관류 (4)', [
+            cell('PCV (헤마토크릿)', `${p.pcv.toFixed(1)}%`, (p.pcv / 55) * 100, p.pcv < 25 ? '#fb7185' : '#34d399'),
+            cell('알부민 (Alb)', `${p.albumin.toFixed(1)} g/dL`, (p.albumin / 4.2) * 100, p.albumin < 2.2 ? '#fbbf24' : '#34d399'),
+            cell('젖산 (Lactate)', `${p.lactate.toFixed(1)} mmol/L`, (p.lactate / 10) * 100, p.lactate >= 2.5 ? '#fb7185' : '#34d399'),
+            cell('응고 예비능', `${Math.round(p.coagReserve)}%`, p.coagReserve, p.coagReserve < 60 ? '#fb7185' : '#34d399')
+          ]],
+          ['3. 호흡·심폐 연동 (5)', [
+            cell('폐포 수분(폐수종)', `${Math.round(p.lungWater)}`, p.lungWater, p.lungWater > 20 ? '#fb7185' : '#34d399'),
+            cell('폐 탄성(Compliance)', `${Math.round(p.compliance)}%`, p.compliance, p.compliance < 70 ? '#fbbf24' : '#38bdf8'),
+            cell('V/Q 불균형(션트)', `${Math.round(p.vqMismatch)}%`, p.vqMismatch * 2, p.vqMismatch > 20 ? '#fb7185' : '#38bdf8'),
+            cell('기도 저항', `${Math.round(p.airwayResistance)}`, p.airwayResistance, p.airwayResistance > 40 ? '#fb7185' : '#34d399'),
+            cell('흉강내압', `${Math.round(p.intrathoracicP)} cmH₂O`, p.intrathoracicP * 3, p.intrathoracicP > 14 ? '#fb7185' : '#38bdf8')
+          ]],
+          ['4. 전해질·산염기·대사 (7)', [
+            cell('혈청 칼륨(K⁺)', `${p.serumK.toFixed(1)} mEq/L`, ((p.serumK - 2.5) / 6.5) * 100, p.serumK > 5.8 ? '#fb7185' : '#34d399'),
+            cell('심근 막안정도', `${Math.round(p.myoStability)}%`, p.myoStability, p.myoStability < 65 ? '#fb7185' : '#34d399'),
+            cell('이온화 칼슘(iCa²⁺)', `${p.ionizedCa.toFixed(2)} mmol/L`, (p.ionizedCa / 1.5) * 100, p.ionizedCa < 1.1 ? '#fbbf24' : '#34d399'),
+            cell('혈당 (Glu)', `${Math.round(p.bloodGlucose)} mg/dL`, (p.bloodGlucose / 200) * 100, p.bloodGlucose < 65 ? '#fb7185' : '#34d399'),
+            cell('염기과잉 (BE)', `${p.baseExcess >= 0 ? '+' : ''}${p.baseExcess.toFixed(1)}`, (p.baseExcess + 20) * 3, p.baseExcess < -5 ? '#fb7185' : '#34d399'),
+            cell('동맥혈 pH', `${p.arterialPH.toFixed(2)}`, ((p.arterialPH - 6.9) / 0.7) * 100, p.arterialPH < 7.25 ? '#fb7185' : '#34d399'),
+            cell('산소 소비량(VO₂)', `${Math.round(p.vo2)}%`, p.vo2 / 2, p.vo2 > 130 ? '#fbbf24' : '#38bdf8')
+          ]],
+          ['5. 수용체·자율신경 (4)', [
+            cell('α₂ 점유도', `${Math.round(p.alpha2Tone)}%`, p.alpha2Tone, '#a78bfa'),
+            cell('오피오이드 점유도', `${Math.round(p.opioidTone)}%`, p.opioidTone, '#38bdf8'),
+            cell('수술 통증 자극', `${Math.round(p.nociception)}%`, p.nociception, p.nociception > 55 ? '#fb7185' : '#34d399'),
+            cell('미주신경 긴장도', `${Math.round(p.vagalTone)}%`, p.vagalTone, p.vagalTone > 50 ? '#fbbf24' : '#38bdf8')
+          ]],
+          ['6. 신경·면역·신장 (3)', [
+            cell('두개내압(ICP/CPP)', `${Math.round(p.icp)} / CPP ${cpp}`, (p.icp / 40) * 100, p.icp > 20 ? '#fb7185' : '#34d399'),
+            cell('아나필락시스·누출', `${Math.round(p.histamineTone)}%`, p.histamineTone, p.histamineTone > 25 ? '#fb7185' : '#34d399'),
+            cell('신장 요량(UO)', `${p.urineOutput.toFixed(1)} mL/kg/h`, (p.urineOutput / 3) * 100, p.urineOutput < 0.5 ? '#fb7185' : '#34d399')
+          ]]
+        ];
+        document.getElementById('phys-state-body').innerHTML = groups.map(([t, cells]) => `
+          <div class="phys-sys-card"><div class="phys-sys-title"><span>${t}</span></div><div class="phys-grid">${cells.join('')}</div></div>
+        `).join('');
+      }
+
+      document.getElementById('btn-preop-lab')?.addEventListener('click', openPreopLabModal);
+      document.getElementById('btn-preop-lab-close')?.addEventListener('click', () => document.getElementById('preop-lab-modal')?.classList.add('hidden'));
+      document.querySelectorAll('#preop-lab-tabs .lab-tab').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          activePreopTab = btn.dataset.labtab;
+          document.querySelectorAll('#preop-lab-tabs .lab-tab').forEach((b) => b.classList.toggle('active', b === btn));
+          document.getElementById('preop-lab-body').innerHTML = PreopLabEngine.renderTabHtml(state.preopLab, activePreopTab);
+        });
+      });
+      document.getElementById('btn-poc-lab')?.addEventListener('click', () => {
+        renderPocLabModal();
+        document.getElementById('poc-lab-modal')?.classList.remove('hidden');
+        addLog('수술 중 현장 혈액검사(POC Lab) 채혈 완료 — PCV/Alb/전해질/혈당/산염기/젖산 확인', 'info');
+      });
+      document.getElementById('btn-poc-redraw')?.addEventListener('click', () => {
+        renderPocLabModal();
+        showToast('현장 혈액검사(POC Lab) 재채혈 결과를 갱신했습니다.', 'info');
+      });
+      document.getElementById('btn-poc-lab-close')?.addEventListener('click', () => document.getElementById('poc-lab-modal')?.classList.add('hidden'));
+      document.getElementById('btn-phys-state')?.addEventListener('click', () => {
+        if (!canViewPhysState()) {
+          showToast('내부 생리 [상태] 창은 초급 단계 또는 사망(심정지) 후에만 열 수 있습니다.', 'warn');
+          return;
+        }
+        const m = document.getElementById('phys-state-modal');
+        if (m.classList.contains('hidden')) { renderPhysStateModal(); m.classList.remove('hidden'); }
+        else m.classList.add('hidden');
+      });
+      document.getElementById('btn-phys-state-close')?.addEventListener('click', () => document.getElementById('phys-state-modal')?.classList.add('hidden'));
+
       const bindSpecial = (id, fn) => { const b = document.getElementById(id); if (b) b.addEventListener('click', fn); };
       bindSpecial('btn-epinephrine', () => {
         if (state.arrested) return;
-        state.trueMAP = clamp(state.trueMAP + 26, 20, 150);
-        state.trueHR = clamp(state.trueHR + 36, 20, 240);
-        state.viability = clamp(state.viability + 10, 0, 100);
+        const p = state.phys;
+        state.drugCounts = state.drugCounts || {};
+        state.drugCounts.epi = (state.drugCounts.epi || 0) + 1;
+        const n = state.drugCounts.epi;
+        const acidPenalty = p && p.arterialPH < 7.20 ? 0.45 : 1.0;
+        const volPenalty = p && p.preloadVol < 75 ? 0.55 : 1.0;
+        if (p && p.histamineTone > 25 && n <= 2) {
+          p.histamineTone = Math.max(0, p.histamineTone - 55);
+          p.airwayResistance = Math.max(14, p.airwayResistance - 35);
+          p.svr = clamp(p.svr + 28, 45, 140);
+          state.trueMAP = clamp(state.trueMAP + 28, 25, 150);
+          state.trueSpO2 = clamp(state.trueSpO2 + 6, 55, 100);
+          state.viability = clamp(state.viability + 16, 0, 100);
+          addLog(`Epinephrine 0.01 mg/kg IV (${n}회) — 아나필락시스 1차 특효! 혈관저항 회복 + 기관지경련 완화`, 'good');
+          showToast('Epinephrine IV — 아나필락시스 혈압·기도 저항 즉시 개선!', 'good');
+        } else if (n >= 2) {
+          state.trueHR = clamp(state.trueHR + 42, 30, 240);
+          state.trueMAP = clamp(state.trueMAP + Math.round(20 * acidPenalty), 20, 175);
+          if (p) {
+            p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + 34, 0, 100);
+            p.vo2 = clamp(p.vo2 + 25, 70, 200);
+            p.lactate = clamp(p.lactate + 0.9, 0.6, 15);
+          }
+          state.viability = clamp(state.viability - 10, 0, 100);
+          addLog(`Epinephrine 반복 투여 경고 (${n}회) — 카테콜아민 과다로 중증 빈맥·VPC 부정맥·심근 산소고갈(젖산↑)!`, 'danger');
+          showToast(`Epinephrine ${n}회 반복 독성! 중증 빈맥·부정맥·젖산 상승 위험!`, 'danger');
+        } else {
+          const mapGain = Math.round(26 * acidPenalty * volPenalty);
+          state.trueMAP = clamp(state.trueMAP + mapGain, 20, 155);
+          state.trueHR = clamp(state.trueHR + 36, 20, 240);
+          if (p) { p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + 22, 0, 100); p.svr = clamp(p.svr + 18 * acidPenalty, 45, 150); }
+          if (acidPenalty < 1 || volPenalty < 1) {
+            addLog(`Epinephrine IV — 산증(pH ${p.arterialPH})/저혈량으로 승압 효과 반감(+${mapGain} mmHg), 부정맥 위험 급증!`, 'danger');
+            showToast('산증·저혈량 상태에서는 Epinephrine 승압 효과가 떨어지고 VPC 위험만 커집니다!', 'danger');
+          } else {
+            state.viability = clamp(state.viability + 8, 0, 100);
+            addLog('Epinephrine 0.01 mg/kg IV 투여 — 혈압·심박 급상승 (반복 투여 시 부정맥 주의)', 'warn');
+            showToast('Epinephrine IV 투여 — 급격한 빈맥·부정맥 주의!', 'warn');
+          }
+        }
         computePhysiology(0); renderMonitorUI();
-        addLog('Epinephrine 0.01 mg/kg IV 투여 — 아나필락시스/중증 쇼크 혈압·심박 급상승', 'warn');
-        showToast('Epinephrine 0.01 mg/kg IV 투여 — 급격한 혈압·빈맥 주의!', 'warn');
       });
+
       bindSpecial('btn-calgluc', () => {
         if (state.arrested) return;
-        state.lidoToxicity = Math.max(0, state.lidoToxicity - 18);
-        state.dynVagalActive = false;
-        state.viability = clamp(state.viability + 12, 0, 100);
+        const p = state.phys;
+        state.drugCounts = state.drugCounts || {};
+        state.drugCounts.cal = (state.drugCounts.cal || 0) + 1;
+        const n = state.drugCounts.cal;
+        if (p) {
+          p.ionizedCa = clamp(p.ionizedCa + 0.18, 0.7, 2.2);
+          if (n >= 3 || p.ionizedCa > 1.55) {
+            state.trueHR = clamp(state.trueHR - 28, 22, 220);
+            p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + 28, 0, 100);
+            p.myoStability = clamp(p.myoStability - 22, 10, 100);
+            state.viability = clamp(state.viability - 12, 0, 100);
+            addLog(`10% Ca-Gluconate 과투여 독성 (${n}회, iCa²⁺ ${p.ionizedCa.toFixed(2)}) — 의인성 고칼슘혈증으로 심한 서맥·AV 차단·심근 강직 위험!`, 'danger');
+            showToast('경고! Ca-Gluconate 반복 투여 → 고칼슘 서맥·AV 차단 위험!', 'danger');
+          } else {
+            p.myoStability = clamp(p.myoStability + 42, 0, 100);
+            p.contractility = clamp(p.contractility + 10, 40, 120);
+            state.lidoToxicity = Math.max(0, state.lidoToxicity - 18);
+            state.viability = clamp(state.viability + 10, 0, 100);
+            if (p.serumK > 6.2) {
+              addLog(`10% Ca-Gluconate IV (${n}회) — 심근 막안정도 방어(${Math.round(p.myoStability)}%). 단, K⁺(${p.serumK.toFixed(1)}) 자체는 Dextrose·수액으로 내려야 합니다.`, 'good');
+              showToast('10% Ca-Gluconate — 심근 보호 완료! (K⁺ 하강은 Dextrose·수액 병행)', 'good');
+            } else if (p.ionizedCa < 1.25) {
+              state.trueMAP = clamp(state.trueMAP + 10, 25, 145);
+              addLog(`10% Ca-Gluconate IV (${n}회) — 저칼슘 교정(iCa²⁺ ${p.ionizedCa.toFixed(2)}) → 수축력·혈압 회복`, 'good');
+              showToast('10% Ca-Gluconate — 저칼슘 교정 및 혈압 회복!', 'good');
+            } else {
+              addLog(`10% Ca-Gluconate IV (${n}회, iCa²⁺ ${p.ionizedCa.toFixed(2)}) — 반복 투여 시 고칼슘 서맥 주의`, 'info');
+              showToast('10% Ca-Gluconate IV 투여 완료 (반복 과투여 주의)', 'info');
+            }
+          }
+        }
         computePhysiology(0); renderMonitorUI();
-        addLog('10% Calcium Gluconate 1 mL/kg 천천히 IV — 고칼륨 심근 막전위 안정화', 'good');
-        showToast('10% Ca-Gluconate IV 투여 — 심근 안정화 완료', 'good');
       });
+
       bindSpecial('btn-dextrose', () => {
         if (state.arrested) return;
-        state.viability = clamp(state.viability + 10, 0, 100);
-        state.trueHR = clamp(state.trueHR + 8, 20, 240);
+        const p = state.phys;
+        state.drugCounts = state.drugCounts || {};
+        state.drugCounts.dex = (state.drugCounts.dex || 0) + 1;
+        const n = state.drugCounts.dex;
+        if (p) {
+          const wasLow = p.bloodGlucose < 68;
+          const wasHighK = p.serumK > 6.0;
+          const wasHyper = p.bloodGlucose >= 200;
+          p.bloodGlucose = clamp(p.bloodGlucose + 65, 30, 520);
+          if (n >= 2 && (wasHyper || p.bloodGlucose > 250)) {
+            // Hyperosmolarity + Osmotic Diuresis + Hypokalemia + Cellular Dehydration!
+            p.urineOutput = clamp(p.urineOutput + 1.4, 0, 6.5);
+            p.preloadVol = clamp(p.preloadVol - 12, 45, 130);
+            p.serumK = clamp(p.serumK - 0.45, 2.4, 9.5);
+            p.serumNa = clamp(p.serumNa - 2.2, 125, 170);
+            state.trueMAP = clamp(state.trueMAP - 10, 20, 145);
+            if (p.serumK < 3.2) p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + 22, 0, 100);
+            state.viability = clamp(state.viability - 10, 0, 100);
+            addLog(`50% Dextrose 반복 과투여 경고 (${n}회, 혈당 ${Math.round(p.bloodGlucose)} mg/dL) — 고삼투압혈증·삼투성 이뇨로 유효혈량 급감(MAP↓)·저칼륨(K⁺ ${p.serumK.toFixed(1)})·정맥염 위험!`, 'danger');
+            showToast(`경고! 50% 포도당 ${n}회 반복 → 고삼투압·삼투성 이뇨(저혈압·저칼륨) 발생!`, 'danger');
+          } else if (wasHighK) {
+            p.serumK = clamp(p.serumK - 0.8, 2.8, 9.5);
+            addLog(`50% Dextrose 희석 IV (${n}회) — K⁺ 세포내 이동(K⁺ ${p.serumK.toFixed(1)} mEq/L 하강, 혈당 ${Math.round(p.bloodGlucose)})`, 'good');
+            showToast('50% Dextrose — K⁺ 세포내 이동으로 고칼륨 교정 시작!', 'good');
+          } else if (wasLow) {
+            state.trueHR = clamp(state.trueHR + 12, 30, 230);
+            state.trueMAP = clamp(state.trueMAP + 8, 25, 145);
+            state.viability = clamp(state.viability + 12, 0, 100);
+            addLog(`50% Dextrose 희석 IV (${n}회) — 저혈당 교정(Glu ${Math.round(p.bloodGlucose)} mg/dL) → 심박·관류 회복`, 'good');
+            showToast('50% Dextrose — 저혈당 교정 완료!', 'good');
+          } else {
+            p.urineOutput = clamp(p.urineOutput + 0.5, 0, 6);
+            p.preloadVol = clamp(p.preloadVol - 4, 45, 130);
+            addLog(`50% Dextrose IV (${n}회, 혈당 ${Math.round(p.bloodGlucose)}) — 정상 혈당에서 반복 투여 시 고삼투압·삼투성 이뇨 주의`, 'warn');
+            showToast('50% 포도당 투여 — 정상 혈당에서 반복 투여 시 고삼투압 위험!', 'warn');
+          }
+        }
         computePhysiology(0); renderMonitorUI();
-        addLog('50% Dextrose 0.5–1 mL/kg 희석 IV — 저혈당 교정 및 심근 에너지 보충', 'good');
-        showToast('50% Dextrose 희석 IV 투여 완료', 'good');
       });
+
       bindSpecial('btn-prbc', () => {
         if (state.arrested) return;
+        const p = state.phys;
+        const prof = getProfile();
+        state.drugCounts = state.drugCounts || {};
+        state.drugCounts.prbc = (state.drugCounts.prbc || 0) + 1;
+        const n = state.drugCounts.prbc;
         state.dynBleed = Math.max(0, state.dynBleed - 16);
-        state.trueMAP = clamp(state.trueMAP + 14, 20, 145);
-        state.trueSpO2 = clamp(state.trueSpO2 + 4, 55, 100);
+        if (p) {
+          p.pcv = clamp(p.pcv + 5.5, 12, 68);
+          p.albumin = clamp(p.albumin + 0.4, 1.2, 5.0);
+          p.preloadVol = clamp(p.preloadVol + 12, 45, 140);
+          p.ionizedCa = clamp(p.ionizedCa - 0.08, 0.7, 1.6); // Citrate chelation
+          if (prof.cardiac || p.lungWater > 18 || n >= 3 || p.pcv > 56) {
+            p.lungWater = clamp(p.lungWater + 18, 0, 100);
+            state.pulmonaryEdema = clamp((state.pulmonaryEdema || 0) + 7, 0, 35);
+            p.contractility = clamp(p.contractility - 8, 40, 120);
+            state.viability = clamp(state.viability - 10, 0, 100);
+            addLog(`pRBC/Colloid 과투여 경고 (${n}회, PCV ${p.pcv.toFixed(1)}%, iCa²⁺ ${p.ionizedCa.toFixed(2)}) — 수혈 관련 순환과부하(TACO·폐수종) + 구연산 저칼슘혈증 위험!`, 'danger');
+            showToast('경고! 수혈/교질액 과부하(TACO·폐수종) 및 구연산 저칼슘혈증 주의!', 'danger');
+          } else {
+            state.trueMAP = clamp(state.trueMAP + 14, 25, 145);
+            state.trueSpO2 = clamp(state.trueSpO2 + 3, 55, 100);
+            state.viability = clamp(state.viability + 10, 0, 100);
+            addLog(`pRBC / Colloid IV (${n}회) — PCV(${p.pcv.toFixed(1)}%)·Alb(${p.albumin.toFixed(1)})·전부하 회복 (구연산 iCa²⁺ ${p.ionizedCa.toFixed(2)} 확인)`, 'good');
+            showToast('pRBC / Colloid 투여 — 빈혈·저알부민 관류 개선!', 'good');
+          }
+        }
         computePhysiology(0); renderMonitorUI();
-        addLog('pRBC / Colloid 5 mL/kg IV 투여 — 교질압·산소운반능 회복', 'good');
-        showToast('pRBC / Colloid 투여 — 출혈·저알부민 관류 개선', 'good');
       });
+
       bindSpecial('btn-bicarb', () => {
         if (state.arrested) return;
-        if (state.trueETCO2 > 50) {
-          state.trueETCO2 = clamp(state.trueETCO2 + 9, 18, 95);
-          addLog('NaHCO₃ 1 mEq/kg IV — 경고: 환기 불량 상태에서 투여해 ETCO₂ 급상승!', 'danger');
-          showToast('주의! 환기가 불충분할 때 중탄산 투여 시 ETCO₂가 급상승합니다!', 'danger');
-        } else {
-          state.viability = clamp(state.viability + 8, 0, 100);
-          addLog('NaHCO₃ 1 mEq/kg 천천히 IV — 대사성 산증 보조 교정', 'good');
-          showToast('NaHCO₃ IV 투여 — 산증 보조 교정', 'good');
+        const p = state.phys;
+        state.drugCounts = state.drugCounts || {};
+        state.drugCounts.bicarb = (state.drugCounts.bicarb || 0) + 1;
+        const n = state.drugCounts.bicarb;
+        state.trueETCO2 = clamp(state.trueETCO2 + (state.trueETCO2 > 48 ? 10 : 4), 18, 95);
+        if (p) {
+          p.serumNa = clamp(p.serumNa + 2.8, 125, 175);
+          p.serumK = clamp(p.serumK - 0.5, 2.5, 9.5);
+          p.ionizedCa = clamp(p.ionizedCa - 0.08, 0.7, 1.6);
+          p.baseExcess = clamp(p.baseExcess + 4.5, -22, 16);
+          if (state.trueETCO2 > 52) {
+            state.viability = clamp(state.viability - 8, 0, 100);
+            addLog(`NaHCO₃ IV 경고 (${n}회) — 환기 불량(ETCO₂ ${Math.round(state.trueETCO2)}) 상태에서 CO₂ 급생성으로 호흡성 산증 악화!`, 'danger');
+            showToast('주의! 환기가 불충분할 때 중탄산 투여 시 ETCO₂가 급등합니다!', 'danger');
+          } else if (n >= 2 && (p.baseExcess > 4 || p.arterialPH > 7.48)) {
+            p.contractility = clamp(p.contractility - 12, 40, 120);
+            p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + 24, 0, 100);
+            state.viability = clamp(state.viability - 10, 0, 100);
+            addLog(`NaHCO₃ 반복 과투여 독성 (${n}회, BE +${p.baseExcess.toFixed(1)}, Na⁺ ${p.serumNa.toFixed(0)}, iCa²⁺ ${p.ionizedCa.toFixed(2)}) — 대사성 알칼리증·고나트륨·저칼슘·저칼륨 유발!`, 'danger');
+            showToast('경고! 중탄산 반복 투여 → 대사성 알칼리증·저칼슘·고나트륨 독성!', 'danger');
+          } else {
+            state.viability = clamp(state.viability + 8, 0, 100);
+            addLog(`NaHCO₃ 1 mEq/kg IV (${n}회) — 대사성 산증 교정(BE ${p.baseExcess.toFixed(1)}) + K⁺ 하강(${p.serumK.toFixed(1)})`, 'good');
+            showToast('NaHCO₃ IV — 대사성 산증 교정 완료 (일시적 ETCO₂ 상승 관찰)', 'good');
+          }
         }
         computePhysiology(0); renderMonitorUI();
       });
+
       bindSpecial('btn-furosemide', () => {
         if (state.arrested) return;
-        if (state.pulmonaryEdema > 2) {
-          state.pulmonaryEdema = Math.max(0, state.pulmonaryEdema - 9);
-          state.fluidCum = Math.max(0, state.fluidCum - 4);
-          state.viability = clamp(state.viability + 10, 0, 100);
-          addLog('Furosemide 2 mg/kg IV 투여 — 급성 폐수종 이뇨 및 SpO₂ 회복!', 'good');
-          showToast('Furosemide IV 투여 — 폐수종 경감 및 산소화 개선!', 'good');
-        } else {
-          state.trueMAP = clamp(state.trueMAP - 8, 20, 140);
-          addLog('Furosemide 2 mg/kg IV — 폐수종 없는 상태 투여로 경도 탈수·혈압 저하', 'warn');
-          showToast('폐수종이 없는 상태에서 이뇨제 투여 시 혈압이 떨어질 수 있습니다.', 'warn');
+        const p = state.phys;
+        state.drugCounts = state.drugCounts || {};
+        state.drugCounts.furo = (state.drugCounts.furo || 0) + 1;
+        const n = state.drugCounts.furo;
+        if (p) {
+          p.urineOutput = clamp(p.urineOutput + 1.6, 0, 6.5);
+          p.preloadVol = clamp(p.preloadVol - 11, 40, 130);
+          p.serumK = clamp(p.serumK - 0.38, 2.4, 9.5);
+          if (p.preloadVol < 78 || p.serumK < 3.2 || (n >= 3 && state.pulmonaryEdema <= 2)) {
+            state.trueMAP = clamp(state.trueMAP - 14, 20, 140);
+            p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + 22, 0, 100);
+            state.viability = clamp(state.viability - 10, 0, 100);
+            addLog(`Furosemide 반복 과투여 경고 (${n}회, 혈량 ${Math.round(p.preloadVol)}%, K⁺ ${p.serumK.toFixed(1)}) — 중증 탈수·저혈량 쇼크 및 저칼륨 부정맥 위험!`, 'danger');
+            showToast('경고! Furosemide 과다 이뇨 → 저혈량 쇼크·저칼륨혈증 발생!', 'danger');
+          } else if (state.pulmonaryEdema > 2 || p.lungWater > 12) {
+            p.lungWater = Math.max(0, p.lungWater - 18);
+            state.pulmonaryEdema = Math.max(0, state.pulmonaryEdema - 9);
+            state.fluidCum = Math.max(0, state.fluidCum - 4);
+            state.viability = clamp(state.viability + 10, 0, 100);
+            addLog(`Furosemide 2 mg/kg IV (${n}회) — 폐수종 이뇨(폐수분↓) + K⁺(${p.serumK.toFixed(1)}) 배출`, 'good');
+            showToast('Furosemide IV — 급성 폐수종 경감 및 산소화 개선!', 'good');
+          } else {
+            state.trueMAP = clamp(state.trueMAP - 10, 20, 140);
+            addLog(`Furosemide IV 주의 (${n}회) — 폐수종 없는 상태에서 이뇨 → 저혈량·MAP 저하!`, 'warn');
+            showToast('주의! 폐수종이 없는데 Furosemide 투여 시 저혈압이 악화됩니다!', 'warn');
+          }
         }
         computePhysiology(0); renderMonitorUI();
       });
+
       bindSpecial('btn-naloxone', () => {
         if (state.arrested) return;
+        const p = state.phys;
+        state.drugCounts = state.drugCounts || {};
+        state.drugCounts.nalox = (state.drugCounts.nalox || 0) + 1;
+        const n = state.drugCounts.nalox;
         state.apneaActive = false;
-        state.trueRR = Math.max(state.trueRR, 10);
-        addLog('Naloxone 0.02 mg/kg IV — 오피오이드 호흡억제·불쾌감 역전 (진통 소실 주의)', 'info');
-        showToast('Naloxone 투여 — 자발호흡 회복 (진통 효과 감소 주의)', 'info');
+        state.trueRR = Math.max(state.trueRR, 11);
+        if (p) {
+          const hadOpioid = p.opioidTone > 15;
+          p.opioidTone = 0;
+          if (hadOpioid || n >= 2) {
+            p.nociception = clamp(p.nociception + 40, 0, 100);
+            p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + (n >= 2 ? 28 : 14), 0, 100);
+            if (n >= 2) { p.lungWater = clamp(p.lungWater + 12, 0, 100); state.viability = clamp(state.viability - 8, 0, 100); }
+            state.trueHR = clamp(state.trueHR + 32, 35, 240);
+            state.trueMAP = clamp(state.trueMAP + 22, 30, 175);
+            addLog(`Naloxone IV (${n}회) — 진통 소실로 카테콜아민 폭풍(빈맥·고혈압·부정맥${n >= 2 ? '·신경성 폐수종 위험' : ''})!`, n >= 2 ? 'danger' : 'warn');
+            showToast(n >= 2 ? '경고! Naloxone 반복 투여 → 카테콜아민 폭풍·부정맥·폐수종 위험!' : 'Naloxone — 호흡 회복 / 진통 소실로 급성 통증 반응 주의!', n >= 2 ? 'danger' : 'warn');
+          } else {
+            addLog('Naloxone IV 투여 — 기존 오피오이드 점유가 낮아 변화 미미', 'info');
+            showToast('Naloxone 투여 완료', 'info');
+          }
+        }
         computePhysiology(0); renderMonitorUI();
       });
+
       bindSpecial('btn-atipamezole', () => {
         if (state.arrested) return;
+        const p = state.phys;
+        state.drugCounts = state.drugCounts || {};
+        state.drugCounts.atip = (state.drugCounts.atip || 0) + 1;
+        const n = state.drugCounts.atip;
         state.dynVagalActive = false;
-        state.trueHR = clamp(state.trueHR + 26, 30, 230);
-        state.trueMAP = clamp(state.trueMAP - 10, 25, 140);
-        addLog('Atipamezole IM 투여 — α₂ 효능제 서맥·진정 역전 (혈관확장 혈압 변화 관찰)', 'info');
-        showToast('Atipamezole IM 투여 — 서맥·진정 역전 완료', 'info');
+        if (p && (p.alpha2Tone > 10 || n >= 2)) {
+          p.alpha2Tone = 0;
+          p.svr = clamp(p.svr - (n >= 2 ? 32 : 24), 40, 140);
+          p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + (n >= 2 ? 22 : 8), 0, 100);
+          state.trueHR = clamp(state.trueHR + 30, 35, 235);
+          state.trueMAP = clamp(state.trueMAP - (n >= 2 ? 24 : 16), 20, 145);
+          if (n >= 2) state.viability = clamp(state.viability - 10, 0, 100);
+          addLog(`Atipamezole 투여 (${n}회) — ${n >= 2 ? '반복 과투여로 중추 흥분·빈맥 및 급격한 혈관확장성 저혈압 쇼크!' : 'α₂ 역전 완료 + 말초혈관 확장(MAP 하락) 및 마취 얕아짐 주의!'}`, n >= 2 ? 'danger' : 'warn');
+          showToast(n >= 2 ? '경고! Atipamezole 반복 투여 → 혈관확장성 저혈압 쇼크·흥분!' : 'Atipamezole — α₂ 역전 완료 (혈압 저하·각성 주의!)', n >= 2 ? 'danger' : 'warn');
+        } else {
+          state.trueHR = clamp(state.trueHR + 12, 35, 230);
+          state.trueMAP = clamp(state.trueMAP - 8, 25, 140);
+          addLog('Atipamezole 투여 — α₂ 점유도가 낮아 경도 혈압 저하만 발생', 'info');
+          showToast('Atipamezole 투여 완료', 'info');
+        }
         computePhysiology(0); renderMonitorUI();
       });
 
@@ -5173,7 +6251,7 @@
           btnAiCase.textContent = '생성 중...';
           let c = null;
           try {
-            const res = await fetch('/.netlify/functions/ai', {
+            const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ task: 'generate_case', species: state.speciesId })
@@ -5189,7 +6267,8 @@
           state.speciesId = c.species === 'cat' ? 'cat' : 'dog';
           state.scenarioId = 'routine';
           el.scenarioSelect.value = 'routine';
-          loadScenario();
+          state.customAiMeta = c;
+            loadScenario();
           state.trueHR = clamp(Number(c.baseHR) || state.trueHR, 35, 210);
           state.trueMAP = clamp(Number(c.baseMAP) || state.trueMAP, 38, 120);
           state.trueBT = clamp(Number(c.baseBT) || state.trueBT, 34.5, 39.2);
@@ -5234,7 +6313,7 @@
         tutorAnswer.classList.remove('hidden');
         tutorAnswer.textContent = '임상 힌트를 정리하고 있습니다...';
         try {
-          const res = await fetch('/.netlify/functions/ai', {
+          const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -5303,7 +6382,7 @@ ${recent}`;
           debriefSoapBody.classList.remove('hidden');
           let text = buildLocalSoapText();
           try {
-            const res = await fetch('/.netlify/functions/ai', {
+            const res = await fetch(AI_API_BASE + '/.netlify/functions/ai', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

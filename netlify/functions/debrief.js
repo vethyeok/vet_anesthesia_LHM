@@ -38,18 +38,20 @@ export default async (req) => {
     if (task === 'generate_case') {
       expectJson = true;
       prompt = `수의 마취 교육용 랜덤 신규 환자 케이스 1건을 JSON 객체로만 출력하세요(마크다운 백틱 금지).
-축종 참고: ${body.species || 'dog'}. 혈액검사 이상(고칼륨, 저혈당, 빈혈, 저알부민, 신부전 등)을 1개 이상 포함하세요.
-키: {"title":"짧은 제목","species":"dog 또는 cat","asa":"ASA III","summary":"한 줄 환자 요약","target":"핵심 처치 목표","caution":"주의사항","baseHR":110,"baseMAP":68,"baseBT":36.8,"iso":1.3}`;
+축종 참고: ${body.species || 'dog'}. 연령·질환에 맞는 현실적 혈액검사 이상(고칼륨, 저혈당, 빈혈, 저알부민, 담낭파열 고ALP, 신부전, 패혈증, 심부전 등)을 1개 이상 포함하되 비현실적인 극단값은 금지합니다.
+lab.panelTier는 어린 건강 환자는 "chemi7", 노령·복합질환은 "full", 초응급 채혈 불가는 "emerg_none" 중 하나를 선택하세요.
+키: {"title":"짧은 제목","species":"dog 또는 cat","asa":"ASA III","summary":"한 줄 환자 요약","target":"핵심 처치 목표","caution":"주의사항","baseHR":110,"baseMAP":68,"baseBT":36.8,"iso":1.3,"lab":{"panelTier":"full","HCT":32,"ALB":2.2,"Na":145,"K":6.8,"Cl":111,"iCa":1.12,"Glu":64,"pH":7.24,"ALP":420,"ALT":180,"BUN":48,"Crea":2.8,"WBC":19.5,"PLT":170,"lactate":3.4}}`;
     } else if (task === 'review_drugs') {
       prompt = `수의 마취과 전문의로서 ${body.species} '${body.caseName}' 환자에게 전처치(${body.premed}) + 유도제(${body.induction}) 조합이 적절한지 한국어로 2문장 이내로 핵심 장단점과 위험 포인트만 코멘트하세요.`;
     } else if (task === 'tutor_hint') {
       prompt = `수의 마취 초급 교육 튜터입니다. 정답을 직접 말하지 말고 감별진단 힌트만 한국어로 3줄 이내로 주세요.
 환자: ${body.species} / ${body.scenario}, 현재 바이탈: ${JSON.stringify(body.vitals || {})}, 최근 로그: ${(body.recentLogs || []).join(' | ')}, 학생 질문: ${body.question}`;
     } else if (task === 'roleplay') {
+      const abortRule = `중요 규칙: 만약 수의사의 발언에 욕설, 비속어, 모욕, 위협, 성희롱, 심한 무례·폭언 등 정상적인 진료나 상담을 이어갈 수 없는 부적절한 내용이 포함되어 있다면, 응답 맨 앞에 반드시 "[ABORT] "를 붙이고 보호자가 강하게 항의하며 진료/상담을 중단하고 나가는 1~2문장 반응을 작성하세요.`;
       if (body.role === 'owner_preop') {
-        prompt = `당신은 동물병원 보호자입니다. 수의사의 질문("${body.question}")에 자연스러운 한국어 2문장으로 답하세요. 환자 정보: ${body.caseDesc}. 반드시 반영할 숨은 단서: ${body.clue}`;
+        prompt = `당신은 동물병원 보호자입니다. ${abortRule} 정상적인 문진이라면 수의사의 질문("${body.question}")에 자연스러운 한국어 2문장으로 답하세요. 환자 정보: ${body.caseDesc}. 반드시 반영할 숨은 단서: ${body.clue}`;
       } else {
-        prompt = `당신은 수술을 마친 반려동물(${body.species}, ${body.caseName}) 보호자입니다. 수의사의 퇴원 안내("${body.vetAdvice}")를 듣고 이해한 내용과 추가 궁금증 1가지를 한국어 2문장으로 자연스럽게 답하세요.`;
+        prompt = `당신은 수술을 마친 반려동물(${body.species}, ${body.caseName}) 보호자입니다. ${abortRule} 정상적인 안내라면 수의사의 퇴원 안내("${body.vetAdvice}")를 듣고 이해한 내용과 추가 궁금증 1가지를 한국어 2문장으로 자연스럽게 답하세요.`;
       }
     } else if (task === 'soap_record') {
       prompt = `아래 수의 마취 로그를 실제 동물병원 의무기록 SOAP 형식으로 한국어 10줄 이내로 간결히 정리하세요.

@@ -32,6 +32,12 @@
     .overlay { position: fixed; inset: 0; z-index: 50; background: rgba(2,6,23,0.9); display: flex; align-items: center; justify-content: center; padding: 16px; }
     .hidden { display: none !important; }
     .modal { width: 100%; max-width: 320px; background: #0f172a; border: 2px solid rgba(56,189,248,0.45); border-radius: 16px; padding: 20px; text-align: center; }
+  
+    /* Mobile bottom dead space for floating Powered by Netlify badge & safe-area */
+    @media (max-width: 1023px) {
+      body { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
+      footer { padding-bottom: 24px !important; }
+    }
   </style>
 </head>
 <body>
@@ -74,6 +80,14 @@
           <p>기화기 OFF·O₂ 세척 → 연하반사·EtIso 기반 발관 타이밍 판정 → BOAS 폐쇄·저체온·불쾌감 vs 통증 처치 → 보호자 퇴원 AI 안내 (5대 케이스)</p>
         </div>
         <div class="cta c3">▶ 회복 시뮬레이터 시작</div>
+      </a>
+      <a class="phase-card" href="critical.html" style="border-color:rgba(251,113,133,0.55); background:linear-gradient(160deg,rgba(136,19,55,0.22),rgba(15,23,42,0.92));">
+        <div>
+          <span class="badge" style="background:rgba(244,63,94,0.2); color:#fda4af; border:1px solid rgba(251,113,133,0.45);">CRITICAL · 전주기 심화</span>
+          <h2>전주기 통합 심화 시뮬레이터</h2>
+          <p>단일 환자 도입→유지→회복 연속 플레이 · 7종 정밀 ECG 파형(고칼륨·AV차단·VT) · 실제 약물 용량(mL) 직접 계산 · 마취전/POC 혈액검사</p>
+        </div>
+        <div class="cta" style="background:#f43f5e; color:#fff;">▶ 심화(Critical) 시뮬레이터 시작</div>
       </a>
     </div>
 
