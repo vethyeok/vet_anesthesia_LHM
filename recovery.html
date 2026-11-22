@@ -129,6 +129,12 @@
     @media (max-width: 640px) { .ctrl-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
     body.immersive-full .app-wrap { max-width: 100%; padding: 6px; }
+    .phys-group { margin-bottom: 10px; padding: 9px; border-radius: 10px; background: rgba(2,6,23,0.72); border: 1px solid #1e293b; }
+    .phys-group h4 { margin: 0 0 6px; font-size: 11.5px; font-weight: 800; color: #7dd3fc; }
+    .phys-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .phys-cell { background: rgba(15,23,42,0.85); border: 1px solid #1e293b; border-radius: 7px; padding: 5px 7px; }
+    .phys-bar-bg { height: 5px; border-radius: 99px; background: #1e293b; overflow: hidden; margin-top: 4px; }
+    .phys-bar-fill { height: 100%; border-radius: 99px; transition: width 0.25s; }
   </style>
   <link rel="stylesheet" href="ui-enhance.css" />
 </head>
@@ -212,7 +218,6 @@
         </div>
         <div>
           <div class="title">마취 종료·회복 시뮬레이터</div>
-          <div class="sub">기화기 OFF · EtIso 배출 · 발관 판정 · 회복실 처치</div>
         </div>
       </div>
       <div class="controls-row">
@@ -228,6 +233,7 @@
           <option value="emergency">5. [심화] 회복기 응급 (후두경련 / α₂ 급속 길항)</option>
         </select>
         <button id="btn-preop-lab" type="button" class="btn" style="background:rgba(14,165,233,0.18); border-color:rgba(56,189,248,0.45); color:#7dd3fc;">마취전 혈액검사</button>
+        <button id="btn-phys" type="button" class="btn" style="background:rgba(139,92,246,0.18); border-color:rgba(167,139,250,0.45); color:#ddd6fe;">🧬 27변수 생리</button>
         <button id="btn-fullscreen" type="button" class="btn btn-sky" title="전체화면 전환">⛶ 전체화면</button>
         <button id="btn-reset" type="button" class="btn">초기화</button>
         <button id="btn-open-start" type="button" class="btn">시작화면</button>
@@ -388,6 +394,21 @@
     </div>
   </div>
 
+  <!-- 27-Variable Internal Physiology Modal (same 6 systems / 27 variables as Practice Simulator) -->
+  <div id="phys-modal" class="overlay hidden" role="dialog" aria-modal="true" aria-label="27변수 내부 생리">
+    <div class="modal" style="max-width:740px; max-height:88vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
+        <div>
+          <div style="font-size:10px; color:#c4b5fd; font-weight:800; letter-spacing:0.06em;">INTERNAL PHYSIOLOGY X-RAY (27 VARIABLES)</div>
+          <div style="font-size:15px; font-weight:900; color:#fff;">회복기 27개 숨은 생리 지표</div>
+        </div>
+        <button id="btn-phys-close" type="button" class="btn">닫기</button>
+      </div>
+      <div id="phys-state-meta" style="font-size:11.5px; color:#cbd5e1; padding:7px 10px; border-radius:8px; background:#020617; border:1px solid #1e293b; margin-bottom:10px;"></div>
+      <div id="phys-state-body"></div>
+    </div>
+  </div>
+
   <script>
     (function () {
       'use strict';
@@ -490,8 +511,185 @@
         swallows: 0, extubated: false, o2Supp: false, warming: false,
         complicationActive: false, complicationSolved: false, bagCount15: 0,
         step: 1, mistakes: [], goods: [], logs: [], dischargeDone: false,
-        ownerLevel: 2, dcHistory: [], dcBusy: false
+        ownerLevel: 2, dcHistory: [], dcBusy: false,
+        viability: 100, arrested: false, arrestReason: '', phys: null
       };
+
+      const clampRec = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+      function initRecoveryPhys() {
+        const c = CASES[st.caseId];
+        const isCat = st.species === 'cat';
+        const isBoas = c.issue === 'boas';
+        const isHypo = c.issue === 'hypo';
+        const isEmerg = c.issue === 'emergency';
+        const isDysph = c.issue === 'dysphoria';
+        st.viability = 100;
+        st.arrested = false;
+        st.arrestReason = '';
+        st.phys = {
+          preloadVol: isHypo ? 90 : 96,
+          svr: isEmerg ? 116 : 100,
+          contractility: isHypo ? 88 : 96,
+          arrhythmiaRisk: isEmerg ? 28 : (isHypo ? 22 : 12),
+          pcv: isCat ? 35 : 41,
+          albumin: isHypo ? 2.6 : 3.1,
+          lactate: isHypo ? 1.9 : (isEmerg ? 1.7 : 1.3),
+          coagReserve: isHypo ? 82 : 95,
+          lungWater: isBoas ? 12 : 4,
+          compliance: isBoas ? 78 : 92,
+          vqMismatch: isBoas ? 16 : 6,
+          airwayResistance: isBoas ? 48 : 14,
+          intrathoracicP: 5,
+          serumNa: isCat ? 151 : 146,
+          serumK: 4.3,
+          serumCl: isCat ? 118 : 112,
+          myoStability: 96,
+          ionizedCa: 1.22,
+          bloodGlucose: isHypo ? 64 : 104,
+          baseExcess: isHypo ? -3.2 : -1.2,
+          arterialPH: isHypo ? 7.31 : 7.36,
+          vo2: 100,
+          alpha2Tone: isEmerg ? 45 : (isHypo ? 25 : 0),
+          opioidTone: isDysph ? 48 : (isEmerg ? 30 : 25),
+          nociception: isDysph ? 18 : 22,
+          vagalTone: isBoas ? 36 : (isEmerg ? 32 : 16),
+          icp: isBoas ? 14 : 10,
+          histamineTone: 0,
+          urineOutput: 1.3
+        };
+      }
+
+      function triggerRecoveryArrest(reason) {
+        if (st.arrested) return;
+        st.arrested = true;
+        st.paused = true;
+        st.arrestReason = reason;
+        st.viability = 0;
+        st.score = 0;
+        st.hr = 0; st.map = 0; st.spo2 = 0; st.etco2 = 0; st.rr = 0;
+        el.behav.textContent = '💀 심정지 (Cardiac Arrest)';
+        st.mistakes.unshift(`회복기 치명적 바이탈 악화로 심정지/사망 — ${reason}`);
+        addLog(`💀 [심정지/사망] ${reason}`, 'danger');
+        setAlarm(`💀 심정지(Cardiac Arrest) 발생! — ${reason}`, 'danger');
+        updateUI();
+        setTimeout(() => openRecoveryDebrief(false, true, reason), 900);
+      }
+
+      function stepRecoveryPhys(dt) {
+        const p = st.phys;
+        if (!p || st.arrested || st.abortedByOwner) return;
+
+        // Airway & oxygenation linkage
+        const airwayBlocked = st.complicationActive && !st.complicationSolved && (CASES[st.caseId].issue === 'boas' || CASES[st.caseId].issue === 'emergency');
+        p.airwayResistance = clampRec(p.airwayResistance + ((airwayBlocked ? 78 : (CASES[st.caseId].issue === 'boas' ? 42 : 14)) - p.airwayResistance) * 0.18 * dt, 8, 95);
+        p.vqMismatch = clampRec(p.vqMismatch + ((st.spo2 < 90 ? 34 : (st.o2Supp ? 5 : 10)) - p.vqMismatch) * 0.14 * dt, 3, 60);
+        p.lungWater = clampRec(p.lungWater + (airwayBlocked ? 0.8 * dt : -0.25 * dt), 0, 80);
+
+        // Perfusion, lactate, acid-base & VO2 (shivering in hypothermia raises VO2!)
+        const shivering = st.bt < 36.2 && !st.warming;
+        p.vo2 = clampRec(p.vo2 + ((shivering ? 165 : 100) - p.vo2) * 0.15 * dt, 70, 220);
+        const hypox = Math.max(0, 92 - st.spo2);
+        const hypoMap = Math.max(0, 62 - st.map);
+        if (hypox > 0 || hypoMap > 0) {
+          p.lactate = clampRec(p.lactate + (hypox * 0.015 + hypoMap * 0.012) * dt, 0.7, 14);
+          p.baseExcess = clampRec(p.baseExcess - (hypox * 0.02 + hypoMap * 0.018) * dt, -22, 12);
+          p.arrhythmiaRisk = clampRec(p.arrhythmiaRisk + (hypox * 0.18 + hypoMap * 0.12) * dt, 5, 100);
+        } else {
+          p.lactate = clampRec(p.lactate - 0.04 * dt, 0.8, 14);
+          p.arrhythmiaRisk = clampRec(p.arrhythmiaRisk - 0.35 * dt, 8, 100);
+        }
+        if (st.bt < 35.5) {
+          p.coagReserve = clampRec(p.coagReserve - 0.35 * dt, 35, 100);
+          p.arrhythmiaRisk = clampRec(p.arrhythmiaRisk + 0.45 * dt, 5, 100);
+        }
+        p.arterialPH = clampRec(7.40 + p.baseExcess * 0.015 - (st.etco2 - 40) * 0.008, 6.90, 7.60);
+        p.icp = clampRec(10 + Math.max(0, st.etco2 - 42) * 0.35 + (airwayBlocked ? 5 : 0), 6, 36);
+        p.urineOutput = clampRec(st.map < 60 ? 0.25 : 1.3, 0.1, 3.0);
+
+        // Hidden Viability (생명 예비력: 100 -> 0 = Cardiac Arrest)
+        let drain = 0;
+        let cause = '';
+        if (st.spo2 < 85) { drain += 4.8; cause = `중증 저산소증 (SpO₂ ${Math.round(st.spo2)}%)`; }
+        else if (st.spo2 < 90) { drain += 2.2; cause = `지속적 저산소증 (SpO₂ ${Math.round(st.spo2)}%)`; }
+        if (st.map < 50) { drain += 4.2; cause = cause || `치명적 저혈압 쇼크 (MAP ${Math.round(st.map)} mmHg)`; }
+        else if (st.map < 58) { drain += 2.0; cause = cause || `지속적 저혈압 (MAP ${Math.round(st.map)} mmHg)`; }
+        if (st.hr < 42 || st.hr > 215) { drain += 3.2; cause = cause || `치명적 부정맥/심박 이상 (HR ${Math.round(st.hr)} bpm)`; }
+        if (st.etco2 > 66 && !st.extubated) { drain += 2.2; cause = cause || `중증 고탄산혈증·호흡성 산증 (ETCO₂ ${Math.round(st.etco2)} mmHg)`; }
+        if (st.bt < 34.7) { drain += 1.8; cause = cause || `중증 저체온 심근 억제 (BT ${st.bt.toFixed(1)}°C)`; }
+        if (p.arrhythmiaRisk >= 88) { drain += 3.5; cause = cause || '치명적 심실성 부정맥(VT/VF)'; }
+
+        if (drain > 0) {
+          st.viability = clampRec(st.viability - drain * dt, 0, 100);
+          if (st.viability <= 35 && st.viability > 0 && Math.random() < 0.08 * dt) {
+            setAlarm(`긴급! 바이탈 악화로 생명 위험(${cause}) — 즉시 응급 처치하세요!`, 'danger');
+          }
+          if (st.viability <= 0) {
+            triggerRecoveryArrest(cause || '회복기 바이탈 부전');
+          }
+        } else if (st.spo2 >= 94 && st.map >= 65 && st.hr >= 55 && st.hr <= 185 && st.bt >= 36.0) {
+          st.viability = clampRec(st.viability + 1.5 * dt, 0, 100);
+        }
+      }
+
+      function renderRecoveryPhysModal() {
+        const p = st.phys;
+        if (!p) return;
+        const cpp = Math.max(0, Math.round(st.map - p.icp));
+        const meta = document.getElementById('phys-state-meta');
+        if (meta) {
+          meta.innerHTML = st.arrested
+            ? `<strong style="color:#fda4af;">💀 심정지(사망) 후 27변수 생리 복기</strong> — 사인: ${st.arrestReason}`
+            : `<strong style="color:#c4b5fd;">회복기 실시간 27개 숨은 생리 지표</strong> — 숨은 생명 예비력(Viability): <strong class="mono" style="color:${st.viability < 50 ? '#fb7185' : '#34d399'};">${Math.round(st.viability)}%</strong>`;
+        }
+        const cell = (lbl, val, pct, col = '#38bdf8') => `
+          <div class="phys-cell">
+            <div style="display:flex; justify-content:space-between; font-size:10.5px;"><span style="color:#94a3b8;">${lbl}</span><strong class="mono" style="color:#f8fafc;">${val}</strong></div>
+            <div class="phys-bar-bg"><div class="phys-bar-fill" style="width:${clampRec(pct,0,100)}%; background:${col};"></div></div>
+          </div>`;
+        const groups = [
+          ['1. 심혈관·혈역학 (4)', [
+            cell('유효 순환 혈량', `${Math.round(p.preloadVol)}%`, p.preloadVol, p.preloadVol < 80 ? '#fb7185' : '#34d399'),
+            cell('전신혈관저항(SVR)', `${Math.round(p.svr)}%`, p.svr / 1.4, p.svr < 75 ? '#fb7185' : '#38bdf8'),
+            cell('심근 수축력', `${Math.round(p.contractility)}%`, p.contractility, p.contractility < 70 ? '#fbbf24' : '#34d399'),
+            cell('부정맥 역치(VPC)', `${Math.round(p.arrhythmiaRisk)}`, p.arrhythmiaRisk, p.arrhythmiaRisk > 45 ? '#fb7185' : '#38bdf8')
+          ]],
+          ['2. 혈액·교질·관류 (4)', [
+            cell('PCV (헤마토크릿)', `${p.pcv.toFixed(1)}%`, (p.pcv / 55) * 100, p.pcv < 25 ? '#fb7185' : '#34d399'),
+            cell('알부민 (Alb)', `${p.albumin.toFixed(1)} g/dL`, (p.albumin / 4.2) * 100, p.albumin < 2.2 ? '#fbbf24' : '#34d399'),
+            cell('젖산 (Lactate)', `${p.lactate.toFixed(1)} mmol/L`, (p.lactate / 10) * 100, p.lactate >= 2.5 ? '#fb7185' : '#34d399'),
+            cell('응고 예비능', `${Math.round(p.coagReserve)}%`, p.coagReserve, p.coagReserve < 60 ? '#fb7185' : '#34d399')
+          ]],
+          ['3. 호흡·심폐 연동 (5)', [
+            cell('폐포 수분(폐수종)', `${Math.round(p.lungWater)}`, p.lungWater, p.lungWater > 20 ? '#fb7185' : '#34d399'),
+            cell('폐 탄성(Compliance)', `${Math.round(p.compliance)}%`, p.compliance, p.compliance < 70 ? '#fbbf24' : '#38bdf8'),
+            cell('V/Q 불균형(션트)', `${Math.round(p.vqMismatch)}%`, p.vqMismatch * 2, p.vqMismatch > 20 ? '#fb7185' : '#38bdf8'),
+            cell('기도 저항', `${Math.round(p.airwayResistance)}`, p.airwayResistance, p.airwayResistance > 40 ? '#fb7185' : '#34d399'),
+            cell('흉강내압', `${Math.round(p.intrathoracicP)} cmH₂O`, p.intrathoracicP * 3, p.intrathoracicP > 14 ? '#fb7185' : '#38bdf8')
+          ]],
+          ['4. 전해질·산염기·대사 (7)', [
+            cell('혈청 칼륨(K⁺)', `${p.serumK.toFixed(1)} mEq/L`, ((p.serumK - 2.5) / 6.5) * 100, p.serumK > 5.8 ? '#fb7185' : '#34d399'),
+            cell('심근 막안정도', `${Math.round(p.myoStability)}%`, p.myoStability, p.myoStability < 65 ? '#fb7185' : '#34d399'),
+            cell('이온화 칼슘(iCa²⁺)', `${p.ionizedCa.toFixed(2)} mmol/L`, (p.ionizedCa / 1.5) * 100, p.ionizedCa < 1.1 ? '#fbbf24' : '#34d399'),
+            cell('혈당 (Glu)', `${Math.round(p.bloodGlucose)} mg/dL`, (p.bloodGlucose / 200) * 100, p.bloodGlucose < 65 ? '#fb7185' : '#34d399'),
+            cell('염기과잉 (BE)', `${p.baseExcess >= 0 ? '+' : ''}${p.baseExcess.toFixed(1)}`, (p.baseExcess + 20) * 3, p.baseExcess < -5 ? '#fb7185' : '#34d399'),
+            cell('동맥혈 pH', `${p.arterialPH.toFixed(2)}`, ((p.arterialPH - 6.9) / 0.7) * 100, p.arterialPH < 7.25 ? '#fb7185' : '#34d399'),
+            cell('산소소비량 (VO₂)', `${Math.round(p.vo2)}%`, p.vo2 / 2, p.vo2 > 130 ? '#fbbf24' : '#34d399')
+          ]],
+          ['5. 신경·수용체·자율신경 (4)', [
+            cell('α₂ 수용체 점유', `${Math.round(p.alpha2Tone)}%`, p.alpha2Tone, p.alpha2Tone > 45 ? '#fbbf24' : '#38bdf8'),
+            cell('오피오이드 점유', `${Math.round(p.opioidTone)}%`, p.opioidTone, '#34d399'),
+            cell('통각 신호', `${Math.round(p.nociception)}%`, p.nociception, p.nociception > 50 ? '#fb7185' : '#34d399'),
+            cell('미주신경 긴장도', `${Math.round(p.vagalTone)}%`, p.vagalTone, p.vagalTone > 50 ? '#fbbf24' : '#38bdf8')
+          ]],
+          ['6. 특수 장기 (3)', [
+            cell('두개내압/뇌관류압', `ICP ${Math.round(p.icp)} / CPP ${cpp}`, p.icp * 3, p.icp > 18 ? '#fb7185' : '#34d399'),
+            cell('아나필락시스·누출', `${Math.round(p.histamineTone)}%`, p.histamineTone, p.histamineTone > 25 ? '#fb7185' : '#34d399'),
+            cell('소변 배출량', `${p.urineOutput.toFixed(1)} mL/kg/h`, (p.urineOutput / 2.5) * 100, p.urineOutput < 0.5 ? '#fb7185' : '#34d399')
+          ]]
+        ];
+        document.getElementById('phys-state-body').innerHTML = groups.map(([t, items]) => `<div class="phys-group"><h4>${t}</h4><div class="phys-grid">${items.join('')}</div></div>`).join('');
+      }
 
       const el = {
         hdr: document.getElementById('case-hdr'), desc: document.getElementById('case-desc'),
@@ -555,6 +753,7 @@
         st.swallows = 0; st.extubated = false; st.o2Supp = false; st.warming = false;
         st.complicationActive = false; st.complicationSolved = false; st.bagCount15 = 0;
         st.step = 1; st.mistakes = []; st.abortedByOwner = false; if (typeof dcInput !== 'undefined' && dcInput) dcInput.disabled = false; st.goods = []; st.logs = []; st.dischargeDone = false;
+        initRecoveryPhys();
         st.ownerLevel = Math.floor(Math.random() * 5) + 1;
         st.dcBusy = false;
         st.dcHistory = [{ sender: 'owner', text: getRecOpening(getRecSeverity(), st.ownerLevel) }];
@@ -796,17 +995,20 @@
         return patterns.some((re) => re.test(t) || re.test(norm));
       }
 
-      function openRecoveryDebrief(abortedByOwner = false) {
+      function openRecoveryDebrief(abortedByOwner = false, arrested = false, arrestReason = '') {
         const c = CASES[st.caseId];
-        if (!abortedByOwner && !st.extubated) { st.score -= 15; st.mistakes.push('발관을 완료하지 않고 종료함'); }
-        const finalScore = abortedByOwner ? 0 : Math.max(0, st.score);
-        const grade = abortedByOwner ? 'F' : (finalScore >= 90 ? 'S' : finalScore >= 75 ? 'A' : finalScore >= 60 ? 'B' : 'C');
+        if (!abortedByOwner && !arrested && !st.extubated) { st.score -= 15; st.mistakes.push('발관을 완료하지 않고 종료함'); }
+        const failed = abortedByOwner || arrested;
+        const finalScore = failed ? 0 : Math.max(0, st.score);
+        const grade = failed ? 'F' : (finalScore >= 90 ? 'S' : finalScore >= 75 ? 'A' : finalScore >= 60 ? 'B' : 'C');
+        const statusTitle = arrested ? '💀 회복기 심정지(사망)' : (abortedByOwner ? '보호자 상담 중단' : '최종 회복 관리 등급');
         document.getElementById('res-score-box').innerHTML = `
           <div class="score-summary-row" style="width:100%;">
-            <div class="score-summary-left"><div style="font-size:11px; color:#94a3b8; white-space:nowrap;">최종 회복 관리 등급</div><div class="mono" style="font-size:26px; font-weight:800; color:${grade === 'F' ? '#fb7185' : '#fbbf24'}; white-space:nowrap;">${grade} <span style="font-size:16px; color:#fff; white-space:nowrap;">(${finalScore}점)</span></div></div>
-            <div class="score-summary-right"><div>${st.species === 'dog' ? '개' : '고양이'} · ${c.name}</div><div style="color:#94a3b8;">최종 BT ${st.bt.toFixed(1)}°C · SpO₂ ${Math.round(st.spo2)}%</div></div>
+            <div class="score-summary-left"><div style="font-size:11px; color:${arrested ? '#fda4af' : '#94a3b8'}; white-space:nowrap;">${statusTitle}</div><div class="mono" style="font-size:26px; font-weight:800; color:${grade === 'F' ? '#fb7185' : '#fbbf24'}; white-space:nowrap;">${grade} <span style="font-size:16px; color:#fff; white-space:nowrap;">(${finalScore}점)</span></div></div>
+            <div class="score-summary-right"><div>${st.species === 'dog' ? '개' : '고양이'} · ${c.name}</div><div style="color:#94a3b8;">${arrested ? `사인: ${arrestReason}` : `최종 BT ${st.bt.toFixed(1)}°C · SpO₂ ${Math.round(st.spo2)}%`}</div></div>
           </div>`;
         document.getElementById('res-local-body').innerHTML = `
+          ${arrested ? `<div style="padding:8px; border-radius:8px; background:rgba(136,19,55,0.45); border:1px solid rgba(251,113,133,0.65); color:#fecdd3; margin-bottom:6px;"><strong>💀 심정지 발생:</strong> ${arrestReason} — 상단 [🧬 27변수 생리] 버튼으로 사망 시점의 내부 생리 지표를 복기할 수 있습니다.</div>` : ''}
           ${st.mistakes.length ? `<div style="padding:8px; border-radius:8px; background:rgba(127,29,29,0.3); border:1px solid rgba(244,63,94,0.4);"><strong style="color:#fda4af;">보완이 필요한 항목</strong>${st.mistakes.map(m => `<div>• ${m}</div>`).join('')}</div>` : '<div style="padding:8px; border-radius:8px; background:rgba(6,78,59,0.3); border:1px solid rgba(16,185,129,0.4); color:#a7f3d0;"><strong>안전한 마취 회복 완료!</strong> 적정 발관과 합병증 대응이 모두 훌륭했습니다.</div>'}
           <div style="padding:8px; border-radius:8px; background:rgba(15,23,42,0.8); border:1px solid #334155;"><strong>잘 수행한 항목</strong>${st.goods.length ? st.goods.map(g => `<div style="color:#6ee7b7;">✓ ${g}</div>`).join('') : '<div style="color:#94a3b8;">기록 없음</div>'}</div>`;
         const aiOut = document.getElementById('res-ai-out');
@@ -1026,7 +1228,7 @@
       function loop(ts) {
         const dt = Math.min(0.1, Math.max(0.001, (ts - rLastTs) / 1000));
         rLastTs = ts;
-        if (!st.abortedByOwner) {
+        if (!st.abortedByOwner && !st.arrested) {
           st.sec += dt;
           const c = CASES[st.caseId];
           // EtIso washout (slower in severe hypothermia)
@@ -1035,7 +1237,7 @@
           st.etIso = Math.max(0, Math.min(4, st.etIso + (st.iso - st.etIso) * washMult * o2Boost * dt));
           // Body temperature
           if (st.warming) st.bt = Math.min(38.4, st.bt + 0.025 * dt);
-          else st.bt = Math.max(34.2, st.bt - (c.issue === 'hypo' ? 0.015 : 0.008) * dt);
+          else st.bt = Math.max(34.0, st.bt - (c.issue === 'hypo' ? 0.015 : 0.008) * dt);
           // Spontaneous RR & swallowing return as EtIso drops
           if (st.iso === 0 && st.etIso < 0.85) {
             const targetRR = st.species === 'cat' ? 18 : 14;
@@ -1045,18 +1247,27 @@
             }
           }
           // ETCO2 drift
-          const targetCo2 = st.extubated ? 38 : Math.max(26, Math.min(68, 44 * (12 / Math.max(5, st.rr))));
+          const targetCo2 = st.extubated ? 38 : Math.max(26, Math.min(74, 44 * (12 / Math.max(5, st.rr))));
           st.etco2 = st.etco2 + (targetCo2 - st.etco2) * 0.12 * dt;
-          // SpO2 recovery or complication drift
-          const targetSpo2 = (st.complicationActive && !st.complicationSolved) ? 84 : (st.o2Supp ? 99 : 97);
-          st.spo2 = Math.max(68, Math.min(100, st.spo2 + (targetSpo2 - st.spo2) * 0.12 * dt));
+          // SpO2 recovery or life-threatening complication drift
+          const isAirwayEmerg = st.complicationActive && !st.complicationSolved && (c.issue === 'boas' || c.issue === 'emergency');
+          const targetSpo2 = isAirwayEmerg ? (st.o2Supp ? 85 : 74) : ((st.complicationActive && !st.complicationSolved) ? 86 : (st.o2Supp ? 99 : 97));
+          st.spo2 = Math.max(60, Math.min(100, st.spo2 + (targetSpo2 - st.spo2) * 0.12 * dt));
+
+          // Update 27-variable internal physiology & hidden viability (can lead to arrest!)
+          stepRecoveryPhys(dt);
 
           rUiAcc += dt;
-          if (rUiAcc >= 0.25) { rUiAcc = 0; updateUI(); }
+          if (rUiAcc >= 0.25) {
+            rUiAcc = 0;
+            updateUI();
+            const pm = document.getElementById('phys-modal');
+            if (pm && !pm.classList.contains('hidden')) renderRecoveryPhysModal();
+          }
         }
 
         // Advance ECG & Pleth at calibrated 25 mm/s (~6.4s sweep window), Capnography (ETCO2) at 4 mm/s!
-        const bps = Math.max(0.4, st.hr / 60);
+        const bps = st.arrested ? 0 : Math.max(0.4, st.hr / 60);
         const samplesPerSec = 75;
         rWaveAcc += dt * samplesPerSec;
         const steps = Math.min(8, Math.floor(rWaveAcc));
@@ -1064,26 +1275,39 @@
         const stepDt = 1 / samplesPerSec;
         const g = (ph, c, w, a) => a * Math.exp(-Math.pow((ph - c) / w, 2));
         for (let k = 0; k < steps; k++) {
-          rBeatPhase = (rBeatPhase + stepDt * bps) % 1;
-          rRespPhase = (rRespPhase + stepDt * (Math.max(4, st.rr) / 60)) % 1;
-          rEcgBuf[rPtr] = g(rBeatPhase, 0.16, 0.028, 0.15) - g(rBeatPhase, 0.28, 0.011, 0.14) + g(rBeatPhase, 0.31, 0.015, 1.0) - g(rBeatPhase, 0.34, 0.014, 0.25) + g(rBeatPhase, 0.54, 0.048, 0.28);
-          rSpo2Buf[rPtr] = Math.pow(Math.max(0, Math.sin(rBeatPhase * Math.PI)), 1.6) * (st.spo2 / 100);
+          if (st.arrested) {
+            rEcgBuf[rPtr] = 0;
+            rSpo2Buf[rPtr] = 0;
+          } else {
+            rBeatPhase = (rBeatPhase + stepDt * bps) % 1;
+            rRespPhase = (rRespPhase + stepDt * (Math.max(4, st.rr) / 60)) % 1;
+            rEcgBuf[rPtr] = g(rBeatPhase, 0.16, 0.028, 0.15) - g(rBeatPhase, 0.28, 0.011, 0.14) + g(rBeatPhase, 0.31, 0.015, 1.0) - g(rBeatPhase, 0.34, 0.014, 0.25) + g(rBeatPhase, 0.54, 0.048, 0.28);
+            rSpo2Buf[rPtr] = Math.pow(Math.max(0, Math.sin(rBeatPhase * Math.PI)), 1.6) * (st.spo2 / 100);
+          }
           rPtr = (rPtr + 1) % rBufLen;
         }
         // Slow 4 mm/s sweep for ETCO2 (4/25 = 0.16x ECG sweep speed)
         rCo2Acc += steps * (4 / 25);
         while (rCo2Acc >= 1) {
           rCo2Acc -= 1;
-          const capVal = st.extubated ? 0 : (rRespPhase > 0.28 && rRespPhase < 0.78 ? (st.etco2 / 55) * (0.9 + 0.1 * rRespPhase) : 0);
+          const capVal = (st.arrested || st.extubated) ? 0 : (rRespPhase > 0.28 && rRespPhase < 0.78 ? (st.etco2 / 55) * (0.9 + 0.1 * rRespPhase) : 0);
           rCo2Buf[rCo2Ptr] = capVal;
           rCo2Ptr = (rCo2Ptr + 1) % rBufLen;
         }
 
-        drawRecWave('cv-ecg', rEcgBuf, '#4ade80', 0.36, 0.58, rPtr);
+        drawRecWave('cv-ecg', rEcgBuf, st.arrested ? '#fb7185' : '#4ade80', 0.36, 0.58, rPtr);
         drawRecWave('cv-spo2', rSpo2Buf, '#38bdf8', 0.65, 0.82, rPtr);
         drawRecWave('cv-co2', rCo2Buf, '#facc15', 0.68, 0.85, rCo2Ptr);
         requestAnimationFrame(loop);
       }
+
+      document.getElementById('btn-phys')?.addEventListener('click', () => {
+        renderRecoveryPhysModal();
+        document.getElementById('phys-modal')?.classList.remove('hidden');
+      });
+      document.getElementById('btn-phys-close')?.addEventListener('click', () => {
+        document.getElementById('phys-modal')?.classList.add('hidden');
+      });
 
       resetSim();
       requestAnimationFrame(loop);
