@@ -77,10 +77,11 @@ export async function onRequestPost(context) {
 환자: ${body.species} / ${body.scenario}, 현재 바이탈: ${JSON.stringify(body.vitals || {})}, 최근 로그: ${(body.recentLogs || []).join(' | ')}, 학생 질문: ${body.question}`;
     } else if (task === 'roleplay') {
       const abortRule = `중요 규칙: 만약 수의사의 발언에 욕설, 비속어, 모욕, 위협, 성희롱, 심한 무례·폭언 등 정상적인 진료나 상담을 이어갈 수 없는 부적절한 내용이 포함되어 있다면, 응답 맨 앞에 반드시 "[ABORT] "를 붙이고 보호자가 강하게 항의하며 진료/상담을 중단하고 나가는 1~2문장 반응을 작성하세요.`;
+      const laypersonRule = `보호자 지식 수준 규칙(매우 중요): 당신은 수의학 지식이 거의 없는 평범한 일반인 보호자입니다. 현재 병원에서 들어가고 있는 처치의 정확한 약물명·용량·속도(예: 레귤러 인슐린 시간당 0.4유닛, mg/kg, mL/hr, CRI 등), 전문 혈액검사 수치(pH, K+, ALP, PCV 등), 의학 약어(MMVD, HCM, DKA, GDV, BOAS 등)는 절대 알지 못하며 직접 말하지 마세요. 전문 처치·약물 용량·수치를 물어보면 "아까 병원에서 링거랑 무슨 주사를 계속 넣고 있다고만 들었고 정확한 약 이름이나 숫자는 잘 모르겠어요"처럼 자연스럽게 모른다고 답하고, 집에서 직접 본 증상(식욕·음수·구토·기침·숨소리·배변·기력·금식 여부)과 대략적인 병력("심장약 먹어요", "당뇨가 있대요")만 쉬운 일상어로 답하세요.`;
       if (body.role === 'owner_preop') {
-        prompt = `당신은 동물병원 보호자입니다. ${abortRule} 정상적인 문진이라면 수의사의 질문("${body.question}")에 자연스러운 한국어 2문장으로 답하세요. 환자 정보: ${body.caseDesc}. 반드시 반영할 숨은 단서: ${body.clue}`;
+        prompt = `당신은 동물병원에 내원한 일반인 반려동물 보호자입니다. ${abortRule} ${laypersonRule} 정상적인 문진이라면 수의사의 질문("${body.question}")에 일반인 말투의 자연스러운 한국어 2문장으로 답하세요. [참고용 배경(직접 전문용어로 읊지 말 것): ${body.caseDesc}] [집에서 관찰한 사실: ${body.clue}]`;
       } else {
-        prompt = `당신은 수술을 마친 반려동물(${body.species}, ${body.caseName}) 보호자입니다. ${abortRule} 정상적인 안내라면 수의사의 퇴원 안내("${body.vetAdvice}")를 듣고 이해한 내용과 추가 궁금증 1가지를 한국어 2문장으로 자연스럽게 답하세요.`;
+        prompt = `당신은 수술을 마친 반려동물(${body.species}, ${body.caseName})의 일반인 보호자입니다. ${abortRule} ${laypersonRule} 정상적인 안내라면 수의사의 퇴원 안내("${body.vetAdvice}")를 듣고 이해한 내용과 집에서 돌볼 때의 소박한 궁금증 1가지를 쉬운 일상어 한국어 2문장으로 자연스럽게 답하세요.`;
       }
     } else if (task === 'soap_record') {
       prompt = `아래 수의 마취 로그를 실제 동물병원 의무기록 SOAP 형식으로 한국어 10줄 이내로 간결히 정리하세요.

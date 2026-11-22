@@ -524,8 +524,8 @@
         },
         cardiac: {
           name: '심장병 환자 (MMVD C / HCM)', asa: 'ASA III–IV',
-          dog: { wt: 6.5, desc: '11세 말티즈(6.5 kg), MMVD Stage C(폐수종 병력). 혈압 변동과 과도한 후부하 증가(α₂ 효능제)·빈맥(Ketamine)을 피해야 합니다.', hr: 132, map: 84, spo2: 97, rr: 26, tube: '5.5mm', ownerClue: '피모벤단하고 이뇨제를 매일 먹고 있어요. 아침 약은 먹이고 왔어요.' },
-          cat: { wt: 4.5, desc: '7세 브리티시숏헤어(4.5 kg), HCM(비대성 심근병증). 빈맥과 심근 산소소비 증가(Ketamine) 절대 금기! 안정적 심박수 유지가 핵심.', hr: 184, map: 92, spo2: 97, rr: 28, tube: '4.0mm', ownerClue: '심장 초음파에서 벽이 두껍다고 했고 아테놀롤 복용 중이에요.' },
+          dog: { wt: 6.5, desc: '11세 말티즈(6.5 kg), MMVD Stage C(폐수종 병력). 혈압 변동과 과도한 후부하 증가(α₂ 효능제)·빈맥(Ketamine)을 피해야 합니다.', hr: 132, map: 84, spo2: 97, rr: 26, tube: '5.5mm', ownerClue: '심장약이랑 소변 잘 나오게 하는 약을 매일 먹고 있는데 정확한 약 이름이랑 용량은 잘 기억이 안 나요. 아침에 먹이고 왔어요.' },
+          cat: { wt: 4.5, desc: '7세 브리티시숏헤어(4.5 kg), HCM(비대성 심근병증). 빈맥과 심근 산소소비 증가(Ketamine) 절대 금기! 안정적 심박수 유지가 핵심.', hr: 184, map: 92, spo2: 97, rr: 28, tube: '4.0mm', ownerClue: '전에 심장 벽이 두껍다고 해서 매일 먹는 알약이 하나 있는데, 정확한 약 이름이나 용량은 잘 모르겠어요.' },
           avoid: ['ket_midaz', 'dex_dog_mmvd'], goodPremed: ['midaz'], goodInd: ['alfaxalone', 'propofol']
         },
         gdv: {
@@ -1007,7 +1007,7 @@
         const fallback = { name: '저알부민·빈혈 노령견', asa: 'ASA III–IV', wt: 7.2, desc: '12세 요크셔테리어(7.2kg), 단백소실성장병증(Alb 1.8 g/dL, PCV 23%). 혈압 유지와 저용량 적정 유도 필수.', hr: 136, map: 72, spo2: 97, rr: 24, tube: '5.5mm', ownerClue: '최근 설사가 잦았고 배가 살짝 불러서 검사하러 왔어요.', avoid: ['dex', 'ace', 'fast_bolus'] };
         const aiCtx = buildDiverseAiCaseContext(st.species);
         const oc = customBrief ? buildCustomFallbackCase(customBrief, aiCtx) : aiCtx.offlineCase;
-        let pick = { ...fallback, id: 'ai_' + Date.now(), name: oc.title, asa: oc.asa, desc: oc.summary, hr: oc.baseHR, map: oc.baseMAP, tube: oc.species === 'cat' ? '3.5mm' : '6.0mm', ownerClue: oc.caution, lab: oc.lab };
+        let pick = { ...fallback, id: 'ai_' + Date.now(), name: oc.title, asa: oc.asa, desc: oc.summary, hr: oc.baseHR, map: oc.baseMAP, tube: oc.species === 'cat' ? '3.5mm' : '6.0mm', ownerClue: '최근 기력이 떨어지고 상태가 안 좋아서 데려왔어요. 아까 병원에서 링거랑 무슨 주사를 맞긴 했는데 정확한 약 이름이나 용량은 잘 모르겠어요.', lab: oc.lab };
         st.species = oc.species === 'cat' ? 'cat' : 'dog';
         try {
           const res = await fetch(AI_API_PREFIX + '/ai', {
@@ -1019,7 +1019,7 @@
             if (d && d.caseData && d.caseData.summary) {
               const cd = d.caseData;
               if (cd.species === 'cat' || cd.species === 'dog') st.species = cd.species;
-              pick = { ...pick, name: cd.title, asa: cd.asa || oc.asa, desc: cd.summary, hr: Number(cd.baseHR) || oc.baseHR, map: Number(cd.baseMAP) || oc.baseMAP, tube: st.species === 'cat' ? '3.5mm' : '6.0mm', ownerClue: cd.caution || oc.caution, lab: cd.lab || oc.lab };
+              pick = { ...pick, name: cd.title, asa: cd.asa || oc.asa, desc: cd.summary, hr: Number(cd.baseHR) || oc.baseHR, map: Number(cd.baseMAP) || oc.baseMAP, tube: st.species === 'cat' ? '3.5mm' : '6.0mm', ownerClue: '최근 기력이 떨어지고 상태가 안 좋아서 데려왔어요. 아까 병원에서 링거랑 무슨 주사를 맞긴 했는데 정확한 약 이름이나 용량은 잘 모르겠어요.', lab: cd.lab || oc.lab };
             }
           }
         } catch (e) {}
