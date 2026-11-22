@@ -1,15 +1,14 @@
 /* ============================================================================
-   Vet Anesthesia Simulators — Unified Readability & Visibility Runtime
+   Vet Anesthesia Simulators — Unified Slim, Fixed-Vital & Readability Runtime
    ============================================================================ */
 (function () {
   'use strict';
 
   const SEMINAR_KEY = 'vet_seminar_large_v1';
 
-  // 1. Seminar Large-Text Toggle next to #btn-fullscreen
-  function initSeminarToggle() {
-    const fsBtn = document.getElementById('btn-fullscreen');
-    if (!fsBtn || document.getElementById('btn-seminar-font')) return;
+  // 1. Seminar Large-Text Toggle
+  function createSeminarToggle() {
+    if (document.getElementById('btn-seminar-font')) return document.getElementById('btn-seminar-font');
 
     const btn = document.createElement('button');
     btn.id = 'btn-seminar-font';
@@ -35,34 +34,140 @@
       try { localStorage.setItem(SEMINAR_KEY, next ? '1' : '0'); } catch (e) {}
     });
 
-    fsBtn.parentNode.insertBefore(btn, fsBtn);
+    return btn;
   }
 
-  // 2. Vital Alert Pulse & Normal-Range Reference Chips
+  // 2. Compact 1-Row Header + Unified '⚙ 설정' Popover
+  function initCompactSettingsDrawer() {
+    const isSplitSim = !!document.querySelector('.main-grid');
+    if (isSplitSim) {
+      document.body.classList.add('ui-split-sim');
+    }
+
+    const fsBtn = document.getElementById('btn-fullscreen');
+    const seminarBtn = createSeminarToggle();
+
+    // Maintenance simulator: keep its existing header, just insert seminar toggle cleanly
+    if (!isSplitSim) {
+      if (fsBtn && fsBtn.parentNode && !seminarBtn.parentNode) {
+        fsBtn.parentNode.insertBefore(seminarBtn, fsBtn);
+      }
+      return;
+    }
+
+    // Induction / Recovery / Critical simulators: move secondary buttons into unified '⚙ 설정' popover
+    const ctrlRow = document.querySelector('.controls-row, .hdr-controls');
+    if (!ctrlRow || document.getElementById('btn-ui-settings')) return;
+
+    // Make fullscreen button compact icon on split sims
+    if (fsBtn) {
+      fsBtn.title = '전체화면 전환';
+      fsBtn.textContent = '⛶';
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'ui-settings-wrap';
+
+    const setBtn = document.createElement('button');
+    setBtn.id = 'btn-ui-settings';
+    setBtn.type = 'button';
+    setBtn.className = 'ui-settings-btn';
+    setBtn.textContent = '⚙ 설정';
+    setBtn.setAttribute('aria-expanded', 'false');
+
+    const pop = document.createElement('div');
+    pop.id = 'ui-settings-popover';
+    pop.className = 'ui-settings-popover';
+    pop.innerHTML = `
+      <div class="ui-settings-pop-hdr">
+        <span>⚙ 시뮬레이터 설정 · 도구</span>
+        <button id="ui-settings-close" type="button" style="border:none;background:transparent;color:#94a3b8;font-size:12px;font-weight:800;cursor:pointer;">✕</button>
+      </div>
+      <div class="ui-settings-pop-grid" id="ui-settings-pop-grid"></div>
+    `;
+
+    wrap.appendChild(setBtn);
+    document.body.appendChild(pop);
+
+    const grid = pop.querySelector('#ui-settings-pop-grid');
+
+    // Move secondary controls (actual DOM nodes so all existing event listeners stay intact!)
+    const secondaryIds = [
+      'btn-ai-case',
+      'btn-poc-lab',
+      'btn-calc-mode',
+      'btn-calc-toggle',
+      'btn-easy-mode',
+      'btn-mode-easy',
+      'btn-reset',
+      'btn-open-start',
+      'btn-back-start',
+      'btn-credits'
+    ];
+    secondaryIds.forEach((id) => {
+      const node = document.getElementById(id);
+      if (node) grid.appendChild(node);
+    });
+    grid.appendChild(seminarBtn);
+
+    // Insert '⚙ 설정' right before fullscreen button
+    if (fsBtn && fsBtn.parentNode === ctrlRow) {
+      ctrlRow.insertBefore(wrap, fsBtn);
+    } else {
+      ctrlRow.appendChild(wrap);
+    }
+
+    const closePop = () => {
+      pop.classList.remove('open');
+      setBtn.classList.remove('open');
+      setBtn.setAttribute('aria-expanded', 'false');
+    };
+
+    setBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = !pop.classList.contains('open');
+      if (willOpen) {
+        const rect = setBtn.getBoundingClientRect();
+        pop.style.top = Math.min(window.innerHeight - 240, rect.bottom + 6) + 'px';
+        pop.classList.add('open');
+        setBtn.classList.add('open');
+        setBtn.setAttribute('aria-expanded', 'true');
+      } else {
+        closePop();
+      }
+    });
+
+    pop.querySelector('#ui-settings-close').addEventListener('click', closePop);
+    document.addEventListener('click', (e) => {
+      if (!pop.classList.contains('open')) return;
+      if (pop.contains(e.target) || setBtn.contains(e.target)) return;
+      closePop();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePop();
+    });
+  }
+
+  // 3. Vital Alert Border Pulse (no space-wasting reference chips under graphs!)
   const VITAL_SPECS = [
     {
       ids: ['v-hr', 'val-hr'],
-      ref: '정상 60–150',
       evalState: (v) => (v < 48 || v > 195 ? 'danger' : (v < 60 || v > 165 ? 'warn' : 'ok'))
     },
     {
       ids: ['v-spo2', 'val-spo2'],
-      ref: '정상 ≥95%',
       evalState: (v) => (v < 90 ? 'danger' : (v < 95 ? 'warn' : 'ok'))
     },
     {
       ids: ['v-co2', 'val-co2', 'val-etco2'],
-      ref: '정상 35–45',
       evalState: (v) => (v < 28 || v > 56 ? 'danger' : (v < 35 || v > 46 ? 'warn' : 'ok'))
     },
     {
       ids: ['v-map', 'val-map'],
-      ref: '정상 65–115',
       evalState: (v) => (v < 58 || v > 148 ? 'danger' : (v < 65 || v > 125 ? 'warn' : 'ok'))
     },
     {
       ids: ['v-bt', 'val-bt'],
-      ref: '정상 36.8–39.2°C',
       evalState: (v) => (v < 35.8 || v > 39.8 ? 'danger' : (v < 36.8 || v > 39.2 ? 'warn' : 'ok'))
     }
   ];
@@ -83,18 +188,6 @@
         const card = findVitalCard(el);
         if (!card) return;
 
-        if (!card.querySelector('.vital-ref-chip[data-for="' + id + '"]')) {
-          const chip = document.createElement('span');
-          chip.className = 'vital-ref-chip';
-          chip.setAttribute('data-for', id);
-          chip.textContent = spec.ref;
-          if (el.parentElement && el.parentElement !== card && el.parentElement.classList.contains('flex')) {
-            card.appendChild(chip);
-          } else {
-            el.insertAdjacentElement('afterend', chip);
-          }
-        }
-
         const raw = (el.textContent || '').replace(/[^\d.]/g, '');
         const num = parseFloat(raw);
         card.classList.remove('vital-alert-danger', 'vital-alert-warn');
@@ -107,7 +200,7 @@
     });
   }
 
-  // 3. Drug Color-Coding (clean left accent bar only — no cluttered inline badges)
+  // 4. Drug Color-Coding (clean left accent bar only — no cluttered inline badges)
   const DRUG_DECORATIONS = [
     { match: /atipamezole|naloxone|flumazenil|esmolol/i, cat: 'drug-cat-rev' },
     { match: /diphenhydramine|intralipid/i, cat: 'drug-cat-anti' },
@@ -132,7 +225,7 @@
     });
   }
 
-  // 3.5 Interactive '?' Drug Reference & Agonist<->Antagonist Guide Modal
+  // 5. Interactive '?' Drug Reference & Agonist<->Antagonist Guide Modal
   function ensureDrugGuideModal() {
     let modal = document.getElementById('vet-drug-guide-modal');
     if (modal) return modal;
@@ -201,7 +294,7 @@
     }
   });
 
-  // 4. Event Log 3-Way Filter Bar & Semantic Icons
+  // 6. Event Log 3-Way Filter Bar + Mobile Auto-Collapse Toggle
   function classifyLogNode(node) {
     const cls = String(node.className || '');
     const txt = String(node.textContent || '');
@@ -209,7 +302,7 @@
       /\b(danger|bad|warn)\b|text-rose|text-amber|border-rose|border-amber/i.test(cls) ||
       /(경고|위험|실패|중단|금기|과투여|독성|저혈압|저혈당|부작용|심정지|폐수종|급락|주의!)/i.test(txt);
     const isDrug =
-      /(투여|IV|IM|mL|약물|길항|역전|전처치|볼루스|수혈|유도|Atropine|Ephedrine|Lidocaine|Epinephrine|Ca-Gluconate|Dextrose|Insulin|pRBC|NaHCO|Furosemide|Naloxone|Atipamezole|Flumazenil|Esmolol|Diphenhydramine|Intralipid|Propofol|Alfaxalone|Methadone|Dexmedetomidine|Midazolam|Maropitant|Cefazolin|Dexamethasone)/i.test(txt);
+      /(투여|IV|IM|mL|약물|길항|역전|전처치|볼루스|수혈|유도|Atropine|Ephedrine|Lidocaine|Epinephrine|Ca-Gluconate|Dextrose|Insulin|pRBC|NaHCO|Furosemide|Naloxone|Atipamezole|Flumazenil|Esmolol|Diphenhydramine|Intralipid|Propofol|Alfaxalone|Methadone|Dexmedetomidine|Midazolam|Maropitant|Cefazolin|Dexamethasone|Fentanyl)/i.test(txt);
     const isGood = /\b(good)\b|text-emerald|점수 획득|\+\d+점/i.test(cls + ' ' + txt);
     return { isAlert, isDrug, isGood };
   }
@@ -219,14 +312,27 @@
     box.dataset.uiLogEnhanced = '1';
 
     let activeFilter = 'all';
+    const isMobileInit = window.innerWidth < 1024 && document.body.classList.contains('ui-split-sim');
+    let collapsed = isMobileInit;
+
     const bar = document.createElement('div');
     bar.className = 'ui-log-filter-bar';
     bar.innerHTML = `
       <button type="button" class="ui-log-filter-btn active" data-lf="all">전체</button>
-      <button type="button" class="ui-log-filter-btn" data-lf="alert">🚨 경고만</button>
-      <button type="button" class="ui-log-filter-btn" data-lf="drug">💉 투약만</button>
+      <button type="button" class="ui-log-filter-btn" data-lf="alert">🚨 경고</button>
+      <button type="button" class="ui-log-filter-btn" data-lf="drug">💉 투약</button>
+      <button type="button" class="ui-log-toggle-btn" data-ltoggle="1">${collapsed ? '로그 펼치기 ▾' : '로그 접기 ▴'}</button>
     `;
     box.parentNode.insertBefore(bar, box);
+
+    if (collapsed) box.classList.add('ui-log-collapsed');
+
+    const toggleBtn = bar.querySelector('[data-ltoggle]');
+    toggleBtn.addEventListener('click', () => {
+      collapsed = !collapsed;
+      box.classList.toggle('ui-log-collapsed', collapsed);
+      toggleBtn.textContent = collapsed ? '로그 펼치기 ▾' : '로그 접기 ▴';
+    });
 
     const applyFilterAndIcons = () => {
       Array.from(box.children).forEach((child) => {
@@ -236,7 +342,7 @@
         if (!child.dataset.uiIconDone) {
           child.dataset.uiIconDone = '1';
           const rawTxt = child.textContent || '';
-          if (!/^[🚨⚠️💉✅]/u.test(rawTxt.trim())) {
+          if (!/^[🚨⚠️💉✅💀]/u.test(rawTxt.trim())) {
             const ic = document.createElement('span');
             ic.className = 'ui-log-icon';
             ic.textContent = isAlert ? '🚨' : (isDrug ? '💉' : (isGood ? '✅' : '•'));
@@ -256,6 +362,11 @@
       btn.addEventListener('click', () => {
         activeFilter = btn.getAttribute('data-lf') || 'all';
         bar.querySelectorAll('.ui-log-filter-btn').forEach((b) => b.classList.toggle('active', b === btn));
+        if (collapsed) {
+          collapsed = false;
+          box.classList.remove('ui-log-collapsed');
+          toggleBtn.textContent = '로그 접기 ▴';
+        }
         applyFilterAndIcons();
       });
     });
@@ -273,7 +384,7 @@
   }
 
   function boot() {
-    initSeminarToggle();
+    initCompactSettingsDrawer();
     initLogs();
     decorateDrugButtons();
     updateVitalsVisuals();
