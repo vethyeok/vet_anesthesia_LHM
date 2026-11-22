@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>수의 마취 전주기 심화 시뮬레이터 (Critical Mode)</title>
+  <title>마취 실전 시뮬레이터 (Practice Mode)</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: #05080f; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif; word-break: keep-all; }
@@ -162,30 +162,51 @@
     .ctrl-tab:hover { color: #e2e8f0; background: rgba(30,41,59,0.7); }
     .ctrl-tab.active { background: rgba(56,189,248,0.18); color: #7dd3fc; border-color: rgba(56,189,248,0.5); }
     @media (max-width: 640px) { .ctrl-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-
+    @keyframes scoreDeltaPop {
+      0% { opacity: 0; transform: translateY(4px) scale(0.85); }
+      20% { opacity: 1; transform: translateY(0) scale(1.12); }
+      75% { opacity: 1; transform: translateY(-2px) scale(1); }
+      100% { opacity: 0; transform: translateY(-8px) scale(0.95); }
+    }
+    .score-delta-pop { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 5px; font-size: 10.5px; font-weight: 900; pointer-events: none; }
+    .score-delta-pop.plus { background: #10b981; color: #022c22; }
+    .score-delta-pop.minus { background: #f43f5e; color: #fff; }
+    .score-delta-active { animation: scoreDeltaPop 1.35s ease-out forwards; }
+    body.immersive-full .wrap { max-width: 100%; padding: 6px; }
   </style>
 </head>
 <body>
   <div id="toast-wrap"></div>
 
   <!-- Start Screen -->
-  <div id="start-screen" class="overlay">
-    <div class="modal-card" style="max-width:520px; text-align:center;">
-      <div class="modal-body" style="padding:26px 22px;">
-        <div style="display:inline-block; padding:4px 10px; border-radius:99px; background:rgba(244,63,94,0.18); border:1px solid rgba(251,113,133,0.45); color:#fda4af; font-size:10.5px; font-weight:800; letter-spacing:0.06em; margin-bottom:10px;">CRITICAL MODE · 전주기 통합 심화</div>
-        <h1 style="margin:0 0 8px; font-size:22px; font-weight:900; color:#fff;">수의 마취 전주기 심화 시뮬레이터</h1>
-        <p style="margin:0 0 14px; font-size:12px; color:#94a3b8;">단일 환자 도입→유지→회복 연속 플레이 · 7종 ECG 정밀 파형 · 실제 약물 용량(mL) 직접 계산</p>
-        <div style="text-align:left; padding:10px 12px; border-radius:10px; background:rgba(120,53,15,0.22); border:1px solid rgba(245,158,11,0.4); color:#fde68a; font-size:11px; margin-bottom:16px;">
-          <strong>교육·훈련용 안내:</strong> 본 시뮬레이터는 수의학 마취 모니터링의 이해를 돕기 위해 제작된 교육·훈련용 프로그램입니다. 생리학적 반응과 약물 효과는 학습 목적에 맞춰 단순화되어 실제 환자의 임상 반응과 다를 수 있으며, 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
-        </div>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <button id="btn-start-sim" type="button" class="btn btn-emerald" style="padding:11px; font-size:13.5px;">▶ 심화 연속 시뮬레이터 시작</button>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <button id="btn-open-credits" type="button" class="btn">크레딧</button>
-            <button id="btn-portal-home" type="button" class="btn btn-sky">🏠 시작화면</button>
-          </div>
+  <div id="start-screen" class="overlay" role="dialog" aria-modal="true" aria-labelledby="start-title">
+    <div style="width:100%; max-width:448px; border-radius:16px; border:2px solid rgba(251,113,133,0.45); background:linear-gradient(180deg,#0f172a,#020617); padding:24px 22px; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.65);">
+      <div style="margin:0 auto 12px; width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; background:rgba(244,63,94,0.16); border:2px solid rgba(251,113,133,0.45); color:#fda4af;">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h3l2-7 4 14 3-9 2 2h4"/></svg>
+      </div>
+      <div style="display:inline-block; padding:3px 10px; border-radius:999px; background:rgba(244,63,94,0.16); border:1px solid rgba(251,113,133,0.45); color:#fda4af; font-size:10px; font-weight:800; letter-spacing:0.1em; margin-bottom:8px;">PRACTICE · FULL-CYCLE</div>
+      <h1 id="start-title" style="margin:0; font-size:22px; font-weight:800; color:#fff; letter-spacing:-0.01em;">마취 실전 시뮬레이터</h1>
+
+      <div style="margin-top:16px; padding:12px 13px; border-radius:12px; background:rgba(120,53,15,0.28); border:1px solid rgba(245,158,11,0.4); text-align:left; font-size:11.5px; line-height:1.58; color:#fef3c7;">
+        <div style="font-weight:800; color:#fcd34d; margin-bottom:4px;">교육·훈련용 안내</div>
+        본 시뮬레이터는 수의학 마취 모니터링의 이해를 돕기 위해 제작된 <strong>교육·훈련용 프로그램</strong>입니다. 생리학적 반응과 약물 효과는 학습 목적에 맞춰 단순화되어 실제 환자의 임상 반응과 다를 수 있으며, 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
+      </div>
+
+      <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
+        <button id="btn-start-sim" type="button" style="width:100%; border-radius:12px; border:none; background:#10b981; padding:12px; font-size:13.5px; font-weight:800; color:#020617; cursor:pointer; box-shadow:0 8px 20px rgba(16,185,129,0.25);">
+          ▶ 실전 시뮬레이터 시작
+        </button>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <button id="btn-open-credits" type="button" style="border-radius:10px; border:1px solid #334155; background:#0f172a; padding:9px; font-size:12px; font-weight:700; color:#e2e8f0; cursor:pointer;">
+            크레딧
+          </button>
+          <button id="btn-portal-home" type="button" style="border-radius:10px; border:1px solid rgba(56,189,248,0.45); background:rgba(14,165,233,0.16); padding:9px; font-size:12px; font-weight:700; color:#bae6fd; cursor:pointer;">
+            🏠 시작화면
+          </button>
         </div>
       </div>
+
+      <div style="margin-top:14px; font-size:10.5px; color:#64748b;">© 2026 DVM 이혁민 · All rights reserved.</div>
     </div>
   </div>
 
@@ -197,7 +218,7 @@
         <button id="btn-credits-close" type="button" class="btn">닫기</button>
       </div>
       <div class="modal-body" style="text-align:center; padding:22px;">
-        <div style="font-size:14px; font-weight:800; color:#fff; margin-bottom:8px;">수의 마취 전주기 심화 시뮬레이터</div>
+        <div style="font-size:14px; font-weight:800; color:#fff; margin-bottom:8px;">마취 실전 시뮬레이터</div>
         <div style="font-size:12.5px; color:#cbd5e1; margin-bottom:4px;"><strong>제작:</strong> DVM 이혁민</div>
         <div style="font-size:12.5px; color:#cbd5e1; margin-bottom:12px;"><strong>제작 도구:</strong> Gemini</div>
         <div style="font-size:10.5px; color:#64748b;">© 2026 DVM 이혁민. All rights reserved.</div>
@@ -210,7 +231,7 @@
     <div class="modal-card" style="max-width:460px;">
       <div class="modal-hdr">
         <div>
-          <div style="font-size:10px; color:#fbbf24; font-weight:800;">REAL-TIME SYRINGE DOSE CALCULATOR</div>
+          <div style="font-size:10px; color:#fbbf24; font-weight:800;">REAL-TIME SYRINGE DOSE CALCULATOR · 정확 계산 시 +2점</div>
           <div id="dose-drug-title" style="font-size:14px; font-weight:800; color:#fff;">약물 투여량 (mL) 계산</div>
         </div>
         <button id="btn-dose-cancel" type="button" class="btn">취소</button>
@@ -225,7 +246,7 @@
           <button id="btn-dose-p01" type="button" class="btn">+0.1</button>
           <button id="btn-dose-p05" type="button" class="btn">+0.5</button>
         </div>
-        <div style="font-size:10.5px; color:#94a3b8; margin-bottom:12px;">공식: <span class="mono" style="color:#7dd3fc;">투여량(mL) = 체중(kg) × 용량(mg/kg) ÷ 약물농도(mg/mL)</span> · 과소 투여 시 효과 미미, 과량 투여 시 즉시 약물 독성 발생!</div>
+        <div style="font-size:10.5px; color:#94a3b8; margin-bottom:12px;">공식: <span class="mono" style="color:#7dd3fc;">투여량(mL) = 체중(kg) × 용량(mg/kg) ÷ 약물농도(mg/mL)</span> · 정확 계산 시 <strong style="color:#34d399;">+2점 보너스</strong>, 과량 투여 시 즉시 약물 독성 발생!</div>
         <button id="btn-dose-confirm" type="button" class="btn btn-emerald" style="width:100%; padding:10px; font-size:13px;">💉 계산한 용량으로 IV 투여</button>
       </div>
     </div>
@@ -286,8 +307,8 @@
     <div class="modal-card" style="max-width:660px;">
       <div class="modal-hdr">
         <div>
-          <div style="font-size:10px; color:#34d399; font-weight:800;">CRITICAL FULL-CYCLE DEBRIEFING</div>
-          <div style="font-size:15px; font-weight:900; color:#fff;">전주기 심화 마취 최종 평가 리포트</div>
+          <div style="font-size:10px; color:#34d399; font-weight:800;">PRACTICE FULL-CYCLE DEBRIEFING</div>
+          <div style="font-size:15px; font-weight:900; color:#fff;">실전 마취 최종 평가 리포트</div>
         </div>
         <button id="btn-report-close" type="button" class="btn">닫기</button>
       </div>
@@ -305,10 +326,12 @@
   <div class="wrap">
     <header>
       <div class="brand">
-        <div class="brand-icon">CRIT</div>
+        <div class="brand-icon">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h3l2-7 4 14 3-9 2 2h4"/></svg>
+        </div>
         <div>
-          <div style="font-size:15px; font-weight:900; color:#fff;">수의 마취 전주기 심화 시뮬레이터</div>
-          <div style="font-size:10.5px; color:#94a3b8;">단일 환자 도입→유지→회복 연속 · 7종 ECG 파형 · 실제 용량(mL) 계산</div>
+          <div style="font-size:15px; font-weight:900; color:#fff;">마취 실전 시뮬레이터</div>
+          <div style="font-size:10.5px; color:#94a3b8;">단일 환자 도입→유지→회복 연속 · 7종 ECG 파형 · 자동/직접 용량 계산</div>
         </div>
       </div>
       <div class="hdr-controls">
@@ -316,16 +339,17 @@
           <button id="sp-dog" type="button" class="active">개</button>
           <button id="sp-cat" type="button">고양이</button>
         </div>
-        <select id="case-select" class="ctrl-sel" aria-label="심화 케이스 선택">
-          <option value="hyperk">1. [심화] 요로폐쇄 고칼륨혈증 (K⁺ 7.8 · ECG 변화)</option>
-          <option value="sepsis">2. [심화] 담낭파열·패혈성 복막염 (ALP 1420 · 저혈당)</option>
-          <option value="cardiac">3. [심화] 중증 심부전 (MMVD C / HCM · 폐수종)</option>
-          <option value="hemorrhage">4. [심화] 비장 종괴 출혈 쇼크 (HCT 19% · VT 위험)</option>
-          <option value="boas_icp">5. [심화] 단두종 + 두개내압 상승 (쿠싱 반사)</option>
+        <select id="case-select" class="ctrl-sel" aria-label="실전 케이스 선택">
+          <option value="hyperk">1. [실전] 요로폐쇄 고칼륨혈증 (K⁺ 7.8 · ECG 변화)</option>
+          <option value="sepsis">2. [실전] 담낭파열·패혈성 복막염 (ALP 1420 · 저혈당)</option>
+          <option value="cardiac">3. [실전] 중증 심부전 (MMVD C / HCM · 폐수종)</option>
+          <option value="hemorrhage">4. [실전] 비장 종괴 출혈 쇼크 (HCT 19% · VT 위험)</option>
+          <option value="boas_icp">5. [실전] 단두종 + 두개내압 상승 (쿠싱 반사)</option>
         </select>
         <button id="btn-ai-case" type="button" class="btn btn-indigo">✦ AI 랜덤환자</button>
-        <button id="btn-calc-toggle" type="button" class="btn btn-amber" title="실제 약물 용량(mL) 직접 계산 ON/OFF">계산 ON</button>
-        <button id="btn-mode-easy" type="button" class="btn" title="초급 학습 모드(상태창 열람 허용) 전환">심화(실전)</button>
+        <button id="btn-calc-toggle" type="button" class="btn" title="클릭하여 약물 용량(mL) 직접 계산 모드로 전환 (정확 계산 시 +2점)">🧮 직접계산 OFF (자동)</button>
+        <button id="btn-mode-easy" type="button" class="btn" title="초급 학습 모드(상태창 열람 허용) 전환">실전 모드</button>
+        <button id="btn-fullscreen" type="button" class="btn btn-sky" title="전체화면 전환">⛶ 전체화면</button>
         <button id="btn-reset" type="button" class="btn">초기화</button>
         <button id="btn-back-start" type="button" class="btn">시작화면</button>
       </div>
@@ -343,7 +367,10 @@
       <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px;">
         <span id="badge-patient" class="badge" style="background:rgba(14,165,233,0.16); color:#7dd3fc;">개 7.2 kg · ASA IV-E</span>
         <span id="badge-clock" class="badge mono" style="background:#020617; color:#34d399; border:1px solid #1e293b;">00:00</span>
-        <span id="badge-score" class="badge mono" style="background:rgba(245,158,11,0.16); color:#fde68a;">점수 100</span>
+        <span id="badge-score" class="badge mono" style="background:rgba(245,158,11,0.18); color:#fde68a; border:1px solid rgba(251,191,36,0.4);">🏆 점수 0</span>
+        <span id="score-delta-pop" class="score-delta-pop plus hidden">+2</span>
+        <span id="badge-solved" class="badge mono" style="background:rgba(16,185,129,0.14); color:#6ee7b7; border:1px solid rgba(52,211,153,0.3);">해결 0건</span>
+        <span id="badge-best" class="badge mono" style="background:#020617; color:#94a3b8; border:1px solid #1e293b;">최고 0</span>
         <span id="patient-brief" style="color:#cbd5e1; font-size:11px;"></span>
       </div>
       <div style="display:flex; flex-wrap:wrap; gap:6px;">
@@ -423,7 +450,7 @@
   </div>
 
   <footer>
-    <strong style="color:#94a3b8;">수의 마취 전주기 심화 시뮬레이터 (Critical Mode) · © 2026 DVM 이혁민.</strong> All rights reserved. · 본 시뮬레이터는 수의학 마취 모니터링의 이해를 돕기 위해 제작된 교육·훈련용 프로그램이며 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
+    <strong style="color:#94a3b8;">마취 실전 시뮬레이터 (Practice Mode) · © 2026 DVM 이혁민.</strong> All rights reserved. · 본 시뮬레이터는 수의학 마취 모니터링의 이해를 돕기 위해 제작된 교육·훈련용 프로그램이며 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
   </footer>
 
   
@@ -445,12 +472,7 @@
       <div style="background:#020617;border:1px solid #1e293b;border-radius:12px;padding:12px;">
         <div style="font-size:12px;font-weight:700;color:#a5b4fc;margin-bottom:4px;">2) 직접 환자 브리핑 입력</div>
         <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;margin-bottom:8px;">품종·연령·체중·수술·기저질환·혈액검사 등을 자유롭게 적으면 맞춤 시나리오를 생성합니다.</div>
-        <textarea id="ai-case-brief-input" rows="3" placeholder="예: 12세 3.5kg 말티즈, MMVD C기, 담낭점액종 절제술 예정. 알부민 2.0, ALP 1400" style="width:100%;box-sizing:border-box;background:#0f172a;border:1px solid #334155;border-radius:9px;padding:9px 10px;color:#f8fafc;font-size:12.5px;line-height:1.45;resize:vertical;outline:none;font-family:inherit;"></textarea>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px;">
-          <button type="button" class="ai-brief-chip" data-brief="5세 5.2kg 코리안숏헤어 수컷, 급성 요도폐색 48시간, K+ 7.5 고칼륨혈증 및 서맥" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">고양이 요도폐색·고K+</button>
-          <button type="button" class="ai-brief-chip" data-brief="8세 32kg 골든리트리버, 비장종양 파열 복강출혈, PCV 20% 빈혈 및 저혈량 쇼크 응급 비장적출술" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">대형견 비장파열·빈혈</button>
-          <button type="button" class="ai-brief-chip" data-brief="13세 3.6kg 말티즈, MMVD C기 폐수종 병력, 담낭파열 패혈성 복막염, Alb 1.9, ALP 1600" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">노령 말티즈 담낭파열</button>
-        </div>
+        <textarea id="ai-case-brief-input" rows="3" placeholder="예: 12세 3.5kg 말티즈, MMVD C기, 담낭점액종 절제술 예정. 알부민 2.0, ALP 1400" style="width:100%;box-sizing:border-box;background:#0f172a;border:1px solid #334155;border-radius:9px;padding:9px 10px;color:#f8fafc;font-size:12.5px;line-height:1.45;resize:vertical;outline:none;font-family:inherit;margin-bottom:10px;"></textarea>
         <button id="ai-case-btn-custom" type="button" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#6366f1;color:#ffffff;font-size:13px;font-weight:800;cursor:pointer;">✦ 입력한 브리핑으로 AI 케이스 생성</button>
       </div>
 
@@ -609,7 +631,7 @@
           const brief = (input.value || '').trim();
           if (!brief) {
             statusEl.style.color = '#fbbf24';
-            statusEl.textContent = '환자 브리핑을 먼저 입력하거나 예시 칩을 선택해 주세요.';
+            statusEl.textContent = '환자 브리핑을 먼저 입력해 주세요.';
             input.focus();
             return;
           }
@@ -1157,11 +1179,36 @@
         atipamezole: { name: 'Atipamezole', conc: 5.0,  unit: 'mg/mL', doseMin: 0.05,  doseMax: 0.15,  doseUnit: 'mg/kg', note: 'α₂ 길항 (0.05–0.15 mg/kg IM 권장, 급속 시 저혈압·흥분)' }
       };
 
+      const PRACTICE_BEST_KEY = 'vet_anesthesia_practice_best_v1';
+      function loadPracticeBest() {
+        try { return Math.max(0, Number(localStorage.getItem(PRACTICE_BEST_KEY)) || 0); } catch (e) { return 0; }
+      }
+      function savePracticeBest(v) {
+        try { localStorage.setItem(PRACTICE_BEST_KEY, String(Math.max(0, Math.round(v)))); } catch (e) {}
+      }
+      let _audioCtx = null;
+      function playScoreTone(freq = 880, dur = 0.11, vol = 0.05) {
+        try {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          if (!_audioCtx) _audioCtx = new AC();
+          if (_audioCtx.state === 'suspended') _audioCtx.resume();
+          const o = _audioCtx.createOscillator(), g = _audioCtx.createGain();
+          o.type = 'sine'; o.frequency.value = freq;
+          g.gain.setValueAtTime(vol, _audioCtx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + dur);
+          o.connect(g); g.connect(_audioCtx.destination);
+          o.start(); o.stop(_audioCtx.currentTime + dur);
+        } catch (e) {}
+      }
+
       const st = {
         species: 'dog', caseId: 'hyperk', aiCase: null,
         stage: 1, // 1: Induction, 2: Maintenance, 3: Recovery
-        calcMode: true, easyMode: false, arrested: false, abortedByOwner: false,
-        simSec: 0, maintSec: 0, maintStableSec: 0, maintUnstableSec: 0, score: 100,
+        calcMode: false, easyMode: false, arrested: false, abortedByOwner: false,
+        simSec: 0, maintSec: 0, maintStableSec: 0, maintUnstableSec: 0,
+        score: 0, solvedCount: 0, manualCalcCount: 0, bestScore: loadPracticeBest(),
+        earnedFlags: {}, activeCrisis: null, nextCrisisSec: 18, lastCrisisType: '', stableMilestoneIdx: 0,
         // Vitals
         hr: 96, map: 78, spo2: 98, etco2: 42, bt: 37.6, iso: 0.0, etIso: 0.0, o2: 1.5, pip: 11, rr: 12, fluid: 5, warming: true, aplOpen: true,
         rhythm: 'NSR', // NSR | HYPER_K_MILD | HYPER_K_SEVERE | AV_BLOCK_2 | AV_BLOCK_3 | VPC | VT | ASYSTOLE
@@ -1174,6 +1221,43 @@
         logs: [], goods: [], mistakes: [],
         drugSubtab: 'core'
       };
+
+      function flashScoreDelta(delta) {
+        const pop = document.getElementById('score-delta-pop');
+        if (!pop) return;
+        pop.textContent = delta >= 0 ? `+${delta}` : `${delta}`;
+        pop.className = 'score-delta-pop ' + (delta >= 0 ? 'plus' : 'minus');
+        void pop.offsetWidth;
+        pop.classList.add('score-delta-active');
+      }
+
+      function awardScore(pts, label, isSolve = false) {
+        if (!pts || st.arrested || st.abortedByOwner) return;
+        st.score = Math.max(0, st.score + pts);
+        if (isSolve) st.solvedCount += 1;
+        if (st.score > st.bestScore) {
+          st.bestScore = st.score;
+          savePracticeBest(st.bestScore);
+        }
+        flashScoreDelta(pts);
+        playScoreTone(isSolve ? 940 : 820, 0.11, 0.045);
+        addLog(`[점수 획득 +${pts}점] ${label} (현재 ${st.score}점)`, 'good');
+        syncHeaderUI();
+      }
+
+      function awardOnce(flagKey, pts, label, isSolve = false) {
+        if (st.earnedFlags[flagKey]) return false;
+        st.earnedFlags[flagKey] = true;
+        awardScore(pts, label, isSolve);
+        return true;
+      }
+
+      function deductScore(pts) {
+        if (!pts) return;
+        st.score = Math.max(0, st.score - pts);
+        flashScoreDelta(-pts);
+        syncHeaderUI();
+      }
 
       function getCaseObj() {
         if (st.aiCase) {
@@ -1213,7 +1297,9 @@
       function initCase() {
         const c = getCaseObj();
         st.stage = 1; st.arrested = false; st.abortedByOwner = false;
-        st.simSec = 0; st.maintSec = 0; st.maintStableSec = 0; st.maintUnstableSec = 0; st.score = 100;
+        st.simSec = 0; st.maintSec = 0; st.maintStableSec = 0; st.maintUnstableSec = 0;
+        st.score = 0; st.solvedCount = 0; st.manualCalcCount = 0; st.earnedFlags = {};
+        st.activeCrisis = null; st.nextCrisisSec = 18; st.lastCrisisType = ''; st.stableMilestoneIdx = 0;
         st.premed = null; st.preox = false; st.indDrug = null; st.intubated = false; st.lidoSpray = false; st.cuffed = false; st.esophError = false; st.ownerAsked = false;
         st.swallowCount = 0; st.extubated = false; st.dischargeDone = false;
         st.logs = []; st.goods = []; st.mistakes = []; st.drugCounts = {};
@@ -1261,7 +1347,7 @@
         };
 
         updateRhythm();
-        addLog(`신규 심화 환자 로드: ${st.species === 'dog' ? '개' : '고양이'} ${c.wt} kg · ${c.name} (${c.asa})`, 'good');
+        addLog(`신규 실전 환자 로드: ${st.species === 'dog' ? '개' : '고양이'} ${c.wt} kg · ${c.name} (${c.asa})`, 'good');
         syncHeaderUI();
         renderStagePanel();
       }
@@ -1283,7 +1369,6 @@
         if (st.arrested) return;
         st.arrested = true; st.rhythm = 'ASYSTOLE';
         st.hr = 0; st.map = 0; st.spo2 = 0; st.etco2 = 0;
-        st.score = Math.min(st.score, 20);
         st.mistakes.unshift(`심정지(사망) 발생: ${reason}`);
         addLog(`🚨 심정지 발생 — ${reason} (이제 [상태] 버튼으로 27개 내부 생리를 복기할 수 있습니다)`, 'danger');
         showToast('심정지 발생! 최종 리포트 및 [상태] 창에서 원인을 복기하세요.', 'danger');
@@ -1292,7 +1377,7 @@
       }
 
       // =========================================================================
-      // REAL DOSE CALCULATOR (mL) MODAL
+      // REAL DOSE CALCULATOR (mL) MODAL — Default Auto-Calc; Manual Mode gives +2pt
       // =========================================================================
       let pendingDrugCallback = null;
       let pendingDrugKey = null;
@@ -1310,7 +1395,7 @@
         const maxMl = Number(((c.wt * maxDose) / d.conc).toFixed(2));
 
         if (!st.calcMode) {
-          onAdminister({ ml: targetMl, ratio: 1.0, status: 'exact', minMl, maxMl });
+          onAdminister({ ml: targetMl, ratio: 1.0, status: 'exact', minMl, maxMl, targetMl, manualCalc: false });
           return;
         }
         pendingDrugKey = drugKey;
@@ -1319,7 +1404,7 @@
           const ratio = enteredMl / Math.max(0.01, targetMl);
           if (enteredMl < minMl * 0.7) status = 'under';
           else if (enteredMl > maxMl * 1.45) status = 'over';
-          onAdminister({ ml: enteredMl, ratio, status, minMl, maxMl, targetMl });
+          onAdminister({ ml: enteredMl, ratio, status, minMl, maxMl, targetMl, manualCalc: true });
         };
         document.getElementById('dose-drug-title').textContent = `${d.name} 투여량 계산`;
         document.getElementById('dose-info-box').innerHTML = `
@@ -1364,12 +1449,13 @@
       function renderStagePanel() {
         const panel = document.getElementById('stage-panel');
         const c = getCaseObj();
+        const doseTag = st.calcMode ? '직접 계산 (+2점)' : '자동 계산';
         if (st.stage === 1) {
           const t1 = st.s1Tab || 'interview';
           panel.innerHTML = `
             <div class="panel-title"><span>STAGE 1 · 마취 도입–전환 (단일 환자 시작)</span><span class="badge" style="background:rgba(56,189,248,0.16); color:#7dd3fc;">체중 ${c.wt} kg</span></div>
             <div style="font-size:11.5px; color:#cbd5e1; padding:8px 10px; border-radius:8px; background:#020617; border:1px solid #1e293b; margin-bottom:8px;">
-              <strong>임상 요약:</strong> ${c.desc}<br><span style="color:#fde68a;">※ 먼저 상단 [마취전 혈액검사]를 확인하고 아래 탭 순서대로 진행하세요.</span>
+              <strong>임상 요약:</strong> ${c.desc}<br><span style="color:#fde68a;">※ 먼저 상단 [마취전 혈액검사]를 확인하고 아래 탭 순서대로 진행하세요. (현재 약물 용량: <strong>${doseTag}</strong>)</span>
             </div>
             <div class="ctrl-tabs" id="s1-tabs">
               <button type="button" class="ctrl-tab ${t1==='interview'?'active':''}" data-ctab="interview">① 보호자 문진</button>
@@ -1378,7 +1464,7 @@
               <button type="button" class="ctrl-tab ${t1==='drugs'?'active':''}" data-ctab="drugs">④ 응급약물</button>
             </div>
             <div class="s1-pane" data-cpane="interview" style="${t1==='interview'?'':'display:none;'}">
-              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">① 보호자 AI 문진 (욕설·폭언 시 즉시 진료 중단 실패)</div>
+              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">① 보호자 AI 문진 (문진 완료 +5점 · 욕설·폭언 시 즉시 실패)</div>
               <div id="s1-chat" class="chat-box"><div class="chat-msg owner"><strong>보호자:</strong> 선생님, 우리 아이 많이 위험한가요? 마취 전에 확인하실 거 있으면 물어보세요.</div></div>
               <div style="display:flex; gap:6px; margin-bottom:10px;">
                 <input id="s1-q" type="text" placeholder="금식·복용약·증상 등을 질문하세요" style="flex:1; background:#020617; border:1px solid #334155; color:#fff; border-radius:8px; padding:6px 8px; font-size:11.5px;" />
@@ -1386,7 +1472,7 @@
               </div>
             </div>
             <div class="s1-pane" data-cpane="premed" style="${t1==='premed'?'':'display:none;'}">
-              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">② 전처치 투약 (mL 용량 계산 · 즉시 생리 변화 반영 · 과투여 시 사망!)</div>
+              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">② 전처치 투약 (${doseTag} · 즉시 생리 변화 반영 · 과투여 시 사망!)</div>
               <div class="choice-grid two">
                 <button type="button" class="choice-btn ${st.premed==='dex'?'selected':''}" data-premed="dex"><strong>Dexmedetomidine + Methadone</strong><small>강력 진정·혈관수축(α₂↑) · 쇼크/고칼륨 주의</small></button>
                 <button type="button" class="choice-btn ${st.premed==='midaz'?'selected':''}" data-premed="midaz"><strong>Midazolam + Fentanyl/Methadone</strong><small>심혈관 안정 · 중환자/심부전/쇼크 Co-induction</small></button>
@@ -1395,12 +1481,12 @@
               </div>
               <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
                 <button id="btn-s1-preox" type="button" class="btn ${st.preox?'btn-emerald':'btn-sky'}">${st.preox ? '✓ 전산소화 3분 완료' : '③ 전산소화 (O₂ 3분)'}</button>
-                <button id="btn-s1-prop" type="button" class="btn ${st.indDrug==='propofol'?'btn-emerald':'btn-amber'}">④ Propofol 유도 (mL 계산)</button>
-                <button id="btn-s1-alfa" type="button" class="btn ${st.indDrug==='alfaxalone'?'btn-emerald':'btn-amber'}">④ Alfaxalone 유도 (mL 계산)</button>
+                <button id="btn-s1-prop" type="button" class="btn ${st.indDrug==='propofol'?'btn-emerald':'btn-amber'}">④ Propofol 유도 (${st.calcMode ? 'mL 직접' : '자동'})</button>
+                <button id="btn-s1-alfa" type="button" class="btn ${st.indDrug==='alfaxalone'?'btn-emerald':'btn-amber'}">④ Alfaxalone 유도 (${st.calcMode ? 'mL 직접' : '자동'})</button>
               </div>
             </div>
             <div class="s1-pane" data-cpane="intub" style="${t1==='intub'?'':'display:none;'}">
-              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">⑤ 기관내삽관 & 마취기 연결</div>
+              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">⑤ 기관내삽관 &amp; 마취기 연결</div>
             <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
               ${st.species==='cat' ? `<button id="btn-s1-spray" type="button" class="btn ${st.lidoSpray?'btn-emerald':''}">${st.lidoSpray?'✓ 후두 리도카인 스프레이':'고양이 후두 리도카인 스프레이'}</button>` : ''}
               <button id="btn-s1-intub" type="button" class="btn ${st.intubated?'btn-emerald':'btn-sky'}">${st.intubated?'✓ 기관내삽관·커프 확인':'기관내삽관 + 커프 + ETCO₂ 확인'}</button>
@@ -1408,7 +1494,7 @@
             </div>
             </div>
             <div class="s1-pane" data-cpane="drugs" style="${t1==='drugs'?'':'display:none;'}">
-              <div style="font-size:11px; font-weight:800; color:#fda4af; margin-bottom:6px;">도입 전 응급·특수 약물 IV (고칼륨·저혈당·빈혈 선교정)</div>
+              <div style="font-size:11px; font-weight:800; color:#fda4af; margin-bottom:6px;">도입 전 응급·특수 약물 IV (${doseTag} · 고칼륨·저혈당·빈혈 선교정)</div>
               <div class="drug-subtabs">
                 <button type="button" class="drug-subtab ${st.drugSubtab==='core'?'active':''}" data-dtab="core">기본 응급</button>
                 <button type="button" class="drug-subtab ${st.drugSubtab==='metab'?'active':''}" data-dtab="metab">혈액·대사</button>
@@ -1422,11 +1508,15 @@
           wireStage1();
         } else if (st.stage === 2) {
           const t2 = st.s2Tab || 'vent';
+          const crisisBanner = st.activeCrisis
+            ? `<div id="crisis-banner" style="padding:7px 10px; border-radius:8px; background:rgba(136,19,55,0.32); border:1px solid rgba(251,113,133,0.55); color:#fecdd3; font-size:11.5px; font-weight:800; margin-bottom:8px;">🚨 돌발 위기 발생: ${st.activeCrisis.label} (해결 시 +6점)</div>`
+            : `<div id="crisis-banner" style="display:none;"></div>`;
           panel.innerHTML = `
-            <div class="panel-title"><span>STAGE 2 · 유지 모니터링 (연속 생리 · 용량 계산 IV)</span><span class="mono" style="color:#fde68a;">유지 <span id="maint-timer">${Math.floor(st.maintSec)}</span>s</span></div>
+            <div class="panel-title"><span>STAGE 2 · 유지 모니터링 (연속 생리 · ${doseTag})</span><span class="mono" style="color:#fde68a;">유지 <span id="maint-timer">${Math.floor(st.maintSec)}</span>s</span></div>
+            ${crisisBanner}
             <div style="padding:7px 9px; border-radius:8px; background:#020617; border:1px solid #1e293b; margin-bottom:8px; font-size:11px;">
               <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                <span style="color:#94a3b8;">안정 바이탈 유지 시간 (목표 45초 이상 · 미달 시 감점)</span>
+                <span style="color:#94a3b8;">안정 바이탈 유지 시간 (목표 45초 · 15초마다 +5점)</span>
                 <strong id="maint-stable-txt" class="mono" style="color:#34d399;">${Math.floor(st.maintStableSec)} / 45초</strong>
               </div>
               <div style="height:6px; border-radius:99px; background:#1e293b; overflow:hidden;">
@@ -1458,7 +1548,7 @@
               </div>
             </div>
             <div class="s2-pane" data-cpane="drugs" style="${t2==='drugs'?'':'display:none;'}">
-              <div style="font-size:11px; font-weight:800; color:#fda4af; margin-bottom:6px;">응급·특수 약물 IV (누르면 mL 용량 계산 · 연쇄 상호작용 &amp; 반복 독성 반영)</div>
+              <div style="font-size:11px; font-weight:800; color:#fda4af; margin-bottom:6px;">응급·특수 약물 IV (${doseTag} · 연쇄 상호작용 &amp; 반복 독성 반영)</div>
               <div class="drug-subtabs">
                 <button type="button" class="drug-subtab ${st.drugSubtab==='core'?'active':''}" data-dtab="core">기본 응급</button>
                 <button type="button" class="drug-subtab ${st.drugSubtab==='metab'?'active':''}" data-dtab="metab">혈액·대사</button>
@@ -1486,12 +1576,12 @@
                 <button id="btn-s3-iso-off" type="button" class="btn ${st.iso===0?'btn-emerald':'btn-amber'}">${st.iso===0?'✓ 기화기 OFF 완료':'① 기화기 OFF + O₂ 3.0 L/min 세척'}</button>
                 <button id="btn-s3-warm" type="button" class="btn ${st.warming?'btn-emerald':''}">능동 가온 ${st.warming?'ON':'OFF'}</button>
                 <button id="btn-s3-extub" type="button" class="btn ${st.extubated?'btn-emerald':'btn-rose'}">${st.extubated?'✓ 발관 완료':'② 기관튜브 발관 (Extubation)'}</button>
-                <button id="btn-s3-atip" type="button" class="btn btn-violet">Atipamezole 길항 (mL)</button>
-                <button id="btn-s3-nalox" type="button" class="btn btn-violet">Naloxone 길항 (mL)</button>
+                <button id="btn-s3-atip" type="button" class="btn btn-violet">Atipamezole 길항 (${st.calcMode ? 'mL 직접' : '자동'})</button>
+                <button id="btn-s3-nalox" type="button" class="btn btn-violet">Naloxone 길항 (${st.calcMode ? 'mL 직접' : '자동'})</button>
               </div>
             </div>
             <div class="s3-pane" data-cpane="dc" style="${t3==='dc'?'':'display:none;'}">
-              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">③ 보호자 퇴원 안내 AI 롤플레이 (욕설·폭언 시 즉시 실패)</div>
+              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">③ 보호자 퇴원 안내 AI 롤플레이 (안내 완료 +5점 · 욕설·폭언 시 즉시 실패)</div>
             <div id="s3-chat" class="chat-box"><div class="chat-msg owner"><strong>보호자:</strong> 선생님, 수술 잘 끝났나요? 집에 가서 밥·물·약은 어떻게 챙겨야 하죠?</div></div>
             <div style="display:flex; gap:6px; margin-bottom:10px;">
               <input id="s3-msg" type="text" placeholder="금식·체온·상처·응급 증상 등 퇴원 주의사항 안내" style="flex:1; background:#020617; border:1px solid #334155; color:#fff; border-radius:8px; padding:6px 8px; font-size:11.5px;" />
@@ -1577,16 +1667,23 @@
               }
 
               if (c.avoidPremed.includes(pmKey)) {
-                st.score -= 15;
+                deductScore(10);
                 st.mistakes.push(`[도입] 금기 전처치(${DRUG_DB[drugKey].name}) 투여 → 혈역학 악화`);
-                showToast('주의! 이 환자에게 금기인 전처치 약물입니다! 바이탈 변화를 확인하세요.', 'danger');
+                showToast('주의! 이 환자에게 금기인 전처치 약물입니다! (-10점)', 'danger');
               } else if (res.status === 'over') {
-                st.score -= 15;
+                deductScore(10);
                 st.mistakes.push(`[도입] 전처치 ${DRUG_DB[drugKey].name} 과량 투여(${res.ml} mL, 권장 ${res.minMl}–${res.maxMl} mL)`);
-                showToast(`전처치 과량 투여(${res.ml} mL)! 심한 생리 변화 발생(추가 과량 시 사망 위험)!`, 'danger');
+                showToast(`전처치 과량 투여(${res.ml} mL)! (-10점 · 추가 과량 시 사망 위험!)`, 'danger');
               } else if (res.status === 'exact') {
-                st.goods.push(`[도입] 적합한 전처치(${DRUG_DB[drugKey].name}) 정확 용량(${res.ml} mL) 투여`);
-                showToast(`전처치 ${res.ml} mL 투여 완료 — 모니터 생리 변화 확인!`, 'good');
+                st.goods.push(`[도입] 적합한 전처치(${DRUG_DB[drugKey].name}) ${res.manualCalc ? '직접 계산' : '자동'} 용량(${res.ml} mL) 투여`);
+                awardOnce('s1_premed', 6, `적합한 전처치(${DRUG_DB[drugKey].name}) 투여`, false);
+                if (res.manualCalc && !isOver) {
+                  st.manualCalcCount += 1;
+                  awardScore(2, `${DRUG_DB[drugKey].name} 용량 직접 계산 정확 투여`, false);
+                  showToast(`전처치 직접 계산 성공! +2점 (총 ${st.score}점)`, 'good');
+                } else {
+                  showToast(`전처치 ${res.ml} mL 투여 완료 — 모니터 생리 변화 확인!`, 'good');
+                }
               }
               updateRhythm(); syncHeaderUI(); renderStagePanel();
             });
@@ -1631,11 +1728,13 @@
           chat.innerHTML += `<div class="chat-msg owner"><strong>보호자:</strong> ${reply}</div>`;
           chat.scrollTop = chat.scrollHeight;
           addLog(`[도입 문진] 보호자 병력 확인 완료`, 'good');
+          awardOnce('s1_owner', 5, '도입 전 보호자 문진 완료', false);
         });
         document.getElementById('btn-s1-preox').addEventListener('click', () => {
           st.preox = true; st.spo2 = 100;
           st.goods.push('[도입] 3분 전산소화(Preoxygenation) 시행');
           addLog('[도입] 3분 전산소화 완료 (삽관 무호흡 대비 산소 예비능 확보)', 'good');
+          if (awardOnce('s1_preox', 5, '3분 전산소화 시행', false)) showToast(`전산소화 완료! +5점 (총 ${st.score}점)`, 'good');
           renderStagePanel();
         });
         const doInduct = (key) => requestDrugDose(key, (res) => {
@@ -1647,32 +1746,45 @@
             return;
           }
           if (res.status === 'over') {
-            st.score -= 18; st.map = clamp(st.map - 28, 28, 140); st.spo2 = clamp(st.spo2 - 10, 70, 100);
+            deductScore(12); st.map = clamp(st.map - 28, 28, 140); st.spo2 = clamp(st.spo2 - 10, 70, 100);
             st.mistakes.push(`[도입] ${DRUG_DB[key].name} 과량 투여(${res.ml} mL, 권장 ${res.minMl}–${res.maxMl} mL) → 유도 저혈압·무호흡`);
-            showToast(`과량 투여(${res.ml} mL)! 유도 직후 심각한 저혈압·무호흡 발생!`, 'danger');
+            showToast(`과량 투여(${res.ml} mL)! 유도 직후 심각한 저혈압·무호흡 발생! (-12점)`, 'danger');
             addLog(`[도입] ${DRUG_DB[key].name} 과량(${res.ml} mL) → MAP 급락`, 'danger');
           } else if (res.status === 'under') {
-            st.score -= 8;
+            deductScore(5);
             st.mistakes.push(`[도입] ${DRUG_DB[key].name} 과소 투여(${res.ml} mL) → 유도 불충분`);
-            showToast(`용량 부족(${res.ml} mL) — 권장 ${res.minMl}–${res.maxMl} mL`, 'warn');
+            showToast(`용량 부족(${res.ml} mL) — 권장 ${res.minMl}–${res.maxMl} mL (-5점)`, 'warn');
             addLog(`[도입] ${DRUG_DB[key].name} 과소 투여(${res.ml} mL)`, 'warn');
           } else {
-            st.goods.push(`[도입] ${DRUG_DB[key].name} 정확한 용량(${res.ml} mL) 계산·투여`);
-            showToast(`정확한 유도 용량(${res.ml} mL) 투여 완료!`, 'good');
+            st.goods.push(`[도입] ${DRUG_DB[key].name} ${res.manualCalc ? '직접 계산' : '자동'} 용량(${res.ml} mL) 투여`);
+            awardOnce('s1_induct', 6, `${DRUG_DB[key].name} 적정 유도 투여`, false);
+            if (res.manualCalc) {
+              st.manualCalcCount += 1;
+              awardScore(2, `${DRUG_DB[key].name} 용량 직접 계산 정확 투여`, false);
+              showToast(`유도제 직접 계산 성공! +2점 (총 ${st.score}점)`, 'good');
+            } else {
+              showToast(`유도제 자동계산 용량(${res.ml} mL) 투여 완료!`, 'good');
+            }
             addLog(`[도입] ${DRUG_DB[key].name} ${res.ml} mL 정확 투여 완료`, 'good');
           }
-          if (!st.preox) { st.spo2 = clamp(st.spo2 - 11, 72, 100); st.score -= 10; st.mistakes.push('[도입] 전산소화 미실시로 유도 중 SpO₂ 급락'); }
+          if (!st.preox) { st.spo2 = clamp(st.spo2 - 11, 72, 100); deductScore(6); st.mistakes.push('[도입] 전산소화 미실시로 유도 중 SpO₂ 급락'); }
           renderStagePanel();
         });
         document.getElementById('btn-s1-prop').addEventListener('click', () => doInduct('propofol'));
         document.getElementById('btn-s1-alfa').addEventListener('click', () => doInduct('alfaxalone'));
-        document.getElementById('btn-s1-spray')?.addEventListener('click', () => { st.lidoSpray = true; addLog('[도입] 고양이 후두 리도카인 스프레이 적용', 'good'); renderStagePanel(); });
+        document.getElementById('btn-s1-spray')?.addEventListener('click', () => {
+          st.lidoSpray = true;
+          addLog('[도입] 고양이 후두 리도카인 스프레이 적용', 'good');
+          awardOnce('s1_spray', 4, '고양이 후두 리도카인 스프레이 적용', false);
+          renderStagePanel();
+        });
         document.getElementById('btn-s1-intub').addEventListener('click', () => {
           if (!st.indDrug) { showToast('먼저 유도제를 투여하세요!', 'warn'); return; }
-          if (st.species === 'cat' && !st.lidoSpray) { st.score -= 10; st.spo2 = clamp(st.spo2 - 9, 75, 100); st.mistakes.push('[도입] 고양이 후두 리도카인 스프레이 생략 → 후두경련 유발'); showToast('고양이 후두경련 발생! SpO₂ 일시 하락', 'warn'); }
+          if (st.species === 'cat' && !st.lidoSpray) { deductScore(6); st.spo2 = clamp(st.spo2 - 9, 75, 100); st.mistakes.push('[도입] 고양이 후두 리도카인 스프레이 생략 → 후두경련 유발'); showToast('고양이 후두경련 발생! SpO₂ 일시 하락 (-6점)', 'warn'); }
           st.intubated = true; st.cuffed = true;
           st.goods.push('[도입] 기관내삽관·커프 팽창·ETCO₂ 파형 확인 완료');
           addLog('[도입] 기관내삽관 및 사각파 ETCO₂ 확인 완료', 'good');
+          if (awardOnce('s1_intub', 6, '기관내삽관·커프·ETCO₂ 확인 완료', false)) showToast(`기관내삽관 완료! +6점 (총 ${st.score}점)`, 'good');
           renderStagePanel();
         });
         document.getElementById('btn-s1-apl').addEventListener('click', () => { st.aplOpen = !st.aplOpen; renderStagePanel(); });
@@ -1714,6 +1826,7 @@
           addLog('[유지] 수동 배깅 1회 시행 (ETCO₂ 하강)', 'info');
         });
         document.getElementById('btn-s2-bolus').addEventListener('click', () => {
+          const wasLowMap = st.map < 65;
           st.phys.preloadVol = clamp(st.phys.preloadVol + 10, 45, 135);
           st.phys.pcv = clamp(st.phys.pcv - 2.2, 12, 62);
           st.phys.albumin = clamp(st.phys.albumin - 0.22, 1.2, 4.5);
@@ -1721,11 +1834,13 @@
           if (st.caseId === 'cardiac' || st.phys.lungWater > 18) {
             st.phys.lungWater = clamp(st.phys.lungWater + 16, 0, 100);
             st.spo2 = clamp(st.spo2 - 5, 60, 100);
+            deductScore(6);
             addLog('[유지] 경고: 심부전/폐수종 환자 수액 볼루스 → 급성 폐수종 악화!', 'danger');
-            showToast('경고! 심부전 환자 수액 과부하 → 폐수종 악화!', 'danger');
+            showToast('경고! 심부전 환자 수액 과부하 → 폐수종 악화! (-6점)', 'danger');
           } else {
             st.map = clamp(st.map + 7, 25, 150);
             addLog('[유지] 결정질 +5 mL/kg 볼루스 투여 (전부하 증가, 희석성 PCV 소폭 하강)', 'good');
+            if (wasLowMap && st.map >= 68) awardOnce('fix_hypotension', 6, '수액 볼루스로 저혈압 교정', true);
           }
         });
         document.getElementById('btn-s2-warm').addEventListener('click', () => { st.warming = !st.warming; renderStagePanel(); });
@@ -1748,24 +1863,25 @@
         document.getElementById('btn-to-stage3').addEventListener('click', () => {
           const p = st.phys;
           if (st.maintStableSec < 15) {
-            st.score -= 40;
-            st.mistakes.push(`[유지 조기종료] 안정 바이탈 유지 시간 부족 (${Math.floor(st.maintStableSec)}초 / 목표 45초) — 대폭 감점(-40점)`);
-            showToast('주의! 안정적인 바이탈을 유지하지 않고 조기 종료하여 크게 감점됩니다!', 'danger');
+            deductScore(15);
+            st.mistakes.push(`[유지 조기종료] 안정 바이탈 유지 시간 부족 (${Math.floor(st.maintStableSec)}초 / 목표 45초) (-15점)`);
+            showToast('주의! 안정적인 바이탈을 유지하지 않고 조기 종료해 감점됩니다! (-15점)', 'danger');
           } else if (st.maintStableSec < 45) {
-            st.score -= 22;
-            st.mistakes.push(`[유지 시간 부족] 안정 바이탈 유지 ${Math.floor(st.maintStableSec)}초 / 목표 45초 미만 (-22점)`);
+            deductScore(8);
+            st.mistakes.push(`[유지 시간 부족] 안정 바이탈 유지 ${Math.floor(st.maintStableSec)}초 / 목표 45초 미만 (-8점)`);
             showToast(`안정 유지 시간(${Math.floor(st.maintStableSec)}초)이 45초 미만이라 감점됩니다.`, 'warn');
           } else {
             st.goods.push(`[유지 안정화] 목표 바이탈 안정 유지 달성 (${Math.floor(st.maintStableSec)}초)`);
           }
-          if (st.rhythm !== 'NSR') { st.score -= 25; st.mistakes.push(`[유지 미교정] 비정상 ECG 리듬(${st.rhythm}) 미해결 상태로 수술 종료 (-25점)`); }
-          if (st.map < 65) { st.score -= 20; st.mistakes.push(`[유지 미교정] 저혈압(MAP ${Math.round(st.map)} mmHg) 미교정 상태로 종료 (-20점)`); }
-          if (st.spo2 < 94) { st.score -= 20; st.mistakes.push(`[유지 미교정] 저산소(SpO₂ ${Math.round(st.spo2)}%) 미교정 상태로 종료 (-20점)`); }
-          if (st.etco2 > 50 || st.etco2 < 28) { st.score -= 12; st.mistakes.push(`[유지 미교정] 비정상 ETCO₂(${Math.round(st.etco2)} mmHg) 미교정 (-12점)`); }
-          if (p.serumK > 6.2) { st.score -= 15; st.mistakes.push(`[유지 미교정] 고칼륨혈증(K⁺ ${p.serumK.toFixed(1)}) 미교정 (-15점)`); }
-          if (p.bloodGlucose < 65) { st.score -= 15; st.mistakes.push(`[유지 미교정] 저혈당(Glu ${Math.round(p.bloodGlucose)}) 미교정 (-15점)`); }
-          if (p.arterialPH < 7.26) { st.score -= 12; st.mistakes.push(`[유지 미교정] 산증(pH ${p.arterialPH.toFixed(2)}) 미교정 (-12점)`); }
-          if (st.bt < 36.5) { st.score -= 10; st.mistakes.push(`[유지 미교정] 저체온(BT ${st.bt.toFixed(1)}°C) 방치 (-10점)`); }
+          if (st.rhythm !== 'NSR') { deductScore(10); st.mistakes.push(`[유지 미교정] 비정상 ECG 리듬(${st.rhythm}) 미해결 상태로 수술 종료 (-10점)`); }
+          if (st.map < 65) { deductScore(8); st.mistakes.push(`[유지 미교정] 저혈압(MAP ${Math.round(st.map)} mmHg) 미교정 상태로 종료 (-8점)`); }
+          if (st.spo2 < 94) { deductScore(8); st.mistakes.push(`[유지 미교정] 저산소(SpO₂ ${Math.round(st.spo2)}%) 미교정 상태로 종료 (-8점)`); }
+          if (st.etco2 > 50 || st.etco2 < 28) { deductScore(5); st.mistakes.push(`[유지 미교정] 비정상 ETCO₂(${Math.round(st.etco2)} mmHg) 미교정 (-5점)`); }
+          if (p.serumK > 6.2) { deductScore(6); st.mistakes.push(`[유지 미교정] 고칼륨혈증(K⁺ ${p.serumK.toFixed(1)}) 미교정 (-6점)`); }
+          if (p.bloodGlucose < 65) { deductScore(6); st.mistakes.push(`[유지 미교정] 저혈당(Glu ${Math.round(p.bloodGlucose)}) 미교정 (-6점)`); }
+          if (p.arterialPH < 7.26) { deductScore(5); st.mistakes.push(`[유지 미교정] 산증(pH ${p.arterialPH.toFixed(2)}) 미교정 (-5점)`); }
+          if (st.bt < 36.5) { deductScore(4); st.mistakes.push(`[유지 미교정] 저체온(BT ${st.bt.toFixed(1)}°C) 방치 (-4점)`); }
+          st.activeCrisis = null;
           st.stage = 3;
           addLog(`=== STAGE 3 종료·회복 진입 (안정유지 ${Math.floor(st.maintStableSec)}초 · EtIso ${st.etIso.toFixed(1)}% · BT ${st.bt.toFixed(1)}°C 승계) ===`, st.maintStableSec >= 45 ? 'good' : 'warn');
           syncHeaderUI(); renderStagePanel();
@@ -1778,8 +1894,13 @@
           st.drugCounts[key] = (st.drugCounts[key] || 0) + 1;
           const n = st.drugCounts[key];
           const mult = res.status === 'under' ? 0.35 : (res.status === 'over' ? 2.1 : 1.0);
-          if (res.status === 'exact') st.goods.push(`[용량계산] ${DRUG_DB[key].name} ${res.ml} mL 정확 계산`);
-          if (res.status === 'over') { st.score -= 14; st.mistakes.push(`[과량투여] ${DRUG_DB[key].name} ${res.ml} mL (권장 ${res.minMl}–${res.maxMl} mL)`); }
+          let hadToxicOrContra = false;
+
+          if (res.status === 'over') {
+            hadToxicOrContra = true;
+            deductScore(10);
+            st.mistakes.push(`[과량투여] ${DRUG_DB[key].name} ${res.ml} mL (권장 ${res.minMl}–${res.maxMl} mL)`);
+          }
 
           if (res.ratio >= 2.8 && ['lidocaine', 'epinephrine', 'calgluc', 'dextrose'].includes(key)) {
             const fatalMap = {
@@ -1795,82 +1916,122 @@
             return;
           }
           if (key === 'calgluc') {
+            const needed = p.serumK >= 6.0 && p.myoStability < 85;
             p.ionizedCa = clamp(p.ionizedCa + 0.18 * mult, 0.7, 2.3);
             if (n >= 3 || p.ionizedCa >= 1.55 || res.status === 'over') {
+              hadToxicOrContra = true;
               st.hr = clamp(st.hr - 26, 22, 220); p.myoStability -= 20;
               addLog(`Ca-Gluconate 과투여(${res.ml} mL, iCa²⁺ ${p.ionizedCa.toFixed(2)}) → 고칼슘 AV 차단 발생!`, 'danger');
               showToast('과량/반복 Ca-Gluconate → 고칼슘 AV 차단(ECG 확인)!', 'danger');
             } else {
               p.myoStability = clamp(p.myoStability + 45 * mult, 0, 100);
               addLog(`10% Ca-Gluconate ${res.ml} mL IV — 고칼륨 심근 방어 완료(ECG 정상화, K⁺ 하강은 Dextrose 병행)`, 'good');
-              showToast('Ca-Gluconate 심근 방어 완료!', 'good');
+              if (needed) {
+                awardOnce('fix_hyperk_myo', 10, '고칼륨혈증 Ca-Gluconate 심근 방어 완료', true);
+                showToast(`고칼륨 심근 방어 성공! +10점`, 'good');
+              } else {
+                showToast('Ca-Gluconate 투여 완료!', 'good');
+              }
             }
           } else if (key === 'dextrose') {
             const wasHighK = p.serumK > 6.0;
             const wasLow = p.bloodGlucose < 68;
             p.bloodGlucose = clamp(p.bloodGlucose + 65 * mult, 30, 540);
             if (n >= 2 || res.status === 'over' || p.bloodGlucose > 250) {
+              hadToxicOrContra = true;
               p.urineOutput += 1.5; p.preloadVol = clamp(p.preloadVol - 14, 45, 130); p.serumK = clamp(p.serumK - 0.5, 2.4, 9.5); st.map = clamp(st.map - 11, 25, 145);
               addLog(`50% Dextrose 과투여(${res.ml} mL, Glu ${Math.round(p.bloodGlucose)}) → 고삼투압·삼투성 이뇨(저혈압·저칼륨)!`, 'danger');
               showToast('경고! 50% 포도당 과투여 → 고삼투압·삼투성 이뇨 발생!', 'danger');
             } else if (wasHighK) {
               p.serumK = clamp(p.serumK - 0.9 * mult, 2.8, 9.5);
               addLog(`50% Dextrose ${res.ml} mL — K⁺ 세포내 이동(K⁺ ${p.serumK.toFixed(1)} mEq/L 하강)`, 'good');
-              showToast('50% 포도당 → K⁺ 하강 시작!', 'good');
+              if (awardOnce('fix_hyperk_drop', 8, '50% Dextrose로 혈청 K⁺ 하강 유도', true)) showToast('고칼륨 K⁺ 하강 성공! +8점', 'good');
+              else showToast('50% 포도당 → K⁺ 하강 시작!', 'good');
             } else if (wasLow) {
               st.hr += 10; st.map += 8;
               addLog(`50% Dextrose ${res.ml} mL — 저혈당 교정(Glu ${Math.round(p.bloodGlucose)} mg/dL)`, 'good');
-              showToast('저혈당 교정 완료!', 'good');
+              if (awardOnce('fix_hypoglu', 8, '저혈당 교정 완료', true)) showToast('저혈당 교정 성공! +8점', 'good');
+              else showToast('저혈당 교정 완료!', 'good');
             } else {
               addLog(`50% Dextrose ${res.ml} mL 투여 (반복 시 고삼투압 주의)`, 'warn');
             }
           } else if (key === 'lidocaine') {
+            const needed = p.arrhythmiaRisk >= 42;
             if (res.status === 'over' || (st.species === 'cat' && n >= 2)) {
-              st.hr = clamp(st.hr - 35, 22, 220); st.map = clamp(st.map - 20, 25, 140); st.score -= 15;
+              hadToxicOrContra = true;
+              st.hr = clamp(st.hr - 35, 22, 220); st.map = clamp(st.map - 20, 25, 140); deductScore(10);
               addLog(`Lidocaine 과량/반복 독성(${res.ml} mL) — 중증 서맥·저혈압!`, 'danger');
-              showToast('Lidocaine 독성 발생! 서맥·저혈압 주의!', 'danger');
+              showToast('Lidocaine 독성 발생! 서맥·저혈압 주의! (-10점)', 'danger');
             } else {
               p.arrhythmiaRisk = Math.max(8, p.arrhythmiaRisk - 42 * mult);
               addLog(`Lidocaine ${res.ml} mL IV — 심실성 부정맥(VPC/VT) 억제!`, 'good');
-              showToast('Lidocaine 투여 — VT/VPC 리듬 안정화!', 'good');
+              if (needed && awardOnce('fix_vt_vpc', 10, 'Lidocaine으로 심실성 부정맥(VT/VPC) 안정화', true)) {
+                showToast('VT/VPC 부정맥 안정화 성공! +10점', 'good');
+              } else {
+                showToast('Lidocaine 투여 — 리듬 안정화!', 'good');
+              }
             }
           } else if (key === 'atropine') {
             if (p.serumK > 6.5) {
+              hadToxicOrContra = true;
               addLog(`Atropine ${res.ml} mL 무반응 — 고칼륨(K⁺ ${p.serumK.toFixed(1)}) 서맥엔 Ca-Gluconate가 우선!`, 'danger');
               showToast('고칼륨 서맥은 Atropine에 반응하지 않습니다!', 'danger');
             } else if (p.icp > 20) {
-              st.map += 18; st.score -= 10;
+              hadToxicOrContra = true;
+              st.map += 18; deductScore(8);
               addLog(`Atropine 경고 — 두개내압 쿠싱 반사 서맥입니다! 환기(RR↑)로 ETCO₂를 낮추세요.`, 'danger');
-              showToast('쿠싱 반사 서맥! Atropine 대신 환기로 ETCO₂를 낮추세요!', 'danger');
+              showToast('쿠싱 반사 서맥! Atropine 대신 환기로 ETCO₂를 낮추세요! (-8점)', 'danger');
             } else if (p.alpha2Tone > 40) {
+              hadToxicOrContra = true;
               st.map += 26; p.arrhythmiaRisk += 28;
               addLog(`Atropine 위험 — α₂ 혈관수축 상태에서 투여해 고혈압+부정맥 유발!`, 'danger');
             } else {
+              const wasBrady = st.hr < (st.species === 'dog' ? 60 : 100);
               st.hr = clamp(st.hr + 28 * mult, 30, 230); p.vagalTone = Math.max(0, p.vagalTone - 25);
               addLog(`Atropine ${res.ml} mL IV — 미주신경성 서맥 회복`, 'good');
+              if (wasBrady) awardOnce('fix_brady', 6, 'Atropine으로 미주신경성 서맥 회복', true);
             }
           } else if (key === 'epinephrine') {
             st.hr = clamp(st.hr + 38 * mult, 30, 240); st.map = clamp(st.map + 24 * mult, 25, 175);
             p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + (n >= 2 || res.status === 'over' ? 42 : 20), 0, 100);
+            if (n >= 2) hadToxicOrContra = true;
             addLog(`Epinephrine ${res.ml} mL IV (${n}회) — 혈압·심박 급상승${p.arrhythmiaRisk >= 72 ? ' (VT 심실빈맥 유발!)' : ''}`, n >= 2 ? 'danger' : 'warn');
           } else if (key === 'ephedrine') {
+            const wasLowMap = st.map < 65;
             const pen = p.arterialPH < 7.20 ? 0.45 : 1.0;
             st.map = clamp(st.map + Math.round(16 * mult * pen), 25, 160); p.svr = clamp(p.svr + Math.round(14 * mult * pen), 40, 160); p.contractility = clamp(p.contractility + Math.round(8 * mult * pen), 40, 130); p.vo2 = clamp(p.vo2 + 10, 70, 200);
             p.arrhythmiaRisk += (n >= 3 || res.status === 'over') ? 26 : 8;
+            if (n >= 3) hadToxicOrContra = true;
             addLog(`Ephedrine ${res.ml} mL IV — MAP 상승${pen < 1 ? ' (산증으로 반응 저하)' : ''}`, pen < 1 ? 'warn' : 'good');
+            if (wasLowMap && st.map >= 68) awardOnce('fix_hypotension', 6, 'Ephedrine으로 저혈압 교정', true);
           } else if (key === 'prbc') {
+            const needed = p.pcv < 26 || p.preloadVol < 80 || p.albumin < 2.2;
             p.pcv = clamp(p.pcv + 6 * mult, 12, 65); p.albumin = clamp(p.albumin + 0.4 * mult, 1.2, 4.8);
             p.preloadVol = clamp(p.preloadVol + 14 * mult, 45, 140); p.ionizedCa = clamp(p.ionizedCa - 0.08 * mult, 0.7, 1.6);
-            if (st.caseId === 'cardiac' || n >= 3) { p.lungWater += 18; st.spo2 -= 5; addLog(`pRBC/Colloid 과부하(${res.ml} mL) → 폐수종(TACO) + 구연산 저칼슘!`, 'danger'); }
-            else { st.map += 14; p.arrhythmiaRisk = Math.max(10, p.arrhythmiaRisk - 15); addLog(`pRBC/Colloid ${res.ml} mL — PCV(${p.pcv.toFixed(1)}%)·Alb(${p.albumin.toFixed(1)})·관류 회복`, 'good'); }
+            if (st.caseId === 'cardiac' || n >= 3) { hadToxicOrContra = true; p.lungWater += 18; st.spo2 -= 5; addLog(`pRBC/Colloid 과부하(${res.ml} mL) → 폐수종(TACO) + 구연산 저칼슘!`, 'danger'); }
+            else {
+              st.map += 14; p.arrhythmiaRisk = Math.max(10, p.arrhythmiaRisk - 15);
+              addLog(`pRBC/Colloid ${res.ml} mL — PCV(${p.pcv.toFixed(1)}%)·Alb(${p.albumin.toFixed(1)})·관류 회복`, 'good');
+              if (needed && awardOnce('fix_anemia', 8, 'pRBC/Colloid로 빈혈·저혈량 관류 회복', true)) showToast('빈혈·출혈 관류 회복! +8점', 'good');
+            }
           } else if (key === 'bicarb') {
+            const needed = p.baseExcess < -4 && st.etco2 <= 48;
             st.etco2 = clamp(st.etco2 + (st.etco2 > 48 ? 10 : 4), 18, 92);
             p.baseExcess = clamp(p.baseExcess + 4.5 * mult, -22, 16); p.serumK = clamp(p.serumK - 0.5 * mult, 2.5, 9.5); p.ionizedCa = clamp(p.ionizedCa - 0.07 * mult, 0.7, 1.6);
+            if (st.etco2 > 52) hadToxicOrContra = true;
             addLog(`NaHCO₃ ${res.ml} mL — BE ${p.baseExcess.toFixed(1)} 교정 (일시적 ETCO₂ 상승 주의)`, st.etco2 > 52 ? 'danger' : 'good');
+            if (needed) awardOnce('fix_acidosis', 8, 'NaHCO₃로 대사성 산증 교정', true);
           } else if (key === 'furosemide') {
             p.preloadVol = clamp(p.preloadVol - 12 * mult, 40, 130); p.serumK = clamp(p.serumK - 0.4 * mult, 2.4, 9.5);
-            if (p.lungWater > 12) { p.lungWater = Math.max(0, p.lungWater - 20 * mult); st.spo2 = clamp(st.spo2 + 6, 60, 100); addLog(`Furosemide ${res.ml} mL — 폐수종 이뇨 및 산소화 회복!`, 'good'); }
-            else { st.map = clamp(st.map - 14, 25, 140); addLog(`Furosemide 과다/불필요 투여(${res.ml} mL) → 저혈량 쇼크·저칼륨!`, 'danger'); }
+            if (p.lungWater > 12) {
+              p.lungWater = Math.max(0, p.lungWater - 20 * mult); st.spo2 = clamp(st.spo2 + 6, 60, 100);
+              addLog(`Furosemide ${res.ml} mL — 폐수종 이뇨 및 산소화 회복!`, 'good');
+              if (awardOnce('fix_edema', 10, 'Furosemide로 급성 폐수종 이뇨·산소화 회복', true)) showToast('폐수종 해결 성공! +10점', 'good');
+            } else {
+              hadToxicOrContra = true;
+              st.map = clamp(st.map - 14, 25, 140);
+              addLog(`Furosemide 과다/불필요 투여(${res.ml} mL) → 저혈량 쇼크·저칼륨!`, 'danger');
+            }
           } else if (key === 'naloxone') {
             p.opioidTone = 0; p.nociception += 38; st.hr += 26; st.map += 18;
             addLog(`Naloxone ${res.ml} mL — 오피오이드 역전 (진통 소실·교감 항진 주의)`, 'warn');
@@ -1878,6 +2039,15 @@
             p.alpha2Tone = 0; p.svr -= 24; st.hr += 24; st.map -= 16;
             addLog(`Atipamezole ${res.ml} mL — α₂ 역전 (혈관확장성 저혈압·각성 주의)`, 'warn');
           }
+
+          // +2점 보너스: 직접 용량 계산 모드에서 정확하게 투여한 경우
+          if (res.manualCalc && res.status === 'exact' && !hadToxicOrContra) {
+            st.manualCalcCount += 1;
+            st.goods.push(`[직접계산 +2점] ${DRUG_DB[key].name} ${res.ml} mL 정확 계산`);
+            awardScore(2, `${DRUG_DB[key].name} 용량 직접 계산 정확 투여`, false);
+            showToast(`직접 용량 계산 보너스 +2점! (총 ${st.score}점)`, 'good');
+          }
+
           updateRhythm(); syncHeaderUI();
         });
       }
@@ -1887,6 +2057,7 @@
           st.iso = 0; st.o2 = 3.0;
           st.goods.push('[회복] 기화기 OFF + 고유량 산소 세척');
           addLog('[회복] 기화기 OFF 및 O₂ 3.0 L/min 세척 시작', 'good');
+          if (awardOnce('s3_iso_off', 5, '기화기 OFF 및 고유량 O₂ 세척 시작', false)) showToast(`기화기 OFF 세척! +5점`, 'good');
           renderStagePanel();
         });
         document.getElementById('btn-s3-warm').addEventListener('click', () => { st.warming = !st.warming; renderStagePanel(); });
@@ -1894,13 +2065,14 @@
           if (st.extubated) return;
           const reqSw = st.caseId === 'boas_icp' ? 3 : 2;
           if (st.etIso > 0.45 || st.swallowCount < reqSw) {
-            st.score -= 20; st.spo2 = clamp(st.spo2 - 14, 68, 100);
+            deductScore(10); st.spo2 = clamp(st.spo2 - 14, 68, 100);
             st.mistakes.push(`[회복] 조기 발관(EtIso ${st.etIso.toFixed(2)}%, 연하반사 ${st.swallowCount}회) → 상부기도 폐쇄·저산소 발생`);
-            showToast('조기 발관! 상부기도 폐쇄로 SpO₂ 급락!', 'danger');
+            showToast('조기 발관! 상부기도 폐쇄로 SpO₂ 급락! (-10점)', 'danger');
             addLog('[회복] 조기 발관으로 상부기도 폐쇄·저산소 발생!', 'danger');
           } else {
             st.goods.push(`[회복] 적정 타이밍 발관 성공 (EtIso ${st.etIso.toFixed(2)}%, 연하반사 ${st.swallowCount}회)`);
-            showToast('적정 시점 발관 완료!', 'good');
+            awardOnce('s3_extub', 10, '적정 타이밍 안전 발관 완료', true);
+            showToast(`적정 시점 발관 성공! +10점 (총 ${st.score}점)`, 'good');
             addLog('[회복] 안전 발관 완료', 'good');
           }
           st.extubated = true; renderStagePanel();
@@ -1944,6 +2116,7 @@
           }
           st.dischargeDone = true;
           st.goods.push('[회복] 보호자 퇴원 주의사항 안내 완료');
+          awardOnce('s3_discharge', 5, '보호자 퇴원 주의사항 안내 완료', false);
           chat.innerHTML += `<div class="chat-msg owner"><strong>보호자:</strong> ${reply}</div>`;
           chat.scrollTop = chat.scrollHeight;
         });
@@ -1994,6 +2167,9 @@
         if (st.caseId === 'boas_icp') {
           const icpT = 16 + Math.max(0, st.etco2 - 38) * 0.7;
           p.icp = clamp(p.icp + (icpT - p.icp) * 0.1 * dt, 8, 42);
+          if (st.stage === 2 && st.etco2 <= 38 && p.icp <= 18) {
+            awardOnce('fix_icp_cushing', 8, '적정 환기로 두개내압(ICP)·쿠싱 반사 완화', true);
+          }
         }
 
         // Stage 3 swallowing recovery
@@ -2025,16 +2201,57 @@
           const targetCont = clamp((st.caseId === 'cardiac' ? 76 : 98) - Math.max(0, st.etIso - 1.5) * 12, 40, 130);
           p.contractility = clamp(p.contractility + (targetCont - p.contractility) * 0.08 * dt, 40, 130);
         }
-        // Hemodynamic drift in Stage 2
+        // Hemodynamic drift, dynamic crises & score milestones in Stage 2
         if (st.stage === 2) {
           const mac = st.etIso / (st.species === 'cat' ? 1.63 : 1.28);
           const mapT = clamp(86 - Math.max(0, mac - 1.1) * 28 - Math.max(0, 95 - p.preloadVol) * 0.55 - Math.max(0, 100 - p.svr) * 0.45 + (p.icp > 23 ? 22 : 0), 22, 165);
           st.map = clamp(st.map + (mapT - st.map) * 0.08 * dt, 18, 175);
           const spo2T = clamp(99 - Math.max(0, p.lungWater - 14) * 0.38 - (st.etco2 > 60 ? 6 : 0), 62, 100);
           st.spo2 = clamp(st.spo2 + (spo2T - st.spo2) * 0.12 * dt, 58, 100);
-          const isStableNow = st.map >= 65 && st.spo2 >= 94 && st.etco2 >= 30 && st.etco2 <= 48 && st.rhythm === 'NSR' && p.serumK <= 6.2 && p.bloodGlucose >= 65;
+
+          // Stage 2 Dynamic Crisis Spawner (maintenance.html-style score earning!)
+          if (!st.activeCrisis && st.maintSec >= st.nextCrisisSec) {
+            const pool = [
+              { id: 'hypotension', label: '돌발 저혈압 (MAP 급락)', trigger: () => { st.map = Math.min(st.map, 54); p.svr = Math.min(p.svr, 68); }, check: () => st.map >= 68 },
+              { id: 'hypercapnia', label: '저환기 · 고탄산혈증 (ETCO₂↑)', trigger: () => { st.rr = 7; st.etco2 = Math.max(st.etco2, 58); }, check: () => st.etco2 <= 45 },
+              { id: 'vpc_burst',   label: '심실조기수축/빈맥(VPC/VT) 발현', trigger: () => { p.arrhythmiaRisk = Math.max(p.arrhythmiaRisk, 58); }, check: () => st.rhythm === 'NSR' && p.arrhythmiaRisk < 40 },
+              { id: 'apl_closed',  label: 'APL(Pop-off) 밸브 잠김 위험!', trigger: () => { st.aplOpen = false; }, check: () => st.aplOpen === true },
+              { id: 'hypothermia', label: '수술 중 저체온 진행 (가온 OFF)', trigger: () => { st.warming = false; st.bt = Math.min(st.bt, 36.1); }, check: () => st.warming === true && st.bt >= 36.5 }
+            ].filter(x => x.id !== st.lastCrisisType);
+            const pick = pool[Math.floor(Math.random() * pool.length)];
+            if (pick) {
+              pick.trigger();
+              st.activeCrisis = pick;
+              st.lastCrisisType = pick.id;
+              st.nextCrisisSec = st.maintSec + 22;
+              addLog(`🚨 [돌발 위기] ${pick.label} — 신속히 교정하세요! (해결 시 +6점)`, 'danger');
+              showToast(`돌발 위기: ${pick.label}!`, 'danger');
+              renderStagePanel();
+            }
+          } else if (st.activeCrisis && st.activeCrisis.check()) {
+            const resolved = st.activeCrisis;
+            st.activeCrisis = null;
+            st.nextCrisisSec = st.maintSec + 20;
+            st.goods.push(`[돌발 위기 해결] ${resolved.label}`);
+            awardScore(6, `돌발 위기 '${resolved.label}' 해결 완료`, true);
+            showToast(`돌발 위기 해결! +6점 (총 ${st.score}점)`, 'good');
+            const cb = document.getElementById('crisis-banner');
+            if (cb) cb.style.display = 'none';
+          }
+
+          const isStableNow = st.map >= 65 && st.spo2 >= 94 && st.etco2 >= 30 && st.etco2 <= 48 && st.rhythm === 'NSR' && p.serumK <= 6.2 && p.bloodGlucose >= 65 && st.aplOpen;
           if (isStableNow) st.maintStableSec += dt;
           else st.maintUnstableSec += dt;
+
+          // Stable maintenance milestone bonuses (+5점 at 15s, 30s, 45s, then every +30s)
+          const milestoneTargets = [15, 30, 45, 75, 105, 135, 165, 195];
+          while (st.stableMilestoneIdx < milestoneTargets.length && st.maintStableSec >= milestoneTargets[st.stableMilestoneIdx]) {
+            const secMark = milestoneTargets[st.stableMilestoneIdx];
+            st.stableMilestoneIdx += 1;
+            awardScore(5, `유지기 안정 바이탈 ${secMark}초 유지 달성`, false);
+            showToast(`안정 유지 ${secMark}초 달성! +5점 (총 ${st.score}점)`, 'good');
+          }
+
           const mt = document.getElementById('maint-timer');
           if (mt) mt.textContent = Math.floor(st.maintSec);
           const msTxt = document.getElementById('maint-stable-txt');
@@ -2065,7 +2282,11 @@
         const ss = String(Math.floor(st.simSec % 60)).padStart(2, '0');
         document.getElementById('badge-patient').textContent = `${st.species === 'dog' ? '개' : '고양이'} ${c.wt} kg · ${c.asa}`;
         document.getElementById('badge-clock').textContent = `${mm}:${ss}`;
-        document.getElementById('badge-score').textContent = `점수 ${Math.max(0, Math.round(st.score))}`;
+        document.getElementById('badge-score').textContent = `🏆 점수 ${Math.max(0, Math.round(st.score))}`;
+        const bs = document.getElementById('badge-solved');
+        if (bs) bs.textContent = `해결 ${st.solvedCount}건`;
+        const bb = document.getElementById('badge-best');
+        if (bb) bb.textContent = `최고 ${Math.max(0, Math.round(st.bestScore))}`;
         document.getElementById('patient-brief').textContent = c.name;
 
         [1, 2, 3].forEach((n) => {
@@ -2212,6 +2433,7 @@
         document.getElementById('preop-lab-meta').innerHTML = `<strong>${lab.panelLabel}</strong> — ${lab.note}`;
         document.getElementById('preop-lab-body').innerHTML = PreopLabEngine.renderTabHtml(lab, activeLabTab);
         document.getElementById('preop-lab-modal').classList.remove('hidden');
+        awardOnce('preop_lab_checked', 3, '마취 전 혈액검사 사전 확인', false);
       });
       document.getElementById('btn-preop-lab-close').addEventListener('click', () => document.getElementById('preop-lab-modal').classList.add('hidden'));
       document.querySelectorAll('#preop-lab-tabs .lab-tab').forEach((b) => {
@@ -2319,20 +2541,28 @@
       function openFinalReport(failed, failReason) {
         const c = getCaseObj();
         if (!failed) {
-          if (st.iso > 0) { st.score -= 20; st.mistakes.push('[회복 미완료] 기화기를 끄지 않고 종료함 (-20점)'); }
-          if (!st.extubated) { st.score -= 20; st.mistakes.push('[회복 미완료] 발관(Extubation)을 완료하지 않고 종료함 (-20점)'); }
-          if (st.spo2 < 93) { st.score -= 15; st.mistakes.push(`[회복 불안정] 종료 시점 SpO₂ ${Math.round(st.spo2)}% 저산소 상태 (-15점)`); }
-          if (st.bt < 36.5) { st.score -= 10; st.mistakes.push(`[회복 불안정] 종료 시점 저체온(BT ${st.bt.toFixed(1)}°C) (-10점)`); }
+          if (st.iso > 0) { deductScore(12); st.mistakes.push('[회복 미완료] 기화기를 끄지 않고 종료함 (-12점)'); }
+          if (!st.extubated) { deductScore(12); st.mistakes.push('[회복 미완료] 발관(Extubation)을 완료하지 않고 종료함 (-12점)'); }
+          if (st.spo2 < 93) { deductScore(8); st.mistakes.push(`[회복 불안정] 종료 시점 SpO₂ ${Math.round(st.spo2)}% 저산소 상태 (-8점)`); }
+          if (st.bt < 36.5) { deductScore(6); st.mistakes.push(`[회복 불안정] 종료 시점 저체온(BT ${st.bt.toFixed(1)}°C) (-6점)`); }
+          if (st.maintStableSec >= 45 && st.rhythm === 'NSR' && st.extubated && st.iso === 0) {
+            awardOnce('full_cycle_complete', 10, '전주기 실전 마취 안전 완료 보너스', false);
+          }
         }
-        const sc = failed ? 0 : clamp(Math.round(st.score), 0, 100);
-        let grade = failed ? 'F' : (sc >= 90 ? 'S' : sc >= 75 ? 'A' : sc >= 60 ? 'B' : sc >= 40 ? 'C' : 'D');
-        // Never allow S or A if stable maintenance < 45s or final rhythm is abnormal!
-        if (!failed && (st.maintStableSec < 45 || st.rhythm !== 'NSR' || !st.extubated) && (grade === 'S' || grade === 'A')) {
+        const sc = failed ? 0 : Math.max(0, Math.round(st.score));
+        if (sc > st.bestScore) { st.bestScore = sc; savePracticeBest(st.bestScore); }
+        let grade = failed || sc === 0 ? 'F' : (sc >= 110 ? 'S+' : sc >= 85 ? 'S' : sc >= 65 ? 'A' : sc >= 45 ? 'B' : sc >= 25 ? 'C' : 'D');
+        // Never allow S+/S/A if stable maintenance < 45s or final rhythm is abnormal or not extubated!
+        if (!failed && (st.maintStableSec < 45 || st.rhythm !== 'NSR' || !st.extubated) && (grade === 'S+' || grade === 'S' || grade === 'A')) {
           grade = 'B';
         }
         document.getElementById('report-body').innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding:10px; border-radius:10px; background:#020617; border:1px solid #1e293b; margin-bottom:10px;">
-            <div><div style="font-size:11px; color:#94a3b8;">전주기 심화 종합 등급</div><div class="mono" style="font-size:28px; font-weight:900; color:${grade==='F'?'#fb7185':'#fbbf24'};">${grade} <span style="font-size:16px; color:#fff;">(${sc}점)</span></div></div>
+            <div>
+              <div style="font-size:11px; color:#94a3b8;">실전 마취 종합 등급</div>
+              <div class="mono" style="font-size:28px; font-weight:900; color:${grade==='F'?'#fb7185':'#fbbf24'};">${grade} <span style="font-size:16px; color:#fff;">(${sc}점)</span></div>
+              <div style="font-size:10.5px; color:#6ee7b7; margin-top:2px;">해결 ${st.solvedCount}건 · 직접 용량 계산 ${st.manualCalcCount}회 (+${st.manualCalcCount * 2}점) · 최고 ${st.bestScore}점</div>
+            </div>
             <div style="font-size:11.5px; color:#cbd5e1;"><div>${st.species==='dog'?'개':'고양이'} ${c.wt} kg · ${c.name}</div><div style="color:#94a3b8;">최종 리듬 ${st.rhythm} · K⁺ ${st.phys.serumK.toFixed(1)} · pH ${st.phys.arterialPH.toFixed(2)}</div></div>
           </div>
           ${failed ? `<div style="padding:10px; border-radius:8px; background:rgba(136,19,55,0.35); border:1px solid #f43f5e; color:#fecdd3; margin-bottom:8px;"><strong>[실패]</strong> ${failReason}</div>` : ''}
@@ -2349,7 +2579,7 @@
         try {
           const res = await fetch(AI_API_PREFIX + '/debrief', {
             method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-            body: JSON.stringify({ task: 'debrief', species: st.species==='dog'?'개':'고양이', scenario: '전주기 심화 - ' + getCaseObj().name, arrestReason: st.arrested ? '심정지' : (st.abortedByOwner ? '보호자 상담 중단' : '전주기 완료'), finalVitals: { hr: Math.round(st.hr), map: Math.round(st.map), spo2: Math.round(st.spo2), k: st.phys.serumK, ph: st.phys.arterialPH, rhythm: st.rhythm }, recentLogs: st.logs.slice(0, 18).map(l => `[${l.time}] ${l.msg}`) })
+            body: JSON.stringify({ task: 'debrief', species: st.species==='dog'?'개':'고양이', scenario: '실전 마취 - ' + getCaseObj().name, arrestReason: st.arrested ? '심정지' : (st.abortedByOwner ? '보호자 상담 중단' : '전주기 완료'), finalVitals: { hr: Math.round(st.hr), map: Math.round(st.map), spo2: Math.round(st.spo2), k: st.phys.serumK, ph: st.phys.arterialPH, rhythm: st.rhythm }, recentLogs: st.logs.slice(0, 18).map(l => `[${l.time}] ${l.msg}`) })
           });
           const d = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(d.error || 'HTTP ' + res.status);
@@ -2363,7 +2593,7 @@
         try {
           const res = await fetch(AI_API_PREFIX + '/ai', {
             method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-            body: JSON.stringify({ task: 'soap_record', species: st.species==='dog'?'개':'고양이', scenario: '전주기 심화 - ' + getCaseObj().name, duration: `${Math.floor(st.simSec/60)}분`, arrested: st.arrested, arrestReason: st.rhythm, finalVitals: { hr: Math.round(st.hr), map: Math.round(st.map), bt: st.bt.toFixed(1) }, recentLogs: st.logs.slice(0, 18).map(l => `[${l.time}] ${l.msg}`) })
+            body: JSON.stringify({ task: 'soap_record', species: st.species==='dog'?'개':'고양이', scenario: '실전 마취 - ' + getCaseObj().name, duration: `${Math.floor(st.simSec/60)}분`, arrested: st.arrested, arrestReason: st.rhythm, finalVitals: { hr: Math.round(st.hr), map: Math.round(st.map), bt: st.bt.toFixed(1) }, recentLogs: st.logs.slice(0, 18).map(l => `[${l.time}] ${l.msg}`) })
           });
           const d = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(d.error || 'HTTP ' + res.status);
@@ -2386,15 +2616,46 @@
       document.getElementById('btn-calc-toggle').addEventListener('click', () => {
         st.calcMode = !st.calcMode;
         const b = document.getElementById('btn-calc-toggle');
-        b.textContent = st.calcMode ? '계산 ON' : '계산 자동';
-        showToast(st.calcMode ? '실제 약물 용량(mL) 직접 계산 모드 활성화' : '자동 적정 용량 투여 모드로 전환', 'info');
+        b.textContent = st.calcMode ? '🧮 직접계산 ON (+2점)' : '🧮 직접계산 OFF (자동)';
+        b.className = st.calcMode ? 'btn btn-amber' : 'btn';
+        showToast(st.calcMode ? '약물 용량(mL) 직접 계산 모드 활성화! 정확 투여 시 +2점 보너스' : '자동 적정 용량 투여 모드로 전환했습니다.', 'info');
+        renderStagePanel();
       });
       document.getElementById('btn-mode-easy').addEventListener('click', () => {
         st.easyMode = !st.easyMode;
         const b = document.getElementById('btn-mode-easy');
-        b.textContent = st.easyMode ? '초급(상태열림)' : '심화(실전)';
+        b.textContent = st.easyMode ? '초급(상태열림)' : '실전 모드';
         syncHeaderUI();
       });
+      (function initFullscreenBtn() {
+        const fsBtn = document.getElementById('btn-fullscreen');
+        if (!fsBtn) return;
+        const syncFs = (isFull) => {
+          document.body.classList.toggle('immersive-full', isFull);
+          fsBtn.textContent = isFull ? '✕ 전체화면 종료' : '⛶ 전체화면';
+        };
+        fsBtn.addEventListener('click', async () => {
+          const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+          const isImm = document.body.classList.contains('immersive-full');
+          if (fsEl) {
+            try {
+              if (document.exitFullscreen) await document.exitFullscreen();
+              else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            } catch (e) {}
+            syncFs(false);
+            return;
+          }
+          if (isImm) { syncFs(false); return; }
+          const docEl = document.documentElement;
+          try {
+            if (docEl.requestFullscreen) await docEl.requestFullscreen();
+            else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+          } catch (e) {}
+          syncFs(true);
+        });
+        document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) syncFs(false); });
+        document.addEventListener('webkitfullscreenchange', () => { if (!document.webkitFullscreenElement) syncFs(false); });
+      })();
       const openAiCaseModal = setupAiCaseModal(async (customBrief) => {
         const b = document.getElementById('btn-ai-case');
         b.disabled = true; b.textContent = '생성 중...';
@@ -2410,7 +2671,7 @@
             if (d.caseData.species === 'cat' || d.caseData.species === 'dog') st.species = d.caseData.species;
             recordRecentAiCase(d.caseData.title);
             initCase();
-            showToast(`AI 심화 환자 생성 완료: ${d.caseData.title}`, 'good');
+            showToast(`AI 실전 환자 생성 완료: ${d.caseData.title}`, 'good');
           } else throw new Error(d.error || '오류');
         } catch (e) {
           st.aiCase = customBrief ? buildCustomFallbackCase(customBrief, aiCtx) : aiCtx.offlineCase;

@@ -700,34 +700,36 @@
 <body class="min-h-screen antialiased selection:bg-sky-500/30">
 
   <!-- Full-Screen Standby / Start Screen -->
-  <div id="start-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4" role="dialog" aria-modal="true" aria-labelledby="start-title">
-    <div class="w-full max-w-md rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-b from-slate-900 to-slate-950 p-5 text-center shadow-2xl sm:p-6">
-      <div class="mx-auto mb-2.5 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400 ring-2 ring-emerald-500/40">
-        <svg width="26" height="26" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+  <div id="start-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="start-title">
+    <div style="width:100%; max-width:448px; border-radius:16px; border:2px solid rgba(245,158,11,0.45); background:linear-gradient(180deg,#0f172a,#020617); padding:24px 22px; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.65);">
+      <div style="margin:0 auto 12px; width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; background:rgba(245,158,11,0.16); border:2px solid rgba(245,158,11,0.45); color:#fcd34d;">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h3l2-7 4 14 3-9 2 2h4" />
         </svg>
       </div>
-      <div class="text-[10px] font-bold uppercase tracking-widest text-emerald-400">VETERINARY ANESTHESIA MONITOR</div>
-      <h1 id="start-title" class="mt-1 text-2xl font-extrabold tracking-tight text-white">마취 시뮬레이터</h1>
+      <div style="display:inline-block; padding:3px 10px; border-radius:999px; background:rgba(245,158,11,0.16); border:1px solid rgba(245,158,11,0.45); color:#fcd34d; font-size:10px; font-weight:800; letter-spacing:0.1em; margin-bottom:8px;">PHASE 2 · MAINTENANCE MONITORING</div>
+      <h1 id="start-title" style="margin:0; font-size:22px; font-weight:800; color:#fff; letter-spacing:-0.01em;">마취 유지 모니터링 시뮬레이터</h1>
 
-      <div class="mt-4 rounded-xl border border-amber-500/35 bg-amber-950/30 p-3 text-left text-[11px] leading-relaxed text-amber-100">
-        <div class="font-bold text-amber-300">교육·훈련용 안내</div>
-        <p class="mt-1">본 시뮬레이터는 수의학 마취 모니터링의 이해를 돕기 위해 제작된 <strong>교육·훈련용 프로그램</strong>입니다. 생리학적 반응과 약물 효과는 학습 목적에 맞춰 단순화되어 실제 환자의 임상 반응과 다를 수 있으며, 실제 진료·진단·처방의 근거로 사용할 수 없습니다.</p>
+      <div style="margin-top:16px; padding:12px 13px; border-radius:12px; background:rgba(120,53,15,0.28); border:1px solid rgba(245,158,11,0.4); text-align:left; font-size:11.5px; line-height:1.58; color:#fef3c7;">
+        <div style="font-weight:800; color:#fcd34d; margin-bottom:4px;">교육·훈련용 안내</div>
+        본 시뮬레이터는 수의학 마취 모니터링의 이해를 돕기 위해 제작된 <strong>교육·훈련용 프로그램</strong>입니다. 생리학적 반응과 약물 효과는 학습 목적에 맞춰 단순화되어 실제 환자의 임상 반응과 다를 수 있으며, 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
       </div>
 
-      <div class="mt-4 space-y-2.5">
-        <button id="btn-start-sim" type="button" class="w-full rounded-xl bg-emerald-500 py-3 text-sm font-extrabold text-slate-950 shadow-lg transition hover:bg-emerald-400 active:scale-[0.99]">
-          ▶ 시뮬레이터 시작
+      <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
+        <button id="btn-start-sim" type="button" style="width:100%; border-radius:12px; border:none; background:#10b981; padding:12px; font-size:13.5px; font-weight:800; color:#020617; cursor:pointer; box-shadow:0 8px 20px rgba(16,185,129,0.25);">
+          ▶ 유지 시뮬레이터 시작
         </button>
-        <button id="btn-open-credits" type="button" class="w-full rounded-xl border border-slate-700 bg-slate-900 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-slate-800 active:scale-[0.99]">
-          크레딧
-        </button>
-        <button id="btn-go-portal" type="button" class="w-full rounded-xl border border-sky-500/40 bg-sky-500/15 py-2 text-xs font-bold text-sky-200 transition hover:bg-sky-500/25">
-          🏠 시작화면
-        </button>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <button id="btn-open-credits" type="button" style="border-radius:10px; border:1px solid #334155; background:#0f172a; padding:9px; font-size:12px; font-weight:700; color:#e2e8f0; cursor:pointer;">
+            크레딧
+          </button>
+          <button id="btn-go-portal" type="button" style="border-radius:10px; border:1px solid rgba(56,189,248,0.45); background:rgba(14,165,233,0.16); padding:9px; font-size:12px; font-weight:700; color:#bae6fd; cursor:pointer;">
+            🏠 시작화면
+          </button>
+        </div>
       </div>
 
-      <div class="mt-4 text-[10px] text-slate-500">© 2026 DVM 이혁민 · All rights reserved.</div>
+      <div style="margin-top:14px; font-size:10.5px; color:#64748b;">© 2026 DVM 이혁민 · All rights reserved.</div>
     </div>
   </div>
 
@@ -1856,12 +1858,7 @@
       <div style="background:#020617;border:1px solid #1e293b;border-radius:12px;padding:12px;">
         <div style="font-size:12px;font-weight:700;color:#a5b4fc;margin-bottom:4px;">2) 직접 환자 브리핑 입력</div>
         <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;margin-bottom:8px;">품종·연령·체중·수술·기저질환·혈액검사 등을 자유롭게 적으면 맞춤 시나리오를 생성합니다.</div>
-        <textarea id="ai-case-brief-input" rows="3" placeholder="예: 12세 3.5kg 말티즈, MMVD C기, 담낭점액종 절제술 예정. 알부민 2.0, ALP 1400" style="width:100%;box-sizing:border-box;background:#0f172a;border:1px solid #334155;border-radius:9px;padding:9px 10px;color:#f8fafc;font-size:12.5px;line-height:1.45;resize:vertical;outline:none;font-family:inherit;"></textarea>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px;">
-          <button type="button" class="ai-brief-chip" data-brief="5세 5.2kg 코리안숏헤어 수컷, 급성 요도폐색 48시간, K+ 7.5 고칼륨혈증 및 서맥" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">고양이 요도폐색·고K+</button>
-          <button type="button" class="ai-brief-chip" data-brief="8세 32kg 골든리트리버, 비장종양 파열 복강출혈, PCV 20% 빈혈 및 저혈량 쇼크 응급 비장적출술" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">대형견 비장파열·빈혈</button>
-          <button type="button" class="ai-brief-chip" data-brief="13세 3.6kg 말티즈, MMVD C기 폐수종 병력, 담낭파열 패혈성 복막염, Alb 1.9, ALP 1600" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">노령 말티즈 담낭파열</button>
-        </div>
+        <textarea id="ai-case-brief-input" rows="3" placeholder="예: 12세 3.5kg 말티즈, MMVD C기, 담낭점액종 절제술 예정. 알부민 2.0, ALP 1400" style="width:100%;box-sizing:border-box;background:#0f172a;border:1px solid #334155;border-radius:9px;padding:9px 10px;color:#f8fafc;font-size:12.5px;line-height:1.45;resize:vertical;outline:none;font-family:inherit;margin-bottom:10px;"></textarea>
         <button id="ai-case-btn-custom" type="button" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#6366f1;color:#ffffff;font-size:13px;font-weight:800;cursor:pointer;">✦ 입력한 브리핑으로 AI 케이스 생성</button>
       </div>
 
@@ -2020,7 +2017,7 @@
           const brief = (input.value || '').trim();
           if (!brief) {
             statusEl.style.color = '#fbbf24';
-            statusEl.textContent = '환자 브리핑을 먼저 입력하거나 예시 칩을 선택해 주세요.';
+            statusEl.textContent = '환자 브리핑을 먼저 입력해 주세요.';
             input.focus();
             return;
           }

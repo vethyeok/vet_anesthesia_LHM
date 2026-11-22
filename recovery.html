@@ -128,27 +128,39 @@
     .ctrl-tab.active { background: rgba(56,189,248,0.18); color: #7dd3fc; border-color: rgba(56,189,248,0.5); }
     @media (max-width: 640px) { .ctrl-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
+    body.immersive-full .app-wrap { max-width: 100%; padding: 6px; }
   </style>
 </head>
 <body>
   <!-- Standby Start Screen -->
-  <div id="start-screen" class="overlay" role="dialog" aria-modal="true">
-    <div class="modal-card" style="text-align:center; border-color: rgba(56,189,248,0.45);">
-      <div class="logo-box" style="margin: 0 auto 10px; width:46px; height:46px; border-radius:14px;">
+  <div id="start-screen" class="overlay" role="dialog" aria-modal="true" aria-labelledby="start-title">
+    <div style="width:100%; max-width:448px; border-radius:16px; border:2px solid rgba(56,189,248,0.45); background:linear-gradient(180deg,#0f172a,#020617); padding:24px 22px; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.65);">
+      <div style="margin:0 auto 12px; width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; background:rgba(56,189,248,0.16); border:2px solid rgba(56,189,248,0.45); color:#7dd3fc;">
         <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h3l2-7 4 14 3-9 2 2h4"/></svg>
       </div>
-      <div style="font-size:10px; font-weight:800; letter-spacing:0.12em; color:#38bdf8;">PHASE 3 · EMERGENCE &amp; RECOVERY</div>
-      <h1 style="font-size:22px; font-weight:800; color:#fff; margin-top:4px;">마취 종료·회복 시뮬레이터</h1>
-      <div style="margin-top:14px; padding:12px; border-radius:10px; background:rgba(120,53,15,0.28); border:1px solid rgba(245,158,11,0.4); text-align:left; font-size:11px; line-height:1.55; color:#fef3c7;">
-        <strong style="color:#fcd34d;">교육·훈련용 안내</strong><br/>
+      <div style="display:inline-block; padding:3px 10px; border-radius:999px; background:rgba(56,189,248,0.16); border:1px solid rgba(56,189,248,0.45); color:#7dd3fc; font-size:10px; font-weight:800; letter-spacing:0.1em; margin-bottom:8px;">PHASE 3 · EMERGENCE &amp; RECOVERY</div>
+      <h1 id="start-title" style="margin:0; font-size:22px; font-weight:800; color:#fff; letter-spacing:-0.01em;">마취 종료·회복 시뮬레이터</h1>
+
+      <div style="margin-top:16px; padding:12px 13px; border-radius:12px; background:rgba(120,53,15,0.28); border:1px solid rgba(245,158,11,0.4); text-align:left; font-size:11.5px; line-height:1.58; color:#fef3c7;">
+        <div style="font-weight:800; color:#fcd34d; margin-bottom:4px;">교육·훈련용 안내</div>
         본 시뮬레이터는 수의학 마취 모니터링의 이해를 돕기 위해 제작된 <strong>교육·훈련용 프로그램</strong>입니다. 생리학적 반응과 약물 효과는 학습 목적에 맞춰 단순화되어 실제 환자의 임상 반응과 다를 수 있으며, 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
       </div>
+
       <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
-        <button id="btn-start" type="button" class="btn btn-primary" style="padding:11px; font-size:13px;">▶ 회복 시뮬레이터 시작</button>
-        <button id="btn-credits" type="button" class="btn" style="padding:9px;">크레딧</button>
-        <button id="btn-portal" type="button" class="btn btn-sky" style="padding:8px;">🏠 시작화면</button>
+        <button id="btn-start" type="button" style="width:100%; border-radius:12px; border:none; background:#10b981; padding:12px; font-size:13.5px; font-weight:800; color:#020617; cursor:pointer; box-shadow:0 8px 20px rgba(16,185,129,0.25);">
+          ▶ 회복 시뮬레이터 시작
+        </button>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <button id="btn-credits" type="button" style="border-radius:10px; border:1px solid #334155; background:#0f172a; padding:9px; font-size:12px; font-weight:700; color:#e2e8f0; cursor:pointer;">
+            크레딧
+          </button>
+          <button id="btn-portal" type="button" style="border-radius:10px; border:1px solid rgba(56,189,248,0.45); background:rgba(14,165,233,0.16); padding:9px; font-size:12px; font-weight:700; color:#bae6fd; cursor:pointer;">
+            🏠 시작화면
+          </button>
+        </div>
       </div>
-      <div style="margin-top:12px; font-size:10px; color:#64748b;">© 2026 DVM 이혁민 · All rights reserved.</div>
+
+      <div style="margin-top:14px; font-size:10.5px; color:#64748b;">© 2026 DVM 이혁민 · All rights reserved.</div>
     </div>
   </div>
 
@@ -215,6 +227,7 @@
           <option value="emergency">5. [심화] 회복기 응급 (후두경련 / α₂ 급속 길항)</option>
         </select>
         <button id="btn-preop-lab" type="button" class="btn" style="background:rgba(14,165,233,0.18); border-color:rgba(56,189,248,0.45); color:#7dd3fc;">마취전 혈액검사</button>
+        <button id="btn-fullscreen" type="button" class="btn btn-sky" title="전체화면 전환">⛶ 전체화면</button>
         <button id="btn-reset" type="button" class="btn">초기화</button>
         <button id="btn-open-start" type="button" class="btn">시작화면</button>
       </div>
@@ -797,6 +810,36 @@
       document.getElementById('btn-res-close').addEventListener('click', () => document.getElementById('result-modal').classList.add('hidden'));
       document.getElementById('btn-res-restart').addEventListener('click', () => { document.getElementById('result-modal').classList.add('hidden'); resetSim(); });
       document.getElementById('btn-portal').addEventListener('click', () => { if (window.location.protocol.startsWith('http')) window.location.href = './'; });
+
+      (function initFullscreenBtn() {
+        const fsBtn = document.getElementById('btn-fullscreen');
+        if (!fsBtn) return;
+        const syncFs = (isFull) => {
+          document.body.classList.toggle('immersive-full', isFull);
+          fsBtn.textContent = isFull ? '✕ 전체화면 종료' : '⛶ 전체화면';
+        };
+        fsBtn.addEventListener('click', async () => {
+          const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+          const isImm = document.body.classList.contains('immersive-full');
+          if (fsEl) {
+            try {
+              if (document.exitFullscreen) await document.exitFullscreen();
+              else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            } catch (e) {}
+            syncFs(false);
+            return;
+          }
+          if (isImm) { syncFs(false); return; }
+          const docEl = document.documentElement;
+          try {
+            if (docEl.requestFullscreen) await docEl.requestFullscreen();
+            else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+          } catch (e) {}
+          syncFs(true);
+        });
+        document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) syncFs(false); });
+        document.addEventListener('webkitfullscreenchange', () => { if (!document.webkitFullscreenElement) syncFs(false); });
+      })();
 
       
       // === Live Recovery Physiology Ticker & Dual-Speed Waveform Engine (ECG/SpO2 25mm/s, ETCO2 4mm/s) ===

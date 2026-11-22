@@ -121,27 +121,47 @@
     .lab-flag { display: inline-block; padding: 1px 5px; border-radius: 4px; font-size: 9.5px; font-weight: 800; margin-left: 4px; }
     .lab-flag-hi { background: rgba(244,63,94,0.2); color: #fda4af; border: 1px solid rgba(244,63,94,0.45); }
     .lab-flag-lo { background: rgba(56,189,248,0.2); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.45); }
+    .sub-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-bottom: 10px; background: #020617; padding: 4px; border-radius: 9px; border: 1px solid #1e293b; }
+    .sub-tab { padding: 7px 4px; border-radius: 7px; border: 1px solid transparent; background: transparent; color: #94a3b8; font-size: 11px; font-weight: 800; cursor: pointer; text-align: center; white-space: nowrap; transition: 0.15s; }
+    .sub-tab:hover { color: #e2e8f0; background: rgba(30,41,59,0.7); }
+    .sub-tab.active { background: rgba(56,189,248,0.18); color: #7dd3fc; border-color: rgba(56,189,248,0.5); }
+    .adj-chip-wrap { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; padding: 7px 8px; border-radius: 8px; background: #020617; border: 1px solid #1e293b; font-size: 10.5px; }
+    .adj-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 999px; background: rgba(16,185,129,0.16); border: 1px solid rgba(16,185,129,0.4); color: #6ee7b7; font-weight: 700; font-size: 10px; }
+    .opt-btn.applied { border-color: #10b981; background: rgba(16,185,129,0.14); }
+    .opt-btn.applied .ot::after { content: " ✓"; color: #34d399; }
+    body.immersive-full .app-wrap { max-width: 100%; padding: 6px; }
   </style>
 </head>
 <body>
   <!-- Standby Start Screen -->
-  <div id="start-screen" class="overlay" role="dialog" aria-modal="true">
-    <div class="modal-card" style="text-align:center; border-color: rgba(16,185,129,0.45);">
-      <div class="logo-box" style="margin: 0 auto 10px; width:46px; height:46px; border-radius:14px;">
+  <div id="start-screen" class="overlay" role="dialog" aria-modal="true" aria-labelledby="start-title">
+    <div style="width:100%; max-width:448px; border-radius:16px; border:2px solid rgba(16,185,129,0.45); background:linear-gradient(180deg,#0f172a,#020617); padding:24px 22px; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.65);">
+      <div style="margin:0 auto 12px; width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; background:rgba(16,185,129,0.16); border:2px solid rgba(16,185,129,0.45); color:#34d399;">
         <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h3l2-7 4 14 3-9 2 2h4"/></svg>
       </div>
-      <div style="font-size:10px; font-weight:800; letter-spacing:0.12em; color:#34d399;">PHASE 1 · PREMEDICATION &amp; INDUCTION</div>
-      <h1 style="font-size:22px; font-weight:800; color:#fff; margin-top:4px;">마취 도입–전환 시뮬레이터</h1>
-      <div style="margin-top:14px; padding:12px; border-radius:10px; background:rgba(120,53,15,0.28); border:1px solid rgba(245,158,11,0.4); text-align:left; font-size:11px; line-height:1.55; color:#fef3c7;">
-        <strong style="color:#fcd34d;">교육·훈련용 안내</strong><br/>
+      <div style="display:inline-block; padding:3px 10px; border-radius:999px; background:rgba(16,185,129,0.16); border:1px solid rgba(16,185,129,0.45); color:#6ee7b7; font-size:10px; font-weight:800; letter-spacing:0.1em; margin-bottom:8px;">PHASE 1 · INDUCTION &amp; TRANSITION</div>
+      <h1 id="start-title" style="margin:0; font-size:22px; font-weight:800; color:#fff; letter-spacing:-0.01em;">마취 도입–전환 시뮬레이터</h1>
+
+      <div style="margin-top:16px; padding:12px 13px; border-radius:12px; background:rgba(120,53,15,0.28); border:1px solid rgba(245,158,11,0.4); text-align:left; font-size:11.5px; line-height:1.58; color:#fef3c7;">
+        <div style="font-weight:800; color:#fcd34d; margin-bottom:4px;">교육·훈련용 안내</div>
         본 시뮬레이터는 수의학 마취 모니터링의 이해를 돕기 위해 제작된 <strong>교육·훈련용 프로그램</strong>입니다. 생리학적 반응과 약물 효과는 학습 목적에 맞춰 단순화되어 실제 환자의 임상 반응과 다를 수 있으며, 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
       </div>
+
       <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
-        <button id="btn-start" type="button" class="btn btn-primary" style="padding:11px; font-size:13px;">▶ 도입 시뮬레이터 시작</button>
-        <button id="btn-credits" type="button" class="btn" style="padding:9px;">크레딧</button>
-        <button id="btn-portal" type="button" class="btn btn-sky" style="padding:8px;">🏠 시작화면</button>
+        <button id="btn-start" type="button" style="width:100%; border-radius:12px; border:none; background:#10b981; padding:12px; font-size:13.5px; font-weight:800; color:#020617; cursor:pointer; box-shadow:0 8px 20px rgba(16,185,129,0.25);">
+          ▶ 도입 시뮬레이터 시작
+        </button>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <button id="btn-credits" type="button" style="border-radius:10px; border:1px solid #334155; background:#0f172a; padding:9px; font-size:12px; font-weight:700; color:#e2e8f0; cursor:pointer;">
+            크레딧
+          </button>
+          <button id="btn-portal" type="button" style="border-radius:10px; border:1px solid rgba(56,189,248,0.45); background:rgba(14,165,233,0.16); padding:9px; font-size:12px; font-weight:700; color:#bae6fd; cursor:pointer;">
+            🏠 시작화면
+          </button>
+        </div>
       </div>
-      <div style="margin-top:12px; font-size:10px; color:#64748b;">© 2026 DVM 이혁민 · All rights reserved.</div>
+
+      <div style="margin-top:14px; font-size:10.5px; color:#64748b;">© 2026 DVM 이혁민 · All rights reserved.</div>
     </div>
   </div>
 
@@ -193,7 +213,7 @@
         </div>
         <div>
           <div class="title">마취 도입–전환 시뮬레이터</div>
-          <div class="sub">전처치 · 전산소화 · 유도 · 삽관 · 유지 전환</div>
+          <div class="sub">전처치 · 수액·안정화 · 전산소화 · 유도 · 삽관 · 유지 전환</div>
         </div>
       </div>
       <div class="controls-row">
@@ -210,6 +230,7 @@
         </select>
         <button id="btn-ai-new-case" type="button" class="btn btn-indigo">✦ AI 랜덤환자</button>
         <button id="btn-preop-lab" type="button" class="btn" style="background:rgba(14,165,233,0.18); border-color:rgba(56,189,248,0.45); color:#7dd3fc;">마취전 혈액검사</button>
+        <button id="btn-fullscreen" type="button" class="btn btn-sky" title="전체화면 전환">⛶ 전체화면</button>
         <button id="btn-reset" type="button" class="btn">초기화</button>
         <button id="btn-open-start" type="button" class="btn">시작화면</button>
       </div>
@@ -218,7 +239,7 @@
     <!-- 6-Stage Stepper -->
     <div class="stepper" id="stepper">
       <div class="step-pill active" data-step="1">1. 평가·문진</div>
-      <div class="step-pill" data-step="2">2. 전처치</div>
+      <div class="step-pill" data-step="2">2. 전처치·수액·약물</div>
       <div class="step-pill" data-step="3">3. 전산소화</div>
       <div class="step-pill" data-step="4">4. 유도제</div>
       <div class="step-pill" data-step="5">5. 삽관·확인</div>
@@ -314,12 +335,7 @@
       <div style="background:#020617;border:1px solid #1e293b;border-radius:12px;padding:12px;">
         <div style="font-size:12px;font-weight:700;color:#a5b4fc;margin-bottom:4px;">2) 직접 환자 브리핑 입력</div>
         <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;margin-bottom:8px;">품종·연령·체중·수술·기저질환·혈액검사 등을 자유롭게 적으면 맞춤 시나리오를 생성합니다.</div>
-        <textarea id="ai-case-brief-input" rows="3" placeholder="예: 12세 3.5kg 말티즈, MMVD C기, 담낭점액종 절제술 예정. 알부민 2.0, ALP 1400" style="width:100%;box-sizing:border-box;background:#0f172a;border:1px solid #334155;border-radius:9px;padding:9px 10px;color:#f8fafc;font-size:12.5px;line-height:1.45;resize:vertical;outline:none;font-family:inherit;"></textarea>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px;">
-          <button type="button" class="ai-brief-chip" data-brief="5세 5.2kg 코리안숏헤어 수컷, 급성 요도폐색 48시간, K+ 7.5 고칼륨혈증 및 서맥" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">고양이 요도폐색·고K+</button>
-          <button type="button" class="ai-brief-chip" data-brief="8세 32kg 골든리트리버, 비장종양 파열 복강출혈, PCV 20% 빈혈 및 저혈량 쇼크 응급 비장적출술" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">대형견 비장파열·빈혈</button>
-          <button type="button" class="ai-brief-chip" data-brief="13세 3.6kg 말티즈, MMVD C기 폐수종 병력, 담낭파열 패혈성 복막염, Alb 1.9, ALP 1600" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">노령 말티즈 담낭파열</button>
-        </div>
+        <textarea id="ai-case-brief-input" rows="3" placeholder="예: 12세 3.5kg 말티즈, MMVD C기, 담낭점액종 절제술 예정. 알부민 2.0, ALP 1400" style="width:100%;box-sizing:border-box;background:#0f172a;border:1px solid #334155;border-radius:9px;padding:9px 10px;color:#f8fafc;font-size:12.5px;line-height:1.45;resize:vertical;outline:none;font-family:inherit;margin-bottom:10px;"></textarea>
         <button id="ai-case-btn-custom" type="button" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#6366f1;color:#ffffff;font-size:13px;font-weight:800;cursor:pointer;">✦ 입력한 브리핑으로 AI 케이스 생성</button>
       </div>
 
@@ -478,7 +494,7 @@
           const brief = (input.value || '').trim();
           if (!brief) {
             statusEl.style.color = '#fbbf24';
-            statusEl.textContent = '환자 브리핑을 먼저 입력하거나 예시 칩을 선택해 주세요.';
+            statusEl.textContent = '환자 브리핑을 먼저 입력해 주세요.';
             input.focus();
             return;
           }
@@ -542,12 +558,50 @@
         }
       };
 
+      const PREOP_FLUID_ITEMS = [
+        { id: 'cryst_bolus', name: '결정질 볼루스 (LRS/NaCl 10 mL/kg)', desc: '탈수·저혈량·GDV·패혈증 쇼크 전처치 수액 소생 (심부전 시 폐수종 주의!)' },
+        { id: 'colloid',     name: '교질액 (Colloid 3–5 mL/kg)', desc: '저알부민·저혈압 시 혈관 내 용적 유지 (심부전 과부하 주의)' },
+        { id: 'prbc',        name: '농축적혈구 (pRBC 5–10 mL/kg)', desc: '중증 빈혈(PCV < 22%)·출혈 환자 산소운반능 선교정' },
+        { id: 'mannitol',    name: 'Mannitol / 3% 고장성 식염수', desc: '두개내압(ICP) 상승 완화 · 뇌부종 선처치 (탈수·심부전 주의)' }
+      ];
+
+      const PREOP_ADJUNCT_GROUPS = [
+        {
+          title: '항구토 · 위장관 보호',
+          items: [
+            { id: 'maropitant',   name: 'Maropitant (Cerenia 1 mg/kg)', desc: '구토·오연 예방 (단두종·GDV·오피오이드 구토 차단, MAC 소폭 절감)' },
+            { id: 'ondansetron',  name: 'Ondansetron (0.5 mg/kg IV)',   desc: '강력한 5-HT₃ 항구토제 (구토·위장관 질환 선처치)' },
+            { id: 'pantoprazole', name: 'Pantoprazole / Famotidine IV', desc: '위산 분비 억제 · 식도역류성 식도염 예방 (단두종·GDV·복부수술)' }
+          ]
+        },
+        {
+          title: '예방적 항생제 (수술 절개 30분 전)',
+          items: [
+            { id: 'cefazolin', name: 'Cefazolin (22 mg/kg IV)', desc: '정형·일반외과 표준 예방적 항생제' },
+            { id: 'amp_sulb',  name: 'Ampicillin-Sulbactam IV', desc: 'GDV·담낭파열·복막염·장수술 광범위 항생제' }
+          ]
+        },
+        {
+          title: '전해질 · 대사 · 심폐 안정화',
+          items: [
+            { id: 'calgluc',       name: '10% Ca-Gluconate (slow IV)', desc: '고칼륨혈증(K⁺↑) 심근 막안정화 (유도 전 심정지 예방)' },
+            { id: 'dextrose',      name: '50% Dextrose (희석 IV)',     desc: '저혈당(Glu < 70)·패혈증·어린 개체·고칼륨 보조 교정' },
+            { id: 'furosemide',    name: 'Furosemide (1–2 mg/kg IV)',  desc: '심부전(MMVD/HCM) 폐수종 울혈 완화 (탈수·쇼크 금기)' },
+            { id: 'lidocaine',     name: 'Lidocaine 2% (2 mg/kg IV)',  desc: 'GDV/쇼크 심실부정맥(VPC) 예방·진통 보조 (고양이 저용량 주의)' },
+            { id: 'ephedrine',     name: 'Ephedrine (0.05–0.1 mg/kg IV)', desc: '유도 전 중증 저혈압(MAP < 65) 일시 승압 안정화' },
+            { id: 'atropine',      name: 'Atropine (0.02 mg/kg IV)',   desc: '심한 미주신경성 서맥 교정 (고칼륨·α₂·고양이 HCM 빈맥 주의)' },
+            { id: 'dexamethasone', name: 'Dexamethasone (0.1 mg/kg IV)', desc: '단두종(BOAS) 상부기도 부종 예방 · 아나필락시스 완화' }
+          ]
+        }
+      ];
+
       const st = {
         species: 'dog', caseId: 'routine', customCase: null,
-        step: 1, score: 100, paused: true,
+        step: 1, step2Tab: 'premed', score: 100, paused: true,
         hr: 105, map: 92, spo2: 99, rr: 20, etco2: 0,
         intubated: false, esophageal: false, laryngospasm: false, apnea: false,
         premedSed: 'midaz', premedOpi: 'methadone',
+        preFluidMaint: 'std', preFluidsGiven: [], preAdjuncts: [],
         preox: true, indDrug: 'propofol', indSpeed: 'slow',
         tubeSize: 'fit', lidoSpray: false, cuffInflated: false,
         o2Flow: 1.5, isoInit: 1.5, aplOpen: true,
@@ -610,10 +664,12 @@
 
       function resetSim() {
         const c = getCase();
-        st.step = 1; st.score = 100;
+        st.step = 1; st.step2Tab = 'premed'; st.score = 100;
         st.hr = c.hr; st.map = c.map; st.spo2 = c.spo2; st.rr = c.rr; st.etco2 = 40;
         st.intubated = false; st.esophageal = false; st.laryngospasm = false; st.apnea = false;
         st.premedSed = 'midaz'; st.premedOpi = 'methadone';
+        st.preFluidMaint = st.caseId === 'cardiac' ? 'restrict' : 'std';
+        st.preFluidsGiven = []; st.preAdjuncts = [];
         st.preox = true; st.indDrug = 'propofol'; st.indSpeed = 'slow';
         st.tubeSize = 'fit'; st.lidoSpray = false; st.cuffInflated = false;
         st.o2Flow = 1.5; st.isoInit = 1.5; st.aplOpen = true;
@@ -625,12 +681,222 @@
         renderStep();
       }
 
+      function getPreopLabel(id) {
+        const f = PREOP_FLUID_ITEMS.find(x => x.id === id);
+        if (f) return f.name.split(' (')[0];
+        for (const g of PREOP_ADJUNCT_GROUPS) {
+          const a = g.items.find(x => x.id === id);
+          if (a) return a.name.split(' (')[0];
+        }
+        return id;
+      }
+
+      function applyPreopFluid(fid) {
+        const c = getCase();
+        const lab = (c && c.lab) || {};
+        const isCardiac = st.caseId === 'cardiac' || /MMVD|HCM|심부전|폐수종/i.test(c.desc || c.name || '');
+        const isShock = st.caseId === 'gdv' || st.map < 68 || /쇼크|GDV|패혈|출혈|탈수/i.test(c.desc || c.name || '');
+        const isAnemia = (lab.HCT && lab.HCT < 26) || /빈혈|출혈|비장/i.test(c.desc || c.name || '');
+        const isIcp = (st.caseId === 'icp' && st.species === 'dog') || /두개내압|ICP|뇌종양/i.test(c.desc || c.name || '');
+        const already = st.preFluidsGiven.includes(fid);
+        if (already) {
+          setAlarm(`${getPreopLabel(fid)}은(는) 이미 마취 전 선처치로 투여했습니다.`, 'warn');
+          return;
+        }
+        st.preFluidsGiven.push(fid);
+        if (fid === 'cryst_bolus') {
+          if (isCardiac) {
+            st.spo2 = Math.max(84, st.spo2 - 6);
+            st.rr = Math.min(44, st.rr + 8);
+            st.score -= 16;
+            st.mistakes.push('심장병(MMVD/HCM) 환자에서 마취 전 결정질 볼루스 투여 → 폐수종·호흡곤란 악화');
+            setAlarm('경고! 심장병 환자에서 결정질 수액 볼루스 투여로 폐수종(SpO₂ 하강·빈호흡)이 유발되었습니다!', 'danger');
+            addLog('[선처치 수액 경고] 결정질 볼루스 10 mL/kg → 심부전 환자 수액 과부하!', 'danger');
+          } else {
+            st.map = Math.min(125, st.map + (isShock ? 12 : 5));
+            st.hr = Math.max(55, st.hr - (isShock ? 14 : 4));
+            if (isShock) st.goodPoints.push('유도 전 결정질 수액 볼루스로 저혈량·저혈압을 선행 교정함');
+            setAlarm(isShock ? '결정질 볼루스 투여 완료 — 유도 전 혈압(MAP) 상승 및 빈맥 완화!' : '결정질 볼루스 10 mL/kg 투여 완료.', 'good');
+            addLog('[마취 전 수액] 결정질 볼루스(LRS/NaCl 10 mL/kg) IV 투여', 'good');
+          }
+        } else if (fid === 'colloid') {
+          if (isCardiac) {
+            st.spo2 = Math.max(85, st.spo2 - 5);
+            st.score -= 14;
+            st.mistakes.push('심장병 환자에서 교질액(Colloid) 볼루스 투여 → 혈관 내 용적 과부하');
+            setAlarm('경고! 심부전 환자에서 교질액 투여는 폐수종 위험을 높입니다!', 'danger');
+            addLog('[선처치 수액 경고] 교질액 투여 → 심장병 과부하', 'danger');
+          } else {
+            st.map = Math.min(128, st.map + 10);
+            st.hr = Math.max(55, st.hr - 10);
+            if (isShock || (lab.ALB && lab.ALB < 2.4)) st.goodPoints.push('저알부민/쇼크 환자에서 교질액(Colloid)으로 혈관 내 용적 안정화');
+            setAlarm('교질액(Colloid 3–5 mL/kg) 투여 완료 — 혈압(MAP) 및 관류 개선.', 'good');
+            addLog('[마취 전 수액] 교질액(Colloid 3–5 mL/kg) IV 투여', 'good');
+          }
+        } else if (fid === 'prbc') {
+          if (isCardiac && !isAnemia) {
+            st.spo2 = Math.max(87, st.spo2 - 4);
+            st.score -= 10;
+            st.mistakes.push('빈혈이 없는 심장병 환자에서 불필요한 pRBC 수혈 → TACO(수혈 관련 과부하) 위험');
+            setAlarm('주의! 빈혈 소견이 없는 심부전 환자에서 수혈은 과부하(TACO)를 유발합니다.', 'warn');
+            addLog('[마취 전 수혈 주의] 불필요한 pRBC 투여 (TACO 위험)', 'warn');
+          } else {
+            st.map = Math.min(125, st.map + 9);
+            st.spo2 = Math.min(100, st.spo2 + 2);
+            st.hr = Math.max(60, st.hr - 10);
+            if (isAnemia) st.goodPoints.push('빈혈/출혈 환자에서 유도 전 pRBC 수혈로 산소운반능 선교정');
+            setAlarm(isAnemia ? 'pRBC 수혈 시작 — 빈혈 환자의 관류와 산소운반능이 개선됩니다.' : 'pRBC 수혈 투여 기록됨 (실제 임상에서는 PCV·혈액형 확인 필수).', isAnemia ? 'good' : 'info');
+            addLog('[마취 전 수혈] 농축적혈구(pRBC) IV 투여', isAnemia ? 'good' : 'info');
+          }
+        } else if (fid === 'mannitol') {
+          if (isIcp) {
+            st.map = Math.max(72, st.map - 8);
+            st.hr = Math.min(115, st.hr + 10);
+            st.goodPoints.push('두개내압(ICP) 상승 환자에서 Mannitol/고장성 식염수로 뇌압 선완화');
+            setAlarm('Mannitol / 고장성 식염수 투여 완료 — 두개내압(ICP) 및 쿠싱 반사 완화!', 'good');
+            addLog('[마취 전 수액] Mannitol / 3% 고장성 식염수 투여 (ICP 감소)', 'good');
+          } else if (isCardiac) {
+            st.spo2 = Math.max(86, st.spo2 - 5);
+            st.score -= 10;
+            st.mistakes.push('심부전 환자에서 불필요한 Mannitol 투여 → 일시적 혈량 급증·폐수종 위험');
+            setAlarm('주의! 심부전 환자에서 Mannitol은 초기 혈관 내 용적 증가로 폐수종을 악화시킬 수 있습니다.', 'danger');
+            addLog('[선처치 경고] 심부전 환자 Mannitol 투여', 'danger');
+          } else {
+            st.map = Math.max(55, st.map - 5);
+            addLog('[마취 전 수액] Mannitol / 3% 고장성 식염수 투여 (삼투성 이뇨 주의)', 'warn');
+            setAlarm('Mannitol 투여됨 — 뇌압 상승 적응증이 아니면 탈수·전해질 변동에 주의하세요.', 'warn');
+          }
+        }
+        updateVitalsUI();
+        renderStep();
+      }
+
+      function applyPreopAdjunct(aid) {
+        const c = getCase();
+        const lab = (c && c.lab) || {};
+        const descAll = `${c.name || ''} ${c.desc || ''}`;
+        const isCardiac = st.caseId === 'cardiac' || /MMVD|HCM|심부전|폐수종/i.test(descAll);
+        const isShock = st.caseId === 'gdv' || st.map < 68 || /쇼크|GDV|패혈|출혈/i.test(descAll);
+        const isBoas = st.caseId === 'boas' || /단두종|BOAS|프렌치불독|퍼그|시츄/i.test(descAll);
+        const isHighK = (lab.K && lab.K >= 6.0) || /고칼륨|요도폐색|K\+\s*[6789]/i.test(descAll);
+        const isLowGlu = (lab.Glu && lab.Glu < 70) || /저혈당|인슐린종|패혈|담낭파열/i.test(descAll);
+        const already = st.preAdjuncts.includes(aid);
+        if (already) {
+          setAlarm(`${getPreopLabel(aid)}은(는) 이미 투여 완료되었습니다.`, 'warn');
+          return;
+        }
+        st.preAdjuncts.push(aid);
+
+        if (aid === 'maropitant' || aid === 'ondansetron' || aid === 'pantoprazole') {
+          if (isBoas || st.caseId === 'gdv' || st.caseId === 'icp') {
+            st.goodPoints.push(`구토·역류 고위험 환자에서 ${getPreopLabel(aid)} 선처치로 오연 예방`);
+          }
+          setAlarm(`${getPreopLabel(aid)} 투여 완료 — 마취 유도 전후 구토·위식도 역류 위험을 낮춥니다.`, 'good');
+          addLog(`[마취 전 약물] ${getPreopLabel(aid)} 투여 (항구토/위장관 보호)`, 'good');
+        } else if (aid === 'cefazolin' || aid === 'amp_sulb') {
+          if ((aid === 'amp_sulb' && isShock) || (aid === 'cefazolin' && !isShock)) {
+            st.goodPoints.push(`수술 절개 전 예방적 항생제(${getPreopLabel(aid)}) 적기 투여`);
+          }
+          setAlarm(`${getPreopLabel(aid)} IV 투여 완료 — 수술 절개 30분 전 예방적 혈중 농도 확보.`, 'good');
+          addLog(`[마취 전 항생제] ${getPreopLabel(aid)} IV 투여`, 'good');
+        } else if (aid === 'calgluc') {
+          if (isHighK) {
+            st.hr = Math.min(130, st.hr + 12);
+            st.goodPoints.push('고칼륨혈증 환자에서 유도 전 10% Ca-Gluconate로 심근 막안정화');
+            setAlarm('10% Ca-Gluconate 천천히 IV 투여 완료 — 고칼륨 심근 방어 확보!', 'good');
+            addLog('[마취 전 안정화] 10% Ca-Gluconate slow IV → 고칼륨 심근 보호', 'good');
+          } else {
+            st.hr = Math.max(48, st.hr - 10);
+            setAlarm('10% Ca-Gluconate 투여됨 — 고칼륨/저칼슘 적응증이 아닐 경우 서맥·AV 차단 주의!', 'warn');
+            addLog('[마취 전 약물] 10% Ca-Gluconate 투여 (고칼슘 서맥 주의)', 'warn');
+          }
+        } else if (aid === 'dextrose') {
+          if (isLowGlu || isHighK) {
+            st.map = Math.min(125, st.map + 5);
+            st.goodPoints.push('저혈당/고칼륨 환자에서 유도 전 50% Dextrose 희석 선교정');
+            setAlarm('50% Dextrose(희석) IV 투여 완료 — 혈당·전해질 안정화!', 'good');
+            addLog('[마취 전 안정화] 50% Dextrose 희석 IV 투여', 'good');
+          } else {
+            setAlarm('50% Dextrose 투여됨 — 정상 혈당 환자에서 과다 투여 시 고삼투압 주의.', 'warn');
+            addLog('[마취 전 약물] 50% Dextrose 투여', 'warn');
+          }
+        } else if (aid === 'furosemide') {
+          if (isCardiac) {
+            st.spo2 = Math.min(100, st.spo2 + 2);
+            st.rr = Math.max(18, st.rr - 4);
+            st.goodPoints.push('심장병(MMVD/HCM) 환자에서 Furosemide 선처치로 폐울혈 완화');
+            setAlarm('Furosemide IV 투여 완료 — 폐울혈 부담 완화 및 산소화 개선!', 'good');
+            addLog('[마취 전 안정화] Furosemide IV 투여 (폐울혈 완화)', 'good');
+          } else if (isShock) {
+            st.map = Math.max(42, st.map - 12);
+            st.hr = Math.min(210, st.hr + 14);
+            st.score -= 15;
+            st.mistakes.push('저혈량/쇼크 환자에서 Furosemide 투여 → 혈압 급락·쇼크 악화');
+            setAlarm('경고! 저혈량/쇼크 환자에서 이뇨제(Furosemide) 투여로 혈압이 급락했습니다!', 'danger');
+            addLog('[마취 전 약물 경고] 쇼크 환자 Furosemide → MAP 급락!', 'danger');
+          } else {
+            st.map = Math.max(58, st.map - 6);
+            setAlarm('Furosemide 투여됨 — 탈수·저칼륨혈증에 주의하세요.', 'warn');
+            addLog('[마취 전 약물] Furosemide IV 투여', 'warn');
+          }
+        } else if (aid === 'lidocaine') {
+          if (st.caseId === 'gdv' || isShock) {
+            st.hr = Math.max(70, st.hr - 8);
+            st.goodPoints.push('GDV/쇼크 환자에서 유도 전 Lidocaine IV로 심실부정맥(VPC) 예방·진통 보조');
+            setAlarm('Lidocaine 2% IV 투여 완료 — 심실성 부정맥 예방 및 유도제 절감 효과!', 'good');
+            addLog('[마취 전 안정화] Lidocaine 2% IV 투여 (부정맥 예방·진통 보조)', 'good');
+          } else if (st.species === 'cat') {
+            st.map = Math.max(58, st.map - 8);
+            setAlarm('주의! 고양이는 Lidocaine 전신 IV 독성(심근억제·저혈압) 감수성이 높습니다.', 'warn');
+            addLog('[마취 전 약물 주의] 고양이 Lidocaine 전신 IV 투여', 'warn');
+          } else {
+            setAlarm('Lidocaine 2% IV 투여 완료 — 항부정맥·진통 보조 효과.', 'good');
+            addLog('[마취 전 약물] Lidocaine 2% IV 투여', 'info');
+          }
+        } else if (aid === 'ephedrine') {
+          st.map = Math.min(138, st.map + 12);
+          st.hr = Math.min(215, st.hr + 10);
+          if (st.map < 76 || isShock) {
+            st.goodPoints.push('유도 전 저혈압 환자에서 Ephedrine으로 혈압(MAP) 선행 안정화');
+            setAlarm('Ephedrine IV 투여 완료 — 유도 전 혈압(MAP) 안정화!', 'good');
+            addLog('[마취 전 승압] Ephedrine IV 투여 → MAP 상승', 'good');
+          } else {
+            setAlarm('Ephedrine IV 투여 — 정상 혈압 환자에서는 불필요한 고혈압·빈맥에 주의하세요.', 'warn');
+            addLog('[마취 전 약물] Ephedrine IV 투여', 'warn');
+          }
+        } else if (aid === 'atropine') {
+          if (isHighK || (st.caseId === 'cardiac' && st.species === 'cat')) {
+            st.hr = Math.min(225, st.hr + 28);
+            st.score -= 10;
+            st.mistakes.push('고양이 HCM 빈맥 또는 고칼륨 환자에서 부적절한 Atropine 선처치');
+            setAlarm('경고! 고양이 HCM 빈맥·고칼륨 서맥에서는 Atropine이 위험하거나 효과가 없습니다!', 'danger');
+            addLog('[마취 전 약물 경고] 부적절한 Atropine 투여', 'danger');
+          } else {
+            st.hr = Math.min(195, st.hr + 24);
+            setAlarm('Atropine IV 투여 완료 — 심박수 상승 확인 (불필요한 빈맥 주의).', 'info');
+            addLog('[마취 전 약물] Atropine IV 투여', 'info');
+          }
+        } else if (aid === 'dexamethasone') {
+          if (isBoas) {
+            st.spo2 = Math.min(100, st.spo2 + 1);
+            st.goodPoints.push('단두종(BOAS) 환자에서 Dexamethasone 선처치로 상부기도 부종 예방');
+            setAlarm('Dexamethasone IV 투여 완료 — 단두종 상부기도 부종 위험 완화!', 'good');
+            addLog('[마취 전 안정화] Dexamethasone IV 투여 (상부기도 부종 예방)', 'good');
+          } else {
+            setAlarm('Dexamethasone IV 투여 완료 (NSAIDs 병용·위장관 궤양 여부 확인 필요).', 'info');
+            addLog('[마취 전 약물] Dexamethasone IV 투여', 'info');
+          }
+        }
+        updateVitalsUI();
+        renderStep();
+      }
+
       function renderStep() {
         const c = getCase();
         if (st.step === 1) {
           el.panel.innerHTML = `
             <div class="card-title"><span>1단계 · 환자 평가 &amp; 보호자 AI 문진</span></div>
-            <p style="font-size:12px; color:#cbd5e1; line-height:1.5;">마취 전 보호자에게 금식 여부, 복용 약물, 기저 증상을 문진해 위험 요인을 파악하세요.</p>
+            <p style="font-size:12px; color:#cbd5e1; line-height:1.5;">마취 전 보호자에게 금식 여부, 복용 약물, 기저 증상을 문진하고 상단 <strong>[마취전 혈액검사]</strong>를 확인해 위험 요인을 파악하세요.</p>
             <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:8px;">
               <button type="button" class="btn btn-sky q-owner">금식과 음수는 잘 지켰나요?</button>
               <button type="button" class="btn btn-sky q-owner">현재 복용 중인 약이나 증상이 있나요?</button>
@@ -642,7 +908,7 @@
             <div id="owner-chat" class="chat-box">
               <div class="chat-msg owner"><strong>보호자:</strong> 선생님, 우리 아이 마취 안전하게 잘 되겠죠? 궁금한 거 물어보세요.</div>
             </div>
-            <button id="btn-next-1" type="button" class="btn btn-primary" style="width:100%; margin-top:12px; padding:10px; font-size:12px;">2단계: 전처치 약물 선택으로 →</button>`;
+            <button id="btn-next-1" type="button" class="btn btn-primary" style="width:100%; margin-top:12px; padding:10px; font-size:12px;">2단계: 전처치 · 수액 · 안정화 약물로 →</button>`;
           const chat = document.getElementById('owner-chat');
           const inp = document.getElementById('owner-q-input');
           async function askOwner(q) {
@@ -695,23 +961,78 @@
             st.step = 2; updateVitalsUI(); renderStep();
           });
         } else if (st.step === 2) {
+          const t2 = st.step2Tab || 'premed';
+          const appliedPills = [
+            ...st.preFluidsGiven.map(id => `<span class="adj-pill">💧 ${getPreopLabel(id)}</span>`),
+            ...st.preAdjuncts.map(id => `<span class="adj-pill">💉 ${getPreopLabel(id)}</span>`)
+          ];
+          const maintLabel = st.preFluidMaint === 'std' ? (st.species === 'dog' ? '유지수액 5 mL/kg/h' : '유지수액 3 mL/kg/h') : (st.preFluidMaint === 'restrict' ? '제한수액 2 mL/kg/h' : '수액 미연결');
           el.panel.innerHTML = `
-            <div class="card-title"><span>2단계 · 전처치 약물(Premedication) 선택</span></div>
-            <div style="font-size:11px; font-weight:700; color:#94a3b8;">① 진정제 선택</div>
-            <div class="opt-grid">
-              <button type="button" class="opt-btn sed-opt ${st.premedSed==='dex'?'selected':''}" data-v="dex"><div class="ot">Dexmedetomidine</div><div class="od">강력 진정·MAC 절감 / 서맥·혈관수축(심장·쇼크 주의)</div></button>
-              <button type="button" class="opt-btn sed-opt ${st.premedSed==='ace'?'selected':''}" data-v="ace"><div class="ot">Acepromazine</div><div class="od">부드러운 진정 / 혈관확장·저혈압(쇼크·GDV 금기)</div></button>
-              <button type="button" class="opt-btn sed-opt ${st.premedSed==='midaz'?'selected':''}" data-v="midaz"><div class="ot">Midazolam</div><div class="od">심혈관 영향 최소 / 노령·심장·쇼크 환자에 안전</div></button>
-              <button type="button" class="opt-btn sed-opt ${st.premedSed==='none'?'selected':''}" data-v="none"><div class="ot">진정제 생략</div><div class="od">제왕절개·극도 쇠약 시 고려 (유도제 요구량↑)</div></button>
+            <div class="card-title"><span>2단계 · 전처치 · 마취 전 수액 &amp; 안정화 약물</span></div>
+            <div class="sub-tabs" id="step2-tabs">
+              <button type="button" class="sub-tab ${t2==='premed'?'active':''}" data-s2t="premed">① 진정·진통</button>
+              <button type="button" class="sub-tab ${t2==='fluids'?'active':''}" data-s2t="fluids">② 수액·수혈 (${st.preFluidsGiven.length})</button>
+              <button type="button" class="sub-tab ${t2==='adjuncts'?'active':''}" data-s2t="adjuncts">③ 보조·안정화 (${st.preAdjuncts.length})</button>
             </div>
-            <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-top:10px;">② 진통제(Opioid) 선택</div>
-            <div class="opt-grid">
-              <button type="button" class="opt-btn opi-opt ${st.premedOpi==='methadone'?'selected':''}" data-v="methadone"><div class="ot">Methadone (μ 효능제)</div><div class="od">강력한 수술 통증 차단 · 유도제 절감</div></button>
-              <button type="button" class="opt-btn opi-opt ${st.premedOpi==='butorphanol'?'selected':''}" data-v="butorphanol"><div class="ot">Butorphanol (κ 효능제)</div><div class="od">경도 진정·진통 / 강한 수술 통증에는 부족</div></button>
+
+            <div style="${t2==='premed'?'':'display:none;'}">
+              <div style="font-size:11px; font-weight:700; color:#94a3b8;">① 진정제 선택</div>
+              <div class="opt-grid">
+                <button type="button" class="opt-btn sed-opt ${st.premedSed==='dex'?'selected':''}" data-v="dex"><div class="ot">Dexmedetomidine</div><div class="od">강력 진정·MAC 절감 / 서맥·혈관수축(심장·쇼크 주의)</div></button>
+                <button type="button" class="opt-btn sed-opt ${st.premedSed==='ace'?'selected':''}" data-v="ace"><div class="ot">Acepromazine</div><div class="od">부드러운 진정 / 혈관확장·저혈압(쇼크·GDV 금기)</div></button>
+                <button type="button" class="opt-btn sed-opt ${st.premedSed==='midaz'?'selected':''}" data-v="midaz"><div class="ot">Midazolam</div><div class="od">심혈관 영향 최소 / 노령·심장·쇼크 환자에 안전</div></button>
+                <button type="button" class="opt-btn sed-opt ${st.premedSed==='none'?'selected':''}" data-v="none"><div class="ot">진정제 생략</div><div class="od">제왕절개·극도 쇠약 시 고려 (유도제 요구량↑)</div></button>
+              </div>
+              <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-top:10px;">② 진통제(Opioid) 선택</div>
+              <div class="opt-grid">
+                <button type="button" class="opt-btn opi-opt ${st.premedOpi==='methadone'?'selected':''}" data-v="methadone"><div class="ot">Methadone (μ 효능제)</div><div class="od">강력한 수술 통증 차단 · 구토 적음 · 유도제 절감</div></button>
+                <button type="button" class="opt-btn opi-opt ${st.premedOpi==='fentanyl'?'selected':''}" data-v="fentanyl"><div class="ot">Fentanyl (단시간 μ)</div><div class="od">심혈관 안정 · 신속 작용 · 중환자/쇼크에 유리</div></button>
+                <button type="button" class="opt-btn opi-opt ${st.premedOpi==='hydromorphone'?'selected':''}" data-v="hydromorphone"><div class="ot">Hydromorphone (μ)</div><div class="od">강력 진통 · 개에서 구토 유발 가능(항구토제 병용)</div></button>
+                <button type="button" class="opt-btn opi-opt ${st.premedOpi==='butorphanol'?'selected':''}" data-v="butorphanol"><div class="ot">Butorphanol (κ 효능제)</div><div class="od">경도 진정·진통 / 강한 수술 통증에는 부족</div></button>
+              </div>
             </div>
-            <button id="btn-apply-premed" type="button" class="btn btn-primary" style="width:100%; margin-top:12px; padding:10px;">전처치 투여 및 3단계(전산소화)로 →</button>`;
+
+            <div style="${t2==='fluids'?'':'display:none;'}">
+              <div style="font-size:11px; font-weight:700; color:#94a3b8;">① 정맥 유지 수액 라인 설정</div>
+              <div class="opt-grid" style="grid-template-columns:repeat(3,1fr);">
+                <button type="button" class="opt-btn fl-maint-opt ${st.preFluidMaint==='std'?'selected':''}" data-v="std"><div class="ot">표준 유지 수액</div><div class="od">${st.species==='dog'?'개 5 mL/kg/h':'묘 3 mL/kg/h'}</div></button>
+                <button type="button" class="opt-btn fl-maint-opt ${st.preFluidMaint==='restrict'?'selected':''}" data-v="restrict"><div class="ot">제한 수액</div><div class="od">심장병 2 mL/kg/h</div></button>
+                <button type="button" class="opt-btn fl-maint-opt ${st.preFluidMaint==='none'?'selected':''}" data-v="none"><div class="ot">수액 미연결</div><div class="od">IV 카테터만 확보</div></button>
+              </div>
+              <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-top:10px;">② 마취 전 선행 수액·수혈 투여 (클릭 즉시 IV 투여)</div>
+              <div class="opt-grid">
+                ${PREOP_FLUID_ITEMS.map(f => `<button type="button" class="opt-btn pre-fl-btn ${st.preFluidsGiven.includes(f.id)?'applied':''}" data-fid="${f.id}"><div class="ot">${f.name}</div><div class="od">${f.desc}</div></button>`).join('')}
+              </div>
+            </div>
+
+            <div style="${t2==='adjuncts'?'':'display:none;'}">
+              ${PREOP_ADJUNCT_GROUPS.map((g, gi) => `
+                <div style="font-size:11px; font-weight:700; color:#94a3b8; ${gi>0?'margin-top:9px;':''}">${g.title}</div>
+                <div class="opt-grid">
+                  ${g.items.map(a => `<button type="button" class="opt-btn pre-adj-btn ${st.preAdjuncts.includes(a.id)?'applied':''}" data-aid="${a.id}"><div class="ot">${a.name}</div><div class="od">${a.desc}</div></button>`).join('')}
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="adj-chip-wrap">
+              <span style="color:#94a3b8; font-weight:700; margin-right:4px;">적용 처치:</span>
+              <span class="adj-pill" style="background:rgba(56,189,248,0.14); border-color:rgba(56,189,248,0.4); color:#7dd3fc;">${maintLabel}</span>
+              ${appliedPills.length ? appliedPills.join('') : '<span style="color:#64748b;">추가 수액·보조약물 없음 (필요 시 위 탭에서 선택)</span>'}
+            </div>
+
+            <button id="btn-apply-premed" type="button" class="btn btn-primary" style="width:100%; margin-top:10px; padding:10px;">전처치·선처치 완료 및 3단계(전산소화)로 →</button>`;
+
+          document.querySelectorAll('#step2-tabs .sub-tab').forEach(b => b.addEventListener('click', () => { st.step2Tab = b.dataset.s2t; renderStep(); }));
           document.querySelectorAll('.sed-opt').forEach(b => b.addEventListener('click', () => { st.premedSed = b.dataset.v; renderStep(); }));
           document.querySelectorAll('.opi-opt').forEach(b => b.addEventListener('click', () => { st.premedOpi = b.dataset.v; renderStep(); }));
+          document.querySelectorAll('.fl-maint-opt').forEach(b => b.addEventListener('click', () => {
+            st.preFluidMaint = b.dataset.v;
+            addLog(`[유지 수액 설정] ${b.dataset.v === 'std' ? '표준 유지 수액' : (b.dataset.v === 'restrict' ? '심장병 제한 수액(2 mL/kg/h)' : '수액 미연결')}`, 'info');
+            renderStep();
+          }));
+          document.querySelectorAll('.pre-fl-btn').forEach(b => b.addEventListener('click', () => applyPreopFluid(b.dataset.fid)));
+          document.querySelectorAll('.pre-adj-btn').forEach(b => b.addEventListener('click', () => applyPreopAdjunct(b.dataset.aid)));
+
           document.getElementById('btn-apply-premed').addEventListener('click', () => {
             el.vAirway.textContent = st.premedSed === 'none' ? '각성 유지' : '진정 상태';
             if (st.premedSed === 'dex') {
@@ -739,7 +1060,24 @@
               st.goodPoints.push('심혈관 안정성이 높은 Midazolam 전처치 선택');
               setAlarm('Midazolam + 진통제 전처치 완료 — 심혈관 지표 안정 유지.', 'good');
             }
-            addLog(`[전처치 투여] 진정: ${st.premedSed}, 진통: ${st.premedOpi}`, 'info');
+            if (st.premedOpi === 'hydromorphone' && st.species === 'dog' && !st.preAdjuncts.includes('maropitant') && !st.preAdjuncts.includes('ondansetron')) {
+              if (st.caseId === 'boas' || st.caseId === 'icp') {
+                st.score -= 8;
+                st.mistakes.push('항구토제 없이 Hydromorphone 투여 → 단두종/ICP 환자 구토·오연·뇌압 상승 위험');
+              }
+            }
+            if (st.premedOpi === 'butorphanol' && st.caseId === 'gdv') {
+              st.score -= 8;
+              st.mistakes.push('개복 응급수술(GDV/복막염)에 Butorphanol 단독 선택 → 수술 통증 차단 부족 (μ 효능제 권장)');
+            }
+            if (st.caseId === 'gdv' && st.preFluidMaint === 'none' && !st.preFluidsGiven.length) {
+              st.score -= 12;
+              st.mistakes.push('저혈량 쇼크/GDV 환자에서 마취 전 정맥 수액 소생 없이 유도 진행');
+            } else if (st.caseId === 'cardiac' && st.preFluidMaint === 'restrict') {
+              st.goodPoints.push('심장병 환자에서 제한 수액 속도(2 mL/kg/h) 설정으로 폐수종 예방');
+            }
+            const preExtras = [...st.preFluidsGiven, ...st.preAdjuncts].map(getPreopLabel).join(', ');
+            addLog(`[전처치 완료] 진정: ${st.premedSed}, 진통: ${st.premedOpi}, 수액: ${maintLabel}${preExtras ? ' | 선처치: ' + preExtras : ''}`, 'info');
             st.step = 3; updateVitalsUI(); renderStep();
           });
         } else if (st.step === 3) {
@@ -819,9 +1157,11 @@
             revBox.classList.remove('hidden');
             revBox.textContent = localNote + ' (AI 조합 심사 요청 중...)';
             try {
+              const preExtras = [...st.preFluidsGiven, ...st.preAdjuncts].map(getPreopLabel).join(', ');
+              const premedFull = `${st.premedSed}+${st.premedOpi} (유지수액:${st.preFluidMaint}${preExtras ? ', 선처치:' + preExtras : ''})`;
               const res = await fetch(AI_API_PREFIX + '/ai', {
                 method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-                body: JSON.stringify({ task: 'review_drugs', species: st.species === 'dog' ? '개' : '고양이', caseName: c.name, premed: `${st.premedSed}+${st.premedOpi}`, induction: `${st.indDrug} (${st.indSpeed})` })
+                body: JSON.stringify({ task: 'review_drugs', species: st.species === 'dog' ? '개' : '고양이', caseName: c.name, premed: premedFull, induction: `${st.indDrug} (${st.indSpeed})` })
               });
               if (res.ok) { const d = await res.json(); if (d && d.text) { st.aiReviewText = d.text; revBox.textContent = '✦ AI 심사: ' + d.text; } else revBox.textContent = localNote; }
               else revBox.textContent = localNote;
@@ -996,8 +1336,11 @@
       document.getElementById('btn-res-soap').addEventListener('click', () => {
         const c = getCase();
         const out = document.getElementById('res-ai-out');
+        const preFlStr = st.preFluidsGiven.length ? st.preFluidsGiven.map(getPreopLabel).join(', ') : '없음';
+        const preAdjStr = st.preAdjuncts.length ? st.preAdjuncts.map(getPreopLabel).join(', ') : '없음';
+        const maintStr = st.preFluidMaint === 'std' ? (st.species === 'dog' ? '5 mL/kg/h' : '3 mL/kg/h') : (st.preFluidMaint === 'restrict' ? '2 mL/kg/h(제한)' : '미연결');
         out.classList.remove('hidden');
-        out.textContent = `[마취 도입 기록지 (SOAP)]\n• 환자: ${st.species === 'dog' ? '개' : '고양이'} ${c.wt}kg (${c.asa}) — ${c.name}\n• 전처치: ${st.premedSed} + ${st.premedOpi} / 전산소화: ${st.preox ? '3분 실시' : '미실시'}\n• 유도/삽관: ${st.indDrug} (${st.indSpeed}), 튜브 ${st.tubeSize}, 커프 ${st.cuffInflated ? '확인' : '미확인'}\n• 유지 전환: O₂ ${st.o2Flow.toFixed(1)} L/min, Iso ${st.isoInit.toFixed(1)}%, APL ${st.aplOpen ? '열림(0)' : '잠김'}\n• 최종 평가: ${Math.max(0, st.score)}점`;
+        out.textContent = `[마취 도입 기록지 (SOAP)]\n• 환자: ${st.species === 'dog' ? '개' : '고양이'} ${c.wt}kg (${c.asa}) — ${c.name}\n• 전처치: ${st.premedSed} + ${st.premedOpi} / 전산소화: ${st.preox ? '3분 실시' : '미실시'}\n• 마취 전 수액/선처치: 유지 ${maintStr} / 볼루스·수혈(${preFlStr}) / 보조약물(${preAdjStr})\n• 유도/삽관: ${st.indDrug} (${st.indSpeed}), 튜브 ${st.tubeSize}, 커프 ${st.cuffInflated ? '확인' : '미확인'}\n• 유지 전환: O₂ ${st.o2Flow.toFixed(1)} L/min, Iso ${st.isoInit.toFixed(1)}%, APL ${st.aplOpen ? '열림(0)' : '잠김'}\n• 최종 평가: ${Math.max(0, st.score)}점`;
       });
 
       // AI Random Dynamic Patient Generator
@@ -1094,6 +1437,36 @@
       document.getElementById('btn-res-close').addEventListener('click', () => document.getElementById('result-modal').classList.add('hidden'));
       document.getElementById('btn-res-restart').addEventListener('click', () => { document.getElementById('result-modal').classList.add('hidden'); resetSim(); });
       document.getElementById('btn-portal').addEventListener('click', () => { if (window.location.protocol.startsWith('http')) window.location.href = './'; });
+
+      (function initFullscreenBtn() {
+        const fsBtn = document.getElementById('btn-fullscreen');
+        if (!fsBtn) return;
+        const syncFs = (isFull) => {
+          document.body.classList.toggle('immersive-full', isFull);
+          fsBtn.textContent = isFull ? '✕ 전체화면 종료' : '⛶ 전체화면';
+        };
+        fsBtn.addEventListener('click', async () => {
+          const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+          const isImm = document.body.classList.contains('immersive-full');
+          if (fsEl) {
+            try {
+              if (document.exitFullscreen) await document.exitFullscreen();
+              else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            } catch (e) {}
+            syncFs(false);
+            return;
+          }
+          if (isImm) { syncFs(false); return; }
+          const docEl = document.documentElement;
+          try {
+            if (docEl.requestFullscreen) await docEl.requestFullscreen();
+            else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+          } catch (e) {}
+          syncFs(true);
+        });
+        document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) syncFs(false); });
+        document.addEventListener('webkitfullscreenchange', () => { if (!document.webkitFullscreenElement) syncFs(false); });
+      })();
 
       resetSim();
       requestAnimationFrame(loop);
