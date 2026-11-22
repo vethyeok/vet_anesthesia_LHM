@@ -55,24 +55,60 @@
       return;
     }
 
-    // Induction / Recovery / Critical simulators: move secondary buttons into unified '⚙ 설정' popover
+    // Induction / Recovery / Critical simulators:
+    // Keep ONLY colored mark, difficulty/mode (#btn-mode-easy), 케이스, 설정, and ⛶ in the header!
     const ctrlRow = document.querySelector('.controls-row, .hdr-controls');
     if (!ctrlRow || document.getElementById('btn-ui-settings')) return;
 
-    // Make fullscreen button compact icon on split sims
     if (fsBtn) {
       fsBtn.title = '전체화면 전환';
       fsBtn.textContent = '⛶';
     }
 
+    // 2A. '케이스' Popover (Species toggle + Case select + AI Random Patient)
+    const caseWrap = document.createElement('div');
+    caseWrap.className = 'ui-settings-wrap';
+    const caseBtn = document.createElement('button');
+    caseBtn.id = 'btn-ui-case';
+    caseBtn.type = 'button';
+    caseBtn.className = 'ui-settings-btn';
+    caseBtn.textContent = '케이스 ▾';
+    caseBtn.setAttribute('aria-expanded', 'false');
+
+    const casePop = document.createElement('div');
+    casePop.id = 'ui-case-popover';
+    casePop.className = 'ui-settings-popover';
+    casePop.innerHTML = `
+      <div class="ui-settings-pop-hdr">
+        <span>📋 환자 · 케이스 선택</span>
+        <button id="ui-case-close" type="button" style="border:none;background:transparent;color:#94a3b8;font-size:12px;font-weight:800;cursor:pointer;">✕</button>
+      </div>
+      <div class="ui-settings-pop-grid" id="ui-case-pop-grid"></div>
+    `;
+    caseWrap.appendChild(caseBtn);
+    document.body.appendChild(casePop);
+    const caseGrid = casePop.querySelector('#ui-case-pop-grid');
+
+    const segEl = ctrlRow.querySelector('.seg');
+    if (segEl) caseGrid.appendChild(segEl);
+    const caseSel = ctrlRow.querySelector('select');
+    if (caseSel) caseGrid.appendChild(caseSel);
+    ['btn-ai-case', 'btn-ai-new-case'].forEach((id) => {
+      const n = document.getElementById(id);
+      if (n && ctrlRow.contains(n)) {
+        n.style.gridColumn = 'span 2';
+        caseGrid.appendChild(n);
+      }
+    });
+
+    // 2B. '설정' Popover (all other header buttons except difficulty/mode & fullscreen)
     const wrap = document.createElement('div');
     wrap.className = 'ui-settings-wrap';
-
     const setBtn = document.createElement('button');
     setBtn.id = 'btn-ui-settings';
     setBtn.type = 'button';
     setBtn.className = 'ui-settings-btn';
-    setBtn.textContent = '⚙ 설정';
+    setBtn.textContent = '설정 ▾';
     setBtn.setAttribute('aria-expanded', 'false');
 
     const pop = document.createElement('div');
@@ -85,67 +121,69 @@
       </div>
       <div class="ui-settings-pop-grid" id="ui-settings-pop-grid"></div>
     `;
-
     wrap.appendChild(setBtn);
     document.body.appendChild(pop);
-
     const grid = pop.querySelector('#ui-settings-pop-grid');
 
-    // Move secondary controls (actual DOM nodes so all existing event listeners stay intact!)
-    const secondaryIds = [
-      'btn-ai-case',
-      'btn-ai-new-case',
+    const settingsIds = [
+      'btn-preop-lab',
       'btn-poc-lab',
+      'btn-phys',
       'btn-calc-mode',
       'btn-calc-toggle',
-      'btn-easy-mode',
-      'btn-mode-easy',
       'btn-reset',
       'btn-open-start',
       'btn-back-start',
       'btn-credits'
     ];
-    secondaryIds.forEach((id) => {
+    settingsIds.forEach((id) => {
       const node = document.getElementById(id);
-      if (node) grid.appendChild(node);
+      if (node && ctrlRow.contains(node)) grid.appendChild(node);
     });
     grid.appendChild(seminarBtn);
 
-    // Insert '⚙ 설정' right before fullscreen button
+    // Insert '케이스' and '설정' right before fullscreen button
     if (fsBtn && fsBtn.parentNode === ctrlRow) {
+      ctrlRow.insertBefore(caseWrap, fsBtn);
       ctrlRow.insertBefore(wrap, fsBtn);
     } else {
+      ctrlRow.appendChild(caseWrap);
       ctrlRow.appendChild(wrap);
     }
 
-    const closePop = () => {
+    const closeAll = () => {
       pop.classList.remove('open');
       setBtn.classList.remove('open');
       setBtn.setAttribute('aria-expanded', 'false');
+      casePop.classList.remove('open');
+      caseBtn.classList.remove('open');
+      caseBtn.setAttribute('aria-expanded', 'false');
     };
 
-    setBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const willOpen = !pop.classList.contains('open');
+    const togglePopover = (btn, targetPop) => {
+      const willOpen = !targetPop.classList.contains('open');
+      closeAll();
       if (willOpen) {
-        const rect = setBtn.getBoundingClientRect();
-        pop.style.top = Math.min(window.innerHeight - 240, rect.bottom + 6) + 'px';
-        pop.classList.add('open');
-        setBtn.classList.add('open');
-        setBtn.setAttribute('aria-expanded', 'true');
-      } else {
-        closePop();
+        const rect = btn.getBoundingClientRect();
+        targetPop.style.top = Math.min(window.innerHeight - 240, rect.bottom + 6) + 'px';
+        targetPop.classList.add('open');
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
       }
-    });
+    };
 
-    pop.querySelector('#ui-settings-close').addEventListener('click', closePop);
+    caseBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePopover(caseBtn, casePop); });
+    setBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePopover(setBtn, pop); });
+    casePop.querySelector('#ui-case-close').addEventListener('click', closeAll);
+    pop.querySelector('#ui-settings-close').addEventListener('click', closeAll);
+
     document.addEventListener('click', (e) => {
-      if (!pop.classList.contains('open')) return;
-      if (pop.contains(e.target) || setBtn.contains(e.target)) return;
-      closePop();
+      if (!pop.classList.contains('open') && !casePop.classList.contains('open')) return;
+      if (pop.contains(e.target) || setBtn.contains(e.target) || casePop.contains(e.target) || caseBtn.contains(e.target)) return;
+      closeAll();
     });
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closePop();
+      if (e.key === 'Escape') closeAll();
     });
   }
 

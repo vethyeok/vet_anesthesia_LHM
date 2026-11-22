@@ -319,9 +319,8 @@ body.ui-split-sim .main-grid {
     flex-wrap: nowrap !important;
   }
   body.ui-split-sim .topbar .title,
-  body.ui-split-sim header .brand > div:last-child > div {
-    font-size: 12.5px !important;
-    white-space: nowrap;
+  body.ui-split-sim header .brand > div:last-child {
+    display: none !important;
   }
   body.ui-split-sim .controls-row,
   body.ui-split-sim .hdr-controls {
