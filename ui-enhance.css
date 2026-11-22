@@ -285,23 +285,24 @@ body.ui-split-sim .main-grid {
 
 @media (min-width: 1024px) {
   body.ui-split-sim .main-grid {
-    align-items: stretch !important;
+    align-items: start !important;
   }
   body.ui-split-sim .main-grid > :first-child {
     min-height: 0;
-    height: 100%;
+    max-height: 100%;
     overflow-y: auto;
     gap: 6px !important;
   }
   body.ui-split-sim .main-grid > :last-child {
     min-height: 0;
-    height: 100%;
+    height: auto !important;
+    max-height: 100%;
     overflow-y: auto;
-    padding-bottom: 16px;
+    padding-bottom: 12px;
   }
   body.ui-split-sim .log-box,
   body.ui-split-sim .log-list {
-    max-height: 120px !important;
+    max-height: 150px !important;
   }
 }
 
