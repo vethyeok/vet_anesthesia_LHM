@@ -1,5 +1,5 @@
 // Cloudflare Pages Function: Unified Gemini AI Backend (/api/ai & /api/debrief)
-// Required Cloudflare Pages Environment Variable: GEMINI_API_KEY
+// Required Cloudflare Pages Environment Variable (Secret): GEMINI_API_KEY
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -12,6 +12,44 @@ function jsonRes(obj, status = 200) {
   return new Response(JSON.stringify(obj), { status, headers: CORS_HEADERS });
 }
 
+async function parseJsonBody(req) {
+  try {
+    const raw = await req.text();
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function buildGenerateCasePrompt(body) {
+  const customBrief = body.customBrief ? String(body.customBrief).trim() : '';
+  if (customBrief) {
+    return `당신은 수의 마취과 전문의입니다. 사용자가 직접 입력한 아래 환자 브리핑을 충실히 반영하여 수의 마취 시뮬레이션용 환자 케이스 1건을 JSON 객체로만 출력하세요(마크다운 백틱 금지).
+사용자 환자 브리핑: "${customBrief}"
+필수 규칙:
+1) 사용자가 입력한 품종, 연령, 체중, 수술/시술, 기저질환, 혈액검사 수치나 증상을 빠짐없이 반영하세요.
+2) 사용자가 언급하지 않은 나머지 바이탈(baseHR, baseMAP, baseBT, iso), ASA 등급, 혈액검사 수치들은 이 환자의 연령·질환에 맞게 임상적으로 현실적인 값으로 채우되 비현실적 극단값은 금지합니다.
+3) lab.panelTier는 어린 건강 환자는 "chemi7", 노령·복합질환은 "full", 초응급 채혈 불가는 "emerg_none" 중 하나를 선택하세요.
+4) species 값은 반드시 "dog" 또는 "cat" 중 하나만 넣으세요.
+출력 JSON 스키마:
+{"title":"품종+수술명 짧은 제목","species":"dog 또는 cat","asa":"ASA 등급(예: ASA II~IV-E)","summary":"연령·체중·품종·수술·핵심 이상소견 한 줄 요약","target":"핵심 마취 처치 목표","caution":"주의사항 및 금기 약물","baseHR":숫자,"baseMAP":숫자,"baseBT":숫자,"iso":숫자,"lab":{"panelTier":"full|chemi7|emerg_none","HCT":숫자,"ALB":숫자,"Na":숫자,"K":숫자,"Cl":숫자,"iCa":숫자,"Glu":숫자,"pH":숫자,"ALP":숫자,"ALT":숫자,"BUN":숫자,"Crea":숫자,"WBC":숫자,"PLT":숫자,"lactate":숫자}}`;
+  }
+  const recentList = Array.isArray(body.recentCases) && body.recentCases.length
+    ? body.recentCases.join(' / ')
+    : '없음';
+  const seedHint = body.seedHint || body.species || `랜덤 시드 #${Math.floor(100000 + Math.random() * 900000)}`;
+  return `당신은 수의 마취과 전문의입니다. 아래 랜덤 출제 조건에 맞춰 매번 완전히 다른 독창적인 수의 마취 교육용 환자 케이스 1건을 JSON 객체로만 출력하세요(마크다운 백틱 금지).
+출제 조건: ${seedHint}
+최근 출제되어 반드시 피해야 할 케이스(동일 품종·수술·병명 반복 금지): ${recentList}
+필수 규칙:
+1) 품종, 연령, 체중, 수술/시술, 기저질환을 위 출제 조건에 맞춰 구체적이고 현실적으로 설정하세요.
+2) 연령·질환에 맞는 현실적 혈액검사 이상(고칼륨, 저혈당, 빈혈, 저알부민, 담낭파열 초고ALP, 신부전 고BUN/Crea, 패혈증 고Lactate/WBC, 쿠싱, 애디슨 등)을 자연스럽게 반영하되 비현실적 극단값은 금지합니다.
+3) lab.panelTier는 어린 건강 환자는 "chemi7", 노령·복합질환은 "full", 초응급 채혈 불가는 "emerg_none" 중 하나를 선택하세요.
+4) species 값은 반드시 "dog" 또는 "cat" 중 하나만 넣으세요.
+출력 JSON 스키마(수치는 반드시 이 환자 상태에 맞게 새로 생성):
+{"title":"품종+수술명 짧은 제목","species":"dog 또는 cat","asa":"ASA 등급(예: ASA II~IV-E)","summary":"연령·체중·품종·수술·핵심 이상소견 한 줄 요약","target":"핵심 마취 처치 목표","caution":"주의사항 및 금기 약물","baseHR":숫자,"baseMAP":숫자,"baseBT":숫자,"iso":숫자,"lab":{"panelTier":"full|chemi7|emerg_none","HCT":숫자,"ALB":숫자,"Na":숫자,"K":숫자,"Cl":숫자,"iCa":숫자,"Glu":숫자,"pH":숫자,"ALP":숫자,"ALT":숫자,"BUN":숫자,"Crea":숫자,"WBC":숫자,"PLT":숫자,"lactate":숫자}}`;
+}
+
 export async function onRequestOptions() {
   return new Response('', { status: 204, headers: CORS_HEADERS });
 }
@@ -20,21 +58,18 @@ export async function onRequestPost(context) {
   const { request, env } = context;
   const apiKey = env && env.GEMINI_API_KEY;
   if (!apiKey) {
-    return jsonRes({ error: 'Cloudflare Pages 환경변수(GEMINI_API_KEY)가 설정되지 않았습니다.' }, 503);
+    return jsonRes({ error: 'Cloudflare Pages 환경변수에 GEMINI_API_KEY가 설정되지 않았습니다.' }, 503);
   }
 
   try {
-    const body = await request.json().catch(() => ({}));
+    const body = await parseJsonBody(request);
     const task = body.task || 'debrief';
     let prompt = '';
     let expectJson = false;
 
     if (task === 'generate_case') {
       expectJson = true;
-      prompt = `수의 마취 교육용 랜덤 신규 환자 케이스 1건을 JSON 객체로만 출력하세요(마크다운 백틱 금지).
-축종 참고: ${body.species || 'dog'}. 연령·질환에 맞는 현실적 혈액검사 이상(고칼륨, 저혈당, 빈혈, 저알부민, 담낭파열 고ALP, 신부전, 패혈증, 심부전 등)을 1개 이상 포함하되 비현실적인 극단값은 금지합니다.
-lab.panelTier는 어린 건강 환자는 "chemi7", 노령·복합질환은 "full", 초응급 채혈 불가는 "emerg_none" 중 하나를 선택하세요.
-키: {"title":"짧은 제목","species":"dog 또는 cat","asa":"ASA III","summary":"한 줄 환자 요약","target":"핵심 처치 목표","caution":"주의사항","baseHR":110,"baseMAP":68,"baseBT":36.8,"iso":1.3,"lab":{"panelTier":"full","HCT":32,"ALB":2.2,"Na":145,"K":6.8,"Cl":111,"iCa":1.12,"Glu":64,"pH":7.24,"ALP":420,"ALT":180,"BUN":48,"Crea":2.8,"WBC":19.5,"PLT":170,"lactate":3.4}}`;
+      prompt = buildGenerateCasePrompt(body);
     } else if (task === 'review_drugs') {
       prompt = `수의 마취과 전문의로서 ${body.species} '${body.caseName}' 환자에게 전처치(${body.premed}) + 유도제(${body.induction}) 조합이 적절한지 한국어로 2문장 이내로 핵심 장단점과 위험 포인트만 코멘트하세요.`;
     } else if (task === 'tutor_hint') {
@@ -90,6 +125,7 @@ lab.panelTier는 어린 건강 환자는 "chemi7", 노령·복합질환은 "full
     if (expectJson) {
       const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
       const caseData = JSON.parse(cleaned);
+      caseData.species = String(caseData.species || '').toLowerCase().includes('cat') ? 'cat' : 'dog';
       return jsonRes({ caseData }, 200);
     }
     return jsonRes({ text: rawText, analysis: rawText }, 200);

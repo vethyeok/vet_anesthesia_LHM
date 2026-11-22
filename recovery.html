@@ -121,11 +121,13 @@
     .lab-flag-hi { background: rgba(244,63,94,0.2); color: #fda4af; border: 1px solid rgba(244,63,94,0.45); }
     .lab-flag-lo { background: rgba(56,189,248,0.2); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.45); }
   
-    /* Mobile bottom dead space for floating Powered by Netlify badge & safe-area */
-    @media (max-width: 1023px) {
-      body { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
-      footer { padding-bottom: 24px !important; }
-    }
+    .ctrl-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin-bottom: 10px; background: #020617; padding: 5px; border-radius: 10px; border: 1px solid #1e293b; }
+    .ctrl-tabs.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ctrl-tab { padding: 7px 6px; border-radius: 7px; border: 1px solid transparent; background: transparent; color: #94a3b8; font-size: 11.5px; font-weight: 800; cursor: pointer; transition: 0.15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ctrl-tab:hover { color: #e2e8f0; background: rgba(30,41,59,0.7); }
+    .ctrl-tab.active { background: rgba(56,189,248,0.18); color: #7dd3fc; border-color: rgba(56,189,248,0.5); }
+    @media (max-width: 640px) { .ctrl-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
   </style>
 </head>
 <body>
@@ -144,7 +146,7 @@
       <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
         <button id="btn-start" type="button" class="btn btn-primary" style="padding:11px; font-size:13px;">▶ 회복 시뮬레이터 시작</button>
         <button id="btn-credits" type="button" class="btn" style="padding:9px;">크레딧</button>
-        <button id="btn-portal" type="button" class="btn btn-sky" style="padding:8px;">🏠 시작화면 (도입 · 유지 · 회복)</button>
+        <button id="btn-portal" type="button" class="btn btn-sky" style="padding:8px;">🏠 시작화면</button>
       </div>
       <div style="margin-top:12px; font-size:10px; color:#64748b;">© 2026 DVM 이혁민 · All rights reserved.</div>
     </div>
@@ -272,50 +274,65 @@
       </section>
 
       <!-- Right: Recovery Controls & Complication Handling -->
-      <aside style="display:flex; flex-direction:column; gap:10px;">
+      <aside class="right-col">
         <div class="card">
-          <div class="card-title"><span>1) 마취기 종료 · 산소 세척 · 발관</span><span id="ext-badge" class="mono" style="font-size:10px; color:#fbbf24;">삽관 유지 중</span></div>
-          <div style="display:flex; flex-direction:column; gap:8px; font-size:12px;">
-            <div>
-              <div style="display:flex; justify-content:space-between;"><span>Isoflurane 기화기</span><strong id="d-iso" class="mono" style="color:#f0abfc;">1.5%</strong></div>
-              <input id="sl-iso" type="range" min="0" max="2.5" step="0.5" value="1.5" />
-            </div>
-            <div>
-              <div style="display:flex; justify-content:space-between;"><span>O₂ 유량 (세척 속도)</span><strong id="d-o2" class="mono" style="color:#38bdf8;">1.5 L/min</strong></div>
-              <input id="sl-o2" type="range" min="0.5" max="3.0" step="0.5" value="1.5" />
-            </div>
+          <div class="ctrl-tabs" id="rec-tabs" role="tablist">
+            <button type="button" class="ctrl-tab active" data-rtab="extub" role="tab" aria-selected="true">① 발관·환기</button>
+            <button type="button" class="ctrl-tab" data-rtab="support" role="tab" aria-selected="false">② 산소·가온·기도</button>
+            <button type="button" class="ctrl-tab" data-rtab="drugs" role="tab" aria-selected="false">③ 진통·진정·길항</button>
+            <button type="button" class="ctrl-tab" data-rtab="discharge" role="tab" aria-selected="false">④ 퇴원 안내·종료</button>
           </div>
-          <div class="act-grid">
-            <button id="btn-iso-off" type="button" class="act-btn" style="border-color:rgba(16,185,129,0.5);"><div class="at" style="color:#6ee7b7;">기화기 즉시 OFF (0%)</div><div class="ad">O₂ 2.5 L/min으로 가스 세척 시작</div></button>
-            <button id="btn-bag" type="button" class="act-btn"><div class="at" style="color:#fde68a;">보조 배깅 (1회)</div><div class="ad">과배깅 시 ETCO₂↓로 자발호흡 지연!</div></button>
-            <button id="btn-extubate" type="button" class="act-btn" style="grid-column:span 2; border-color:rgba(251,191,36,0.6); background:rgba(120,53,15,0.25);"><div class="at" style="color:#fbbf24; text-align:center;">🩺 커프 바람 빼고 발관(Extubation) 실시</div><div class="ad" style="text-align:center;">연하반사(2회↑) &amp; EtIso ≤ 0.4% &amp; 자발호흡 확인 후 발관 권장 (BOAS는 더 각성 후!)</div></button>
-          </div>
-        </div>
 
-        <div class="card">
-          <div class="card-title"><span>2) 회복실 모니터링 처치</span></div>
-          <div class="act-grid">
-            <button id="btn-o2-supp" type="button" class="act-btn"><div class="at" style="color:#7dd3fc;">산소 공급 (Flow-by/케이지)</div><div class="ad">발관 후 저산소·천명·오한 시 산소화 유지</div></button>
-            <button id="btn-warm" type="button" class="act-btn"><div class="at" style="color:#fcd34d;">능동 가온 (Bair Hugger)</div><div class="ad">저체온·오한(Shivering) 교정</div></button>
-            <button id="btn-analgesia" type="button" class="act-btn"><div class="at" style="color:#6ee7b7;">진통제 (Methadone IV)</div><div class="ad">수술 부위 압통·빈맥 등 실제 통증 완화</div></button>
-            <button id="btn-sedate" type="button" class="act-btn"><div class="at" style="color:#ddd6fe;">진정제 (소량 Dex/Ace)</div><div class="ad">불쾌감(Dysphoria)·BOAS 흥분 진정</div></button>
-            <button id="btn-naloxone" type="button" class="act-btn"><div class="at" style="color:#a7f3d0;">Naloxone 소량 적정</div><div class="ad">오피오이드 불쾌감·호흡억제 역전</div></button>
-            <button id="btn-atip-im" type="button" class="act-btn"><div class="at" style="color:#fde68a;">Atipamezole IM (권장)</div><div class="ad">α₂ 서맥·지연회복 안전 역전</div></button>
-            <button id="btn-atip-iv" type="button" class="act-btn" style="border-color:rgba(244,63,94,0.45);"><div class="at" style="color:#fda4af;">Atipamezole 급속 IV (주의)</div><div class="ad">급속 혈관확장·저혈압·흥분 부작용</div></button>
-            <button id="btn-reintubate" type="button" class="act-btn" style="border-color:rgba(56,189,248,0.45);"><div class="at" style="color:#7dd3fc;">기도 재확보 / 재삽관</div><div class="ad">BOAS 폐쇄·고양이 후두경련 응급</div></button>
+          <div class="rec-pane" data-rp="extub">
+            <div class="card-title"><span>1) 기화기 종료 · O₂ 세척 · 발관</span></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; font-size:12px;">
+              <div>
+                <div style="display:flex; justify-content:space-between;"><span>Isoflurane 기화기</span><strong id="d-iso" class="mono" style="color:#f0abfc;">1.5%</strong></div>
+                <input id="sl-iso" type="range" min="0" max="2.5" step="0.5" value="1.5" />
+              </div>
+              <div>
+                <div style="display:flex; justify-content:space-between;"><span>O₂ 유량 (세척 속도)</span><strong id="d-o2" class="mono" style="color:#38bdf8;">1.5 L/min</strong></div>
+                <input id="sl-o2" type="range" min="0.5" max="3.0" step="0.5" value="1.5" />
+              </div>
+            </div>
+            <div class="act-grid">
+              <button id="btn-iso-off" type="button" class="act-btn" style="border-color:rgba(16,185,129,0.5);"><div class="at" style="color:#6ee7b7;">기화기 즉시 OFF (0%)</div><div class="ad">O₂ 2.5 L/min으로 가스 세척 시작</div></button>
+              <button id="btn-bag" type="button" class="act-btn"><div class="at" style="color:#fde68a;">보조 배깅 (1회)</div><div class="ad">과배깅 시 ETCO₂↓로 자발호흡 지연!</div></button>
+              <button id="btn-extubate" type="button" class="act-btn" style="grid-column:span 2; border-color:rgba(251,191,36,0.6); background:rgba(120,53,15,0.25);"><div class="at" style="color:#fbbf24; text-align:center;">🩺 커프 바람 빼고 발관(Extubation) 실시</div><div class="ad" style="text-align:center;">연하반사(2회↑) &amp; EtIso ≤ 0.4% &amp; 자발호흡 확인 후 발관 권장 (BOAS는 더 각성 후!)</div></button>
+            </div>
           </div>
-        </div>
 
-        <div class="card">
-          <div class="card-title"><span>3) 보호자 퇴원 안내 AI 롤플레이 &amp; 종료</span></div>
-          <div style="display:flex; gap:6px;">
-            <input id="dc-input" type="text" placeholder="보호자 퇴원 주의사항 입력 (예: 금식·체온·상처 관리)..." style="flex:1; background:#020617; border:1px solid #334155; border-radius:8px; padding:6px 8px; font-size:11.5px;" />
-            <button id="btn-dc-send" type="button" class="btn btn-sky">안내</button>
+          <div class="rec-pane" data-rp="support" style="display:none;">
+            <div class="card-title"><span>2) 산소 · 체온 · 기도 응급 처치</span></div>
+            <div class="act-grid">
+              <button id="btn-o2-supp" type="button" class="act-btn"><div class="at" style="color:#7dd3fc;">산소 공급 (Flow-by/케이지)</div><div class="ad">발관 후 저산소·천명·오한 시 산소화 유지</div></button>
+              <button id="btn-warm" type="button" class="act-btn"><div class="at" style="color:#fcd34d;">능동 가온 (Bair Hugger)</div><div class="ad">저체온·오한(Shivering) 교정</div></button>
+              <button id="btn-reintubate" type="button" class="act-btn" style="grid-column:span 2; border-color:rgba(56,189,248,0.45);"><div class="at" style="color:#7dd3fc;">기도 재확보 / 재삽관</div><div class="ad">BOAS 폐쇄·고양이 후두경련 응급</div></button>
+            </div>
           </div>
-          <div id="dc-chat" class="chat-box">
-            <div class="chat-msg owner"><strong>보호자:</strong> 선생님, 아이가 깨어나면 집에 가서 밥이랑 물은 언제부터 줘도 될까요? 주의할 점 알려주세요!</div>
+
+          <div class="rec-pane" data-rp="drugs" style="display:none;">
+            <div class="card-title"><span>3) 진통 · 진정 · 길항제 투여</span></div>
+            <div class="act-grid">
+              <button id="btn-analgesia" type="button" class="act-btn"><div class="at" style="color:#6ee7b7;">진통제 (Methadone IV)</div><div class="ad">수술 부위 압통·빈맥 등 실제 통증 완화</div></button>
+              <button id="btn-sedate" type="button" class="act-btn"><div class="at" style="color:#ddd6fe;">진정제 (소량 Dex/Ace)</div><div class="ad">불쾌감(Dysphoria)·BOAS 흥분 진정</div></button>
+              <button id="btn-naloxone" type="button" class="act-btn"><div class="at" style="color:#a7f3d0;">Naloxone 소량 적정</div><div class="ad">오피오이드 불쾌감·호흡억제 역전</div></button>
+              <button id="btn-atip-im" type="button" class="act-btn"><div class="at" style="color:#fde68a;">Atipamezole IM (권장)</div><div class="ad">α₂ 서맥·지연회복 안전 역전</div></button>
+              <button id="btn-atip-iv" type="button" class="act-btn" style="grid-column:span 2; border-color:rgba(244,63,94,0.45);"><div class="at" style="color:#fda4af;">Atipamezole 급속 IV (주의)</div><div class="ad">급속 혈관확장·저혈압·흥분 부작용</div></button>
+            </div>
           </div>
-          <button id="btn-finish-rec" type="button" class="btn btn-primary" style="width:100%; margin-top:10px; padding:10px; font-size:12px;">✅ 회복 완료 및 최종 평가 리포트 보기</button>
+
+          <div class="rec-pane" data-rp="discharge" style="display:none;">
+            <div class="card-title"><span>4) 보호자 퇴원 안내 AI 롤플레이 &amp; 종료</span></div>
+            <div style="display:flex; gap:6px;">
+              <input id="dc-input" type="text" placeholder="보호자 퇴원 주의사항 입력 (예: 금식·체온·상처 관리)..." style="flex:1; background:#020617; border:1px solid #334155; border-radius:8px; padding:6px 8px; font-size:11.5px; color:#fff;" />
+              <button id="btn-dc-send" type="button" class="btn btn-sky">안내</button>
+            </div>
+            <div id="dc-chat" class="chat-box">
+              <div class="chat-msg owner"><strong>보호자:</strong> 선생님, 아이가 깨어나면 집에 가서 밥이랑 물은 언제부터 줘도 될까요? 주의할 점 알려주세요!</div>
+            </div>
+            <button id="btn-finish-rec" type="button" class="btn btn-primary" style="width:100%; margin-top:10px; padding:10px; font-size:12px;">✅ 회복 완료 및 최종 평가 리포트 보기</button>
+          </div>
         </div>
       </aside>
     </main>
@@ -508,6 +525,21 @@
       // Controls
       el.slIso.addEventListener('input', (e) => { st.iso = Number(e.target.value); el.dIso.textContent = st.iso.toFixed(1) + '%'; });
       el.slO2.addEventListener('input', (e) => { st.o2 = Number(e.target.value); el.dO2.textContent = st.o2.toFixed(1) + ' L/min'; });
+      
+      document.querySelectorAll('#rec-tabs .ctrl-tab').forEach((tb) => {
+        tb.addEventListener('click', () => {
+          const k = tb.getAttribute('data-rtab');
+          document.querySelectorAll('#rec-tabs .ctrl-tab').forEach((b) => {
+            const on = b === tb;
+            b.classList.toggle('active', on);
+            b.setAttribute('aria-selected', on ? 'true' : 'false');
+          });
+          document.querySelectorAll('.rec-pane').forEach((p) => {
+            p.style.display = p.getAttribute('data-rp') === k ? '' : 'none';
+          });
+        });
+      });
+
       document.getElementById('btn-iso-off').addEventListener('click', () => {
         st.iso = 0; st.o2 = 2.5; el.slIso.value = '0'; el.dIso.textContent = '0.0%'; el.slO2.value = '2.5'; el.dO2.textContent = '2.5 L/min';
         st.goods.push('수술 종료 즉시 기화기 OFF(0%) 및 고유량 O₂ 세척 시행');
@@ -671,7 +703,7 @@
         let aiAbort = false;
         try {
           const res = await fetch(AI_API_PREFIX + '/ai', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
             body: JSON.stringify({ task: 'roleplay', role: 'owner_discharge', species: st.species === 'dog' ? '개' : '고양이', caseName: CASES[st.caseId].name, vetAdvice: msg })
           });
           if (res.ok) {
@@ -709,7 +741,7 @@
         out.classList.remove('hidden'); out.textContent = 'Gemini AI가 회복 경과를 분석 중입니다...';
         try {
           const res = await fetch(AI_API_PREFIX + '/debrief', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
             body: JSON.stringify({
               task: 'debrief',
               species: st.species === 'dog' ? '개' : '고양이',
@@ -733,7 +765,7 @@
         const fallbackSoap = `[SOAP 마취 회복 기록지]\nS: ${st.species === 'dog' ? '개' : '고양이'} · ${CASES[st.caseId].name}\nO: 최종 BT ${st.bt.toFixed(1)}°C, SpO₂ ${Math.round(st.spo2)}%, HR ${Math.round(st.hr)} bpm, EtIso ${st.etIso.toFixed(2)}%\nA: ${st.abortedByOwner ? '커뮤니케이션 실패로 상담 중단' : (st.extubated ? '발관 완료 및 회복실 모니터링 수행' : '발관 미완료')}\nP: 보온·산소·통증/흥분 모니터링 및 퇴원 주의사항 안내`;
         try {
           const res = await fetch(AI_API_PREFIX + '/ai', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
             body: JSON.stringify({
               task: 'soap_record',
               species: st.species === 'dog' ? '개' : '고양이',

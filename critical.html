@@ -156,11 +156,13 @@
       .modal-body { padding: 12px; }
     }
   
-    /* Mobile bottom dead space for floating Powered by Netlify badge & safe-area */
-    @media (max-width: 1023px) {
-      body { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
-      footer { padding-bottom: 24px !important; }
-    }
+    .ctrl-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin-bottom: 10px; background: #020617; padding: 5px; border-radius: 10px; border: 1px solid #1e293b; }
+    .ctrl-tabs.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ctrl-tab { padding: 7px 6px; border-radius: 7px; border: 1px solid transparent; background: transparent; color: #94a3b8; font-size: 11.5px; font-weight: 800; cursor: pointer; transition: 0.15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ctrl-tab:hover { color: #e2e8f0; background: rgba(30,41,59,0.7); }
+    .ctrl-tab.active { background: rgba(56,189,248,0.18); color: #7dd3fc; border-color: rgba(56,189,248,0.5); }
+    @media (max-width: 640px) { .ctrl-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
   </style>
 </head>
 <body>
@@ -428,6 +430,169 @@
     (function () {
       'use strict';
       const AI_API_PREFIX = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.pages.dev')) ? '/api' : ((typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '/.netlify/functions' : 'https://vet-anesthesia-lhm.netlify.app/.netlify/functions');
+
+      function buildDiverseAiCaseContext(defaultSp) {
+        const sp = Math.random() < 0.65 ? 'dog' : 'cat';
+        const dogBreeds = [
+          ['말티즈', 3.4, '소형'], ['토이푸들', 4.1, '소형'], ['포메라니안', 2.8, '초소형'], ['치와와', 2.3, '초소형'],
+          ['요크셔테리어', 3.1, '소형'], ['시츄', 6.2, '단두종'], ['프렌치불독', 11.5, '단두종'], ['퍼그', 8.4, '단두종'],
+          ['닥스훈트', 6.8, '소형'], ['웰시코기', 12.2, '중형'], ['비글', 10.5, '중형'], ['코커스패니얼', 11.8, '중형'],
+          ['보더콜리', 17.5, '중형'], ['진돗개', 18.2, '중형'], ['시베리안허스키', 23.0, '대형'], ['골든리트리버', 29.5, '대형'],
+          ['래브라도리트리버', 31.0, '대형'], ['저먼셰퍼드', 33.5, '대형'], ['도베르만', 34.0, '대형'], ['그레이하운드', 28.0, '시각하운드'],
+          ['휘핏', 13.5, '시각하운드'], ['그레이트데인', 54.0, '초대형'], ['비숑프리제', 5.8, '소형'], ['미니어처슈나우저', 7.4, '소형']
+        ];
+        const catBreeds = [
+          ['코리안숏헤어', 4.6, '일반묘'], ['러시안블루', 4.2, '일반묘'], ['브리티시숏헤어', 5.5, '단두묘'],
+          ['페르시안', 4.1, '단두묘'], ['랙돌', 5.8, '대형묘'], ['메인쿤', 7.4, '대형묘'], ['스코티시폴드', 4.5, '일반묘'],
+          ['벵갈', 5.0, '활동묘'], ['스핑크스', 3.8, '무모묘'], ['샴', 3.9, '일반묘'], ['노르웨이숲', 6.1, '대형묘'], ['아메리칸숏헤어', 4.8, '일반묘']
+        ];
+        const surgeries = [
+          ['TPLO 십자인대 재건술', '정형', 1.25], ['대퇴골두절제술(FHO)', '정형', 1.2], ['흉요추 추간판탈출 반측추궁절제술', '신경', 1.2],
+          ['경추 추간판 Ventral Slot 감압술', '신경', 1.15], ['담낭점액종 담낭절제술', '간담도', 1.25], ['비장종양 파열 응급 비장적출술', '응급복부', 1.05],
+          ['간종양 간엽절제술', '간담도', 1.15], ['문맥전신단락(PSS) 아메로이드 링 결찰', '간혈관', 1.0], ['자궁축농증 난소자궁적출술', '산과응급', 1.15],
+          ['난산 응급 제왕절개술', '산과응급', 1.0], ['위확장염전(GDV) 응급 위고정술', '응급복부', 1.05], ['선형이물 장절개·문합술', '소화기', 1.2],
+          ['외상성 횡격막탈장 정복술', '흉복부응급', 1.05], ['회음부탈장 정복술', '연부조직', 1.25], ['요도폐색 회음요도루(PU) 성형술', '비뇨응급', 1.15],
+          ['요관폐색 SUB(피하요관우회술)', '비뇨', 1.15], ['방광결석 제거술', '비뇨', 1.3], ['부신종양(갈색세포종 의심) 적출술', '내분비', 1.1],
+          ['췌장 인슐린종 절제술', '내분비', 1.1], ['비만세포종(MCT) 광범위 절제술', '종양', 1.2], ['중증 치주염 전발치술', '치과', 1.3],
+          ['구강 종양 하악절제술', '치과종양', 1.2], ['녹내장 안구적출술', '안과', 1.25], ['백내장 초음파유화술(Phaco)', '안과', 1.2],
+          ['동맥관개존증(PDA) 결찰술', '흉부심장', 1.05], ['폐종양 폐엽절제술', '흉부', 1.1], ['단두종 연구개절제·비공확장술(BOAS)', '상부기도', 1.25],
+          ['기관허탈 기관 내 스텐트 삽입술', '호흡기', 1.15], ['골반 다발성 골절 내고정술', '외상정형', 1.2], ['식도이물 내시경 제거술', '내시경', 1.25]
+        ];
+        const risks = [
+          ['MMVD Stage C(이첨판폐쇄부전·폐수종 병력)', 'ASA III', 128, 70, 37.6, 'full', { HCT: 41, ALB: 3.0, K: 4.1, Glu: 108, BUN: 34, Crea: 1.5 }],
+          ['HCM(비대성심근병증·좌심방확장)', 'ASA III', 176, 86, 37.8, 'full', { HCT: 39, ALB: 3.1, K: 4.2, Glu: 148, BUN: 28, Crea: 1.6 }],
+          ['만성신부전 CKD IRIS 3기·질소혈증', 'ASA III', 102, 78, 37.1, 'full', { HCT: 27, ALB: 2.7, K: 5.4, Glu: 96, BUN: 68, Crea: 3.6, pH: 7.26 }],
+          ['급성 요도폐색·중증 고칼륨혈증', 'ASA IV-E', 66, 62, 36.2, 'full', { HCT: 46, ALB: 3.3, K: 7.4, Na: 142, Glu: 135, BUN: 82, Crea: 5.2, pH: 7.18, lactate: 4.2 }],
+          ['인슐린종/패혈증성 저혈당(Glu 48)', 'ASA III-E', 132, 68, 36.6, 'full', { HCT: 36, ALB: 2.8, K: 3.8, Glu: 48, pH: 7.31, lactate: 2.8 }],
+          ['당뇨성 케톤산증(DKA)·심한 탈수·산증', 'ASA IV-E', 142, 62, 36.4, 'full', { HCT: 49, ALB: 3.4, K: 5.9, Na: 134, Glu: 430, pH: 7.16, lactate: 3.9 }],
+          ['복강 출혈·중증 빈혈(PCV 21%)·저혈량쇼크', 'ASA IV-E', 158, 54, 36.3, 'emerg_none', { HCT: 21, ALB: 1.9, K: 4.3, Glu: 118, pH: 7.22, lactate: 5.4 }],
+          ['저알부민혈증(Alb 1.7)·복수·단백소실성장병증', 'ASA III', 114, 64, 37.2, 'full', { HCT: 33, ALB: 1.7, K: 3.6, iCa: 1.04, Glu: 92, ALP: 180 }],
+          ['담낭파열·패혈성 복막염·초고ALP', 'ASA IV-E', 148, 58, 38.9, 'full', { HCT: 38, ALB: 2.1, K: 3.7, Glu: 74, ALP: 1850, ALT: 640, WBC: 26.4, pH: 7.24, lactate: 4.6 }],
+          ['부신피질기능항진증(쿠싱)·고혈압·혈전위험', 'ASA III', 118, 108, 37.9, 'full', { HCT: 45, ALB: 3.2, K: 3.9, Glu: 156, ALP: 920, ALT: 240 }],
+          ['부신피질기능저하증(애디슨)·저나트륨·고칼륨', 'ASA III-E', 78, 60, 36.5, 'full', { HCT: 34, ALB: 2.6, Na: 126, K: 6.4, Glu: 66, pH: 7.25 }],
+          ['단두종 기도증후군(BOAS)·미주신경 항진', 'ASA III', 88, 78, 38.4, 'chemi7', { HCT: 44, ALB: 3.3, K: 4.3, Glu: 102 }],
+          ['시각하운드 특이 대사·저체지방·저체온 취약', 'ASA II', 74, 82, 37.5, 'chemi7', { HCT: 56, ALB: 3.2, K: 4.2, Glu: 98, Crea: 1.7 }],
+          ['간부전·간성뇌증·응고지연', 'ASA IV', 112, 66, 36.8, 'full', { HCT: 31, ALB: 1.8, Glu: 62, ALT: 780, ALP: 540, BUN: 6, PLT: 98 }],
+          ['비만세포종 히스타민 유리·급성 저혈압 위험', 'ASA III', 124, 72, 37.7, 'full', { HCT: 40, ALB: 3.0, K: 4.1, Glu: 104 }],
+          ['갈색세포종 카테콜아민 급증·발작성 고혈압·부정맥', 'ASA IV', 136, 112, 37.8, 'full', { HCT: 43, ALB: 3.1, K: 4.0, Glu: 142 }],
+          ['임신 말기·기능적 잔기량 감소·대정맥 압박', 'ASA III-E', 132, 68, 37.4, 'chemi7', { HCT: 31, ALB: 2.4, iCa: 1.02, Glu: 78 }],
+          ['어린 자견/자묘(5개월)·저혈당·저체온 취약', 'ASA II', 146, 70, 37.4, 'chemi7', { HCT: 34, ALB: 2.8, K: 4.4, Glu: 76, ALP: 210 }],
+          ['초노령(15세)·경도 빈혈·다발성 장기 예비능 저하', 'ASA III', 96, 68, 36.9, 'full', { HCT: 30, ALB: 2.5, K: 4.5, Glu: 94, BUN: 38, Crea: 2.0 }],
+          ['건강한 성체·예정 수술(잠재적 마취 중 이벤트 주의)', 'ASA II', 104, 80, 38.0, 'chemi7', { HCT: 44, ALB: 3.4, K: 4.2, Glu: 102 }]
+        ];
+        let recent = [];
+        try { recent = JSON.parse(localStorage.getItem('vet_ai_recent_cases') || '[]'); } catch (e) { recent = []; }
+        const bPool = sp === 'cat' ? catBreeds : dogBreeds;
+        const pickNotRecent = (arr, idxKey) => {
+          const filtered = arr.filter(x => !recent.some(r => r.includes(x[0])));
+          const pool = filtered.length ? filtered : arr;
+          return pool[Math.floor(Math.random() * pool.length)];
+        };
+        const breed = pickNotRecent(bPool);
+        const surgery = pickNotRecent(surgeries);
+        const risk = pickNotRecent(risks);
+        const age = risk[0].includes('5개월') ? '5개월령' : (risk[0].includes('15세') ? '15세' : (Math.floor(Math.random() * 13) + 1) + '세');
+        const wt = (breed[1] * (0.82 + Math.random() * 0.36)).toFixed(1);
+        const seed = Math.floor(100000 + Math.random() * 900000);
+        const seedHint = `[시드#${seed}] 축종:${sp === 'cat' ? '고양이' : '강아지'}, 품종:${breed[0]}(${breed[2]}), 연령/체중:${age} ${wt}kg, 수술/시술:${surgery[0]}(${surgery[1]}), 핵심리스크:${risk[0]}, 권장ASA:${risk[1]}`;
+        const recentStr = recent.slice(-8).join(' / ') || '없음';
+        const speciesDirective = `${sp} (${seedHint} | 최근 출제와 중복 금지: ${recentStr} | 반드시 위 품종·수술·리스크를 반영해 매번 완전히 새로운 케이스로 작성)`;
+        const offlineCase = {
+          title: `${breed[0]} ${surgery[0]}`,
+          species: sp,
+          asa: risk[1],
+          summary: `${age} ${wt}kg ${breed[0]} · ${surgery[0]} · ${risk[0]}`,
+          target: `${risk[0].split('·')[0]} 안정화 및 혈역학·체온·환기 균형 유지`,
+          caution: `${breed[2]} 체형 및 ${surgery[1]} 시술 특이 합병증(저혈압·부정맥·저체온·기도관리) 집중 감시`,
+          baseHR: sp === 'cat' ? Math.max(130, risk[2] + 30) : risk[2],
+          baseMAP: risk[3],
+          baseBT: risk[4],
+          iso: surgery[2],
+          lab: Object.assign({ panelTier: risk[5], Na: 145, Cl: 112, iCa: 1.22, pH: 7.34, ALP: 85, ALT: 48, BUN: 18, Crea: 1.0, WBC: 11.2, PLT: 260, lactate: 1.4 }, risk[6])
+        };
+        return { sp, seedHint, recentCases: recent.slice(-8), speciesDirective, offlineCase };
+      }
+      
+      function setupAiCaseModal(runGenerator) {
+        const modal = document.getElementById('ai-case-modal');
+        const btnClose = document.getElementById('ai-case-modal-close');
+        const btnAuto = document.getElementById('ai-case-btn-auto');
+        const btnCustom = document.getElementById('ai-case-btn-custom');
+        const input = document.getElementById('ai-case-brief-input');
+        const statusEl = document.getElementById('ai-case-modal-status');
+        if (!modal) return () => runGenerator('');
+        let busy = false;
+        const close = () => { if (!busy) modal.style.display = 'none'; };
+        const open = () => {
+          statusEl.textContent = '';
+          modal.style.display = 'flex';
+        };
+        btnClose.addEventListener('click', close);
+        modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.style.display === 'flex') close(); });
+        modal.querySelectorAll('.ai-brief-chip').forEach((chip) => {
+          chip.addEventListener('click', () => {
+            input.value = chip.getAttribute('data-brief') || '';
+            input.focus();
+          });
+        });
+        const execute = async (customBrief) => {
+          if (busy) return;
+          busy = true;
+          btnAuto.disabled = true;
+          btnCustom.disabled = true;
+          btnClose.disabled = true;
+          statusEl.style.color = '#38bdf8';
+          statusEl.textContent = customBrief ? 'Gemini가 브리핑 맞춤 시나리오를 생성 중입니다...' : 'Gemini가 랜덤 신규 환자 시나리오를 생성 중입니다...';
+          try {
+            await runGenerator(customBrief);
+            modal.style.display = 'none';
+          } catch (err) {
+            statusEl.style.color = '#fbbf24';
+            statusEl.textContent = '생성 중 오류가 발생해 기본 케이스를 불러왔습니다.';
+            setTimeout(() => { modal.style.display = 'none'; }, 900);
+          } finally {
+            busy = false;
+            btnAuto.disabled = false;
+            btnCustom.disabled = false;
+            btnClose.disabled = false;
+          }
+        };
+        btnAuto.addEventListener('click', () => execute(''));
+        btnCustom.addEventListener('click', () => {
+          const brief = (input.value || '').trim();
+          if (!brief) {
+            statusEl.style.color = '#fbbf24';
+            statusEl.textContent = '환자 브리핑을 먼저 입력하거나 예시 칩을 선택해 주세요.';
+            input.focus();
+            return;
+          }
+          execute(brief);
+        });
+        return open;
+      }
+      function buildCustomFallbackCase(brief, aiCtx) {
+        const isCat = /(고양이|코숏|코리안숏헤어|러시안블루|페르시안|랙돌|메인쿤|스코티시|벵갈|스핑크스|샴|묘|\bcat\b)/i.test(brief);
+        const sp = isCat ? 'cat' : 'dog';
+        const shortTitle = brief.length > 26 ? brief.slice(0, 26) + '…' : brief;
+        return Object.assign({}, aiCtx.offlineCase, {
+          title: `맞춤 브리핑: ${shortTitle}`,
+          species: sp,
+          summary: brief,
+          target: '입력된 환자 브리핑의 기저질환·혈역학·체온·환기 안정화',
+          caution: '환자 특이 기저질환 및 금기 약물 주의'
+        });
+      }
+
+      function recordRecentAiCase(title) {
+        if (!title) return;
+        try {
+          const arr = JSON.parse(localStorage.getItem('vet_ai_recent_cases') || '[]');
+          arr.push(String(title).slice(0, 40));
+          localStorage.setItem('vet_ai_recent_cases', JSON.stringify(arr.slice(-14)));
+        } catch (e) {}
+      }
+
       const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
       const PreopLabEngine = (() => {
@@ -1080,50 +1245,80 @@
       // =========================================================================
       // STAGE-SPECIFIC UI RENDERER (STAGE 1 -> STAGE 2 -> STAGE 3)
       // =========================================================================
+      function wireCriticalTabs(groupKey, tabSelector, paneSelector) {
+        document.querySelectorAll(tabSelector).forEach((tb) => {
+          tb.addEventListener('click', () => {
+            const k = tb.getAttribute('data-ctab');
+            st[groupKey] = k;
+            document.querySelectorAll(tabSelector).forEach((b) => b.classList.toggle('active', b === tb));
+            document.querySelectorAll(paneSelector).forEach((p) => {
+              p.style.display = p.getAttribute('data-cpane') === k ? '' : 'none';
+            });
+          });
+        });
+      }
+
       function renderStagePanel() {
         const panel = document.getElementById('stage-panel');
         const c = getCaseObj();
         if (st.stage === 1) {
+          const t1 = st.s1Tab || 'interview';
           panel.innerHTML = `
             <div class="panel-title"><span>STAGE 1 · 마취 도입–전환 (단일 환자 시작)</span><span class="badge" style="background:rgba(56,189,248,0.16); color:#7dd3fc;">체중 ${c.wt} kg</span></div>
             <div style="font-size:11.5px; color:#cbd5e1; padding:8px 10px; border-radius:8px; background:#020617; border:1px solid #1e293b; margin-bottom:8px;">
-              <strong>임상 요약:</strong> ${c.desc}<br><span style="color:#fde68a;">※ 먼저 상단 [마취전 혈액검사]를 확인하고 보호자 문진 후 전처치·유도를 진행하세요.</span>
+              <strong>임상 요약:</strong> ${c.desc}<br><span style="color:#fde68a;">※ 먼저 상단 [마취전 혈액검사]를 확인하고 아래 탭 순서대로 진행하세요.</span>
             </div>
-            <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">① 보호자 AI 문진 (욕설·폭언 시 즉시 진료 중단 실패)</div>
-            <div id="s1-chat" class="chat-box"><div class="chat-msg owner"><strong>보호자:</strong> 선생님, 우리 아이 많이 위험한가요? 마취 전에 확인하실 거 있으면 물어보세요.</div></div>
-            <div style="display:flex; gap:6px; margin-bottom:10px;">
-              <input id="s1-q" type="text" placeholder="금식·복용약·증상 등을 질문하세요" style="flex:1; background:#020617; border:1px solid #334155; color:#fff; border-radius:8px; padding:6px 8px; font-size:11.5px;" />
-              <button id="btn-s1-ask" type="button" class="btn btn-sky">질문</button>
+            <div class="ctrl-tabs" id="s1-tabs">
+              <button type="button" class="ctrl-tab ${t1==='interview'?'active':''}" data-ctab="interview">① 보호자 문진</button>
+              <button type="button" class="ctrl-tab ${t1==='premed'?'active':''}" data-ctab="premed">② 전처치·유도</button>
+              <button type="button" class="ctrl-tab ${t1==='intub'?'active':''}" data-ctab="intub">③ 삽관·연결</button>
+              <button type="button" class="ctrl-tab ${t1==='drugs'?'active':''}" data-ctab="drugs">④ 응급약물</button>
             </div>
-            <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">② 전처치 투약 (mL 용량 계산 · 즉시 생리 변화 반영 · 과투여 시 사망!)</div>
-            <div class="choice-grid two">
-              <button type="button" class="choice-btn ${st.premed==='dex'?'selected':''}" data-premed="dex"><strong>Dexmedetomidine + Methadone</strong><small>강력 진정·혈관수축(α₂↑) · 쇼크/고칼륨 주의</small></button>
-              <button type="button" class="choice-btn ${st.premed==='midaz'?'selected':''}" data-premed="midaz"><strong>Midazolam + Fentanyl/Methadone</strong><small>심혈관 안정 · 중환자/심부전/쇼크 Co-induction</small></button>
-              <button type="button" class="choice-btn ${st.premed==='ace'?'selected':''}" data-premed="ace"><strong>Acepromazine + Butorphanol</strong><small>α₁ 혈관확장 · 저혈압/쇼크·출혈 금기</small></button>
-              <button type="button" class="choice-btn ${st.premed==='ket'?'selected':''}" data-premed="ket"><strong>Ketamine + Midazolam</strong><small>교감신경 항진 · HCM/뇌압(ICP) 금기</small></button>
+            <div class="s1-pane" data-cpane="interview" style="${t1==='interview'?'':'display:none;'}">
+              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">① 보호자 AI 문진 (욕설·폭언 시 즉시 진료 중단 실패)</div>
+              <div id="s1-chat" class="chat-box"><div class="chat-msg owner"><strong>보호자:</strong> 선생님, 우리 아이 많이 위험한가요? 마취 전에 확인하실 거 있으면 물어보세요.</div></div>
+              <div style="display:flex; gap:6px; margin-bottom:10px;">
+                <input id="s1-q" type="text" placeholder="금식·복용약·증상 등을 질문하세요" style="flex:1; background:#020617; border:1px solid #334155; color:#fff; border-radius:8px; padding:6px 8px; font-size:11.5px;" />
+                <button id="btn-s1-ask" type="button" class="btn btn-sky">질문</button>
+              </div>
             </div>
-            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-              <button id="btn-s1-preox" type="button" class="btn ${st.preox?'btn-emerald':'btn-sky'}">${st.preox ? '✓ 전산소화 3분 완료' : '③ 전산소화 (O₂ 3분)'}</button>
-              <button id="btn-s1-prop" type="button" class="btn ${st.indDrug==='propofol'?'btn-emerald':'btn-amber'}">④ Propofol 유도 (mL 계산)</button>
-              <button id="btn-s1-alfa" type="button" class="btn ${st.indDrug==='alfaxalone'?'btn-emerald':'btn-amber'}">④ Alfaxalone 유도 (mL 계산)</button>
+            <div class="s1-pane" data-cpane="premed" style="${t1==='premed'?'':'display:none;'}">
+              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">② 전처치 투약 (mL 용량 계산 · 즉시 생리 변화 반영 · 과투여 시 사망!)</div>
+              <div class="choice-grid two">
+                <button type="button" class="choice-btn ${st.premed==='dex'?'selected':''}" data-premed="dex"><strong>Dexmedetomidine + Methadone</strong><small>강력 진정·혈관수축(α₂↑) · 쇼크/고칼륨 주의</small></button>
+                <button type="button" class="choice-btn ${st.premed==='midaz'?'selected':''}" data-premed="midaz"><strong>Midazolam + Fentanyl/Methadone</strong><small>심혈관 안정 · 중환자/심부전/쇼크 Co-induction</small></button>
+                <button type="button" class="choice-btn ${st.premed==='ace'?'selected':''}" data-premed="ace"><strong>Acepromazine + Butorphanol</strong><small>α₁ 혈관확장 · 저혈압/쇼크·출혈 금기</small></button>
+                <button type="button" class="choice-btn ${st.premed==='ket'?'selected':''}" data-premed="ket"><strong>Ketamine + Midazolam</strong><small>교감신경 항진 · HCM/뇌압(ICP) 금기</small></button>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                <button id="btn-s1-preox" type="button" class="btn ${st.preox?'btn-emerald':'btn-sky'}">${st.preox ? '✓ 전산소화 3분 완료' : '③ 전산소화 (O₂ 3분)'}</button>
+                <button id="btn-s1-prop" type="button" class="btn ${st.indDrug==='propofol'?'btn-emerald':'btn-amber'}">④ Propofol 유도 (mL 계산)</button>
+                <button id="btn-s1-alfa" type="button" class="btn ${st.indDrug==='alfaxalone'?'btn-emerald':'btn-amber'}">④ Alfaxalone 유도 (mL 계산)</button>
+              </div>
             </div>
-            <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">⑤ 기관내삽관 & 마취기 연결</div>
+            <div class="s1-pane" data-cpane="intub" style="${t1==='intub'?'':'display:none;'}">
+              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">⑤ 기관내삽관 & 마취기 연결</div>
             <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
               ${st.species==='cat' ? `<button id="btn-s1-spray" type="button" class="btn ${st.lidoSpray?'btn-emerald':''}">${st.lidoSpray?'✓ 후두 리도카인 스프레이':'고양이 후두 리도카인 스프레이'}</button>` : ''}
               <button id="btn-s1-intub" type="button" class="btn ${st.intubated?'btn-emerald':'btn-sky'}">${st.intubated?'✓ 기관내삽관·커프 확인':'기관내삽관 + 커프 + ETCO₂ 확인'}</button>
               <button id="btn-s1-apl" type="button" class="btn ${st.aplOpen?'btn-emerald':'btn-rose'}">${st.aplOpen?'✓ APL 밸브 개방 (0 cmH₂O)':'⚠ APL 밸브 닫힘!'}</button>
             </div>
-            <div style="font-size:11px; font-weight:800; color:#fda4af; margin:8px 0 5px;">⑥ 도입 전 응급 안정화 약물 IV (고칼륨·저혈당·출혈·부정맥 선처치)</div>
-            <div class="drug-subtabs">
-              <button type="button" class="drug-subtab ${st.drugSubtab==='core'?'active':''}" data-dtab="core">기본 응급</button>
-              <button type="button" class="drug-subtab ${st.drugSubtab==='metab'?'active':''}" data-dtab="metab">혈액·대사</button>
-              <button type="button" class="drug-subtab ${st.drugSubtab==='rev'?'active':''}" data-dtab="rev">이뇨·길항</button>
             </div>
-            <div id="s1-drug-grid" class="drug-grid" style="margin-bottom:10px;"></div>
+            <div class="s1-pane" data-cpane="drugs" style="${t1==='drugs'?'':'display:none;'}">
+              <div style="font-size:11px; font-weight:800; color:#fda4af; margin-bottom:6px;">도입 전 응급·특수 약물 IV (고칼륨·저혈당·빈혈 선교정)</div>
+              <div class="drug-subtabs">
+                <button type="button" class="drug-subtab ${st.drugSubtab==='core'?'active':''}" data-dtab="core">기본 응급</button>
+                <button type="button" class="drug-subtab ${st.drugSubtab==='metab'?'active':''}" data-dtab="metab">혈액·대사</button>
+                <button type="button" class="drug-subtab ${st.drugSubtab==='rev'?'active':''}" data-dtab="rev">이뇨·길항</button>
+              </div>
+              <div id="s1-drug-grid" class="drug-grid" style="margin-bottom:10px;"></div>
+            </div>
             <button id="btn-to-stage2" type="button" class="btn btn-emerald" style="width:100%; padding:10px; font-size:13px;">STAGE 2 · 유지기 모니터링으로 전환 →</button>
           `;
+          wireCriticalTabs('s1Tab', '#s1-tabs .ctrl-tab', '.s1-pane');
           wireStage1();
         } else if (st.stage === 2) {
+          const t2 = st.s2Tab || 'vent';
           panel.innerHTML = `
             <div class="panel-title"><span>STAGE 2 · 유지 모니터링 (연속 생리 · 용량 계산 IV)</span><span class="mono" style="color:#fde68a;">유지 <span id="maint-timer">${Math.floor(st.maintSec)}</span>s</span></div>
             <div style="padding:7px 9px; border-radius:8px; background:#020617; border:1px solid #1e293b; margin-bottom:8px; font-size:11px;">
@@ -1135,55 +1330,75 @@
                 <div id="maint-stable-bar" style="height:100%; width:${Math.min(100, Math.round(st.maintStableSec/45*100))}%; background:#10b981; transition:width 0.25s;"></div>
               </div>
             </div>
-            <div class="slider-row">
-              <div class="slider-hdr"><span>Isoflurane 기화기</span><span id="lbl-iso" class="mono" style="color:#e879f9;">${st.iso.toFixed(1)}%</span></div>
-              <input id="sl-iso" type="range" min="0" max="4.0" step="0.1" value="${st.iso}" />
+            <div class="ctrl-tabs two" id="s2-tabs">
+              <button type="button" class="ctrl-tab ${t2==='vent'?'active':''}" data-ctab="vent">① 기화기·환기·수액</button>
+              <button type="button" class="ctrl-tab ${t2==='drugs'?'active':''}" data-ctab="drugs">② 응급·특수 약물 IV</button>
             </div>
-            <div class="slider-row">
-              <div class="slider-hdr"><span>호흡수 (RR) / PIP</span><span id="lbl-rr" class="mono" style="color:#facc15;">RR ${st.rr} / PIP ${st.pip}</span></div>
-              <input id="sl-rr" type="range" min="6" max="28" step="1" value="${st.rr}" />
+            <div class="s2-pane" data-cpane="vent" style="${t2==='vent'?'':'display:none;'}">
+              <div class="slider-row">
+                <div class="slider-hdr"><span>Isoflurane 기화기</span><span id="lbl-iso" class="mono" style="color:#e879f9;">${st.iso.toFixed(1)}%</span></div>
+                <input id="sl-iso" type="range" min="0" max="4.0" step="0.1" value="${st.iso}" />
+              </div>
+              <div class="slider-row">
+                <div class="slider-hdr"><span>호흡수 (RR) / PIP</span><span id="lbl-rr" class="mono" style="color:#facc15;">RR ${st.rr} / PIP ${st.pip}</span></div>
+                <input id="sl-rr" type="range" min="6" max="28" step="1" value="${st.rr}" />
+              </div>
+              <div class="slider-row">
+                <div class="slider-hdr"><span>수액 속도 (결정질)</span><span id="lbl-fl" class="mono" style="color:#38bdf8;">${st.fluid} mL/kg/h</span></div>
+                <input id="sl-fl" type="range" min="0" max="25" step="1" value="${st.fluid}" />
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                <button id="btn-s2-bag" type="button" class="btn btn-sky">수동 배깅 (+1회)</button>
+                <button id="btn-s2-bolus" type="button" class="btn btn-sky">+5 mL/kg 수액 볼루스</button>
+                <button id="btn-s2-warm" type="button" class="btn ${st.warming?'btn-emerald':''}">가온 ${st.warming?'ON':'OFF'}</button>
+                <button id="btn-s2-apl" type="button" class="btn ${st.aplOpen?'btn-emerald':'btn-rose'}">APL ${st.aplOpen?'개방':'잠김!'}</button>
+              </div>
             </div>
-            <div class="slider-row">
-              <div class="slider-hdr"><span>수액 속도 (결정질)</span><span id="lbl-fl" class="mono" style="color:#38bdf8;">${st.fluid} mL/kg/h</span></div>
-              <input id="sl-fl" type="range" min="0" max="25" step="1" value="${st.fluid}" />
+            <div class="s2-pane" data-cpane="drugs" style="${t2==='drugs'?'':'display:none;'}">
+              <div style="font-size:11px; font-weight:800; color:#fda4af; margin-bottom:6px;">응급·특수 약물 IV (누르면 mL 용량 계산 · 연쇄 상호작용 &amp; 반복 독성 반영)</div>
+              <div class="drug-subtabs">
+                <button type="button" class="drug-subtab ${st.drugSubtab==='core'?'active':''}" data-dtab="core">기본 응급</button>
+                <button type="button" class="drug-subtab ${st.drugSubtab==='metab'?'active':''}" data-dtab="metab">혈액·대사</button>
+                <button type="button" class="drug-subtab ${st.drugSubtab==='rev'?'active':''}" data-dtab="rev">이뇨·길항</button>
+              </div>
+              <div id="s2-drug-grid" class="drug-grid" style="margin-bottom:10px;"></div>
             </div>
-            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-              <button id="btn-s2-bag" type="button" class="btn btn-sky">수동 배깅 (+1회)</button>
-              <button id="btn-s2-bolus" type="button" class="btn btn-sky">+5 mL/kg 수액 볼루스</button>
-              <button id="btn-s2-warm" type="button" class="btn ${st.warming?'btn-emerald':''}">가온 ${st.warming?'ON':'OFF'}</button>
-              <button id="btn-s2-apl" type="button" class="btn ${st.aplOpen?'btn-emerald':'btn-rose'}">APL ${st.aplOpen?'개방':'잠김!'}</button>
-            </div>
-            <div style="font-size:11px; font-weight:800; color:#fda4af; margin-bottom:6px;">응급·특수 약물 IV (누르면 mL 용량 계산 · 연쇄 상호작용 & 반복 독성 반영)</div>
-            <div class="drug-subtabs">
-              <button type="button" class="drug-subtab ${st.drugSubtab==='core'?'active':''}" data-dtab="core">기본 응급</button>
-              <button type="button" class="drug-subtab ${st.drugSubtab==='metab'?'active':''}" data-dtab="metab">혈액·대사</button>
-              <button type="button" class="drug-subtab ${st.drugSubtab==='rev'?'active':''}" data-dtab="rev">이뇨·길항</button>
-            </div>
-            <div id="s2-drug-grid" class="drug-grid" style="margin-bottom:10px;"></div>
-            <button id="btn-to-stage3" type="button" class="btn btn-emerald" style="width:100%; padding:10px; font-size:13px;">수술 종료 → STAGE 3 회복기로 전환 →</button>
+            <button id="btn-to-stage3" type="button" class="btn btn-emerald" style="width:100%; padding:10px; font-size:13px;">수술 종료 · STAGE 3 회복기로 전환 →</button>
           `;
+          wireCriticalTabs('s2Tab', '#s2-tabs .ctrl-tab', '.s2-pane');
           wireStage2();
         } else {
+          const t3 = st.s3Tab || 'rec';
           panel.innerHTML = `
             <div class="panel-title"><span>STAGE 3 · 마취 종료·회복 (유지기 상태 그대로 승계)</span><span class="badge" style="background:rgba(16,185,129,0.18); color:#6ee7b7;">발관 · 회복실</span></div>
             <div style="font-size:11.5px; color:#cbd5e1; padding:8px 10px; border-radius:8px; background:#020617; border:1px solid #1e293b; margin-bottom:8px;">
               현재 유지기에서 이어진 상태: <strong>EtIso <span id="s3-etiso">${st.etIso.toFixed(2)}%</span> · 체온 <span id="s3-bt">${st.bt.toFixed(1)}°C</span> · 연하반사 <span id="s3-sw">${st.swallowCount}</span>회</strong>
             </div>
-            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-              <button id="btn-s3-iso-off" type="button" class="btn ${st.iso===0?'btn-emerald':'btn-amber'}">${st.iso===0?'✓ 기화기 OFF 완료':'① 기화기 OFF + O₂ 3.0 L/min 세척'}</button>
-              <button id="btn-s3-warm" type="button" class="btn ${st.warming?'btn-emerald':''}">능동 가온 ${st.warming?'ON':'OFF'}</button>
-              <button id="btn-s3-extub" type="button" class="btn ${st.extubated?'btn-emerald':'btn-rose'}">${st.extubated?'✓ 발관 완료':'② 기관튜브 발관 (Extubation)'}</button>
-              <button id="btn-s3-atip" type="button" class="btn btn-violet">Atipamezole 길항 (mL)</button>
-              <button id="btn-s3-nalox" type="button" class="btn btn-violet">Naloxone 길항 (mL)</button>
+            <div class="ctrl-tabs two" id="s3-tabs">
+              <button type="button" class="ctrl-tab ${t3==='rec'?'active':''}" data-ctab="rec">① 발관·회복 처치</button>
+              <button type="button" class="ctrl-tab ${t3==='dc'?'active':''}" data-ctab="dc">② 보호자 퇴원 안내</button>
             </div>
-            <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">③ 보호자 퇴원 안내 AI 롤플레이 (욕설·폭언 시 즉시 실패)</div>
+            <div class="s3-pane" data-cpane="rec" style="${t3==='rec'?'':'display:none;'}">
+              <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                <button id="btn-s3-iso-off" type="button" class="btn ${st.iso===0?'btn-emerald':'btn-amber'}">${st.iso===0?'✓ 기화기 OFF 완료':'① 기화기 OFF + O₂ 3.0 L/min 세척'}</button>
+                <button id="btn-s3-warm" type="button" class="btn ${st.warming?'btn-emerald':''}">능동 가온 ${st.warming?'ON':'OFF'}</button>
+                <button id="btn-s3-extub" type="button" class="btn ${st.extubated?'btn-emerald':'btn-rose'}">${st.extubated?'✓ 발관 완료':'② 기관튜브 발관 (Extubation)'}</button>
+                <button id="btn-s3-atip" type="button" class="btn btn-violet">Atipamezole 길항 (mL)</button>
+                <button id="btn-s3-nalox" type="button" class="btn btn-violet">Naloxone 길항 (mL)</button>
+              </div>
+            </div>
+            <div class="s3-pane" data-cpane="dc" style="${t3==='dc'?'':'display:none;'}">
+              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">③ 보호자 퇴원 안내 AI 롤플레이 (욕설·폭언 시 즉시 실패)</div>
             <div id="s3-chat" class="chat-box"><div class="chat-msg owner"><strong>보호자:</strong> 선생님, 수술 잘 끝났나요? 집에 가서 밥·물·약은 어떻게 챙겨야 하죠?</div></div>
             <div style="display:flex; gap:6px; margin-bottom:10px;">
               <input id="s3-msg" type="text" placeholder="금식·체온·상처·응급 증상 등 퇴원 주의사항 안내" style="flex:1; background:#020617; border:1px solid #334155; color:#fff; border-radius:8px; padding:6px 8px; font-size:11.5px;" />
               <button id="btn-s3-send" type="button" class="btn btn-sky">안내 전송</button>
             </div>
             <button id="btn-finish-all" type="button" class="btn btn-emerald" style="width:100%; padding:10px; font-size:13px;">✅ 전주기 마취 완료 및 통합 리포트 보기</button>
+          
+            </div>
           `;
+          wireCriticalTabs('s3Tab', '#s3-tabs .ctrl-tab', '.s3-pane');
           wireStage3();
         }
       }
@@ -1291,7 +1506,7 @@
           let reply = c.ownerClue, aiAbort = false;
           try {
             const res = await fetch(AI_API_PREFIX + '/ai', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
               body: JSON.stringify({ task: 'roleplay', role: 'owner_preop', species: st.species === 'dog' ? '개' : '고양이', caseDesc: c.desc, clue: c.ownerClue, question: q })
             });
             if (res.ok) {
@@ -1606,7 +1821,7 @@
           let reply = '네 선생님, 말씀하신 대로 보온과 호흡·상처 잘 살피고 4~6시간 뒤에 물부터 소량씩 줄게요. 감사합니다!', aiAbort = false;
           try {
             const res = await fetch(AI_API_PREFIX + '/ai', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
               body: JSON.stringify({ task: 'roleplay', role: 'owner_discharge', species: st.species === 'dog' ? '개' : '고양이', caseName: getCaseObj().name, vetAdvice: msg })
             });
             if (res.ok) {
@@ -2030,7 +2245,7 @@
         out.classList.remove('hidden'); out.textContent = 'Gemini AI가 전주기(도입→유지→회복) 로그를 분석 중입니다...';
         try {
           const res = await fetch(AI_API_PREFIX + '/debrief', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
             body: JSON.stringify({ task: 'debrief', species: st.species==='dog'?'개':'고양이', scenario: '전주기 심화 - ' + getCaseObj().name, arrestReason: st.arrested ? '심정지' : (st.abortedByOwner ? '보호자 상담 중단' : '전주기 완료'), finalVitals: { hr: Math.round(st.hr), map: Math.round(st.map), spo2: Math.round(st.spo2), k: st.phys.serumK, ph: st.phys.arterialPH, rhythm: st.rhythm }, recentLogs: st.logs.slice(0, 18).map(l => `[${l.time}] ${l.msg}`) })
           });
           const d = await res.json().catch(() => ({}));
@@ -2044,7 +2259,7 @@
         out.classList.remove('hidden'); out.textContent = 'SOAP 전주기 마취기록지를 생성 중입니다...';
         try {
           const res = await fetch(AI_API_PREFIX + '/ai', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
             body: JSON.stringify({ task: 'soap_record', species: st.species==='dog'?'개':'고양이', scenario: '전주기 심화 - ' + getCaseObj().name, duration: `${Math.floor(st.simSec/60)}분`, arrested: st.arrested, arrestReason: st.rhythm, finalVitals: { hr: Math.round(st.hr), map: Math.round(st.map), bt: st.bt.toFixed(1) }, recentLogs: st.logs.slice(0, 18).map(l => `[${l.time}] ${l.msg}`) })
           });
           const d = await res.json().catch(() => ({}));
@@ -2077,31 +2292,67 @@
         b.textContent = st.easyMode ? '초급(상태열림)' : '심화(실전)';
         syncHeaderUI();
       });
-      document.getElementById('btn-ai-case').addEventListener('click', async () => {
+      const openAiCaseModal = setupAiCaseModal(async (customBrief) => {
         const b = document.getElementById('btn-ai-case');
         b.disabled = true; b.textContent = '생성 중...';
+        const aiCtx = buildDiverseAiCaseContext(st.species);
         try {
           const res = await fetch(AI_API_PREFIX + '/ai', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ task: 'generate_case', species: st.species })
+            method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify({ task: 'generate_case', species: customBrief ? customBrief : aiCtx.speciesDirective, customBrief: customBrief || '', seedHint: customBrief ? '' : aiCtx.seedHint, recentCases: aiCtx.recentCases })
           });
           const d = await res.json();
           if (res.ok && d && d.caseData) {
             st.aiCase = d.caseData;
             if (d.caseData.species === 'cat' || d.caseData.species === 'dog') st.species = d.caseData.species;
+            recordRecentAiCase(d.caseData.title);
             initCase();
             showToast(`AI 심화 환자 생성 완료: ${d.caseData.title}`, 'good');
           } else throw new Error(d.error || '오류');
         } catch (e) {
-          st.aiCase = { title: '응급 당뇨성 케톤산증(DKA) 환자', asa: 'ASA IV-E', summary: '8세 6.8kg · DKA · pH 7.16, K⁺ 6.5, Glu 420, 심한 탈수·산증', target: '정질액 소생 + 전해질·산증 교정 (50% 포도당 금기!)', lab: { panelTier: 'full', pH: 7.16, K: 6.5, Glu: 420, HCT: 49, ALB: 2.9, BUN: 64, Crea: 3.1, lactate: 4.5 } };
+          st.aiCase = customBrief ? buildCustomFallbackCase(customBrief, aiCtx) : aiCtx.offlineCase;
+          st.species = st.aiCase.species === 'cat' ? 'cat' : 'dog';
+          recordRecentAiCase(st.aiCase.title);
           initCase();
-          showToast('오프라인 심화 환자(DKA)를 로드했습니다.', 'info');
+          showToast(`오프라인 환자 로드: ${st.aiCase.title}`, 'info');
         } finally { b.disabled = false; b.textContent = '✦ AI 랜덤환자'; }
       });
+      document.getElementById('btn-ai-case').addEventListener('click', openAiCaseModal);
 
       initCase();
       requestAnimationFrame(animLoop);
     })();
   </script>
+
+  <!-- AI Patient Case Generator Modal (Auto Random + Custom Briefing) -->
+  <div id="ai-case-modal" style="position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,0.82);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;" role="dialog" aria-modal="true" aria-labelledby="ai-case-modal-title">
+    <div style="width:100%;max-width:460px;background:#0f172a;border:1.5px solid rgba(129,140,248,0.5);border-radius:16px;padding:18px;color:#e2e8f0;box-shadow:0 24px 48px rgba(0,0,0,0.65);font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
+        <h3 id="ai-case-modal-title" style="margin:0;font-size:16px;font-weight:800;color:#c7d2fe;">✦ AI 환자 시나리오 생성 (Gemini)</h3>
+        <button id="ai-case-modal-close" type="button" style="background:transparent;border:1px solid #334155;color:#94a3b8;border-radius:8px;padding:4px 9px;font-size:12px;font-weight:700;cursor:pointer;">닫기</button>
+      </div>
+
+      <div style="background:#020617;border:1px solid #1e293b;border-radius:12px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;color:#6ee7b7;margin-bottom:4px;">1) 완전 랜덤 자동 생성</div>
+        <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;margin-bottom:10px;">36종 품종 · 30종 수술 · 20종 기저질환 조합으로 매번 새로운 케이스를 출제합니다.</div>
+        <button id="ai-case-btn-auto" type="button" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#10b981;color:#020617;font-size:13px;font-weight:800;cursor:pointer;">🎲 AI 랜덤 자동 생성</button>
+      </div>
+
+      <div style="background:#020617;border:1px solid #1e293b;border-radius:12px;padding:12px;">
+        <div style="font-size:12px;font-weight:700;color:#a5b4fc;margin-bottom:4px;">2) 직접 환자 브리핑 입력</div>
+        <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;margin-bottom:8px;">품종·연령·체중·수술·기저질환·혈액검사 등을 자유롭게 적으면 맞춤 시나리오를 생성합니다.</div>
+        <textarea id="ai-case-brief-input" rows="3" placeholder="예: 12세 3.5kg 말티즈, MMVD C기, 담낭점액종 절제술 예정. 알부민 2.0, ALP 1400" style="width:100%;box-sizing:border-box;background:#0f172a;border:1px solid #334155;border-radius:9px;padding:9px 10px;color:#f8fafc;font-size:12.5px;line-height:1.45;resize:vertical;outline:none;font-family:inherit;"></textarea>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px;">
+          <button type="button" class="ai-brief-chip" data-brief="5세 5.2kg 코리안숏헤어 수컷, 급성 요도폐색 48시간, K+ 7.5 고칼륨혈증 및 서맥" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">고양이 요도폐색·고K+</button>
+          <button type="button" class="ai-brief-chip" data-brief="8세 32kg 골든리트리버, 비장종양 파열 복강출혈, PCV 20% 빈혈 및 저혈량 쇼크 응급 비장적출술" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">대형견 비장파열·빈혈</button>
+          <button type="button" class="ai-brief-chip" data-brief="13세 3.6kg 말티즈, MMVD C기 폐수종 병력, 담낭파열 패혈성 복막염, Alb 1.9, ALP 1600" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">노령 말티즈 담낭파열</button>
+        </div>
+        <button id="ai-case-btn-custom" type="button" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#6366f1;color:#ffffff;font-size:13px;font-weight:800;cursor:pointer;">✦ 입력한 브리핑으로 AI 케이스 생성</button>
+      </div>
+
+      <div id="ai-case-modal-status" style="margin-top:10px;font-size:11.5px;color:#38bdf8;min-height:16px;text-align:center;"></div>
+    </div>
+  </div>
+
 </body>
 </html>

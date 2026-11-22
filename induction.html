@@ -121,12 +121,6 @@
     .lab-flag { display: inline-block; padding: 1px 5px; border-radius: 4px; font-size: 9.5px; font-weight: 800; margin-left: 4px; }
     .lab-flag-hi { background: rgba(244,63,94,0.2); color: #fda4af; border: 1px solid rgba(244,63,94,0.45); }
     .lab-flag-lo { background: rgba(56,189,248,0.2); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.45); }
-  
-    /* Mobile bottom dead space for floating Powered by Netlify badge & safe-area */
-    @media (max-width: 1023px) {
-      body { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
-      footer { padding-bottom: 24px !important; }
-    }
   </style>
 </head>
 <body>
@@ -145,7 +139,7 @@
       <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
         <button id="btn-start" type="button" class="btn btn-primary" style="padding:11px; font-size:13px;">▶ 도입 시뮬레이터 시작</button>
         <button id="btn-credits" type="button" class="btn" style="padding:9px;">크레딧</button>
-        <button id="btn-portal" type="button" class="btn btn-sky" style="padding:8px;">🏠 시작화면 (도입 · 유지 · 회복)</button>
+        <button id="btn-portal" type="button" class="btn btn-sky" style="padding:8px;">🏠 시작화면</button>
       </div>
       <div style="margin-top:12px; font-size:10px; color:#64748b;">© 2026 DVM 이혁민 · All rights reserved.</div>
     </div>
@@ -306,6 +300,169 @@
       'use strict';
       const AI_API_PREFIX = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.pages.dev')) ? '/api' : ((typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '/.netlify/functions' : 'https://vet-anesthesia-lhm.netlify.app/.netlify/functions');
 
+      function buildDiverseAiCaseContext(defaultSp) {
+        const sp = Math.random() < 0.65 ? 'dog' : 'cat';
+        const dogBreeds = [
+          ['말티즈', 3.4, '소형'], ['토이푸들', 4.1, '소형'], ['포메라니안', 2.8, '초소형'], ['치와와', 2.3, '초소형'],
+          ['요크셔테리어', 3.1, '소형'], ['시츄', 6.2, '단두종'], ['프렌치불독', 11.5, '단두종'], ['퍼그', 8.4, '단두종'],
+          ['닥스훈트', 6.8, '소형'], ['웰시코기', 12.2, '중형'], ['비글', 10.5, '중형'], ['코커스패니얼', 11.8, '중형'],
+          ['보더콜리', 17.5, '중형'], ['진돗개', 18.2, '중형'], ['시베리안허스키', 23.0, '대형'], ['골든리트리버', 29.5, '대형'],
+          ['래브라도리트리버', 31.0, '대형'], ['저먼셰퍼드', 33.5, '대형'], ['도베르만', 34.0, '대형'], ['그레이하운드', 28.0, '시각하운드'],
+          ['휘핏', 13.5, '시각하운드'], ['그레이트데인', 54.0, '초대형'], ['비숑프리제', 5.8, '소형'], ['미니어처슈나우저', 7.4, '소형']
+        ];
+        const catBreeds = [
+          ['코리안숏헤어', 4.6, '일반묘'], ['러시안블루', 4.2, '일반묘'], ['브리티시숏헤어', 5.5, '단두묘'],
+          ['페르시안', 4.1, '단두묘'], ['랙돌', 5.8, '대형묘'], ['메인쿤', 7.4, '대형묘'], ['스코티시폴드', 4.5, '일반묘'],
+          ['벵갈', 5.0, '활동묘'], ['스핑크스', 3.8, '무모묘'], ['샴', 3.9, '일반묘'], ['노르웨이숲', 6.1, '대형묘'], ['아메리칸숏헤어', 4.8, '일반묘']
+        ];
+        const surgeries = [
+          ['TPLO 십자인대 재건술', '정형', 1.25], ['대퇴골두절제술(FHO)', '정형', 1.2], ['흉요추 추간판탈출 반측추궁절제술', '신경', 1.2],
+          ['경추 추간판 Ventral Slot 감압술', '신경', 1.15], ['담낭점액종 담낭절제술', '간담도', 1.25], ['비장종양 파열 응급 비장적출술', '응급복부', 1.05],
+          ['간종양 간엽절제술', '간담도', 1.15], ['문맥전신단락(PSS) 아메로이드 링 결찰', '간혈관', 1.0], ['자궁축농증 난소자궁적출술', '산과응급', 1.15],
+          ['난산 응급 제왕절개술', '산과응급', 1.0], ['위확장염전(GDV) 응급 위고정술', '응급복부', 1.05], ['선형이물 장절개·문합술', '소화기', 1.2],
+          ['외상성 횡격막탈장 정복술', '흉복부응급', 1.05], ['회음부탈장 정복술', '연부조직', 1.25], ['요도폐색 회음요도루(PU) 성형술', '비뇨응급', 1.15],
+          ['요관폐색 SUB(피하요관우회술)', '비뇨', 1.15], ['방광결석 제거술', '비뇨', 1.3], ['부신종양(갈색세포종 의심) 적출술', '내분비', 1.1],
+          ['췌장 인슐린종 절제술', '내분비', 1.1], ['비만세포종(MCT) 광범위 절제술', '종양', 1.2], ['중증 치주염 전발치술', '치과', 1.3],
+          ['구강 종양 하악절제술', '치과종양', 1.2], ['녹내장 안구적출술', '안과', 1.25], ['백내장 초음파유화술(Phaco)', '안과', 1.2],
+          ['동맥관개존증(PDA) 결찰술', '흉부심장', 1.05], ['폐종양 폐엽절제술', '흉부', 1.1], ['단두종 연구개절제·비공확장술(BOAS)', '상부기도', 1.25],
+          ['기관허탈 기관 내 스텐트 삽입술', '호흡기', 1.15], ['골반 다발성 골절 내고정술', '외상정형', 1.2], ['식도이물 내시경 제거술', '내시경', 1.25]
+        ];
+        const risks = [
+          ['MMVD Stage C(이첨판폐쇄부전·폐수종 병력)', 'ASA III', 128, 70, 37.6, 'full', { HCT: 41, ALB: 3.0, K: 4.1, Glu: 108, BUN: 34, Crea: 1.5 }],
+          ['HCM(비대성심근병증·좌심방확장)', 'ASA III', 176, 86, 37.8, 'full', { HCT: 39, ALB: 3.1, K: 4.2, Glu: 148, BUN: 28, Crea: 1.6 }],
+          ['만성신부전 CKD IRIS 3기·질소혈증', 'ASA III', 102, 78, 37.1, 'full', { HCT: 27, ALB: 2.7, K: 5.4, Glu: 96, BUN: 68, Crea: 3.6, pH: 7.26 }],
+          ['급성 요도폐색·중증 고칼륨혈증', 'ASA IV-E', 66, 62, 36.2, 'full', { HCT: 46, ALB: 3.3, K: 7.4, Na: 142, Glu: 135, BUN: 82, Crea: 5.2, pH: 7.18, lactate: 4.2 }],
+          ['인슐린종/패혈증성 저혈당(Glu 48)', 'ASA III-E', 132, 68, 36.6, 'full', { HCT: 36, ALB: 2.8, K: 3.8, Glu: 48, pH: 7.31, lactate: 2.8 }],
+          ['당뇨성 케톤산증(DKA)·심한 탈수·산증', 'ASA IV-E', 142, 62, 36.4, 'full', { HCT: 49, ALB: 3.4, K: 5.9, Na: 134, Glu: 430, pH: 7.16, lactate: 3.9 }],
+          ['복강 출혈·중증 빈혈(PCV 21%)·저혈량쇼크', 'ASA IV-E', 158, 54, 36.3, 'emerg_none', { HCT: 21, ALB: 1.9, K: 4.3, Glu: 118, pH: 7.22, lactate: 5.4 }],
+          ['저알부민혈증(Alb 1.7)·복수·단백소실성장병증', 'ASA III', 114, 64, 37.2, 'full', { HCT: 33, ALB: 1.7, K: 3.6, iCa: 1.04, Glu: 92, ALP: 180 }],
+          ['담낭파열·패혈성 복막염·초고ALP', 'ASA IV-E', 148, 58, 38.9, 'full', { HCT: 38, ALB: 2.1, K: 3.7, Glu: 74, ALP: 1850, ALT: 640, WBC: 26.4, pH: 7.24, lactate: 4.6 }],
+          ['부신피질기능항진증(쿠싱)·고혈압·혈전위험', 'ASA III', 118, 108, 37.9, 'full', { HCT: 45, ALB: 3.2, K: 3.9, Glu: 156, ALP: 920, ALT: 240 }],
+          ['부신피질기능저하증(애디슨)·저나트륨·고칼륨', 'ASA III-E', 78, 60, 36.5, 'full', { HCT: 34, ALB: 2.6, Na: 126, K: 6.4, Glu: 66, pH: 7.25 }],
+          ['단두종 기도증후군(BOAS)·미주신경 항진', 'ASA III', 88, 78, 38.4, 'chemi7', { HCT: 44, ALB: 3.3, K: 4.3, Glu: 102 }],
+          ['시각하운드 특이 대사·저체지방·저체온 취약', 'ASA II', 74, 82, 37.5, 'chemi7', { HCT: 56, ALB: 3.2, K: 4.2, Glu: 98, Crea: 1.7 }],
+          ['간부전·간성뇌증·응고지연', 'ASA IV', 112, 66, 36.8, 'full', { HCT: 31, ALB: 1.8, Glu: 62, ALT: 780, ALP: 540, BUN: 6, PLT: 98 }],
+          ['비만세포종 히스타민 유리·급성 저혈압 위험', 'ASA III', 124, 72, 37.7, 'full', { HCT: 40, ALB: 3.0, K: 4.1, Glu: 104 }],
+          ['갈색세포종 카테콜아민 급증·발작성 고혈압·부정맥', 'ASA IV', 136, 112, 37.8, 'full', { HCT: 43, ALB: 3.1, K: 4.0, Glu: 142 }],
+          ['임신 말기·기능적 잔기량 감소·대정맥 압박', 'ASA III-E', 132, 68, 37.4, 'chemi7', { HCT: 31, ALB: 2.4, iCa: 1.02, Glu: 78 }],
+          ['어린 자견/자묘(5개월)·저혈당·저체온 취약', 'ASA II', 146, 70, 37.4, 'chemi7', { HCT: 34, ALB: 2.8, K: 4.4, Glu: 76, ALP: 210 }],
+          ['초노령(15세)·경도 빈혈·다발성 장기 예비능 저하', 'ASA III', 96, 68, 36.9, 'full', { HCT: 30, ALB: 2.5, K: 4.5, Glu: 94, BUN: 38, Crea: 2.0 }],
+          ['건강한 성체·예정 수술(잠재적 마취 중 이벤트 주의)', 'ASA II', 104, 80, 38.0, 'chemi7', { HCT: 44, ALB: 3.4, K: 4.2, Glu: 102 }]
+        ];
+        let recent = [];
+        try { recent = JSON.parse(localStorage.getItem('vet_ai_recent_cases') || '[]'); } catch (e) { recent = []; }
+        const bPool = sp === 'cat' ? catBreeds : dogBreeds;
+        const pickNotRecent = (arr, idxKey) => {
+          const filtered = arr.filter(x => !recent.some(r => r.includes(x[0])));
+          const pool = filtered.length ? filtered : arr;
+          return pool[Math.floor(Math.random() * pool.length)];
+        };
+        const breed = pickNotRecent(bPool);
+        const surgery = pickNotRecent(surgeries);
+        const risk = pickNotRecent(risks);
+        const age = risk[0].includes('5개월') ? '5개월령' : (risk[0].includes('15세') ? '15세' : (Math.floor(Math.random() * 13) + 1) + '세');
+        const wt = (breed[1] * (0.82 + Math.random() * 0.36)).toFixed(1);
+        const seed = Math.floor(100000 + Math.random() * 900000);
+        const seedHint = `[시드#${seed}] 축종:${sp === 'cat' ? '고양이' : '강아지'}, 품종:${breed[0]}(${breed[2]}), 연령/체중:${age} ${wt}kg, 수술/시술:${surgery[0]}(${surgery[1]}), 핵심리스크:${risk[0]}, 권장ASA:${risk[1]}`;
+        const recentStr = recent.slice(-8).join(' / ') || '없음';
+        const speciesDirective = `${sp} (${seedHint} | 최근 출제와 중복 금지: ${recentStr} | 반드시 위 품종·수술·리스크를 반영해 매번 완전히 새로운 케이스로 작성)`;
+        const offlineCase = {
+          title: `${breed[0]} ${surgery[0]}`,
+          species: sp,
+          asa: risk[1],
+          summary: `${age} ${wt}kg ${breed[0]} · ${surgery[0]} · ${risk[0]}`,
+          target: `${risk[0].split('·')[0]} 안정화 및 혈역학·체온·환기 균형 유지`,
+          caution: `${breed[2]} 체형 및 ${surgery[1]} 시술 특이 합병증(저혈압·부정맥·저체온·기도관리) 집중 감시`,
+          baseHR: sp === 'cat' ? Math.max(130, risk[2] + 30) : risk[2],
+          baseMAP: risk[3],
+          baseBT: risk[4],
+          iso: surgery[2],
+          lab: Object.assign({ panelTier: risk[5], Na: 145, Cl: 112, iCa: 1.22, pH: 7.34, ALP: 85, ALT: 48, BUN: 18, Crea: 1.0, WBC: 11.2, PLT: 260, lactate: 1.4 }, risk[6])
+        };
+        return { sp, seedHint, recentCases: recent.slice(-8), speciesDirective, offlineCase };
+      }
+      
+      function setupAiCaseModal(runGenerator) {
+        const modal = document.getElementById('ai-case-modal');
+        const btnClose = document.getElementById('ai-case-modal-close');
+        const btnAuto = document.getElementById('ai-case-btn-auto');
+        const btnCustom = document.getElementById('ai-case-btn-custom');
+        const input = document.getElementById('ai-case-brief-input');
+        const statusEl = document.getElementById('ai-case-modal-status');
+        if (!modal) return () => runGenerator('');
+        let busy = false;
+        const close = () => { if (!busy) modal.style.display = 'none'; };
+        const open = () => {
+          statusEl.textContent = '';
+          modal.style.display = 'flex';
+        };
+        btnClose.addEventListener('click', close);
+        modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.style.display === 'flex') close(); });
+        modal.querySelectorAll('.ai-brief-chip').forEach((chip) => {
+          chip.addEventListener('click', () => {
+            input.value = chip.getAttribute('data-brief') || '';
+            input.focus();
+          });
+        });
+        const execute = async (customBrief) => {
+          if (busy) return;
+          busy = true;
+          btnAuto.disabled = true;
+          btnCustom.disabled = true;
+          btnClose.disabled = true;
+          statusEl.style.color = '#38bdf8';
+          statusEl.textContent = customBrief ? 'Gemini가 브리핑 맞춤 시나리오를 생성 중입니다...' : 'Gemini가 랜덤 신규 환자 시나리오를 생성 중입니다...';
+          try {
+            await runGenerator(customBrief);
+            modal.style.display = 'none';
+          } catch (err) {
+            statusEl.style.color = '#fbbf24';
+            statusEl.textContent = '생성 중 오류가 발생해 기본 케이스를 불러왔습니다.';
+            setTimeout(() => { modal.style.display = 'none'; }, 900);
+          } finally {
+            busy = false;
+            btnAuto.disabled = false;
+            btnCustom.disabled = false;
+            btnClose.disabled = false;
+          }
+        };
+        btnAuto.addEventListener('click', () => execute(''));
+        btnCustom.addEventListener('click', () => {
+          const brief = (input.value || '').trim();
+          if (!brief) {
+            statusEl.style.color = '#fbbf24';
+            statusEl.textContent = '환자 브리핑을 먼저 입력하거나 예시 칩을 선택해 주세요.';
+            input.focus();
+            return;
+          }
+          execute(brief);
+        });
+        return open;
+      }
+      function buildCustomFallbackCase(brief, aiCtx) {
+        const isCat = /(고양이|코숏|코리안숏헤어|러시안블루|페르시안|랙돌|메인쿤|스코티시|벵갈|스핑크스|샴|묘|\bcat\b)/i.test(brief);
+        const sp = isCat ? 'cat' : 'dog';
+        const shortTitle = brief.length > 26 ? brief.slice(0, 26) + '…' : brief;
+        return Object.assign({}, aiCtx.offlineCase, {
+          title: `맞춤 브리핑: ${shortTitle}`,
+          species: sp,
+          summary: brief,
+          target: '입력된 환자 브리핑의 기저질환·혈역학·체온·환기 안정화',
+          caution: '환자 특이 기저질환 및 금기 약물 주의'
+        });
+      }
+
+      function recordRecentAiCase(title) {
+        if (!title) return;
+        try {
+          const arr = JSON.parse(localStorage.getItem('vet_ai_recent_cases') || '[]');
+          arr.push(String(title).slice(0, 40));
+          localStorage.setItem('vet_ai_recent_cases', JSON.stringify(arr.slice(-14)));
+        } catch (e) {}
+      }
+
+
       const CASES = {
         routine: {
           name: '건강한 성견/성묘 중성화', asa: 'ASA I–II',
@@ -458,7 +615,7 @@
             let aiAbort = false;
             try {
               const res = await fetch(AI_API_PREFIX + '/ai', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
                 body: JSON.stringify({ task: 'roleplay', role: 'owner_preop', species: st.species === 'dog' ? '개' : '고양이', caseDesc: c.desc, clue: c.ownerClue, question: q })
               });
               if (res.ok) {
@@ -617,7 +774,7 @@
             revBox.textContent = localNote + ' (AI 조합 심사 요청 중...)';
             try {
               const res = await fetch(AI_API_PREFIX + '/ai', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
                 body: JSON.stringify({ task: 'review_drugs', species: st.species === 'dog' ? '개' : '고양이', caseName: c.name, premed: `${st.premedSed}+${st.premedOpi}`, induction: `${st.indDrug} (${st.indSpeed})` })
               });
               if (res.ok) { const d = await res.json(); if (d && d.text) { st.aiReviewText = d.text; revBox.textContent = '✦ AI 심사: ' + d.text; } else revBox.textContent = localNote; }
@@ -773,7 +930,7 @@
         out.classList.remove('hidden'); out.textContent = 'Gemini AI가 도입 로그를 분석 중입니다...';
         try {
           const res = await fetch(AI_API_PREFIX + '/debrief', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
             body: JSON.stringify({
               species: st.species === 'dog' ? '개' : '고양이',
               scenario: '[마취 도입] ' + getCase().name,
@@ -787,7 +944,7 @@
           });
           if (res.ok) { const d = await res.json(); if (d && d.analysis) { out.textContent = d.analysis; return; } }
         } catch (e) {}
-        out.textContent = '로컬/오프라인 환경이거나 Netlify GEMINI_API_KEY가 미설정 상태입니다. 위의 내장 평가 리포트를 참고하세요.';
+        out.textContent = '로컬/오프라인 환경이거나 서버 GEMINI_API_KEY가 미설정 상태입니다. 위의 내장 평가 리포트를 참고하세요.';
       });
 
       document.getElementById('btn-res-soap').addEventListener('click', () => {
@@ -798,22 +955,34 @@
       });
 
       // AI Random Dynamic Patient Generator
-      document.getElementById('btn-ai-new-case').addEventListener('click', async () => {
+      const openAiCaseModal = setupAiCaseModal(async (customBrief) => {
         const btn = document.getElementById('btn-ai-new-case');
         btn.textContent = '생성 중...';
         const fallback = { name: '저알부민·빈혈 노령견', asa: 'ASA III–IV', wt: 7.2, desc: '12세 요크셔테리어(7.2kg), 단백소실성장병증(Alb 1.8 g/dL, PCV 23%). 혈압 유지와 저용량 적정 유도 필수.', hr: 136, map: 72, spo2: 97, rr: 24, tube: '5.5mm', ownerClue: '최근 설사가 잦았고 배가 살짝 불러서 검사하러 왔어요.', avoid: ['dex', 'ace', 'fast_bolus'] };
-        let pick = fallback;
+        const aiCtx = buildDiverseAiCaseContext(st.species);
+        const oc = customBrief ? buildCustomFallbackCase(customBrief, aiCtx) : aiCtx.offlineCase;
+        let pick = { ...fallback, id: 'ai_' + Date.now(), name: oc.title, asa: oc.asa, desc: oc.summary, hr: oc.baseHR, map: oc.baseMAP, tube: oc.species === 'cat' ? '3.5mm' : '6.0mm', ownerClue: oc.caution, lab: oc.lab };
+        st.species = oc.species === 'cat' ? 'cat' : 'dog';
         try {
           const res = await fetch(AI_API_PREFIX + '/ai', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ task: 'generate_case', phase: 'induction', species: st.species })
+            method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify({ task: 'generate_case', phase: 'induction', species: customBrief ? customBrief : aiCtx.speciesDirective, customBrief: customBrief || '', seedHint: customBrief ? '' : aiCtx.seedHint, recentCases: aiCtx.recentCases })
           });
-          if (res.ok) { const d = await res.json(); if (d && d.caseData && d.caseData.summary) pick = { ...fallback, name: d.caseData.title, asa: d.caseData.asa || 'ASA III', desc: d.caseData.summary, hr: Number(d.caseData.baseHR) || 120, map: Number(d.caseData.baseMAP) || 75 }; }
+          if (res.ok) {
+            const d = await res.json();
+            if (d && d.caseData && d.caseData.summary) {
+              const cd = d.caseData;
+              if (cd.species === 'cat' || cd.species === 'dog') st.species = cd.species;
+              pick = { ...pick, name: cd.title, asa: cd.asa || oc.asa, desc: cd.summary, hr: Number(cd.baseHR) || oc.baseHR, map: Number(cd.baseMAP) || oc.baseMAP, tube: st.species === 'cat' ? '3.5mm' : '6.0mm', ownerClue: cd.caution || oc.caution, lab: cd.lab || oc.lab };
+            }
+          }
         } catch (e) {}
+        recordRecentAiCase(pick.name);
         st.customCase = pick;
         btn.textContent = '✦ AI 랜덤환자';
         resetSim();
       });
+      document.getElementById('btn-ai-new-case').addEventListener('click', openAiCaseModal);
 
       // Live Sweeping Waveforms
       const BUF = 240;
@@ -1311,5 +1480,36 @@
 
     })();
   </script>
+
+  <!-- AI Patient Case Generator Modal (Auto Random + Custom Briefing) -->
+  <div id="ai-case-modal" style="position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,0.82);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;" role="dialog" aria-modal="true" aria-labelledby="ai-case-modal-title">
+    <div style="width:100%;max-width:460px;background:#0f172a;border:1.5px solid rgba(129,140,248,0.5);border-radius:16px;padding:18px;color:#e2e8f0;box-shadow:0 24px 48px rgba(0,0,0,0.65);font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
+        <h3 id="ai-case-modal-title" style="margin:0;font-size:16px;font-weight:800;color:#c7d2fe;">✦ AI 환자 시나리오 생성 (Gemini)</h3>
+        <button id="ai-case-modal-close" type="button" style="background:transparent;border:1px solid #334155;color:#94a3b8;border-radius:8px;padding:4px 9px;font-size:12px;font-weight:700;cursor:pointer;">닫기</button>
+      </div>
+
+      <div style="background:#020617;border:1px solid #1e293b;border-radius:12px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;color:#6ee7b7;margin-bottom:4px;">1) 완전 랜덤 자동 생성</div>
+        <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;margin-bottom:10px;">36종 품종 · 30종 수술 · 20종 기저질환 조합으로 매번 새로운 케이스를 출제합니다.</div>
+        <button id="ai-case-btn-auto" type="button" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#10b981;color:#020617;font-size:13px;font-weight:800;cursor:pointer;">🎲 AI 랜덤 자동 생성</button>
+      </div>
+
+      <div style="background:#020617;border:1px solid #1e293b;border-radius:12px;padding:12px;">
+        <div style="font-size:12px;font-weight:700;color:#a5b4fc;margin-bottom:4px;">2) 직접 환자 브리핑 입력</div>
+        <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;margin-bottom:8px;">품종·연령·체중·수술·기저질환·혈액검사 등을 자유롭게 적으면 맞춤 시나리오를 생성합니다.</div>
+        <textarea id="ai-case-brief-input" rows="3" placeholder="예: 12세 3.5kg 말티즈, MMVD C기, 담낭점액종 절제술 예정. 알부민 2.0, ALP 1400" style="width:100%;box-sizing:border-box;background:#0f172a;border:1px solid #334155;border-radius:9px;padding:9px 10px;color:#f8fafc;font-size:12.5px;line-height:1.45;resize:vertical;outline:none;font-family:inherit;"></textarea>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px;">
+          <button type="button" class="ai-brief-chip" data-brief="5세 5.2kg 코리안숏헤어 수컷, 급성 요도폐색 48시간, K+ 7.5 고칼륨혈증 및 서맥" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">고양이 요도폐색·고K+</button>
+          <button type="button" class="ai-brief-chip" data-brief="8세 32kg 골든리트리버, 비장종양 파열 복강출혈, PCV 20% 빈혈 및 저혈량 쇼크 응급 비장적출술" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">대형견 비장파열·빈혈</button>
+          <button type="button" class="ai-brief-chip" data-brief="13세 3.6kg 말티즈, MMVD C기 폐수종 병력, 담낭파열 패혈성 복막염, Alb 1.9, ALP 1600" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">노령 말티즈 담낭파열</button>
+        </div>
+        <button id="ai-case-btn-custom" type="button" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#6366f1;color:#ffffff;font-size:13px;font-weight:800;cursor:pointer;">✦ 입력한 브리핑으로 AI 케이스 생성</button>
+      </div>
+
+      <div id="ai-case-modal-status" style="margin-top:10px;font-size:11.5px;color:#38bdf8;min-height:16px;text-align:center;"></div>
+    </div>
+  </div>
+
 </body>
 </html>

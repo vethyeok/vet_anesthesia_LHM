@@ -14,7 +14,7 @@
     h1 { font-size: 26px; font-weight: 800; color: #fff; margin-top: 6px; }
     .notice { background: rgba(120,53,15,0.26); border: 1px solid rgba(245,158,11,0.4); border-radius: 12px; padding: 12px 14px; font-size: 11.5px; line-height: 1.6; color: #fef3c7; }
     .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    @media (min-width: 768px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } }
     .phase-card { display: flex; flex-direction: column; justify-content: space-between; text-decoration: none; color: inherit; background: linear-gradient(180deg, #0f172a, #020617); border: 1px solid #1e293b; border-radius: 16px; padding: 18px; transition: 0.18s; }
     .phase-card:hover { border-color: #38bdf8; transform: translateY(-2px); box-shadow: 0 14px 28px rgba(0,0,0,0.45); }
     .badge { display: inline-block; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px; margin-bottom: 10px; }
@@ -32,12 +32,6 @@
     .overlay { position: fixed; inset: 0; z-index: 50; background: rgba(2,6,23,0.9); display: flex; align-items: center; justify-content: center; padding: 16px; }
     .hidden { display: none !important; }
     .modal { width: 100%; max-width: 320px; background: #0f172a; border: 2px solid rgba(56,189,248,0.45); border-radius: 16px; padding: 20px; text-align: center; }
-  
-    /* Mobile bottom dead space for floating Powered by Netlify badge & safe-area */
-    @media (max-width: 1023px) {
-      body { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
-      footer { padding-bottom: 24px !important; }
-    }
   </style>
 </head>
 <body>
@@ -59,7 +53,6 @@
         <div>
           <span class="badge b1">PHASE 1 · 도입–전환</span>
           <h2>마취 도입–전환 시뮬레이터</h2>
-          <p>보호자 AI 문진 → 전처치 → 전산소화 → 유도제 적정 투여(AI 조합 심사) → 기관내삽관·식도삽관 감별 → 유지 전환 (5대 케이스)</p>
         </div>
         <div class="cta c1">▶ 도입 시뮬레이터 시작</div>
       </a>
@@ -68,7 +61,6 @@
         <div>
           <span class="badge b2">PHASE 2 · 유지 모니터링</span>
           <h2>마취 유지 모니터링 시뮬레이터</h2>
-          <p>실시간 ECG·SpO₂·캡노그래피·혈압·체온·신체검사, APL/배깅, PCV·CRI·특수 응급약물, 기계적 오류, 10번 게임모드 &amp; AI 랜덤환자·힌트·오답노트</p>
         </div>
         <div class="cta c2">▶ 유지 시뮬레이터 시작</div>
       </a>
@@ -77,7 +69,6 @@
         <div>
           <span class="badge b3">PHASE 3 · 종료–회복</span>
           <h2>마취 종료·회복 시뮬레이터</h2>
-          <p>기화기 OFF·O₂ 세척 → 연하반사·EtIso 기반 발관 타이밍 판정 → BOAS 폐쇄·저체온·불쾌감 vs 통증 처치 → 보호자 퇴원 AI 안내 (5대 케이스)</p>
         </div>
         <div class="cta c3">▶ 회복 시뮬레이터 시작</div>
       </a>
@@ -85,7 +76,6 @@
         <div>
           <span class="badge" style="background:rgba(244,63,94,0.2); color:#fda4af; border:1px solid rgba(251,113,133,0.45);">CRITICAL · 전주기 심화</span>
           <h2>전주기 통합 심화 시뮬레이터</h2>
-          <p>단일 환자 도입→유지→회복 연속 플레이 · 7종 정밀 ECG 파형(고칼륨·AV차단·VT) · 실제 약물 용량(mL) 직접 계산 · 마취전/POC 혈액검사</p>
         </div>
         <div class="cta" style="background:#f43f5e; color:#fff;">▶ 심화(Critical) 시뮬레이터 시작</div>
       </a>
