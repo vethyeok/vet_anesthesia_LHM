@@ -707,7 +707,59 @@
           let hiddenTrue = { lactate: 1.3, alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 0 };
 
           // Exact dedicated profiles for ALL fixed cases across all 4 modes
-          if (scenarioId === 'routine' || scenarioId === 'ind_routine' || scenarioId === 'rec_normal') {
+          // PRIORITY 1: AI-generated / Custom-briefing patient ALWAYS overrides fixed scenarioId profiles
+          if (customMeta && (customMeta.lab || customMeta.summary || customMeta.title)) {
+            const L = (customMeta.lab && typeof customMeta.lab === 'object') ? customMeta.lab : {};
+            const txt = ((customMeta.title || '') + ' ' + (customMeta.summary || '') + ' ' + (customMeta.caution || '')).toLowerCase();
+            if (L.panelTier === 'emerg_none') {
+              return {
+                performed: false,
+                panelLabel: '초응급 직행 — 마취 전 혈액검사 미실시',
+                note: `${customMeta.title || '응급 환자'} — 채혈 여유 없이 즉시 마취에 진입했습니다. 수술 중 [혈액검사]로 현장 확인하세요.`,
+                vbg: null, chem: null, cbc: null,
+                hiddenTrue: {
+                  pH: cl(Number(L.pH) || 7.26, 6.95, 7.55), pCO2: cl(Number(L.pCO2) || 42, 20, 75),
+                  Na: cl(Number(L.Na) || (isCat ? 150 : 145), 125, 170), K: cl(Number(L.K) || 4.6, 2.5, 8.9),
+                  Cl: cl(Number(L.Cl) || (isCat ? 118 : 112), 90, 136), iCa: cl(Number(L.iCa) || 1.18, 0.78, 1.55),
+                  Hct: cl(Number(L.HCT != null ? L.HCT : L.Hct) || 28, 13, 62), ALB: cl(Number(L.ALB) || 2.3, 1.2, 4.5),
+                  Glu: cl(Number(L.Glu) || 88, 32, 480), lactate: cl(Number(L.lactate) || 3.6, 0.6, 13),
+                  alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 5, PLT: cl(Number(L.PLT) || 175, 40, 650)
+                }
+              };
+            }
+            if (L.pH != null) vbgM.pH = cl(Number(L.pH), 6.95, 7.55);
+            if (L.pCO2 != null) vbgM.pCO2 = cl(Number(L.pCO2), 20, 74);
+            if (L.pO2 != null) vbgM.pO2 = cl(Number(L.pO2), 22, 65);
+            if (L.Na != null) vbgM.Na = cl(Number(L.Na), 125, 170);
+            if (L.K != null) vbgM.K = cl(Number(L.K), 2.5, 8.9);
+            if (L.Cl != null) vbgM.Cl = cl(Number(L.Cl), 90, 136);
+            if (L.iCa != null) vbgM.iCa = cl(Number(L.iCa), 0.78, 1.55);
+            const hctVal = L.HCT != null ? L.HCT : L.Hct;
+            if (hctVal != null) { vbgM.Hct = cl(Number(hctVal), 13, 62); cbcOv.HCT = vbgM.Hct; }
+            if (L.WBC != null) cbcOv.WBC = cl(Number(L.WBC), 1.8, 48.0);
+            if (L.PLT != null) cbcOv.PLT = cl(Number(L.PLT), 35, 720);
+            if (L.ALP != null) chemOv.ALP = cl(Number(L.ALP), 10, 2600);
+            if (L.ALT != null) chemOv.ALT = cl(Number(L.ALT), 10, 1600);
+            if (L.AST != null) chemOv.AST = cl(Number(L.AST), 10, 1200);
+            if (L.GGT != null) chemOv.GGT = cl(Number(L.GGT), 0, 160);
+            if (L.BUN != null) chemOv.BUN = cl(Number(L.BUN), 4, 170);
+            if (L.Crea != null) chemOv.Crea = cl(Number(L.Crea), 0.4, 13.0);
+            if (L.ALB != null) { chemOv.ALB = cl(Number(L.ALB), 1.2, 4.6); chemOv.TP = cl(Number(L.TP) || (chemOv.ALB + 3.0), 3.2, 9.8); }
+            if (L.Glu != null) chemOv.Glu = cl(Number(L.Glu), 32, 480);
+            if (L.lactate != null) hiddenTrue.lactate = cl(Number(L.lactate), 0.6, 13.0);
+            if (customMeta.baseBT != null) bt = cl(Number(customMeta.baseBT), 34.0, 40.5);
+            if (L.panelTier === 'chemi7') {
+              hasVBG = false; chemTier = 'chemi7';
+              panelLabel = `AI 맞춤 기본 패널 (CBC + Chemi 7종) · ${customMeta.title || 'AI 환자'}`;
+            } else {
+              hasVBG = true; chemTier = 'full';
+              panelLabel = `AI 맞춤 정밀 패널 (CBC + 확장 Chemi + VBG) · ${customMeta.title || 'AI 환자'}`;
+            }
+            note = `${customMeta.summary || customMeta.title || 'AI 생성 환자'} — AI가 생성한 환자 상태에 맞춘 마취 전 혈액검사 결과입니다. 수술 중 [혈액검사] 채혈에도 동일 수치에서 실시간 변화가 이어집니다.`;
+            if (txt.includes('폐수종') || txt.includes('mmvd') || txt.includes('hcm')) hiddenTrue.lungWater = 16;
+            if (txt.includes('뇌압') || txt.includes('icp')) hiddenTrue.icp = 20;
+            if (txt.includes('비만세포') || txt.includes('mct')) hiddenTrue.histamine = 25;
+          } else if (scenarioId === 'routine' || scenarioId === 'ind_routine' || scenarioId === 'rec_normal') {
             panelLabel = '어린 건강 환자 최소 기본 패널 (CBC + Chemi 7종)';
             note = '건강한 젊은 성견/성묘로 기본 수술 전 검사(CBC + Chemi 7종)만 시행되었습니다. 정맥가스·특수 마커는 생략되었습니다.';
             hasVBG = false; chemTier = 'chemi7';
@@ -1129,6 +1181,11 @@
         if (c.initHct < 22) st.hr = st.species === 'cat' ? 176 : 144;
         st.map = c.initHct < 22 || st.caseId === 'sepsis' ? 62 : 84;
         st.spo2 = 98; st.etco2 = st.caseId === 'boas_icp' ? 47 : 40; st.bt = st.caseId === 'sepsis' ? 37.1 : 37.8;
+        if (st.aiCase) {
+          if (Number(st.aiCase.baseHR)) st.hr = Math.max(35, Math.min(220, Number(st.aiCase.baseHR)));
+          if (Number(st.aiCase.baseMAP)) st.map = Math.max(38, Math.min(140, Number(st.aiCase.baseMAP)));
+          if (Number(st.aiCase.baseBT)) st.bt = Math.max(34.0, Math.min(40.5, Number(st.aiCase.baseBT)));
+        }
 
         st.phys = {
           preloadVol: c.initHct < 22 ? 68 : (st.caseId === 'sepsis' ? 76 : 98),
