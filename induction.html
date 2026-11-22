@@ -668,6 +668,154 @@
           : '제가 집에서 본 건 그 정도가 다예요. 혹시 마취할 때 특별히 주의해야 할 게 더 있을까요?';
       }
 
+      const ETT_SPEC_TABLE = [
+        { id: 3.0, murphy: 4.1, armored: null },
+        { id: 3.5, murphy: 4.8, armored: 5.3 },
+        { id: 4.0, murphy: 5.4, armored: 6.0 },
+        { id: 4.5, murphy: 6.1, armored: 6.7 },
+        { id: 5.0, murphy: 6.7, armored: 7.3 },
+        { id: 5.5, murphy: 7.3, armored: 8.0 },
+        { id: 6.0, murphy: 8.0, armored: 8.6 },
+        { id: 6.5, murphy: 8.7, armored: 9.1 },
+        { id: 7.0, murphy: 9.3, armored: 9.7 },
+        { id: 7.5, murphy: 10.0, armored: 10.2 },
+        { id: 8.0, murphy: 10.7, armored: 10.8 },
+        { id: 8.5, murphy: 11.3, armored: null },
+        { id: 9.0, murphy: 12.0, armored: null },
+        { id: 9.5, murphy: 12.7, armored: null },
+        { id: 10.0, murphy: 13.3, armored: null }
+      ];
+
+      function getCaseAirwaySpec(c) {
+        const isCat = st.species === 'cat';
+        const wt = Number(c.wt) || (isCat ? 4.0 : 8.0);
+        const txt = `${c.name || ''} ${c.desc || ''}`;
+
+        // Built-in cases exact clinical thoracic inlet diameters & surgical tube type recommendations
+        if (!st.customCase) {
+          const map = {
+            routine: {
+              dog: { diam: 10.8, recType: 'murphy', recReason: '일반 중성화 수술은 표준 Murphy(PVC) 튜브가 권장됩니다.' },
+              cat: { diam: 6.8, recType: 'murphy', recReason: '일반 중성화 고양이에서는 표준 Murphy(PVC) 튜브가 권장됩니다.' }
+            },
+            boas: {
+              dog: { diam: 9.8, recType: 'armored', recReason: '단두종(BOAS)·구강/연구개 처치는 경부 굴곡 시 튜브 꺾임 방지를 위해 Armored(보강) 튜브가 권장됩니다.' },
+              cat: { diam: 6.5, recType: 'armored', recReason: '단두형 고양이 상부기도 처치는 꺾임 방지를 위해 Armored(보강) 튜브가 권장됩니다.' }
+            },
+            cardiac: {
+              dog: { diam: 9.2, recType: 'murphy', recReason: '일반 심장병 환자 수술에서는 표준 Murphy(PVC) 튜브가 적절합니다.' },
+              cat: { diam: 6.9, recType: 'murphy', recReason: 'HCM 고양이 수술에서는 표준 Murphy(PVC) 튜브가 적절합니다.' }
+            },
+            gdv: {
+              dog: { diam: 15.8, recType: 'murphy', recReason: '대형견 복부 응급(GDV)은 대구경 Murphy(PVC) 튜브가 필요합니다(Armored는 8.0 ID까지만 규격 존재).' },
+              cat: { diam: 6.7, recType: 'murphy', recReason: '복부 응급 수술에서는 표준 Murphy(PVC) 튜브가 적절합니다.' }
+            },
+            icp: {
+              dog: { diam: 10.1, recType: 'murphy', recReason: '뇌 MRI 촬영 시 금속 코일이 든 Armored 튜브는 자성 아티팩트·발열 위험이 있어 비금속 Murphy(PVC)가 필수입니다.' },
+              cat: { diam: 6.8, recType: 'murphy', recReason: '제왕절개 복부 수술에서는 표준 Murphy(PVC) 튜브가 적절합니다.' }
+            }
+          };
+          const preset = map[st.caseId]?.[st.species];
+          if (preset) return preset;
+        }
+
+        // Dynamic / AI Random Patient calculation from species, weight, and surgical context
+        const isBrachy = /(단두|BOAS|불독|퍼그|페르시안|시추|페키니즈|기관허탈|협착)/i.test(txt);
+        let diam = isCat
+          ? Math.max(5.2, Math.min(7.8, 5.4 + wt * 0.36))
+          : Math.max(5.8, Math.min(16.4, 5.0 + Math.pow(wt, 0.56) * 1.98));
+        if (isBrachy) diam *= (isCat ? 0.90 : 0.85);
+        diam = Number(diam.toFixed(1));
+        const targetOD = diam * 0.8;
+
+        const isMri = /MRI/i.test(txt);
+        const needsArmored = !isMri && targetOD <= 10.8 && /(단두|BOAS|치과|발치|구강|연구개|비강|안과|경추|두경부|이도|귀|갑상선|구개|성형)/i.test(txt);
+        if (isMri) {
+          return { diam, recType: 'murphy', recReason: 'MRI 촬영 환자에서는 금속 코일 아티팩트·발열 방지를 위해 비금속 Murphy(PVC) 튜브가 권장됩니다.' };
+        }
+        if (needsArmored) {
+          return { diam, recType: 'armored', recReason: '두경부·구강·치과·안과·단두종 처치에서는 경부 굴곡에 의한 꺾임 방지를 위해 Armored(나선 보강) 튜브가 권장됩니다.' };
+        }
+        return { diam, recType: 'murphy', recReason: '일반·복부·흉부·정형 수술에서는 표준 Murphy(PVC) 튜브가 권장됩니다.' };
+      }
+
+      function buildEttChoices(trachealDiam, tubeType) {
+        const targetOD = trachealDiam * 0.8;
+        const rows = ETT_SPEC_TABLE.filter((r) => r[tubeType] != null);
+        let bestIdx = 0;
+        let bestDiff = Infinity;
+        rows.forEach((r, idx) => {
+          const diff = Math.abs(r[tubeType] - targetOD);
+          if (diff < bestDiff) { bestDiff = diff; bestIdx = idx; }
+        });
+        let idxs;
+        if (bestIdx === 0) idxs = [0, 1, 2];
+        else if (bestIdx >= rows.length - 1) idxs = [rows.length - 3, rows.length - 2, rows.length - 1];
+        else idxs = [bestIdx - 1, bestIdx, bestIdx + 1];
+        const tooLargeForArmored = tubeType === 'armored' && targetOD > 11.2;
+        return {
+          targetOD: Number(targetOD.toFixed(2)),
+          bestRow: rows[bestIdx],
+          choices: idxs.map((i) => rows[i]),
+          tooLargeForArmored
+        };
+      }
+
+      function openEttSpecModal(diam) {
+        let modal = document.getElementById('ett-spec-modal');
+        if (!modal) {
+          modal = document.createElement('div');
+          modal.id = 'ett-spec-modal';
+          modal.setAttribute('role', 'dialog');
+          modal.setAttribute('aria-modal', 'true');
+          modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(2,6,23,0.84);backdrop-filter:blur(4px);';
+          modal.innerHTML = `
+            <div style="width:100%;max-width:560px;max-height:88vh;overflow-y:auto;border-radius:14px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;padding:16px;box-shadow:0 24px 60px rgba(0,0,0,0.7);">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #1e293b;padding-bottom:8px;margin-bottom:10px;">
+                <div>
+                  <div style="font-size:14.5px;font-weight:800;color:#7dd3fc;">📏 기관내튜브(ETT) 규격표 · ID / OD 선택 도움말</div>
+                  <div style="font-size:11px;color:#94a3b8;margin-top:2px;">흉부 방사선 Thoracic inlet 기관 직경 기반 크기 계산</div>
+                </div>
+                <button id="ett-spec-close" type="button" style="border:1px solid #475569;background:#1e293b;color:#f8fafc;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:800;cursor:pointer;">닫기 ✕</button>
+              </div>
+              <div id="ett-spec-formula" style="padding:9px 11px;border-radius:10px;background:rgba(14,165,233,0.12);border:1px solid rgba(56,189,248,0.35);font-size:12px;line-height:1.5;margin-bottom:10px;"></div>
+              <div style="padding:8px 11px;border-radius:10px;background:rgba(139,92,246,0.12);border:1px solid rgba(167,139,250,0.35);font-size:11.5px;line-height:1.5;margin-bottom:10px;">
+                <div>• <strong style="color:#7dd3fc;">Murphy (표준 PVC)</strong>: 일반·복부·흉부·정형 수술 및 <strong>MRI 촬영</strong>(금속 코일 아티팩트 방지) 권장</div>
+                <div>• <strong style="color:#fcd34d;">Armored (나선 보강)</strong>: <strong>두경부·구강·치과·안과·단두종(BOAS)</strong> 처치 시 경부 굴곡 꺾임 방지 (벽이 두꺼워 동일 OD 기준 ID가 ~0.5 mm 작음, 최대 8.0 ID)</div>
+              </div>
+              <table style="width:100%;border-collapse:collapse;font-size:12px;text-align:center;">
+                <thead>
+                  <tr style="background:#1e293b;color:#7dd3fc;">
+                    <th style="padding:6px;border:1px solid #334155;">I.D (mm)</th>
+                    <th style="padding:6px;border:1px solid #334155;">Murphy (O.D mm)</th>
+                    <th style="padding:6px;border:1px solid #334155;">Armored (O.D mm)</th>
+                  </tr>
+                </thead>
+                <tbody id="ett-spec-tbody"></tbody>
+              </table>
+            </div>
+          `;
+          document.body.appendChild(modal);
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal || e.target.id === 'ett-spec-close') modal.style.display = 'none';
+          });
+        }
+        const targetOD = (diam * 0.8).toFixed(2);
+        modal.querySelector('#ett-spec-formula').innerHTML = `
+          <div><strong>계산 공식:</strong> 목표 <strong>O.D (외경) = Thoracic inlet 기관 직경 × 0.8</strong></div>
+          <div style="color:#cbd5e1;">예시) 기관 직경 7.6 mm → 목표 OD = 7.6 × 0.8 = <strong>6.08 mm</strong> → Murphy <strong>4.5 ID</strong> (OD 6.1) / Armored <strong>4.0 ID</strong> (OD 6.0)</div>
+          <div style="margin-top:4px;color:#fde68a;">현재 환자) 기관 직경 <strong>${diam.toFixed(1)} mm</strong> × 0.8 = <strong>목표 OD ${targetOD} mm</strong></div>
+        `;
+        modal.querySelector('#ett-spec-tbody').innerHTML = ETT_SPEC_TABLE.map((r, idx) => `
+          <tr style="background:${idx % 2 === 0 ? 'rgba(15,23,42,0.85)' : 'rgba(30,41,59,0.45)'};">
+            <td class="mono" style="padding:5px;border:1px solid #1e293b;font-weight:800;color:#f8fafc;">${r.id.toFixed(1)}</td>
+            <td class="mono" style="padding:5px;border:1px solid #1e293b;color:#7dd3fc;">${r.murphy.toFixed(1)}</td>
+            <td class="mono" style="padding:5px;border:1px solid #1e293b;color:${r.armored ? '#fcd34d' : '#475569'};">${r.armored ? r.armored.toFixed(1) : '—'}</td>
+          </tr>
+        `).join('');
+        modal.style.display = 'flex';
+      }
+
       const st = {
         species: 'dog', caseId: 'routine', customCase: null,
         step: 1, step2Tab: 'premed', score: 100, paused: true,
@@ -676,7 +824,7 @@
         premedSed: 'midaz', premedOpi: 'methadone',
         preFluidMaint: 'std', preFluidsGiven: [], preAdjuncts: [],
         preox: true, indDrug: 'propofol', indSpeed: 'slow',
-        tubeSize: 'fit', lidoSpray: false, cuffInflated: false,
+        tubeType: 'murphy', tubeId: null, tubeSize: 'fit', lidoSpray: false, cuffInflated: false,
         o2Flow: 1.5, isoInit: 1.5, aplOpen: true,
         aiReviewText: '', mistakes: [], goodPoints: [], logs: [],
         ownerAsked: false, ownerLevel: 2, ownerChat: [], ownerBusy: false
@@ -744,7 +892,7 @@
         st.preFluidMaint = st.caseId === 'cardiac' ? 'restrict' : 'std';
         st.preFluidsGiven = []; st.preAdjuncts = [];
         st.preox = true; st.indDrug = 'propofol'; st.indSpeed = 'slow';
-        st.tubeSize = 'fit'; st.lidoSpray = false; st.cuffInflated = false;
+        st.tubeType = 'murphy'; st.tubeId = null; st.tubeSize = 'fit'; st.lidoSpray = false; st.cuffInflated = false;
         st.o2Flow = 1.5; st.isoInit = 1.5; st.aplOpen = true;
         st.aiReviewText = ''; st.mistakes = []; st.abortedByOwner = false; st.goodPoints = []; st.logs = []; st.ownerAsked = false;
         st.ownerLevel = Math.floor(Math.random() * 5) + 1;
@@ -1371,19 +1519,42 @@
             } catch (e) { revBox.textContent = localNote; }
             updateVitalsUI();
             const btn = document.getElementById('btn-run-ind');
-            btn.textContent = '5단계: 기관내삽관 진행 →';
-            btn.className = 'btn btn-primary';
-            btn.onclick = () => { st.step = 5; updateVitalsUI(); renderStep(); };
+            if (btn) {
+              btn.textContent = '5단계: 기관내삽관 진행 →';
+              btn.className = 'btn btn-primary';
+              btn.onclick = () => { st.step = 5; updateVitalsUI(); renderStep(); };
+            }
           });
         } else if (st.step === 5) {
           const isCat = st.species === 'cat';
+          const airway = getCaseAirwaySpec(c);
+          const ett = buildEttChoices(airway.diam, st.tubeType);
+          if (st.tubeId !== null && !ett.choices.some((r) => r.id === st.tubeId)) {
+            st.tubeId = null;
+          }
           el.panel.innerHTML = `
-            <div class="card-title"><span>5단계 · 기관내삽관(Intubation) &amp; ETCO₂ 확인</span></div>
-            <div style="font-size:11px; font-weight:700; color:#94a3b8;">① 기관내튜브 크기 선택 (권장: ${c.tube})</div>
+            <div class="card-title">
+              <span>5단계 · 기관내삽관(Intubation) &amp; ETCO₂ 확인</span>
+              <button id="btn-ett-spec" type="button" class="btn btn-sky" style="padding:3px 8px; font-size:10.5px;">📏 ETT 규격표</button>
+            </div>
+            <div style="padding:7px 10px; border-radius:8px; background:rgba(14,165,233,0.12); border:1px solid rgba(56,189,248,0.35); font-size:11.5px; color:#e0f2fe; margin-bottom:8px; display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px;">
+              <span>🩻 <strong>Thoracic inlet 기관 직경:</strong> <strong class="mono" style="color:#fde68a;">${airway.diam.toFixed(1)} mm</strong></span>
+              <span style="color:#94a3b8;">체중 ${c.wt} kg · 규격표로 OD = 직경×0.8 계산</span>
+            </div>
+            <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-bottom:4px;">① 기관내튜브 종류 선택 (수술 특성 반영)</div>
+            <div class="opt-grid" style="grid-template-columns:repeat(2,1fr); margin-bottom:8px;">
+              <button type="button" class="opt-btn tb-type-opt ${st.tubeType==='murphy'?'selected':''}" data-tt="murphy"><div class="ot">Murphy (표준 PVC)</div><div class="od">일반·복부·흉부·MRI 촬영 권장</div></button>
+              <button type="button" class="opt-btn tb-type-opt ${st.tubeType==='armored'?'selected':''}" data-tt="armored"><div class="ot">Armored (나선 보강)</div><div class="od">두경부·구강·치과·단두종(BOAS) 꺾임 방지</div></button>
+            </div>
+            <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-bottom:4px;">② 기관내튜브 크기 선택 (${st.tubeType === 'armored' ? 'Armored' : 'Murphy'} I.D 3지 선다)</div>
+            ${ett.tooLargeForArmored ? `<div style="font-size:10.5px; color:#fda4af; margin-bottom:5px;">⚠ 현재 환자의 기관 직경은 Armored 최대 규격(8.0 ID / OD 10.8 mm)을 초과합니다.</div>` : ''}
             <div class="opt-grid" style="grid-template-columns:repeat(3,1fr);">
-              <button type="button" class="opt-btn tb-opt ${st.tubeSize==='fit'?'selected':''}" data-v="fit"><div class="ot">${c.tube}</div><div class="od">적정 크기</div></button>
-              <button type="button" class="opt-btn tb-opt ${st.tubeSize==='big'?'selected':''}" data-v="big"><div class="ot">너무 큼</div><div class="od">기도 손상 위험</div></button>
-              <button type="button" class="opt-btn tb-opt ${st.tubeSize==='small'?'selected':''}" data-v="small"><div class="ot">너무 작음</div><div class="od">저항↑·누출</div></button>
+              ${ett.choices.map((r) => `
+                <button type="button" class="opt-btn tb-id-opt ${st.tubeId===r.id?'selected':''}" data-id="${r.id}">
+                  <div class="ot mono">${r.id.toFixed(1)} mm ID</div>
+                  <div class="od">OD ${r[st.tubeType].toFixed(1)} mm</div>
+                </button>
+              `).join('')}
             </div>
             ${isCat ? `
             <div style="margin-top:8px;">
@@ -1401,22 +1572,54 @@
               <button id="btn-reintubate" type="button" class="btn btn-rose" style="width:100%; margin-top:8px; padding:8px;">즉시 발관 및 기관 재삽관</button>
             </div>` : ''}
             ${st.intubated && !st.esophageal ? `<button id="btn-next-5" type="button" class="btn btn-primary" style="width:100%; margin-top:10px; padding:10px;">6단계: 마취기 연결 &amp; 유지 전환 →</button>` : ''}`;
-          document.querySelectorAll('.tb-opt').forEach(b => b.addEventListener('click', () => { st.tubeSize = b.dataset.v; renderStep(); }));
+
+          document.getElementById('btn-ett-spec')?.addEventListener('click', () => openEttSpecModal(airway.diam));
+          document.querySelectorAll('.tb-type-opt').forEach(b => b.addEventListener('click', () => {
+            st.tubeType = b.dataset.tt;
+            st.tubeId = null;
+            renderStep();
+          }));
+          document.querySelectorAll('.tb-id-opt').forEach(b => b.addEventListener('click', () => {
+            st.tubeId = Number(b.dataset.id);
+            renderStep();
+          }));
           const spBtn = document.getElementById('btn-lido-spray');
           if (spBtn) spBtn.addEventListener('click', () => { st.lidoSpray = true; st.goodPoints.push('고양이 삽관 전 후두 리도카인 스프레이로 후두경련 예방'); addLog('[후두 처치] 고양이 후두 Lidocaine 2% 국소 도포 완료', 'good'); renderStep(); });
           document.getElementById('btn-cuff').addEventListener('click', () => { st.cuffInflated = true; addLog('[커프 팽창] 15–20 cmH₂O 압력에서 누출 없음 확인', 'good'); renderStep(); });
           document.getElementById('btn-intubate').addEventListener('click', () => {
+            if (st.tubeId === null) {
+              setAlarm('먼저 튜브 종류와 크기(I.D 3지 선다)를 선택하세요! (우측 상단 📏 ETT 규격표 참고)', 'warn');
+              return;
+            }
             if (isCat && !st.lidoSpray) {
               st.laryngospasm = true; st.spo2 = Math.max(82, st.spo2 - 9); st.score -= 15;
               st.mistakes.push('고양이 삽관 전 후두 리도카인 스프레이 생략 → 일시적 후두경련·SpO₂ 저하');
               setAlarm('고양이 후두경련 발생! 리도카인 스프레이 도포 후 부드럽게 재시도하세요.', 'danger');
               addLog('[합병증] 고양이 후두경련 발생 (리도카인 스프레이 미실시)', 'danger');
             }
-            if (st.tubeSize !== 'fit') {
-              st.score -= 10;
-              st.mistakes.push(`부적절한 기관내튜브 크기 선택 (${st.tubeSize})`);
+            const typeName = st.tubeType === 'armored' ? 'Armored' : 'Murphy';
+            const recTypeName = airway.recType === 'armored' ? 'Armored' : 'Murphy';
+            if (st.tubeType === airway.recType) {
+              st.goodPoints.push(`수술 특성에 맞는 권장 튜브 종류(${typeName}) 선택`);
+            } else {
+              st.score -= 8;
+              st.mistakes.push(`튜브 종류 선택 미흡 (${typeName} 선택 → ${recTypeName} 권장: ${airway.recReason})`);
+              addLog(`[튜브 종류 주의] ${typeName} 선택 — ${airway.recReason}`, 'warn');
             }
-            // Simulate 30% realistic chance of accidental esophageal intubation on first attempt in intermediate/advanced cases to train ETCO2 verification!
+            const chosenRow = ETT_SPEC_TABLE.find((r) => r.id === st.tubeId);
+            const chosenOD = chosenRow ? chosenRow[st.tubeType] : null;
+            if (!ett.tooLargeForArmored && st.tubeId === ett.bestRow.id) {
+              st.tubeSize = `${typeName} ${st.tubeId.toFixed(1)}mm ID (적정)`;
+              st.goodPoints.push(`Thoracic inlet 직경(${airway.diam.toFixed(1)} mm) 기반 적정 튜브 크기(${typeName} ${st.tubeId.toFixed(1)} mm ID, OD ${chosenOD} mm) 선택`);
+              addLog(`[튜브 선택 적정] ${typeName} ${st.tubeId.toFixed(1)} mm ID (OD ${chosenOD} mm / 목표 OD ${ett.targetOD} mm)`, 'good');
+            } else {
+              const dir = st.tubeId > ett.bestRow.id ? '너무 큼 (기도 손상 위험)' : '너무 작음 (저항↑·누출 위험)';
+              st.tubeSize = `${typeName} ${st.tubeId.toFixed(1)}mm ID (${dir})`;
+              st.score -= 10;
+              st.mistakes.push(`부적절한 기관내튜브 크기 선택 (${typeName} ${st.tubeId.toFixed(1)} mm ID → 목표 OD ${ett.targetOD} mm 기준 ${ett.bestRow.id.toFixed(1)} mm ID 권장)`);
+              addLog(`[튜브 크기 주의] ${typeName} ${st.tubeId.toFixed(1)} mm ID — ${dir} (권장 ${ett.bestRow.id.toFixed(1)} mm ID)`, 'warn');
+            }
+            // Simulate realistic chance of accidental esophageal intubation on first attempt in intermediate/advanced cases to train ETCO2 verification!
             st.intubated = true;
             if (!st.esophageal && (st.caseId === 'boas' || st.caseId === 'gdv') && !st.reintubatedDone) {
               st.esophageal = true;
