@@ -1219,7 +1219,8 @@
         // Hidden 27-var physiology & Pre-op Lab
         preopLab: null, phys: null, drugCounts: {},
         logs: [], goods: [], mistakes: [],
-        drugSubtab: 'core'
+        drugSubtab: 'core',
+        ownerLevel: 2, s1Chat: [], s3Chat: [], chatBusy: false
       };
 
       function flashScoreDelta(delta) {
@@ -1294,6 +1295,156 @@
         setTimeout(() => d.remove(), 3400);
       }
 
+      const OWNER_LEVEL_LABELS = {
+        1: 'Lv.1 초보 (의학용어 전혀 모름)',
+        2: 'Lv.2 일반 (기본 돌봄만 앎)',
+        3: 'Lv.3 경험 (투약·검사 대략 이해)',
+        4: 'Lv.4 숙련 (병명·수치·처치 이해)',
+        5: 'Lv.5 준전문가 (약물·수치·처치법 능통)'
+      };
+
+      function escHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+      }
+
+      function getCritSeverity(c, isDischarge) {
+        const asa = String(c?.asa || '');
+        const p = st.phys || {};
+        if (isDischarge) {
+          if (!st.extubated || st.spo2 < 92 || st.map < 60 || st.bt < 35.5) {
+            return { key: 'critical', label: '위급 · 회복 불안정', bg: 'rgba(244,63,94,0.22)', color: '#fda4af' };
+          }
+          if (st.bt < 36.6 || st.spo2 < 95 || st.etIso > 0.3 || /IV|V|-E/i.test(asa)) {
+            return { key: 'high', label: '중증 · 집중 관찰', bg: 'rgba(245,158,11,0.20)', color: '#fcd34d' };
+          }
+          return { key: 'moderate', label: '주의 · 회복 관리', bg: 'rgba(56,189,248,0.18)', color: '#7dd3fc' };
+        }
+        const critPhys = (p.serumK >= 6.5) || (p.pcv < 24) || (p.bloodGlucose < 70) || (p.icp >= 18) || (st.map < 65) || (st.spo2 < 93);
+        if (/IV|V|-E|응급/i.test(asa) || critPhys) {
+          return { key: 'critical', label: '위급 · 생사 기로', bg: 'rgba(244,63,94,0.22)', color: '#fda4af' };
+        }
+        if (/III/i.test(asa)) {
+          return { key: 'high', label: '중증 · 고위험', bg: 'rgba(245,158,11,0.20)', color: '#fcd34d' };
+        }
+        return { key: 'moderate', label: '주의 · 질환 동반', bg: 'rgba(56,189,248,0.18)', color: '#7dd3fc' };
+      }
+
+      function getCritOpening(c, sev, lv, isDischarge) {
+        if (isDischarge) {
+          if (sev.key === 'critical') {
+            if (lv >= 4) return `선생님, 지금 체온(${st.bt.toFixed(1)}°C)이나 산소포화도(${Math.round(st.spo2)}%) 보면 아직 완전히 안정된 건 아닌 것 같은데… 이 상태로 퇴원 논의해도 되는 건가요?`;
+            if (lv <= 2) return `선생님, 애가 아직도 많이 처지고 숨쉬는 것도 불안해 보이는데… 정말 괜찮은 거 맞나요? 집에 데려가도 되는지 너무 무서워요.`;
+            return `선생님, 수술은 끝났다고 들었는데 아직 회복이 덜 된 것 같아 보여서요. 지금 수치나 상태가 어떤지 정확히 말씀해 주세요.`;
+          }
+          if (sev.key === 'high') {
+            if (lv >= 4) return `선생님, 고위험 마취였는데 무사히 끝나서 정말 다행입니다. 오늘 밤 진통·보온 관리랑 재내원 기준(호흡수나 점막색 등) 구체적으로 안내해 주세요.`;
+            if (lv <= 2) return `선생님, 큰 고비 넘긴 거 맞죠…? 집에 가서 밥이랑 물은 언제부터 줘도 되고, 뭐가 이상하면 바로 뛰어와야 하나요?`;
+            return `선생님, 수술 잘 끝나서 한숨 놓았어요. 집에 가서 체온 유지랑 약 먹이는 거, 주의해야 할 증상들 정리해서 알려주세요.`;
+          }
+          if (lv >= 4) return `선생님 고생 많으셨습니다. 마취 회복 경과랑 퇴원 후 식이 재개 시점, 투약 스케줄 확인 부탁드립니다.`;
+          return `선생님, 수술 잘 끝났나요? 집에 가서 밥·물·약은 어떻게 챙기면 될지 알려주세요.`;
+        }
+        if (sev.key === 'critical') {
+          if (lv >= 4) return `선생님, 애 상태가 급격히 무너져서 응급으로 왔습니다! (${c.asa}) 지금 마취 전에 전해질이나 혈압부터 안정화해야 하는 거 아닌가요? 확인하실 병력 빨리 물어봐 주세요!`;
+          if (lv <= 2) return `선생님!! 우리 애가 갑자기 축 늘어지고 숨도 이상하게 쉬어요! 너무 무서워서 손이 다 떨리는데… 제발 살려주세요, 뭐부터 말씀드리면 될까요?!`;
+          return `선생님, 애 상태가 너무 안 좋아서 급히 데려왔어요! 마취 자체가 위험할 것 같은데… 확인하실 거 있으면 빨리 물어봐 주세요.`;
+        }
+        if (sev.key === 'high') {
+          if (lv >= 4) return `선생님, 기저질환 때문에 마취 위험도가 높다고 들어서 걱정이 큽니다. 이전 처치나 복용 중인 약 정리해 왔으니 필요한 부분 물어봐 주세요.`;
+          if (lv <= 2) return `선생님, 우리 애가 평소에도 몸이 안 좋아서 마취가 너무 걱정돼요… 잘 버텨줄 수 있을까요? 뭘 알려드리면 되나요?`;
+          return `선생님, 마취 위험도가 좀 있다고 해서 많이 긴장되네요. 금식이나 평소 먹던 약 중에 확인하실 거 물어보세요.`;
+        }
+        if (lv >= 4) return `선생님 안녕하세요. 마취 전 문진 진행할까요? 이전 진단이랑 투약 이력 정리해 왔습니다.`;
+        return `선생님, 마취 전에 확인하실 거 있으시면 편하게 물어보세요.`;
+      }
+
+      function renderCritChat(elId, arr, typing = false) {
+        const box = document.getElementById(elId);
+        if (!box) return;
+        let html = arr.map((m) => {
+          if (m.role === 'vet') return `<div class="chat-msg vet"><strong>수의사:</strong> ${escHtml(m.text)}</div>`;
+          if (m.abort) return `<div class="chat-msg owner" style="border-color:#f43f5e; color:#fecdd3;"><strong>보호자 (${elId === 's1-chat' ? '진료 중단' : '상담 중단'}):</strong> ${escHtml(m.text)}</div>`;
+          return `<div class="chat-msg owner"><strong>보호자:</strong> ${escHtml(m.text)}</div>`;
+        }).join('');
+        if (typing) {
+          html += `<div class="chat-msg owner" style="opacity:0.75; font-style:italic;"><strong>보호자:</strong> 답변을 입력하는 중...</div>`;
+        }
+        box.innerHTML = html;
+        box.scrollTop = box.scrollHeight;
+      }
+
+      function buildOfflineCritReply(text, c, sev, lv, history, isDischarge) {
+        const q = String(text || '').trim();
+        const prevVet = history.filter((m) => m.role === 'vet').slice(0, -1).map((m) => m.text);
+        const prevOwner = history.filter((m) => m.role === 'owner').map((m) => m.text).join(' ');
+        const norm = (s) => s.replace(/[^가-힣a-zA-Z0-9]/g, '').toLowerCase();
+        const qn = norm(q);
+        const isRepeat = prevVet.some((p) => {
+          const pn = norm(p);
+          return pn.length >= 3 && qn.length >= 3 && (pn === qn || (pn.length >= 5 && (qn.includes(pn.slice(0, 5)) || pn.includes(qn.slice(0, 5)))));
+        });
+        const isDismissive = /(몰라|알아서|대충|그냥|귀찮|시끄|말이 많|닥쳐|안 궁금|상관없|글쎄|뭐어때|니가)/.test(q) || q.length <= 2;
+
+        if (isDismissive) {
+          if (sev.key === 'critical') return '선생님, 지금 애가 이렇게 위급한데 그렇게 대충 말씀하시면 어떡해요?! 보호자 입장에서 피가 마르는데 제대로 좀 설명해 주세요!';
+          return '선생님… 그렇게 성의 없이 말씀하시니까 좀 답답하고 불안하네요. 보호자가 이해할 수 있게 차근차근 설명해 주시면 안 될까요?';
+        }
+        if (isRepeat) {
+          if (sev.key === 'critical') return '선생님, 방금 똑같은 걸 물어보셔서 제가 이미 말씀드렸잖아요! 지금 시간 끌 때가 아닌 것 같은데 다른 거 빨리 확인해 주세요!';
+          return '어… 그건 아까 말씀드린 것 같은데요? 혹시 제 말이 잘 전달이 안 됐을까요? 다른 확인하실 부분 있으시면 말씀해 주세요.';
+        }
+
+        if (isDischarge) {
+          if (/(밥|물|식사|금식|사료|먹)/.test(q)) {
+            if (lv >= 4) return '알겠습니다. 연하반사 완전히 돌아온 뒤 소량 급수부터 시작하고, 구토 없으면 부드러운 습식 소량 급여로 단계적으로 진행할게요. 혹시 처방약은 식후에 먹여야 할까요?';
+            if (lv <= 2) return '아, 바로 밥 주면 토할 수 있군요! 그럼 물부터 조금씩 줘보고 괜찮으면 사료 불려서 줄게요. 혹시 안 먹으려고 하면 억지로라도 먹여야 하나요?';
+            return '네, 몇 시간 뒤에 물부터 조금씩 주고 구토 없는지 보면서 밥 줄게요. 평소 먹던 간식은 며칠 쉬는 게 좋겠죠?';
+          }
+          if (/(체온|보온|따뜻|춥|떨|담요)/.test(q)) {
+            if (lv >= 4) return '네, 마취 후 저체온 회복이 중요하니 실내 온도 유지하고, 핫팩은 화상 안 입게 수건 감싸서 둘게요. 직장 체온이 어느 정도 이하로 떨어지면 재내원해야 하나요?';
+            return '알겠어요, 집에 가서 따뜻한 담요 덮어주고 에어컨 바람 안 쐬게 할게요. 애가 몸을 부들부들 떨면 추워서 그런 건가요, 아니면 아파서 그런 건가요?';
+          }
+          if (/(상처|봉합|넥칼라|핥|소독|약|진통|항생)/.test(q)) {
+            if (lv >= 4) return '네, 넥칼라 절대 안 빼고 봉합 부위 발적·삼출물 여부 매일 체크하겠습니다. 처방 진통제·항생제 투약 간격이랑 중복 주의할 약만 한 번 더 짚어주세요.';
+            return '넥칼라 씌워두고 상처 못 핥게 잘 볼게요! 약은 하루에 몇 번 먹이는 건가요? 애가 약을 잘 안 삼키는데 츄르에 섞어 먹여도 되나요?';
+          }
+          if (/(응급|호흡|잇몸|창백|구토|출혈|재내원|위험|바로)/.test(q)) {
+            if (sev.key === 'critical') return '네, 메모해 둘게요! 숨이 가쁘거나 잇몸이 하얘지거나 계속 축 처지면 밤이라도 바로 응급실로 달려오겠습니다. 혹시 오늘 밤에 병원 비상연락처도 있나요?';
+            return '알겠습니다. 호흡 이상이나 잇몸 색 변화, 반복 구토 있으면 지체 없이 바로 내원할게요. 오늘 밤에는 제가 옆에서 계속 지켜보려고요.';
+          }
+          if (!prevOwner.includes('메모')) {
+            return sev.key === 'critical'
+              ? '네, 선생님 말씀 하나도 안 놓치게 메모하고 있어요. 그런데 집에 가서 밤사이에 갑자기 숨이 안 좋아지거나 체온이 떨어지면 어떻게 대처해야 할지도 꼭 알려주세요.'
+              : '네, 이해했어요! 혹시 집에 가서 밥·물 주는 시간이랑 상처 관리, 그리고 바로 병원에 와야 하는 응급 신호도 같이 정리해 주실 수 있나요?';
+          }
+          return '네, 꼼꼼히 설명해 주셔서 이제 좀 안심이 되네요. 말씀해 주신 대로 집에서 잘 살피고 이상 있으면 바로 연락드리겠습니다!';
+        }
+
+        // Stage 1 pre-op interview
+        if (/(금식|밥|물|먹|식사|간식|구토|토)/.test(q)) {
+          if (lv >= 4) return `금식은 어젯밤부터 지켜서 10시간 넘게 물 포함해 아무것도 안 먹였습니다. ${c.ownerClue} 혹시 흡인 위험 때문에 제산제나 항구토제 전처치도 같이 들어가나요?`;
+          if (lv <= 2) return `어젯밤 저녁 먹고는 아예 안 먹였어요… 사실 애가 아파서 입에도 안 대더라고요. ${c.ownerClue}`;
+          return `어젯밤부터 굶겨서 지금은 공복 상태예요. 물도 아침부터는 안 줬고요. ${c.ownerClue}`;
+        }
+        if (/(약|복용|처치|병원|진단|병력|질환|수술|검사|수치)/.test(q)) {
+          if (lv >= 4) return `이전 병원 기록을 보면 ${c.desc} 관련해서 관리 중이었고, ${c.ownerClue} 오늘 혈액검사 수치 보고 마취 프로토콜을 어떻게 조정하실지 궁금합니다.`;
+          if (lv <= 2) return `저번에 동네 병원에서 뭐가 안 좋다고 약을 타 왔는데 이름은 정확히 기억이 안 나요… ${c.ownerClue} 그게 마취에 문제가 되나요?`;
+          return `평소 다니던 병원에서 관련 약을 받아 먹이고 있었어요. ${c.ownerClue} 오늘 아침 약은 혹시 몰라서 안 먹이고 왔습니다.`;
+        }
+        if (/(증상|어디|언제|상태|아프|기력|호흡|숨|소변|배뇨|설사)/.test(q)) {
+          if (sev.key === 'critical') return `${c.ownerClue} 지금도 애가 너무 힘들어 보이는데… 선생님, 마취 들어가기 전에 먼저 안정시킬 수 있는 건가요?`;
+          return `${c.ownerClue} 어제보다 오늘 확실히 기운이 더 없더라고요. 괜찮아질 수 있을까요?`;
+        }
+        if (!prevOwner.includes(c.ownerClue.slice(0, 10))) {
+          if (lv >= 4) return `${c.ownerClue} 마취 전 혈액검사나 전해질·혈압 상태에 따라 전처치 약물 선택이 달라질 것 같은데, 추가로 확인하실 병력 있으신가요?`;
+          if (lv <= 2) return `${c.ownerClue} 솔직히 의학적인 건 제가 잘 몰라서요… 선생님께서 위험한 부분만 쉽게 설명해 주시면 따를게요.`;
+          return `${c.ownerClue} 혹시 금식 시간이나 평소 먹던 약 중에 더 확인하실 게 있나요?`;
+        }
+        return sev.key === 'critical'
+          ? '선생님, 제가 아는 건 다 말씀드렸어요! 지금 애 상태가 너무 안 좋아 보이는데 얼른 검사랑 처치 시작해 주시면 안 될까요?'
+          : '네, 말씀하신 내용 확인했습니다. 추가로 궁금하신 게 없으시면 마취 준비 진행해 주셔도 괜찮습니다.';
+      }
+
       function initCase() {
         const c = getCaseObj();
         st.stage = 1; st.arrested = false; st.abortedByOwner = false;
@@ -1304,6 +1455,8 @@
         st.swallowCount = 0; st.extubated = false; st.dischargeDone = false;
         st.logs = []; st.goods = []; st.mistakes = []; st.drugCounts = {};
         st.iso = 0; st.etIso = 0; st.o2 = 1.5; st.pip = 11; st.rr = 12; st.fluid = st.species === 'cat' ? 3 : 5; st.warming = true; st.aplOpen = true;
+        st.ownerLevel = Math.floor(Math.random() * 5) + 1;
+        st.chatBusy = false;
 
         const lab = PreopLabEngine.generate(c.labKey, st.species, st.aiCase || null);
         st.preopLab = lab;
@@ -1346,8 +1499,12 @@
           icp: c.initIcp, histamineTone: 0, urineOutput: c.labKey === 'ckd' ? 0.3 : 1.4
         };
 
+        const sev1 = getCritSeverity(c, false);
+        st.s1Chat = [{ role: 'owner', text: getCritOpening(c, sev1, st.ownerLevel, false) }];
+        st.s3Chat = [];
+
         updateRhythm();
-        addLog(`신규 실전 환자 로드: ${st.species === 'dog' ? '개' : '고양이'} ${c.wt} kg · ${c.name} (${c.asa})`, 'good');
+        addLog(`신규 실전 환자 로드: ${st.species === 'dog' ? '개' : '고양이'} ${c.wt} kg · ${c.name} (${c.asa}) · 보호자 ${OWNER_LEVEL_LABELS[st.ownerLevel]}`, 'good');
         syncHeaderUI();
         renderStagePanel();
       }
@@ -1464,10 +1621,21 @@
               <button type="button" class="ctrl-tab ${t1==='drugs'?'active':''}" data-ctab="drugs">④ 응급약물</button>
             </div>
             <div class="s1-pane" data-cpane="interview" style="${t1==='interview'?'':'display:none;'}">
-              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">① 보호자 AI 문진 (문진 완료 +5점 · 욕설·폭언 시 즉시 실패)</div>
-              <div id="s1-chat" class="chat-box"><div class="chat-msg owner"><strong>보호자:</strong> 선생님, 우리 아이 많이 위험한가요? 마취 전에 확인하실 거 있으면 물어보세요.</div></div>
+              ${(() => {
+                const sev1 = getCritSeverity(c, false);
+                const opts = [1,2,3,4,5].map((n) => `<option value="${n}" ${st.ownerLevel===n?'selected':''}>${OWNER_LEVEL_LABELS[n]}</option>`).join('');
+                return `
+                  <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; margin-bottom:6px;">
+                    <div style="font-size:11px; font-weight:800; color:#7dd3fc;">① 보호자 AI 문진 (+5점 · 욕설 시 실패)</div>
+                    <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+                      <span id="s1-sev-badge" style="font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; background:${sev1.bg}; color:${sev1.color};">${sev1.label}</span>
+                      <select id="s1-owner-lv" title="보호자 의학 지식 수준 (1~5)" style="background:#020617; border:1px solid #334155; color:#e2e8f0; border-radius:6px; padding:2px 6px; font-size:10.5px;">${opts}</select>
+                    </div>
+                  </div>`;
+              })()}
+              <div id="s1-chat" class="chat-box"></div>
               <div style="display:flex; gap:6px; margin-bottom:10px;">
-                <input id="s1-q" type="text" placeholder="금식·복용약·증상 등을 질문하세요" style="flex:1; background:#020617; border:1px solid #334155; color:#fff; border-radius:8px; padding:6px 8px; font-size:11.5px;" />
+                <input id="s1-q" type="text" placeholder="금식·복용약·증상 등을 질문하세요 (Enter 전송)" style="flex:1; background:#020617; border:1px solid #334155; color:#fff; border-radius:8px; padding:6px 8px; font-size:11.5px;" />
                 <button id="btn-s1-ask" type="button" class="btn btn-sky">질문</button>
               </div>
             </div>
@@ -1581,14 +1749,25 @@
               </div>
             </div>
             <div class="s3-pane" data-cpane="dc" style="${t3==='dc'?'':'display:none;'}">
-              <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">③ 보호자 퇴원 안내 AI 롤플레이 (안내 완료 +5점 · 욕설·폭언 시 즉시 실패)</div>
-            <div id="s3-chat" class="chat-box"><div class="chat-msg owner"><strong>보호자:</strong> 선생님, 수술 잘 끝났나요? 집에 가서 밥·물·약은 어떻게 챙겨야 하죠?</div></div>
-            <div style="display:flex; gap:6px; margin-bottom:10px;">
-              <input id="s3-msg" type="text" placeholder="금식·체온·상처·응급 증상 등 퇴원 주의사항 안내" style="flex:1; background:#020617; border:1px solid #334155; color:#fff; border-radius:8px; padding:6px 8px; font-size:11.5px;" />
-              <button id="btn-s3-send" type="button" class="btn btn-sky">안내 전송</button>
-            </div>
-            <button id="btn-finish-all" type="button" class="btn btn-emerald" style="width:100%; padding:10px; font-size:13px;">✅ 전주기 마취 완료 및 통합 리포트 보기</button>
-          
+              ${(() => {
+                const sev3 = getCritSeverity(c, true);
+                if (!st.s3Chat.length) st.s3Chat = [{ role: 'owner', text: getCritOpening(c, sev3, st.ownerLevel, true) }];
+                const opts = [1,2,3,4,5].map((n) => `<option value="${n}" ${st.ownerLevel===n?'selected':''}>${OWNER_LEVEL_LABELS[n]}</option>`).join('');
+                return `
+                  <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; margin-bottom:6px;">
+                    <div style="font-size:11px; font-weight:800; color:#7dd3fc;">③ 보호자 퇴원 안내 (+5점 · 욕설 시 실패)</div>
+                    <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+                      <span id="s3-sev-badge" style="font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; background:${sev3.bg}; color:${sev3.color};">${sev3.label}</span>
+                      <select id="s3-owner-lv" title="보호자 의학 지식 수준 (1~5)" style="background:#020617; border:1px solid #334155; color:#e2e8f0; border-radius:6px; padding:2px 6px; font-size:10.5px;">${opts}</select>
+                    </div>
+                  </div>`;
+              })()}
+              <div id="s3-chat" class="chat-box"></div>
+              <div style="display:flex; gap:6px; margin-bottom:10px;">
+                <input id="s3-msg" type="text" placeholder="금식·체온·상처·응급 증상 등 퇴원 주의사항 안내 (Enter 전송)" style="flex:1; background:#020617; border:1px solid #334155; color:#fff; border-radius:8px; padding:6px 8px; font-size:11.5px;" />
+                <button id="btn-s3-send" type="button" class="btn btn-sky">안내 전송</button>
+              </div>
+              <button id="btn-finish-all" type="button" class="btn btn-emerald" style="width:100%; padding:10px; font-size:13px;">✅ 전주기 마취 완료 및 통합 리포트 보기</button>
             </div>
           `;
           wireCriticalTabs('s3Tab', '#s3-tabs .ctrl-tab', '.s3-pane');
@@ -1689,46 +1868,85 @@
             });
           });
         });
-        document.getElementById('btn-s1-ask').addEventListener('click', async () => {
+        renderCritChat('s1-chat', st.s1Chat, false);
+        const s1LvSel = document.getElementById('s1-owner-lv');
+        if (s1LvSel) {
+          s1LvSel.addEventListener('change', () => {
+            st.ownerLevel = Math.max(1, Math.min(5, Number(s1LvSel.value) || 2));
+            if (st.s1Chat.length <= 1 && (!st.s1Chat[0] || st.s1Chat[0].role === 'owner')) {
+              const sev1 = getCritSeverity(c, false);
+              st.s1Chat = [{ role: 'owner', text: getCritOpening(c, sev1, st.ownerLevel, false) }];
+              renderCritChat('s1-chat', st.s1Chat, false);
+            }
+            addLog(`[보호자 설정] 지식 수준 변경 → ${OWNER_LEVEL_LABELS[st.ownerLevel]}`, '');
+          });
+        }
+        const s1AskFn = async () => {
           const inp = document.getElementById('s1-q');
-          const q = inp.value.trim(); if (!q || st.abortedByOwner) return;
+          const btn = document.getElementById('btn-s1-ask');
+          const q = inp ? inp.value.trim() : '';
+          if (!q || st.abortedByOwner || st.chatBusy) return;
           inp.value = '';
-          const chat = document.getElementById('s1-chat');
-          chat.innerHTML += `<div class="chat-msg vet"><strong>수의사:</strong> ${q}</div>`;
+          st.s1Chat.push({ role: 'vet', text: q });
+          renderCritChat('s1-chat', st.s1Chat, false);
           if (isAbusiveMessage(q)) {
             st.abortedByOwner = true; st.score = 0; inp.disabled = true;
             const rep = '선생님, 지금 보호자한테 무슨 말씀이세요?! 이런 병원에는 우리 아이 절대 못 맡깁니다. 당장 진료 취소하겠습니다!';
-            chat.innerHTML += `<div class="chat-msg owner" style="border-color:#f43f5e; color:#fecdd3;"><strong>보호자 (진료 중단):</strong> ${rep}</div>`;
+            st.s1Chat.push({ role: 'owner', text: rep, abort: true });
+            renderCritChat('s1-chat', st.s1Chat, false);
             st.mistakes.unshift(`보호자 문진 중 부적절한 언행으로 진료 즉시 중단`);
             setTimeout(() => openFinalReport(true, '보호자 문진 중 부적절한 언행으로 진료 중단'), 800);
             return;
           }
-          let reply = c.ownerClue, aiAbort = false;
+          st.chatBusy = true;
+          if (btn) btn.disabled = true;
+          renderCritChat('s1-chat', st.s1Chat, true);
+          const sev1 = getCritSeverity(c, false);
+          const p = st.phys || {};
+          let reply = '', aiAbort = false;
           try {
             const res = await fetch(AI_API_PREFIX + '/ai', {
               method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-              body: JSON.stringify({ task: 'roleplay', role: 'owner_preop', species: st.species === 'dog' ? '개' : '고양이', caseDesc: c.desc, clue: c.ownerClue, question: q })
+              body: JSON.stringify({
+                task: 'roleplay', role: 'owner_preop',
+                species: st.species === 'dog' ? '개' : '고양이',
+                asa: c.asa, caseName: c.name, caseDesc: c.desc, clue: c.ownerClue,
+                question: q,
+                knowledgeLevel: st.ownerLevel,
+                severity: sev1.key,
+                vitals: `HR ${Math.round(st.hr)}, MAP ${Math.round(st.map)}, SpO2 ${Math.round(st.spo2)}%, BT ${st.bt.toFixed(1)}°C, K+ ${(p.serumK||4.5).toFixed(1)}, PCV ${(p.pcv||38).toFixed(0)}%`,
+                recentLogs: st.logs.slice(0, 5).map((l) => l.msg),
+                chatHistory: st.s1Chat.slice(0, -1).slice(-14)
+              })
             });
             if (res.ok) {
               const d = await res.json();
               if (d && d.text) {
                 if (d.text.trim().startsWith('[ABORT]')) { aiAbort = true; reply = d.text.replace(/^\[ABORT\]\s*/i, '').trim(); }
-                else reply = d.text;
+                else reply = d.text.trim();
               }
             }
           } catch (e) {}
+          st.chatBusy = false;
+          if (btn) btn.disabled = false;
+          if (!reply) reply = buildOfflineCritReply(q, c, sev1, st.ownerLevel, st.s1Chat, false);
           if (aiAbort) {
             st.abortedByOwner = true; st.score = 0; inp.disabled = true;
-            chat.innerHTML += `<div class="chat-msg owner" style="border-color:#f43f5e; color:#fecdd3;"><strong>보호자 (진료 중단):</strong> ${reply}</div>`;
+            st.s1Chat.push({ role: 'owner', text: reply, abort: true });
+            renderCritChat('s1-chat', st.s1Chat, false);
             st.mistakes.unshift(`보호자 문진 중 부적절한 언행으로 진료 즉시 중단`);
             setTimeout(() => openFinalReport(true, '보호자 문진 중 부적절한 언행으로 진료 중단'), 800);
             return;
           }
           st.ownerAsked = true;
-          chat.innerHTML += `<div class="chat-msg owner"><strong>보호자:</strong> ${reply}</div>`;
-          chat.scrollTop = chat.scrollHeight;
+          st.s1Chat.push({ role: 'owner', text: reply });
+          renderCritChat('s1-chat', st.s1Chat, false);
           addLog(`[도입 문진] 보호자 병력 확인 완료`, 'good');
           awardOnce('s1_owner', 5, '도입 전 보호자 문진 완료', false);
+        };
+        document.getElementById('btn-s1-ask').addEventListener('click', s1AskFn);
+        document.getElementById('s1-q').addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); s1AskFn(); }
         });
         document.getElementById('btn-s1-preox').addEventListener('click', () => {
           st.preox = true; st.spo2 = 100;
@@ -2079,37 +2297,73 @@
         });
         document.getElementById('btn-s3-atip').addEventListener('click', () => administerMaintDrug('atipamezole'));
         document.getElementById('btn-s3-nalox').addEventListener('click', () => administerMaintDrug('naloxone'));
-        document.getElementById('btn-s3-send').addEventListener('click', async () => {
+        renderCritChat('s3-chat', st.s3Chat, false);
+        const s3LvSel = document.getElementById('s3-owner-lv');
+        if (s3LvSel) {
+          s3LvSel.addEventListener('change', () => {
+            const c3 = getCaseObj();
+            st.ownerLevel = Math.max(1, Math.min(5, Number(s3LvSel.value) || 2));
+            if (st.s3Chat.length <= 1 && (!st.s3Chat[0] || st.s3Chat[0].role === 'owner')) {
+              const sev3 = getCritSeverity(c3, true);
+              st.s3Chat = [{ role: 'owner', text: getCritOpening(c3, sev3, st.ownerLevel, true) }];
+              renderCritChat('s3-chat', st.s3Chat, false);
+            }
+            addLog(`[보호자 설정] 지식 수준 변경 → ${OWNER_LEVEL_LABELS[st.ownerLevel]}`, '');
+          });
+        }
+        const s3SendFn = async () => {
           const inp = document.getElementById('s3-msg');
-          const msg = inp.value.trim(); if (!msg || st.abortedByOwner) return;
+          const btn = document.getElementById('btn-s3-send');
+          const msg = inp ? inp.value.trim() : '';
+          if (!msg || st.abortedByOwner || st.chatBusy) return;
           inp.value = '';
-          const chat = document.getElementById('s3-chat');
-          chat.innerHTML += `<div class="chat-msg vet"><strong>수의사:</strong> ${msg}</div>`;
+          st.s3Chat.push({ role: 'vet', text: msg });
+          renderCritChat('s3-chat', st.s3Chat, false);
           if (isAbusiveMessage(msg)) {
             st.abortedByOwner = true; st.score = 0; inp.disabled = true;
             const rep = '선생님, 수술 끝난 아이 보호자한테 지금 뭐라고 하신 거예요?! 이런 곳에서는 더 이상 설명 못 듣겠습니다!';
-            chat.innerHTML += `<div class="chat-msg owner" style="border-color:#f43f5e; color:#fecdd3;"><strong>보호자 (상담 중단):</strong> ${rep}</div>`;
+            st.s3Chat.push({ role: 'owner', text: rep, abort: true });
+            renderCritChat('s3-chat', st.s3Chat, false);
             st.mistakes.unshift('퇴원 안내 중 부적절한 언행으로 보호자 신뢰 붕괴');
             setTimeout(() => openFinalReport(true, '퇴원 안내 중 부적절한 언행으로 상담 중단'), 800);
             return;
           }
-          let reply = '네 선생님, 말씀하신 대로 보온과 호흡·상처 잘 살피고 4~6시간 뒤에 물부터 소량씩 줄게요. 감사합니다!', aiAbort = false;
+          st.chatBusy = true;
+          if (btn) btn.disabled = true;
+          renderCritChat('s3-chat', st.s3Chat, true);
+          const c3 = getCaseObj();
+          const sev3 = getCritSeverity(c3, true);
+          let reply = '', aiAbort = false;
           try {
             const res = await fetch(AI_API_PREFIX + '/ai', {
               method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-              body: JSON.stringify({ task: 'roleplay', role: 'owner_discharge', species: st.species === 'dog' ? '개' : '고양이', caseName: getCaseObj().name, vetAdvice: msg })
+              body: JSON.stringify({
+                task: 'roleplay', role: 'owner_discharge',
+                species: st.species === 'dog' ? '개' : '고양이',
+                asa: c3.asa, caseName: c3.name, caseDesc: c3.desc, clue: c3.ownerClue,
+                vetAdvice: msg,
+                knowledgeLevel: st.ownerLevel,
+                severity: sev3.key,
+                vitals: `EtIso ${st.etIso.toFixed(2)}%, BT ${st.bt.toFixed(1)}°C, SpO2 ${Math.round(st.spo2)}%, MAP ${Math.round(st.map)}, 발관 ${st.extubated ? '완료' : '미완료'}, 연하반사 ${st.swallowCount}회`,
+                recentLogs: st.logs.slice(0, 5).map((l) => l.msg),
+                chatHistory: st.s3Chat.slice(0, -1).slice(-14)
+              })
             });
             if (res.ok) {
               const d = await res.json();
               if (d && d.text) {
                 if (d.text.trim().startsWith('[ABORT]')) { aiAbort = true; reply = d.text.replace(/^\[ABORT\]\s*/i, '').trim(); }
-                else reply = d.text;
+                else reply = d.text.trim();
               }
             }
           } catch (e) {}
+          st.chatBusy = false;
+          if (btn) btn.disabled = false;
+          if (!reply) reply = buildOfflineCritReply(msg, c3, sev3, st.ownerLevel, st.s3Chat, true);
           if (aiAbort) {
             st.abortedByOwner = true; st.score = 0; inp.disabled = true;
-            chat.innerHTML += `<div class="chat-msg owner" style="border-color:#f43f5e; color:#fecdd3;"><strong>보호자 (상담 중단):</strong> ${reply}</div>`;
+            st.s3Chat.push({ role: 'owner', text: reply, abort: true });
+            renderCritChat('s3-chat', st.s3Chat, false);
             st.mistakes.unshift('퇴원 안내 중 부적절한 언행으로 보호자 신뢰 붕괴');
             setTimeout(() => openFinalReport(true, '퇴원 안내 중 부적절한 언행으로 상담 중단'), 800);
             return;
@@ -2117,8 +2371,12 @@
           st.dischargeDone = true;
           st.goods.push('[회복] 보호자 퇴원 주의사항 안내 완료');
           awardOnce('s3_discharge', 5, '보호자 퇴원 주의사항 안내 완료', false);
-          chat.innerHTML += `<div class="chat-msg owner"><strong>보호자:</strong> ${reply}</div>`;
-          chat.scrollTop = chat.scrollHeight;
+          st.s3Chat.push({ role: 'owner', text: reply });
+          renderCritChat('s3-chat', st.s3Chat, false);
+        };
+        document.getElementById('btn-s3-send').addEventListener('click', s3SendFn);
+        document.getElementById('s3-msg').addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); s3SendFn(); }
         });
         document.getElementById('btn-finish-all').addEventListener('click', () => openFinalReport(false, ''));
       }

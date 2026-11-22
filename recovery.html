@@ -336,14 +336,24 @@
           </div>
 
           <div class="rec-pane" data-rp="discharge" style="display:none;">
-            <div class="card-title"><span>4) 보호자 퇴원 안내 AI 롤플레이 &amp; 종료</span></div>
+            <div class="card-title">
+              <span>4) 보호자 퇴원 안내 AI 롤플레이 &amp; 종료</span>
+              <span style="display:inline-flex; align-items:center; gap:5px;">
+                <span id="dc-sev-badge" style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:6px; background:rgba(16,185,129,0.16); color:#6ee7b7;">안정 회복</span>
+                <select id="dc-owner-lv" class="sel" style="padding:2px 6px; font-size:10.5px; max-width:128px;" title="보호자 의학 지식 수준 (1~5단계)">
+                  <option value="1">지식 Lv.1 초보</option>
+                  <option value="2" selected>지식 Lv.2 일반</option>
+                  <option value="3">지식 Lv.3 관심</option>
+                  <option value="4">지식 Lv.4 숙련</option>
+                  <option value="5">지식 Lv.5 준전문가</option>
+                </select>
+              </span>
+            </div>
             <div style="display:flex; gap:6px;">
-              <input id="dc-input" type="text" placeholder="보호자 퇴원 주의사항 입력 (예: 금식·체온·상처 관리)..." style="flex:1; background:#020617; border:1px solid #334155; border-radius:8px; padding:6px 8px; font-size:11.5px; color:#fff;" />
+              <input id="dc-input" type="text" placeholder="보호자 퇴원 주의사항 입력 (Enter 전송)..." style="flex:1; background:#020617; border:1px solid #334155; border-radius:8px; padding:6px 8px; font-size:11.5px; color:#fff;" />
               <button id="btn-dc-send" type="button" class="btn btn-sky">안내</button>
             </div>
-            <div id="dc-chat" class="chat-box">
-              <div class="chat-msg owner"><strong>보호자:</strong> 선생님, 아이가 깨어나면 집에 가서 밥이랑 물은 언제부터 줘도 될까요? 주의할 점 알려주세요!</div>
-            </div>
+            <div id="dc-chat" class="chat-box"></div>
             <button id="btn-finish-rec" type="button" class="btn btn-primary" style="width:100%; margin-top:10px; padding:10px; font-size:12px;">✅ 회복 완료 및 최종 평가 리포트 보기</button>
           </div>
         </div>
@@ -403,12 +413,81 @@
         }
       };
 
+      const OWNER_LEVEL_LABELS = { 1: 'Lv.1 초보', 2: 'Lv.2 일반', 3: 'Lv.3 관심', 4: 'Lv.4 숙련', 5: 'Lv.5 준전문가' };
+      function escHtml(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+      function getRecSeverity() {
+        if (st.caseId === 'emergency' || st.spo2 < 90) return 'critical';
+        if (st.caseId === 'boas' || st.caseId === 'hypo' || st.bt < 36.2) return 'high';
+        if (st.caseId === 'dysphoria') return 'moderate';
+        return 'low';
+      }
+      function getRecOpening(sev, lv) {
+        if (sev === 'critical') {
+          return lv >= 4
+            ? '선생님, 회복 중에 응급 상황이 있었다고 들었는데 지금 기도랑 산소포화도는 완전히 안정된 건가요? 퇴원해도 정말 괜찮을까요?'
+            : '선생님, 아까 깨어나다가 숨이 막혔다면서요?! 지금 우리 애 정말 괜찮은 건가요? 집에서 또 그러면 어떡해요!';
+        }
+        if (sev === 'high') {
+          return lv >= 4
+            ? '선생님, 체온이나 호흡 회복이 느려서 걱정이 많습니다. 집에서 모니터링해야 할 구체적인 지표와 응급 기준을 알려주세요.'
+            : '선생님, 아이가 아직 많이 떨거나 숨소리가 거친 것 같아서 너무 걱정돼요... 집에 데려가서 어떻게 돌봐야 할까요?';
+        }
+        if (sev === 'moderate') {
+          return lv >= 4
+            ? '선생님, 아이가 계속 낑낑대던데 수술 통증 때문인지 오피오이드 불쾌감 때문인지 궁금합니다. 집에서는 어떻게 관리하면 될까요?'
+            : '선생님, 아이가 아까부터 계속 낑낑거리고 안절부절못하던데 많이 아픈 건가요? 집에 가서 어떻게 해줘야 하죠?';
+        }
+        return lv >= 4
+          ? '선생님, 수술과 마취 회복은 잘 마무리되었나요? 급여 재개 시점과 진통제·상처 관리 주의사항 안내 부탁드립니다.'
+          : '선생님, 수술 잘 끝났죠? 집에 가면 밥이랑 물은 언제부터 줘도 될까요? 주의할 점 알려주세요!';
+      }
+      function renderDcChat() {
+        const box = document.getElementById('dc-chat');
+        if (!box) return;
+        box.innerHTML = st.dcHistory.map((m) => {
+          if (m.abort) return `<div class="chat-msg owner" style="border-color:#f43f5e; background:rgba(136,19,55,0.35); color:#fecdd3;"><strong>보호자 (상담 중단):</strong> ${escHtml(m.text)}</div>`;
+          if (m.sender === 'vet') return `<div class="chat-msg vet"><strong>수의사:</strong> ${escHtml(m.text)}</div>`;
+          return `<div class="chat-msg owner"><strong>보호자:</strong> ${escHtml(m.text)}</div>`;
+        }).join('');
+        box.scrollTop = box.scrollHeight;
+      }
+      function syncDcOwnerMeta() {
+        const sev = getRecSeverity();
+        const badge = document.getElementById('dc-sev-badge');
+        const sel = document.getElementById('dc-owner-lv');
+        const map = {
+          low: ['안정 회복', 'rgba(16,185,129,0.16)', '#6ee7b7'],
+          moderate: ['주의·불안', 'rgba(245,158,11,0.18)', '#fde68a'],
+          high: ['고위험·걱정', 'rgba(249,115,22,0.2)', '#fdba74'],
+          critical: ['응급·다급', 'rgba(244,63,94,0.22)', '#fda4af']
+        };
+        if (badge && map[sev]) { badge.textContent = map[sev][0]; badge.style.background = map[sev][1]; badge.style.color = map[sev][2]; }
+        if (sel) sel.value = String(st.ownerLevel);
+      }
+      function buildOfflineDcReply(msg, sev, lv, history) {
+        const prevVet = history.filter(m => m.sender === 'vet').map(m => m.text.trim());
+        const isRepeat = prevVet.slice(0, -1).some(p => p === msg || (msg.length >= 6 && p.includes(msg.slice(0, 6))));
+        if (isRepeat) return '선생님, 그건 아까 말씀해 주신 내용이랑 똑같은데요... 혹시 그 외에 집에서 따로 봐야 할 응급 증상은 없나요?';
+        if (msg.length <= 2 || /^(네|응|음|ㅋㅋ|ㅎㅎ|몰라|글쎄|어|예)$/.test(msg) || /(몰라|알아서|대충|그냥|귀찮|시끄|말이 많|안 궁금|상관없|글쎄|뭐어때|니가)/.test(msg)) {
+          return sev === 'critical'
+            ? '선생님, 지금 아이가 회복 중에 힘들어했는데 그렇게 대충 말씀하시면 제가 집에서 어떻게 돌봐요?! 제대로 설명해 주세요!'
+            : '선생님… 그렇게 성의 없이 말씀하시니까 좀 답답하고 불안하네요. 집에서 뭘 조심해야 하는지 구체적으로 설명해 주세요.';
+        }
+        if (/밥|물|금식|식사|급여/i.test(msg)) return lv >= 4 ? '네, 마취 후 오연 방지를 위해 소량 음수부터 확인하고 구토 없으면 급여할게요. 진통제 복용 타이밍은 식후가 나을까요?' : '알겠어요, 몇 시간 뒤에 물부터 조금씩 줘볼게요. 혹시 토하면 바로 병원으로 데려와야 하나요?';
+        if (/체온|보온|따뜻|떨/i.test(msg)) return '집에 가서도 따뜻한 담요 덮어주고 떨림이 계속되는지 잘 볼게요. 숨소리나 잇몸 색깔도 같이 보면 되겠죠?';
+        if (/상처|넥카라|소독|약|진통/i.test(msg)) return lv >= 4 ? '네, 처방약 용법대로 먹이고 넥카라 유지하면서 절개 부위 부종이나 삼출물 여부 매일 체크하겠습니다.' : '넥카라 안 풀고 상처 안 핥게 잘 챙길게요. 혹시 밤에 아이가 갑자기 힘들어하면 바로 연락드려도 되죠?';
+        return sev === 'critical'
+          ? '알겠어요 선생님, 말씀하신 대로 호흡이랑 의식 상태 계속 지켜볼게요. 조금이라도 이상하면 바로 응급실로 올게요.'
+          : '네, 말씀해 주신 부분 잘 기억해 둘게요. 혹시 집에 가서 꼭 병원에 다시 와야 하는 위험 신호가 있으면 한 가지만 더 알려주세요.';
+      }
+
       const st = {
         species: 'dog', caseId: 'normal', paused: true, sec: 0, score: 100,
         iso: 1.5, etIso: 1.5, o2: 1.5, hr: 90, spo2: 99, etco2: 43, map: 84, bt: 37.8, rr: 8,
         swallows: 0, extubated: false, o2Supp: false, warming: false,
         complicationActive: false, complicationSolved: false, bagCount15: 0,
-        step: 1, mistakes: [], goods: [], logs: [], dischargeDone: false
+        step: 1, mistakes: [], goods: [], logs: [], dischargeDone: false,
+        ownerLevel: 2, dcHistory: [], dcBusy: false
       };
 
       const el = {
@@ -471,10 +550,15 @@
         st.swallows = 0; st.extubated = false; st.o2Supp = false; st.warming = false;
         st.complicationActive = false; st.complicationSolved = false; st.bagCount15 = 0;
         st.step = 1; st.mistakes = []; st.abortedByOwner = false; if (typeof dcInput !== 'undefined' && dcInput) dcInput.disabled = false; st.goods = []; st.logs = []; st.dischargeDone = false;
+        st.ownerLevel = Math.floor(Math.random() * 5) + 1;
+        st.dcBusy = false;
+        st.dcHistory = [{ sender: 'owner', text: getRecOpening(getRecSeverity(), st.ownerLevel) }];
+        syncDcOwnerMeta();
+        renderDcChat();
         el.slIso.value = '1.5'; el.dIso.textContent = '1.5%';
         el.slO2.value = '1.5'; el.dO2.textContent = '1.5 L/min';
         el.behav.textContent = '깊은 수면';
-        addLog(`[회복 시작] ${st.species === 'dog' ? '개' : '고양이'} · ${c.name}`, 'info');
+        addLog(`[회복 시작] ${st.species === 'dog' ? '개' : '고양이'} · ${c.name} · 보호자 ${OWNER_LEVEL_LABELS[st.ownerLevel]}`, 'info');
         setAlarm('1단계: 기화기를 0%로 끄고 O₂ 유량을 높여 EtIso를 배출하세요.', 'good');
         updateUI();
       }
@@ -697,27 +781,55 @@
         document.getElementById('result-modal').classList.remove('hidden');
       }
 
-      document.getElementById('btn-dc-send').addEventListener('click', async () => {
-        const msg = dcInput.value.trim(); if (!msg || st.abortedByOwner) return;
+      document.getElementById('dc-owner-lv')?.addEventListener('change', (e) => {
+        st.ownerLevel = Math.max(1, Math.min(5, Number(e.target.value) || 2));
+        if (st.dcHistory.length <= 1) {
+          st.dcHistory = [{ sender: 'owner', text: getRecOpening(getRecSeverity(), st.ownerLevel) }];
+          renderDcChat();
+        }
+        addLog(`[보호자 설정] 지식 수준 ${OWNER_LEVEL_LABELS[st.ownerLevel]}로 변경`, 'info');
+      });
+
+      async function sendDischargeMsg() {
+        const msg = dcInput.value.trim(); if (!msg || st.abortedByOwner || st.dcBusy) return;
+        const sendBtn = document.getElementById('btn-dc-send');
         dcInput.value = '';
-        dcChat.innerHTML += `<div class="chat-msg vet"><strong>수의사:</strong> ${msg}</div>`;
+        st.dcBusy = true;
+        if (sendBtn) sendBtn.disabled = true;
+        const prevHistory = st.dcHistory.map(m => ({ sender: m.sender, text: m.text }));
+        st.dcHistory.push({ sender: 'vet', text: msg });
+        renderDcChat();
         if (isAbusiveMessage(msg)) {
           const abortReply = '선생님, 수술 끝난 아이 보호자한테 지금 뭐라고 하신 거예요?! 이런 병원에서는 더 이상 설명 못 듣겠습니다. 당장 항의하고 퇴실하겠습니다!';
-          dcChat.innerHTML += `<div class="chat-msg owner" style="border-color:#f43f5e; background:rgba(136,19,55,0.35); color:#fecdd3;"><strong>보호자 (상담 중단):</strong> ${abortReply}</div>`;
-          dcChat.scrollTop = dcChat.scrollHeight;
-          st.abortedByOwner = true; st.score = 0; dcInput.disabled = true;
+          st.dcHistory.push({ sender: 'owner', text: abortReply, abort: true });
+          renderDcChat();
+          st.abortedByOwner = true; st.score = 0; dcInput.disabled = true; st.dcBusy = false;
           st.mistakes.unshift(`퇴원 상담 중 부적절한 언행("${msg.slice(0, 30)}")으로 보호자 신뢰 붕괴 → 상담 즉시 중단`);
           addLog('[커뮤니케이션 실패] 퇴원 안내 중 부적절한 언행으로 보호자 상담 중단 → 시뮬레이션 즉시 실패', 'bad');
           updateUI();
           setTimeout(() => openRecoveryDebrief(true), 850);
           return;
         }
-        let reply = '네 선생님, 4~6시간 뒤에 물부터 소량씩 주고 따뜻하게 쉬게 하면서 호흡이랑 상처 잘 살펴볼게요. 감사합니다!';
+        const sev = getRecSeverity();
+        syncDcOwnerMeta();
+        dcChat.innerHTML += `<div class="chat-msg owner" style="opacity:0.7; font-style:italic;">보호자가 답변 중입니다...</div>`;
+        dcChat.scrollTop = dcChat.scrollHeight;
+        let reply = '';
         let aiAbort = false;
+        const c = CASES[st.caseId];
         try {
           const res = await fetch(AI_API_PREFIX + '/ai', {
             method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-            body: JSON.stringify({ task: 'roleplay', role: 'owner_discharge', species: st.species === 'dog' ? '개' : '고양이', caseName: CASES[st.caseId].name, vetAdvice: msg })
+            body: JSON.stringify({
+              task: 'roleplay', role: 'owner_discharge',
+              species: st.species === 'dog' ? '개' : '고양이',
+              caseName: c.name, caseDesc: c.desc, severity: sev,
+              knowledgeLevel: st.ownerLevel,
+              vitals: { hr: Math.round(st.hr), spo2: Math.round(st.spo2), bt: Number(st.bt.toFixed(1)), extubated: st.extubated, etIso: Number(st.etIso.toFixed(2)) },
+              recentLogs: st.logs.slice(0, 8).map(l => `[${l.t}] ${l.msg}`),
+              chatHistory: prevHistory,
+              vetAdvice: msg
+            })
           });
           if (res.ok) {
             const d = await res.json();
@@ -726,14 +838,17 @@
                 aiAbort = true;
                 reply = d.text.replace(/^\[ABORT\]\s*/i, '').trim() || '이런 태도로는 더 이상 상담을 이어갈 수 없습니다. 당장 항의하겠습니다!';
               } else {
-                reply = d.text;
+                reply = d.text.trim();
               }
             }
           }
         } catch (e) {}
+        if (!reply) reply = buildOfflineDcReply(msg, sev, st.ownerLevel, st.dcHistory);
+        st.dcBusy = false;
+        if (sendBtn && !st.abortedByOwner) sendBtn.disabled = false;
         if (aiAbort) {
-          dcChat.innerHTML += `<div class="chat-msg owner" style="border-color:#f43f5e; background:rgba(136,19,55,0.35); color:#fecdd3;"><strong>보호자 (상담 중단):</strong> ${reply}</div>`;
-          dcChat.scrollTop = dcChat.scrollHeight;
+          st.dcHistory.push({ sender: 'owner', text: reply, abort: true });
+          renderDcChat();
           st.abortedByOwner = true; st.score = 0; dcInput.disabled = true;
           st.mistakes.unshift(`퇴원 상담 중 부적절한 언행("${msg.slice(0, 30)}")으로 보호자 신뢰 붕괴 → 상담 즉시 중단`);
           addLog('[커뮤니케이션 실패] 퇴원 안내 중 부적절한 언행으로 보호자 상담 중단 → 시뮬레이션 즉시 실패', 'bad');
@@ -741,11 +856,16 @@
           setTimeout(() => openRecoveryDebrief(true), 850);
           return;
         }
-        dcChat.innerHTML += `<div class="chat-msg owner"><strong>보호자:</strong> ${reply}</div>`;
-        dcChat.scrollTop = dcChat.scrollHeight;
-        st.goods.push('보호자 퇴원 주의사항(금식·체온·상처·응급 증상) 안내 완료');
-        addLog('[퇴원 안내] 보호자 주의사항 설명 완료', 'good'); updateUI();
-      });
+        st.dcHistory.push({ sender: 'owner', text: reply });
+        renderDcChat();
+        if (!st.dischargeDone) {
+          st.dischargeDone = true;
+          st.goods.push('보호자 퇴원 주의사항(금식·체온·상처·응급 증상) 안내 완료');
+        }
+        addLog(`[퇴원 안내 · ${OWNER_LEVEL_LABELS[st.ownerLevel]}] 보호자 상담 진행`, 'good'); updateUI();
+      }
+      document.getElementById('btn-dc-send').addEventListener('click', sendDischargeMsg);
+      dcInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendDischargeMsg(); } });
 
       document.getElementById('btn-finish-rec').addEventListener('click', () => openRecoveryDebrief(false));
 

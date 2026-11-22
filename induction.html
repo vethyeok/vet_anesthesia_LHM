@@ -595,6 +595,69 @@
         }
       ];
 
+      const OWNER_LEVEL_LABELS = {
+        1: 'Lv.1 초보',
+        2: 'Lv.2 일반',
+        3: 'Lv.3 관심',
+        4: 'Lv.4 숙련',
+        5: 'Lv.5 준전문가'
+      };
+      function escHtml(s) {
+        return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+      function getOwnerSeverity(c) {
+        const text = `${c.asa || ''} ${c.name || ''} ${c.desc || ''}`;
+        if (/IV|V|-E|응급|GDV|쇼크|파열|패혈|고칼륨|폐색/i.test(text) || st.caseId === 'gdv') return 'critical';
+        if (/ICP|뇌종양|제왕절개|폐수종|MMVD\s*Stage\s*C|HCM/i.test(text) || st.caseId === 'cardiac' || st.caseId === 'icp') return 'high';
+        if (/III|단두종|BOAS|후두경련/i.test(text) || st.caseId === 'boas') return 'moderate';
+        return 'low';
+      }
+      function getOwnerOpening(c, sev, lv) {
+        if (sev === 'critical') {
+          if (lv >= 4) return '선생님, 지금 아이 상태가 너무 위급해 보이는데 바로 안정화하고 수술 들어가는 거죠? 확인하실 병력 있으면 빨리 물어보세요.';
+          return '선생님, 우리 애가 지금 너무 힘들어 보여요... 이대로 잘못되는 건 아니죠?! 빨리 처치해 주셔야 하는 거 아닌가요?';
+        }
+        if (sev === 'high') {
+          if (lv >= 4) return '선생님, 기저질환 때문에 마취 위험도가 높다고 들어서 걱정이 큽니다. 기존 복용약이나 확인하실 부분 먼저 말씀드릴까요?';
+          return '선생님, 우리 애가 원래 몸이 많이 안 좋아서 마취 견딜 수 있을지 너무 무서워요... 확인하실 거 있으면 물어보세요.';
+        }
+        if (sev === 'moderate') {
+          if (lv >= 4) return '선생님, 평소 호흡기 쪽 문제가 있어서 마취 전후가 제일 걱정됩니다. 확인하실 사항 있으면 말씀해 주세요.';
+          return '선생님, 우리 애가 평소에도 숨소리가 좀 거칠고 예민해서 마취가 걱정돼요. 궁금한 거 있으시면 물어보세요.';
+        }
+        if (lv >= 4) return '안녕하세요 선생님, 오늘 정기 수술 마취 전 확인하실 사항이나 금식 여부 물어보시면 말씀드릴게요.';
+        return '안녕하세요 선생님, 우리 애 마취는 처음이라 살짝 긴장되네요. 확인하실 거 있으면 편하게 물어봐 주세요.';
+      }
+      function buildOfflineOwnerReply(q, c, sev, lv, history) {
+        const prevVet = history.filter(m => m.sender === 'vet').map(m => m.text.trim());
+        const isRepeat = prevVet.slice(0, -1).some(p => p === q || (q.length >= 6 && p.includes(q.slice(0, 6))));
+        if (isRepeat) {
+          return sev === 'critical'
+            ? '선생님, 그거 아까 방금 말씀드렸잖아요! 지금 아이가 이렇게 위급한데 왜 같은 걸 자꾸 물어보세요?'
+            : '선생님, 그 부분은 조금 전에 말씀드렸던 것 같은데... 제 얘기 듣고 계신 거 맞죠?';
+        }
+        if (q.length <= 2 || /^(네|응|음|ㅋㅋ|ㅎㅎ|몰라|글쎄|어|예)$/.test(q) || /(몰라|알아서|대충|그냥|귀찮|시끄|말이 많|안 궁금|상관없|글쎄|뭐어때|니가)/.test(q)) {
+          return sev === 'critical'
+            ? '선생님, 지금 아이 상태가 심각한데 그렇게 대충 말씀하시면 어떡해요?! 보호자 입장에서 피가 마르는데 제대로 좀 확인해 주세요!'
+            : '선생님… 그렇게 성의 없이 말씀하시니까 좀 답답하고 불안하네요. 보호자가 이해할 수 있게 차근차근 물어봐 주시면 안 될까요?';
+        }
+        const usedOwner = history.filter(m => m.sender === 'owner').map(m => m.text).join(' ');
+        if (/금식|밥|물|음수|사료|먹/i.test(q) && !usedOwner.includes('금식')) {
+          return sev === 'critical'
+            ? '갑자기 응급으로 데려오느라 금식은 제대로 못 시켰을 수도 있어요. 마지막으로 먹은 건 몇 시간 전쯤이에요.'
+            : '어젯밤부터 사료랑 간식은 다 치워두고 금식 잘 지켰어요. 아침에 물만 아주 조금 마셨나 헷갈리네요.';
+        }
+        if (/약|처치|병원|수치|용량|검사|진단/i.test(q)) {
+          if (lv <= 2) return '정확한 약 이름이나 검사 숫자는 제가 잘 몰라요... 아까 다른 선생님한테 들은 것도 정신없어서 기억이 잘 안 나네요.';
+          if (lv === 3) return '다니던 병원에서 들은 병명이랑 평소 먹는 약 이름은 메모해 뒀는데, 정확한 용량이나 마취 약물은 선생님이 보셔야 할 것 같아요.';
+          return `기존 진단과 검사 이상 소견(${c.asa}) 때문에 마취 중 혈역학 변동이 걱정됩니다. ${c.ownerClue}`;
+        }
+        if (!usedOwner.includes(c.ownerClue.slice(0, 12))) return c.ownerClue;
+        return sev === 'critical'
+          ? '그 외에 제가 아는 건 다 말씀드렸어요. 선생님, 이제 빨리 아이 처치부터 들어가 주시면 안 될까요?'
+          : '제가 집에서 본 건 그 정도가 다예요. 혹시 마취할 때 특별히 주의해야 할 게 더 있을까요?';
+      }
+
       const st = {
         species: 'dog', caseId: 'routine', customCase: null,
         step: 1, step2Tab: 'premed', score: 100, paused: true,
@@ -606,7 +669,7 @@
         tubeSize: 'fit', lidoSpray: false, cuffInflated: false,
         o2Flow: 1.5, isoInit: 1.5, aplOpen: true,
         aiReviewText: '', mistakes: [], goodPoints: [], logs: [],
-        ownerAsked: false
+        ownerAsked: false, ownerLevel: 2, ownerChat: [], ownerBusy: false
       };
 
       const el = {
@@ -674,8 +737,12 @@
         st.tubeSize = 'fit'; st.lidoSpray = false; st.cuffInflated = false;
         st.o2Flow = 1.5; st.isoInit = 1.5; st.aplOpen = true;
         st.aiReviewText = ''; st.mistakes = []; st.abortedByOwner = false; st.goodPoints = []; st.logs = []; st.ownerAsked = false;
+        st.ownerLevel = Math.floor(Math.random() * 5) + 1;
+        st.ownerBusy = false;
+        const initSev = getOwnerSeverity(c);
+        st.ownerChat = [{ sender: 'owner', text: getOwnerOpening(c, initSev, st.ownerLevel) }];
         el.vAirway.textContent = '의식 명료';
-        addLog(`[케이스 시작] ${st.species === 'dog' ? '개' : '고양이'} · ${c.name} (${c.asa})`, 'info');
+        addLog(`[케이스 시작] ${st.species === 'dog' ? '개' : '고양이'} · ${c.name} (${c.asa}) · 보호자 ${OWNER_LEVEL_LABELS[st.ownerLevel]}`, 'info');
         setAlarm('1단계: 환자 신체검사 및 보호자 문진으로 숨겨진 위험 요인을 확인하세요.', 'good');
         updateVitalsUI();
         renderStep();
@@ -894,41 +961,93 @@
       function renderStep() {
         const c = getCase();
         if (st.step === 1) {
+          const sev = getOwnerSeverity(c);
+          const sevBadgeMap = {
+            low: ['안정·정기', 'rgba(16,185,129,0.16)', '#6ee7b7'],
+            moderate: ['주의·불안', 'rgba(245,158,11,0.18)', '#fde68a'],
+            high: ['고위험·긴장', 'rgba(249,115,22,0.2)', '#fdba74'],
+            critical: ['초응급·다급', 'rgba(244,63,94,0.22)', '#fda4af']
+          };
+          const sb = sevBadgeMap[sev] || sevBadgeMap.moderate;
+          const renderOwnerChatHtml = () => st.ownerChat.map((m) => {
+            if (m.abort) return `<div class="chat-msg owner" style="border-color:#f43f5e; background:rgba(136,19,55,0.35); color:#fecdd3;"><strong>보호자 (진료 중단):</strong> ${escHtml(m.text)}</div>`;
+            if (m.sender === 'vet') return `<div class="chat-msg vet"><strong>수의사:</strong> ${escHtml(m.text)}</div>`;
+            return `<div class="chat-msg owner"><strong>보호자:</strong> ${escHtml(m.text)}</div>`;
+          }).join('');
           el.panel.innerHTML = `
-            <div class="card-title"><span>1단계 · 환자 평가 &amp; 보호자 AI 문진</span></div>
-            <p style="font-size:12px; color:#cbd5e1; line-height:1.5;">마취 전 보호자에게 금식 여부, 복용 약물, 기저 증상을 문진하고 상단 <strong>[마취전 혈액검사]</strong>를 확인해 위험 요인을 파악하세요.</p>
+            <div class="card-title">
+              <span>1단계 · 환자 평가 &amp; 보호자 AI 문진</span>
+              <span style="display:inline-flex; align-items:center; gap:5px;">
+                <span style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:6px; background:${sb[1]}; color:${sb[2]};">${sb[0]}</span>
+                <select id="owner-lv-sel" class="sel" style="padding:2px 6px; font-size:10.5px; max-width:128px;" title="보호자 의학 지식 수준 (1~5단계)">
+                  <option value="1" ${st.ownerLevel===1?'selected':''}>지식 Lv.1 초보</option>
+                  <option value="2" ${st.ownerLevel===2?'selected':''}>지식 Lv.2 일반</option>
+                  <option value="3" ${st.ownerLevel===3?'selected':''}>지식 Lv.3 관심</option>
+                  <option value="4" ${st.ownerLevel===4?'selected':''}>지식 Lv.4 숙련</option>
+                  <option value="5" ${st.ownerLevel===5?'selected':''}>지식 Lv.5 준전문가</option>
+                </select>
+              </span>
+            </div>
+            <p style="font-size:12px; color:#cbd5e1; line-height:1.5;">마취 전 보호자와 실제 대화하듯 문진하고 상단 <strong>[마취전 혈액검사]</strong>를 확인하세요. (지식 수준·환자 경중에 따라 반응과 이해도가 달라집니다)</p>
             <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:8px;">
               <button type="button" class="btn btn-sky q-owner">금식과 음수는 잘 지켰나요?</button>
               <button type="button" class="btn btn-sky q-owner">현재 복용 중인 약이나 증상이 있나요?</button>
             </div>
             <div style="display:flex; gap:6px; margin-top:8px;">
-              <input id="owner-q-input" type="text" placeholder="보호자에게 직접 질문하기..." style="flex:1; background:#020617; border:1px solid #334155; border-radius:8px; padding:6px 8px; font-size:12px;" />
-              <button id="btn-ask-owner" type="button" class="btn btn-amber">문진</button>
+              <input id="owner-q-input" type="text" placeholder="보호자에게 직접 질문하기 (Enter 전송)..." style="flex:1; background:#020617; border:1px solid #334155; border-radius:8px; padding:6px 8px; font-size:12px;" ${st.abortedByOwner?'disabled':''} />
+              <button id="btn-ask-owner" type="button" class="btn btn-amber" ${st.abortedByOwner?'disabled':''}>문진</button>
             </div>
-            <div id="owner-chat" class="chat-box">
-              <div class="chat-msg owner"><strong>보호자:</strong> 선생님, 우리 아이 마취 안전하게 잘 되겠죠? 궁금한 거 물어보세요.</div>
-            </div>
+            <div id="owner-chat" class="chat-box">${renderOwnerChatHtml()}</div>
             <button id="btn-next-1" type="button" class="btn btn-primary" style="width:100%; margin-top:12px; padding:10px; font-size:12px;">2단계: 전처치 · 수액 · 안정화 약물로 →</button>`;
           const chat = document.getElementById('owner-chat');
           const inp = document.getElementById('owner-q-input');
+          const sendBtn = document.getElementById('btn-ask-owner');
+          chat.scrollTop = chat.scrollHeight;
+          document.getElementById('owner-lv-sel').addEventListener('change', (e) => {
+            st.ownerLevel = Math.max(1, Math.min(5, Number(e.target.value) || 2));
+            if (st.ownerChat.length <= 1) {
+              st.ownerChat = [{ sender: 'owner', text: getOwnerOpening(c, sev, st.ownerLevel) }];
+              chat.innerHTML = renderOwnerChatHtml();
+            }
+            addLog(`[보호자 설정] 지식 수준 ${OWNER_LEVEL_LABELS[st.ownerLevel]}로 변경`, 'info');
+          });
           async function askOwner(q) {
-            if (!q || st.abortedByOwner) return;
+            if (!q || st.abortedByOwner || st.ownerBusy) return;
             st.ownerAsked = true;
-            chat.innerHTML += `<div class="chat-msg vet"><strong>수의사:</strong> ${q}</div>`;
+            st.ownerBusy = true;
+            if (sendBtn) sendBtn.disabled = true;
+            const prevHistory = st.ownerChat.map(m => ({ sender: m.sender, text: m.text }));
+            st.ownerChat.push({ sender: 'vet', text: q });
+            chat.innerHTML = renderOwnerChatHtml();
+            chat.scrollTop = chat.scrollHeight;
             if (isAbusiveMessage(q)) {
               const abortReply = '선생님, 지금 보호자한테 무슨 말씀이세요?! 이런 태도의 병원에는 우리 아이 마취 절대 못 맡깁니다. 당장 진료 취소하고 다른 병원 가겠습니다!';
-              chat.innerHTML += `<div class="chat-msg owner" style="border-color:#f43f5e; background:rgba(136,19,55,0.35); color:#fecdd3;"><strong>보호자 (진료 중단):</strong> ${abortReply}</div>`;
+              st.ownerChat.push({ sender: 'owner', text: abortReply, abort: true });
+              chat.innerHTML = renderOwnerChatHtml();
               chat.scrollTop = chat.scrollHeight;
               if (inp) inp.disabled = true;
+              st.ownerBusy = false;
               triggerOwnerAbort(q, abortReply);
               return;
             }
-            let reply = c.ownerClue;
+            const typingId = 'owner-typing-' + Date.now();
+            chat.innerHTML += `<div id="${typingId}" class="chat-msg owner" style="opacity:0.7; font-style:italic;">보호자가 답변 중입니다...</div>`;
+            chat.scrollTop = chat.scrollHeight;
+            let reply = '';
             let aiAbort = false;
             try {
               const res = await fetch(AI_API_PREFIX + '/ai', {
                 method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-                body: JSON.stringify({ task: 'roleplay', role: 'owner_preop', species: st.species === 'dog' ? '개' : '고양이', caseDesc: c.desc, clue: c.ownerClue, question: q })
+                body: JSON.stringify({
+                  task: 'roleplay', role: 'owner_preop',
+                  species: st.species === 'dog' ? '개' : '고양이',
+                  caseName: c.name, asa: c.asa, severity: sev,
+                  knowledgeLevel: st.ownerLevel,
+                  caseDesc: c.desc, clue: c.ownerClue,
+                  vitals: { hr: Math.round(st.hr), map: Math.round(st.map), spo2: Math.round(st.spo2), rr: Math.round(st.rr) },
+                  chatHistory: prevHistory,
+                  question: q
+                })
               });
               if (res.ok) {
                 const d = await res.json();
@@ -937,24 +1056,30 @@
                     aiAbort = true;
                     reply = d.text.replace(/^\[ABORT\]\s*/i, '').trim() || '이런 상황에서는 더 이상 진료를 맡길 수 없습니다. 당장 진료 중단하겠습니다!';
                   } else {
-                    reply = d.text;
+                    reply = d.text.trim();
                   }
                 }
               }
             } catch (e) {}
+            if (!reply) reply = buildOfflineOwnerReply(q, c, sev, st.ownerLevel, st.ownerChat);
+            st.ownerBusy = false;
+            if (sendBtn && !st.abortedByOwner) sendBtn.disabled = false;
             if (aiAbort) {
-              chat.innerHTML += `<div class="chat-msg owner" style="border-color:#f43f5e; background:rgba(136,19,55,0.35); color:#fecdd3;"><strong>보호자 (진료 중단):</strong> ${reply}</div>`;
+              st.ownerChat.push({ sender: 'owner', text: reply, abort: true });
+              chat.innerHTML = renderOwnerChatHtml();
               chat.scrollTop = chat.scrollHeight;
               if (inp) inp.disabled = true;
               triggerOwnerAbort(q, reply);
               return;
             }
-            chat.innerHTML += `<div class="chat-msg owner"><strong>보호자:</strong> ${reply}</div>`;
+            st.ownerChat.push({ sender: 'owner', text: reply });
+            chat.innerHTML = renderOwnerChatHtml();
             chat.scrollTop = chat.scrollHeight;
-            addLog(`[보호자 문진] "${q}" → 주요 병력 확인`, 'good');
+            addLog(`[보호자 문진 · ${OWNER_LEVEL_LABELS[st.ownerLevel]}] "${q}"`, 'good');
           }
           document.querySelectorAll('.q-owner').forEach(b => b.addEventListener('click', () => askOwner(b.textContent)));
-          document.getElementById('btn-ask-owner').addEventListener('click', () => { askOwner(inp.value.trim()); inp.value = ''; });
+          sendBtn.addEventListener('click', () => { const v = inp.value.trim(); inp.value = ''; askOwner(v); });
+          inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); const v = inp.value.trim(); inp.value = ''; askOwner(v); } });
           document.getElementById('btn-next-1').addEventListener('click', () => {
             if (st.ownerAsked) st.goodPoints.push('도입 전 보호자 문진으로 금식·복약·병력 단서를 확인함');
             else { st.score -= 5; st.mistakes.push('보호자 문진 생략 (금식·복약 여부 미확인)'); }
