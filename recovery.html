@@ -233,8 +233,8 @@
           <option value="emergency">5. [심화] 회복기 응급 (후두경련 / α₂ 급속 길항)</option>
         </select>
         <button id="btn-preop-lab" type="button" class="btn" style="background:rgba(14,165,233,0.18); border-color:rgba(56,189,248,0.45); color:#7dd3fc;">마취전 혈액검사</button>
-        <button id="btn-phys" type="button" class="btn" style="background:rgba(139,92,246,0.18); border-color:rgba(167,139,250,0.45); color:#ddd6fe;">🧬 27변수 생리</button>
-        <button id="btn-fullscreen" type="button" class="btn btn-sky" title="전체화면 전환">⛶ 전체화면</button>
+        <button id="btn-phys" type="button" class="btn" disabled style="background:rgba(139,92,246,0.18); border-color:rgba(167,139,250,0.45); color:#ddd6fe; opacity:0.45; cursor:not-allowed;" title="사망(심정지) 후에만 내부 27변수 생리 상태 열람 가능">상태</button>
+        <button id="btn-fullscreen" type="button" class="btn btn-sky" title="전체화면 전환">⛶</button>
         <button id="btn-reset" type="button" class="btn">초기화</button>
         <button id="btn-open-start" type="button" class="btn">시작화면</button>
       </div>
@@ -527,6 +527,8 @@
         st.viability = 100;
         st.arrested = false;
         st.arrestReason = '';
+        const pb = document.getElementById('btn-phys');
+        if (pb) { pb.disabled = true; pb.style.opacity = '0.45'; pb.style.cursor = 'not-allowed'; }
         st.phys = {
           preloadVol: isHypo ? 90 : 96,
           svr: isEmerg ? 116 : 100,
@@ -568,6 +570,8 @@
         st.viability = 0;
         st.score = 0;
         st.hr = 0; st.map = 0; st.spo2 = 0; st.etco2 = 0; st.rr = 0;
+        const pb = document.getElementById('btn-phys');
+        if (pb) { pb.disabled = false; pb.style.opacity = '1'; pb.style.cursor = 'pointer'; }
         el.behav.textContent = '💀 심정지 (Cardiac Arrest)';
         st.mistakes.unshift(`회복기 치명적 바이탈 악화로 심정지/사망 — ${reason}`);
         addLog(`💀 [심정지/사망] ${reason}`, 'danger');
@@ -1171,7 +1175,8 @@
         if (!fsBtn) return;
         const syncFs = (isFull) => {
           document.body.classList.toggle('immersive-full', isFull);
-          fsBtn.textContent = isFull ? '✕ 전체화면 종료' : '⛶ 전체화면';
+          fsBtn.textContent = isFull ? '✕' : '⛶';
+          fsBtn.title = isFull ? '전체화면 종료' : '전체화면 전환';
         };
         fsBtn.addEventListener('click', async () => {
           const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
@@ -1302,6 +1307,7 @@
       }
 
       document.getElementById('btn-phys')?.addEventListener('click', () => {
+        if (!st.arrested) return;
         renderRecoveryPhysModal();
         document.getElementById('phys-modal')?.classList.remove('hidden');
       });

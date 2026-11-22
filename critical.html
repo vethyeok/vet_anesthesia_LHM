@@ -349,7 +349,7 @@
         <button id="btn-ai-case" type="button" class="btn btn-indigo">✦ AI 랜덤환자</button>
         <button id="btn-calc-toggle" type="button" class="btn" title="클릭하여 약물 용량(mL) 직접 계산 모드로 전환 (정확 계산 시 +2점)">🧮 직접계산 OFF (자동)</button>
         <button id="btn-mode-easy" type="button" class="btn" title="초급 학습 모드(상태창 열람 허용) 전환">실전 모드</button>
-        <button id="btn-fullscreen" type="button" class="btn btn-sky" title="전체화면 전환">⛶ 전체화면</button>
+        <button id="btn-fullscreen" type="button" class="btn btn-sky" title="전체화면 전환">⛶</button>
         <button id="btn-reset" type="button" class="btn">초기화</button>
         <button id="btn-back-start" type="button" class="btn">시작화면</button>
       </div>
@@ -1228,6 +1228,7 @@
         preopLab: null, phys: null, drugCounts: {},
         logs: [], goods: [], mistakes: [],
         drugSubtab: 'core',
+        tlkCri: 0.0, fentanylCri: 0, norepiCri: 0.0, dobutCri: 0,
         ownerLevel: 2, s1Chat: [], s3Chat: [], chatBusy: false
       };
 
@@ -1463,6 +1464,7 @@
         st.swallowCount = 0; st.extubated = false; st.dischargeDone = false;
         st.logs = []; st.goods = []; st.mistakes = []; st.drugCounts = {};
         st.iso = 0; st.etIso = 0; st.o2 = 1.5; st.pip = 11; st.rr = 12; st.fluid = st.species === 'cat' ? 3 : 5; st.warming = true; st.aplOpen = true;
+        st.tlkCri = 0.0; st.fentanylCri = 0; st.norepiCri = 0.0; st.dobutCri = 0;
         st.ownerLevel = Math.floor(Math.random() * 5) + 1;
         st.chatBusy = false;
 
@@ -1705,9 +1707,10 @@
                 <div id="maint-stable-bar" style="height:100%; width:${Math.min(100, Math.round(st.maintStableSec/45*100))}%; background:#10b981; transition:width 0.25s;"></div>
               </div>
             </div>
-            <div class="ctrl-tabs two" id="s2-tabs">
-              <button type="button" class="ctrl-tab ${t2==='vent'?'active':''}" data-ctab="vent">① 기화기·환기·수액</button>
-              <button type="button" class="ctrl-tab ${t2==='drugs'?'active':''}" data-ctab="drugs">② 응급·특수 약물 IV</button>
+            <div class="ctrl-tabs" id="s2-tabs" style="grid-template-columns:repeat(3,1fr);">
+              <button type="button" class="ctrl-tab ${t2==='vent'?'active':''}" data-ctab="vent">① 기화기·환기</button>
+              <button type="button" class="ctrl-tab ${t2==='drugs'?'active':''}" data-ctab="drugs">② 응급약물</button>
+              <button type="button" class="ctrl-tab ${t2==='cri'?'active':''}" data-ctab="cri">③ CRI 펌프</button>
             </div>
             <div class="s2-pane" data-cpane="vent" style="${t2==='vent'?'':'display:none;'}">
               <div class="slider-row">
@@ -1741,6 +1744,30 @@
                 <button type="button" class="drug-subtab ${st.drugSubtab==='rev'?'active':''}" data-dtab="rev">이뇨·길항</button>
               </div>
               <div id="s2-drug-grid" class="drug-grid" style="margin-bottom:10px;"></div>
+            </div>
+            <div class="s2-pane" data-cpane="cri" style="${t2==='cri'?'':'display:none;'}">
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                <span style="font-size:11px; font-weight:800; color:#c4b5fd;">CRI 지속주입 펌프</span>
+                <button type="button" class="btn-drug-help" title="약물 및 CRI 가이드" style="width:18px; height:18px; border-radius:999px; border:1px solid #475569; background:#1e293b; color:#7dd3fc; font-size:11px; font-weight:900; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0;">?</button>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+                <div class="slider-row" style="margin-bottom:0;">
+                  <div class="slider-hdr"><span style="color:#ddd6fe;">TLK CRI</span><span id="lbl-cri-tlk" class="mono" style="color:#c4b5fd;">${st.tlkCri.toFixed(1)} mL</span></div>
+                  <input id="sl-cri-tlk" type="range" min="0" max="4.0" step="0.2" value="${st.tlkCri}" />
+                </div>
+                <div class="slider-row" style="margin-bottom:0;">
+                  <div class="slider-hdr"><span style="color:#a7f3d0;">Fentanyl CRI</span><span id="lbl-cri-fent" class="mono" style="color:#6ee7b7;">${st.fentanylCri} µg</span></div>
+                  <input id="sl-cri-fent" type="range" min="0" max="20" step="1" value="${st.fentanylCri}" />
+                </div>
+                <div class="slider-row" style="margin-bottom:0;">
+                  <div class="slider-hdr"><span style="color:#fecdd3;">Norepi CRI</span><span id="lbl-cri-norepi" class="mono" style="color:#fda4af;">${st.norepiCri.toFixed(1)} µg</span></div>
+                  <input id="sl-cri-norepi" type="range" min="0" max="1.0" step="0.1" value="${st.norepiCri}" />
+                </div>
+                <div class="slider-row" style="margin-bottom:0;">
+                  <div class="slider-hdr"><span style="color:#fde68a;">Dobu CRI</span><span id="lbl-cri-dobut" class="mono" style="color:#fcd34d;">${st.dobutCri} µg</span></div>
+                  <input id="sl-cri-dobut" type="range" min="0" max="12" step="1" value="${st.dobutCri}" />
+                </div>
+              </div>
             </div>
             <button id="btn-to-stage3" type="button" class="btn btn-emerald" style="width:100%; padding:10px; font-size:13px;">수술 종료 · STAGE 3 회복기로 전환 →</button>
           `;
@@ -2059,6 +2086,30 @@
         slIso.addEventListener('input', () => { st.iso = Number(slIso.value); document.getElementById('lbl-iso').textContent = st.iso.toFixed(1) + '%'; });
         slRr.addEventListener('input', () => { st.rr = Number(slRr.value); document.getElementById('lbl-rr').textContent = `RR ${st.rr} / PIP ${st.pip}`; });
         slFl.addEventListener('input', () => { st.fluid = Number(slFl.value); document.getElementById('lbl-fl').textContent = st.fluid + ' mL/kg/h'; });
+        const slTlk = document.getElementById('sl-cri-tlk');
+        const slFent = document.getElementById('sl-cri-fent');
+        const slNorepi = document.getElementById('sl-cri-norepi');
+        const slDobut = document.getElementById('sl-cri-dobut');
+        if (slTlk) {
+          slTlk.addEventListener('input', () => { st.tlkCri = Number(slTlk.value); document.getElementById('lbl-cri-tlk').textContent = st.tlkCri.toFixed(1) + ' mL'; });
+          slTlk.addEventListener('change', () => {
+            if (st.tlkCri > 0 && st.species === 'cat') { addLog(`[경고] 고양이 TLK CRI ${st.tlkCri.toFixed(1)} mL/kg/h — Lidocaine 독성 위험!`, 'danger'); showToast('고양이 TLK CRI 독성 위험! (Fentanyl CRI 권장)', 'danger'); }
+            else if (st.tlkCri > 2.4) addLog(`[주의] 고용량 TLK CRI ${st.tlkCri.toFixed(1)} mL/kg/h — 호흡억제·독성 감시`, 'warn');
+            else addLog(`TLK CRI → ${st.tlkCri.toFixed(1)} mL/kg/h`, st.tlkCri > 0 ? 'good' : 'info');
+          });
+        }
+        if (slFent) {
+          slFent.addEventListener('input', () => { st.fentanylCri = Number(slFent.value); document.getElementById('lbl-cri-fent').textContent = st.fentanylCri + ' µg'; });
+          slFent.addEventListener('change', () => addLog(`Fentanyl CRI → ${st.fentanylCri} µg/kg/h${st.fentanylCri >= 14 ? ' (고용량 호흡억제·서맥 주의!)' : ''}`, st.fentanylCri >= 14 ? 'warn' : (st.fentanylCri > 0 ? 'good' : 'info')));
+        }
+        if (slNorepi) {
+          slNorepi.addEventListener('input', () => { st.norepiCri = Number(slNorepi.value); document.getElementById('lbl-cri-norepi').textContent = st.norepiCri.toFixed(1) + ' µg'; });
+          slNorepi.addEventListener('change', () => addLog(`Norepinephrine CRI → ${st.norepiCri.toFixed(1)} µg/kg/min`, st.norepiCri > 0 ? 'good' : 'info'));
+        }
+        if (slDobut) {
+          slDobut.addEventListener('input', () => { st.dobutCri = Number(slDobut.value); document.getElementById('lbl-cri-dobut').textContent = st.dobutCri + ' µg'; });
+          slDobut.addEventListener('change', () => addLog(`Dobutamine CRI → ${st.dobutCri} µg/kg/min`, st.dobutCri > 0 ? 'good' : 'info'));
+        }
         document.getElementById('btn-s2-bag').addEventListener('click', () => {
           st.etco2 = clamp(st.etco2 - 1.1, 20, 88);
           st.spo2 = clamp(st.spo2 + 1.5, 60, 100);
@@ -2505,15 +2556,49 @@
         if (st.warming) st.bt = clamp(st.bt + 0.015 * dt, 34.0, 38.6);
         else st.bt = clamp(st.bt - (st.species === 'cat' ? 0.025 : 0.015) * dt, 34.0, 38.6);
 
-        // ETCO2 vs RR
+        // ETCO2 vs RR + Stage 2 CRI Continuous Infusion Effects
         if (st.stage === 2) {
-          const targetCo2 = clamp(42 * (12 / Math.max(6, st.rr)) + (st.aplOpen ? 0 : 18), 22, 85);
+          const criCo2Shift = (st.fentanylCri >= 12 ? (st.fentanylCri - 10) * 1.1 : 0) + (st.tlkCri > 2.4 ? (st.tlkCri - 2.2) * 3.0 : 0);
+          const targetCo2 = clamp(42 * (12 / Math.max(6, st.rr)) + (st.aplOpen ? 0 : 18) + criCo2Shift, 22, 88);
           st.etco2 = clamp(st.etco2 + (targetCo2 - st.etco2) * 0.12 * dt, 18, 92);
           if (!st.aplOpen) {
             p.intrathoracicP = clamp(p.intrathoracicP + 2.2 * dt, 5, 45);
             st.map = clamp(st.map - 2.4 * dt, 15, 160);
           } else {
             p.intrathoracicP = clamp(st.pip * 0.45, 4, 22);
+          }
+          // TLK CRI
+          if (st.tlkCri > 0) {
+            p.nociception = Math.max(0, p.nociception - st.tlkCri * 1.8 * dt);
+            if (st.species === 'dog' && st.tlkCri <= 2.4) {
+              p.arrhythmiaRisk = Math.max(8, p.arrhythmiaRisk - st.tlkCri * 1.2 * dt);
+            } else if (st.species === 'cat' || st.tlkCri > 2.4) {
+              const toxRate = st.species === 'cat' ? (1.6 + st.tlkCri * 1.4) : (st.tlkCri - 2.4) * 1.6;
+              p.lidoToxicity = clamp((p.lidoToxicity || 0) + toxRate * dt, 0, 100);
+              st.hr = clamp(st.hr - toxRate * 0.45 * dt, 26, 220);
+              st.map = clamp(st.map - toxRate * 0.35 * dt, 24, 160);
+            }
+          }
+          // Fentanyl CRI
+          if (st.fentanylCri > 0) {
+            p.opioidTone = clamp((p.opioidTone || 0) + st.fentanylCri * 0.45 * dt, 0, 100);
+            p.nociception = Math.max(0, p.nociception - st.fentanylCri * 0.55 * dt);
+            if (st.fentanylCri >= 10) {
+              st.hr = clamp(st.hr - (st.fentanylCri - 9) * 0.25 * dt, 34, 220);
+            }
+          }
+          // Norepinephrine CRI (vasopressor)
+          if (st.norepiCri > 0) {
+            p.svr = clamp(p.svr + st.norepiCri * 3.8 * dt, 40, 175);
+            st.map = clamp(st.map + st.norepiCri * 3.2 * dt, 24, 175);
+            if (st.norepiCri >= 0.6) p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + (st.norepiCri - 0.5) * 2.5 * dt, 0, 100);
+          }
+          // Dobutamine CRI (inotrope)
+          if (st.dobutCri > 0) {
+            p.contractility = clamp(p.contractility + st.dobutCri * 0.45 * dt, 40, 145);
+            st.map = clamp(st.map + st.dobutCri * 0.28 * dt, 24, 175);
+            st.hr = clamp(st.hr + st.dobutCri * 0.45 * dt, 34, 235);
+            if (st.dobutCri >= 7) p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + (st.dobutCri - 6) * 0.6 * dt, 0, 100);
           }
         }
 
@@ -3000,7 +3085,8 @@
         if (!fsBtn) return;
         const syncFs = (isFull) => {
           document.body.classList.toggle('immersive-full', isFull);
-          fsBtn.textContent = isFull ? '✕ 전체화면 종료' : '⛶ 전체화면';
+          fsBtn.textContent = isFull ? '✕' : '⛶';
+          fsBtn.title = isFull ? '전체화면 종료' : '전체화면 전환';
         };
         fsBtn.addEventListener('click', async () => {
           const fsEl = document.fullscreenElement || document.webkitFullscreenElement;

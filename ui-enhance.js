@@ -94,6 +94,7 @@
     // Move secondary controls (actual DOM nodes so all existing event listeners stay intact!)
     const secondaryIds = [
       'btn-ai-case',
+      'btn-ai-new-case',
       'btn-poc-lab',
       'btn-calc-mode',
       'btn-calc-toggle',
@@ -223,9 +224,41 @@
       btn.dataset.uiDrugDecorated = '1';
       btn.classList.add(rule.cat);
     });
+
+    // Inject '?' help button into clinical action panel headers that have hidden descriptions
+    document.querySelectorAll('.main-grid > :last-child .card-title, .main-grid > :last-child .panel-title').forEach((hdr) => {
+      if (hdr.querySelector('.btn-context-help, .btn-drug-help')) return;
+      const scope = hdr.closest('.rec-pane, .card, .panel, #stage-panel') || hdr.parentElement;
+      if (!scope || !scope.querySelector('.opt-btn .od, .act-btn .ad, .choice-btn small')) return;
+      const hBtn = document.createElement('button');
+      hBtn.type = 'button';
+      hBtn.className = 'btn-context-help';
+      hBtn.title = '현재 화면 처치·약물 상세 설명 보기';
+      hBtn.textContent = '?';
+      const firstSpan = hdr.querySelector('span');
+      if (firstSpan) firstSpan.appendChild(hBtn);
+      else hdr.appendChild(hBtn);
+    });
   }
 
-  // 5. Interactive '?' Drug Reference & Agonist<->Antagonist Guide Modal
+  // 5. Interactive '?' Drug Reference & Current-Screen Procedure Guide Modal
+  function collectCurrentScreenDescs(triggerBtn) {
+    const scope = (triggerBtn && triggerBtn.closest && triggerBtn.closest('.rec-pane, .s1-pane, .s2-pane, .s3-pane, .card, .panel, #stage-panel')) || document.querySelector('.main-grid > :last-child') || document;
+    const rows = [];
+    const seen = new Set();
+    scope.querySelectorAll('.opt-btn, .act-btn, .choice-btn').forEach((b) => {
+      const tEl = b.querySelector('.ot, .at, strong');
+      const dEl = b.querySelector('.od, .ad, small');
+      if (!tEl || !dEl) return;
+      const title = tEl.textContent.trim();
+      const desc = dEl.textContent.trim();
+      if (!title || !desc || seen.has(title)) return;
+      seen.add(title);
+      rows.push(`<div>• <strong>${title}</strong>: ${desc}</div>`);
+    });
+    return rows;
+  }
+
   function ensureDrugGuideModal() {
     let modal = document.getElementById('vet-drug-guide-modal');
     if (modal) return modal;
@@ -238,10 +271,14 @@
       <div style="width:100%;max-width:680px;max-height:86vh;overflow-y:auto;border-radius:14px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,0.65);">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #1e293b;padding-bottom:10px;margin-bottom:12px;">
           <div>
-            <div style="font-size:15px;font-weight:800;color:#7dd3fc;">💉 응급·특수 약물 IV &amp; 작용↔길항 가이드</div>
-            <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">각 약물의 적응증, 주의사항 및 대응 길항제/해독제 정리</div>
+            <div style="font-size:15px;font-weight:800;color:#7dd3fc;">📘 처치 · 약물 상세 설명 및 작용↔길항 가이드</div>
+            <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">현재 단계의 처치 항목 설명과 응급·길항 약물 도감</div>
           </div>
           <button id="vet-drug-guide-close" type="button" style="border:1px solid #475569;background:#1e293b;color:#f8fafc;border-radius:8px;padding:5px 11px;font-size:12px;font-weight:800;cursor:pointer;">닫기 ✕</button>
+        </div>
+        <div id="vet-context-desc-box" style="display:none;margin-bottom:10px;border-radius:10px;border:1px solid rgba(251,191,36,0.4);background:rgba(120,53,15,0.18);padding:10px 12px;font-size:12px;line-height:1.55;">
+          <div style="font-weight:800;color:#fde68a;margin-bottom:4px;">📌 현재 화면 처치 · 선택 항목 설명</div>
+          <div id="vet-context-desc-list"></div>
         </div>
         <div style="display:grid;gap:10px;font-size:12px;line-height:1.5;">
           <div style="border-radius:10px;border:1px solid rgba(251,113,133,0.35);background:rgba(136,19,55,0.12);padding:10px 12px;">
@@ -281,16 +318,27 @@
     return modal;
   }
 
-  window.openVetDrugGuide = function () {
+  window.openVetDrugGuide = function (triggerBtn) {
     const m = ensureDrugGuideModal();
+    const box = m.querySelector('#vet-context-desc-box');
+    const list = m.querySelector('#vet-context-desc-list');
+    const rows = collectCurrentScreenDescs(triggerBtn);
+    if (box && list) {
+      if (rows.length) {
+        list.innerHTML = rows.join('');
+        box.style.display = 'block';
+      } else {
+        box.style.display = 'none';
+      }
+    }
     m.style.display = 'flex';
   };
 
   document.addEventListener('click', (e) => {
-    const btn = e.target && e.target.closest && e.target.closest('#btn-drug-guide, .btn-drug-help');
+    const btn = e.target && e.target.closest && e.target.closest('#btn-drug-guide, .btn-drug-help, .btn-context-help');
     if (btn) {
       e.preventDefault();
-      window.openVetDrugGuide();
+      window.openVetDrugGuide(btn);
     }
   });
 

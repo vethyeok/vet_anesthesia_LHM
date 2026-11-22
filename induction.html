@@ -230,7 +230,7 @@
         </select>
         <button id="btn-ai-new-case" type="button" class="btn btn-indigo">✦ AI 랜덤환자</button>
         <button id="btn-preop-lab" type="button" class="btn" style="background:rgba(14,165,233,0.18); border-color:rgba(56,189,248,0.45); color:#7dd3fc;">마취전 혈액검사</button>
-        <button id="btn-fullscreen" type="button" class="btn btn-sky" title="전체화면 전환">⛶ 전체화면</button>
+        <button id="btn-fullscreen" type="button" class="btn btn-sky" title="전체화면 전환">⛶</button>
         <button id="btn-reset" type="button" class="btn">초기화</button>
         <button id="btn-open-start" type="button" class="btn">시작화면</button>
       </div>
@@ -1193,12 +1193,27 @@
             </div>
 
             <div style="${t2==='adjuncts'?'':'display:none;'}">
-              ${PREOP_ADJUNCT_GROUPS.map((g, gi) => `
-                <div style="font-size:11px; font-weight:700; color:#94a3b8; ${gi>0?'margin-top:9px;':''}">${g.title}</div>
-                <div class="opt-grid">
-                  ${g.items.map(a => `<button type="button" class="opt-btn pre-adj-btn ${st.preAdjuncts.includes(a.id)?'applied':''}" data-aid="${a.id}"><div class="ot">${a.name}</div><div class="od">${a.desc}</div></button>`).join('')}
-                </div>
-              `).join('')}
+              ${(() => {
+                const asub = st.adjSubtab || 'gi_abx';
+                const tabBtn = (k, lbl) => `<button type="button" class="sub-tab adj-sub-tab ${asub===k?'active':''}" data-asub="${k}" style="font-size:10.5px; padding:4px 8px;">${lbl}</button>`;
+                const showGroups = asub === 'gi_abx' ? [0, 1] : (asub === 'stab' ? [2] : [3]);
+                return `
+                  <div class="sub-tabs" id="adj-subtabs" style="margin-bottom:8px;">
+                    ${tabBtn('gi_abx', '항구토·항생')}
+                    ${tabBtn('stab', '전해질·안정')}
+                    ${tabBtn('rev', '길항·항히스타')}
+                  </div>
+                  ${showGroups.map((gi, idx) => {
+                    const g = PREOP_ADJUNCT_GROUPS[gi];
+                    if (!g) return '';
+                    return `
+                      <div style="font-size:11px; font-weight:700; color:#94a3b8; ${idx>0?'margin-top:8px;':''}">${g.title}</div>
+                      <div class="opt-grid">
+                        ${g.items.map(a => `<button type="button" class="opt-btn pre-adj-btn ${st.preAdjuncts.includes(a.id)?'applied':''}" data-aid="${a.id}"><div class="ot">${a.name}</div><div class="od">${a.desc}</div></button>`).join('')}
+                      </div>`;
+                  }).join('')}
+                `;
+              })()}
             </div>
 
             <div class="adj-chip-wrap">
@@ -1210,6 +1225,7 @@
             <button id="btn-apply-premed" type="button" class="btn btn-primary" style="width:100%; margin-top:10px; padding:10px;">전처치·선처치 완료 및 3단계(전산소화)로 →</button>`;
 
           document.querySelectorAll('#step2-tabs .sub-tab').forEach(b => b.addEventListener('click', () => { st.step2Tab = b.dataset.s2t; renderStep(); }));
+          document.querySelectorAll('#adj-subtabs .adj-sub-tab').forEach(b => b.addEventListener('click', () => { st.adjSubtab = b.dataset.asub; renderStep(); }));
           document.querySelectorAll('.sed-opt').forEach(b => b.addEventListener('click', () => { st.premedSed = b.dataset.v; renderStep(); }));
           document.querySelectorAll('.opi-opt').forEach(b => b.addEventListener('click', () => { st.premedOpi = b.dataset.v; renderStep(); }));
           document.querySelectorAll('.fl-maint-opt').forEach(b => b.addEventListener('click', () => {
@@ -1630,7 +1646,8 @@
         if (!fsBtn) return;
         const syncFs = (isFull) => {
           document.body.classList.toggle('immersive-full', isFull);
-          fsBtn.textContent = isFull ? '✕ 전체화면 종료' : '⛶ 전체화면';
+          fsBtn.textContent = isFull ? '✕' : '⛶';
+          fsBtn.title = isFull ? '전체화면 종료' : '전체화면 전환';
         };
         fsBtn.addEventListener('click', async () => {
           const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
