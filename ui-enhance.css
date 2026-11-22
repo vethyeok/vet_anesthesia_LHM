@@ -1,0 +1,254 @@
+/* ============================================================================
+   Vet Anesthesia Simulators — Unified Readability & Visibility Enhancements
+   1. Vital alert pulse + normal-range reference hints
+   2. Drug category color-coding + agonist<->antagonist pair badges
+   3. Higher contrast typography + Seminar Large-Text toggle (body.seminar-large)
+   4. Cleaner header alignment & visual grouping
+   5. Event log 3-way filter bar (All / Alerts / Meds) + semantic icons
+   ============================================================================ */
+
+/* 1. Vital Alert Pulse & Normal-Range Reference */
+@keyframes uiVitalDangerPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.72), 0 0 14px rgba(244, 63, 94, 0.28);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(251, 113, 133, 0.95), 0 0 22px rgba(244, 63, 94, 0.48);
+  }
+}
+
+.vital-alert-danger {
+  border-color: rgba(244, 63, 94, 0.85) !important;
+  background-image: linear-gradient(180deg, rgba(136, 19, 55, 0.22), rgba(2, 6, 23, 0.12)) !important;
+  animation: uiVitalDangerPulse 1.35s ease-in-out infinite;
+}
+
+.vital-alert-warn {
+  border-color: rgba(245, 158, 11, 0.78) !important;
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.42), 0 0 10px rgba(245, 158, 11, 0.16);
+}
+
+.vital-ref-chip {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(71, 85, 105, 0.55);
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.vital-alert-danger .vital-ref-chip {
+  color: #fecdd3;
+  background: rgba(136, 19, 55, 0.45);
+  border-color: rgba(244, 63, 94, 0.65);
+}
+
+.vital-alert-warn .vital-ref-chip {
+  color: #fef3c7;
+  background: rgba(120, 53, 15, 0.42);
+  border-color: rgba(245, 158, 11, 0.6);
+}
+
+/* 2. Drug Category Color-Coding & Agonist<->Antagonist Pair Badges */
+.drug-cat-emerg {
+  border-left: 3.5px solid #fb7185 !important;
+}
+.drug-cat-arr {
+  border-left: 3.5px solid #fbbf24 !important;
+}
+.drug-cat-metab {
+  border-left: 3.5px solid #38bdf8 !important;
+}
+.drug-cat-rev {
+  border-left: 3.5px solid #a78bfa !important;
+}
+.drug-cat-diur {
+  border-left: 3.5px solid #22d3ee !important;
+}
+.drug-cat-anti {
+  border-left: 3.5px solid #34d399 !important;
+}
+
+.drug-pair-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 5px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #ede9fe;
+  background: rgba(139, 92, 246, 0.28);
+  border: 1px solid rgba(167, 139, 250, 0.55);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.drug-pair-badge.pair-emerg {
+  color: #ffe4e6;
+  background: rgba(244, 63, 94, 0.26);
+  border-color: rgba(251, 113, 133, 0.55);
+}
+
+.drug-pair-badge.pair-metab {
+  color: #e0f2fe;
+  background: rgba(14, 165, 233, 0.24);
+  border-color: rgba(56, 189, 248, 0.55);
+}
+
+.drug-pair-badge.pair-lipid {
+  color: #ecfccb;
+  background: rgba(132, 204, 22, 0.22);
+  border-color: rgba(163, 230, 53, 0.55);
+}
+
+/* 3. Higher Contrast Base Typography & Seminar Large-Text Mode */
+.od, .ad, .vital-sub, .num-sub, .choice-btn small {
+  color: #cbd5e1 !important;
+  line-height: 1.42 !important;
+}
+
+.chat-msg {
+  line-height: 1.5 !important;
+  font-size: 12.5px !important;
+}
+
+.log-item, .log-entry {
+  line-height: 1.45 !important;
+}
+
+.btn-seminar-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(167, 139, 250, 0.45);
+  background: rgba(139, 92, 246, 0.14);
+  color: #ddd6fe;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 5px 9px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.btn-seminar-toggle:hover {
+  background: rgba(139, 92, 246, 0.28);
+}
+
+.btn-seminar-toggle.active {
+  background: rgba(167, 139, 250, 0.32);
+  border-color: #c4b5fd;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.35);
+}
+
+/* Seminar Large-Text Mode (for projectors, tablets, classrooms) */
+body.seminar-large {
+  font-size: 15px !important;
+}
+body.seminar-large .panel-title,
+body.seminar-large .card-title {
+  font-size: 14px !important;
+}
+body.seminar-large .btn,
+body.seminar-large .ctrl-tab,
+body.seminar-large .drug-subtab {
+  font-size: 13px !important;
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+body.seminar-large .ot,
+body.seminar-large .at,
+body.seminar-large .choice-btn strong {
+  font-size: 13.5px !important;
+}
+body.seminar-large .od,
+body.seminar-large .ad,
+body.seminar-large .choice-btn small {
+  font-size: 12px !important;
+}
+body.seminar-large .chat-msg {
+  font-size: 14px !important;
+}
+body.seminar-large .log-item,
+body.seminar-large #log-list > div,
+body.seminar-large #log-box > div,
+body.seminar-large #panel-log > div {
+  font-size: 12.5px !important;
+}
+body.seminar-large .num-val,
+body.seminar-large .vital-val {
+  font-size: 36px !important;
+}
+body.seminar-large .vital-ref-chip {
+  font-size: 11px !important;
+}
+
+/* 4. Cleaner Header Visual Grouping */
+.topbar, header {
+  gap: 8px !important;
+}
+.topbar .actions, .hdr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 5. Event Log 3-Way Filter Bar & Semantic Highlighting */
+.ui-log-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.ui-log-filter-btn {
+  border: 1px solid #334155;
+  background: rgba(15, 23, 42, 0.85);
+  color: #cbd5e1;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ui-log-filter-btn:hover {
+  border-color: #64748b;
+  color: #f8fafc;
+}
+.ui-log-filter-btn.active {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: #38bdf8;
+  color: #e0f2fe;
+}
+.ui-log-filter-btn[data-lf="alert"].active {
+  background: rgba(244, 63, 94, 0.22);
+  border-color: #fb7185;
+  color: #ffe4e6;
+}
+.ui-log-filter-btn[data-lf="drug"].active {
+  background: rgba(167, 139, 250, 0.22);
+  border-color: #a78bfa;
+  color: #ede9fe;
+}
+
+.ui-log-hidden {
+  display: none !important;
+}
+
+.ui-log-icon {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 11px;
+}

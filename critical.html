@@ -174,6 +174,7 @@
     .score-delta-active { animation: scoreDeltaPop 1.35s ease-out forwards; }
     body.immersive-full .wrap { max-width: 100%; padding: 6px; }
   </style>
+  <link rel="stylesheet" href="ui-enhance.css" />
 </head>
 <body>
   <div id="toast-wrap"></div>
@@ -1176,7 +1177,12 @@
         bicarb:      { name: '8.4% NaHCO₃', conc: 1,    unit: 'mEq/mL', doseMin: 0.5,  doseMax: 1.5,   doseUnit: 'mEq/kg', note: '심한 대사성 산증 (0.5–1.5 mEq/kg, 환기 불량 시 ETCO₂ 급등)' },
         furosemide:  { name: 'Furosemide 5%', conc: 50, unit: 'mg/mL', doseMin: 1.0,   doseMax: 2.5,   doseUnit: 'mg/kg', note: '급성 폐수종 이뇨 (1–2.5 mg/kg, 저혈량 시 쇼크 악화)' },
         naloxone:    { name: 'Naloxone', conc: 0.4,     unit: 'mg/mL', doseMin: 0.01,  doseMax: 0.04,  doseUnit: 'mg/kg', note: '오피오이드 길항 (0.01–0.04 mg/kg, 진통 소실·교감폭풍 주의)' },
-        atipamezole: { name: 'Atipamezole', conc: 5.0,  unit: 'mg/mL', doseMin: 0.05,  doseMax: 0.15,  doseUnit: 'mg/kg', note: 'α₂ 길항 (0.05–0.15 mg/kg IM 권장, 급속 시 저혈압·흥분)' }
+        atipamezole: { name: 'Atipamezole', conc: 5.0,  unit: 'mg/mL', doseMin: 0.05,  doseMax: 0.15,  doseUnit: 'mg/kg', note: 'α₂ 길항 (0.05–0.15 mg/kg IM 권장, 급속 시 저혈압·흥분)' },
+        flumazenil:  { name: 'Flumazenil', conc: 0.1,   unit: 'mg/mL', doseMin: 0.01,  doseMax: 0.02,  doseUnit: 'mg/kg', note: '벤조디아제핀(Midazolam) 선택적 길항 (0.01–0.02 mg/kg IV)' },
+        esmolol:     { name: 'Esmolol (β₁ 차단)', conc: 10.0, unit: 'mg/mL', doseMin: 0.25, doseMax: 0.5, doseUnit: 'mg/kg', note: '단시간 β₁ 차단제 (교감폭풍·Epi/Ket/Atropine 빈맥·HCM 제어, 서맥·저혈압 금기)' },
+        diphenhydramine: { name: 'Diphenhydramine (H₁)', conc: 50.0, unit: 'mg/mL', doseMin: 1.0, doseMax: 2.0, doseUnit: 'mg/kg', note: 'H₁ 항히스타민 (아나필락시스·비만세포종 히스타민 차단, 1–2 mg/kg IM/slow IV)' },
+        intralipid:  { name: '20% Intralipid (지질유제)', conc: 1.0, unit: 'mL/mL', doseMin: 1.0, doseMax: 2.0, doseUnit: 'mL/kg', note: 'Lidocaine 국소마취제 심근독성 해독 (1.5 mL/kg IV 볼루스)' },
+        insulin:     { name: 'Regular Insulin', conc: 100, unit: 'U/mL', doseMin: 0.2, doseMax: 0.5, doseUnit: 'U/kg', note: '고칼륨혈증(K⁺↑) 세포 내 이동 (0.2–0.5 U/kg IV · 반드시 50% Dextrose 병용!)' }
       };
 
       const PRACTICE_BEST_KEY = 'vet_anesthesia_practice_best_v1';
@@ -1495,7 +1501,7 @@
           baseExcess: Number(((c.initPH - 7.4) * 42).toFixed(1)),
           arterialPH: c.initPH,
           vo2: 100,
-          alpha2Tone: 0, opioidTone: 0, nociception: 15, vagalTone: st.caseId === 'boas_icp' ? 38 : 16,
+          alpha2Tone: 0, opioidTone: 0, benzoTone: 0, lidoToxicity: 0, nociception: 15, vagalTone: st.caseId === 'boas_icp' ? 38 : 16,
           icp: c.initIcp, histamineTone: 0, urineOutput: c.labKey === 'ckd' ? 0.3 : 1.4
         };
 
@@ -1746,6 +1752,8 @@
                 <button id="btn-s3-extub" type="button" class="btn ${st.extubated?'btn-emerald':'btn-rose'}">${st.extubated?'✓ 발관 완료':'② 기관튜브 발관 (Extubation)'}</button>
                 <button id="btn-s3-atip" type="button" class="btn btn-violet">Atipamezole 길항 (${st.calcMode ? 'mL 직접' : '자동'})</button>
                 <button id="btn-s3-nalox" type="button" class="btn btn-violet">Naloxone 길항 (${st.calcMode ? 'mL 직접' : '자동'})</button>
+                <button id="btn-s3-flum" type="button" class="btn btn-violet">Flumazenil 길항 (${st.calcMode ? 'mL 직접' : '자동'})</button>
+                <button id="btn-s3-esmo" type="button" class="btn btn-sky">Esmolol β₁차단 (${st.calcMode ? 'mL 직접' : '자동'})</button>
               </div>
             </div>
             <div class="s3-pane" data-cpane="dc" style="${t3==='dc'?'':'display:none;'}">
@@ -2011,8 +2019,8 @@
         });
         const s1TabsMap = {
           core: [['atropine', 'Atropine IV'], ['ephedrine', 'Ephedrine IV'], ['lidocaine', 'Lidocaine 2% IV'], ['epinephrine', 'Epinephrine IV']],
-          metab: [['calgluc', '10% Ca-Gluconate'], ['dextrose', '50% Dextrose'], ['prbc', 'pRBC / Colloid'], ['bicarb', '8.4% NaHCO₃']],
-          rev: [['furosemide', 'Furosemide IV'], ['naloxone', 'Naloxone IV'], ['atipamezole', 'Atipamezole IM']]
+          metab: [['calgluc', '10% Ca-Gluconate'], ['dextrose', '50% Dextrose'], ['insulin', 'Regular Insulin'], ['prbc', 'pRBC / Colloid'], ['bicarb', '8.4% NaHCO₃']],
+          rev: [['furosemide', 'Furosemide IV'], ['naloxone', 'Naloxone IV'], ['atipamezole', 'Atipamezole IM'], ['flumazenil', 'Flumazenil IV'], ['esmolol', 'Esmolol β₁차단'], ['diphenhydramine', 'Diphenhydramine'], ['intralipid', '20% Intralipid']]
         };
         const s1Grid = document.getElementById('s1-drug-grid');
         if (s1Grid) {
@@ -2069,8 +2077,8 @@
 
         const tabsMap = {
           core: [['atropine', 'Atropine IV'], ['ephedrine', 'Ephedrine IV'], ['lidocaine', 'Lidocaine 2% IV'], ['epinephrine', 'Epinephrine IV']],
-          metab: [['calgluc', '10% Ca-Gluconate'], ['dextrose', '50% Dextrose'], ['prbc', 'pRBC / Colloid'], ['bicarb', '8.4% NaHCO₃']],
-          rev: [['furosemide', 'Furosemide IV'], ['naloxone', 'Naloxone IV'], ['atipamezole', 'Atipamezole IM']]
+          metab: [['calgluc', '10% Ca-Gluconate'], ['dextrose', '50% Dextrose'], ['insulin', 'Regular Insulin'], ['prbc', 'pRBC / Colloid'], ['bicarb', '8.4% NaHCO₃']],
+          rev: [['furosemide', 'Furosemide IV'], ['naloxone', 'Naloxone IV'], ['atipamezole', 'Atipamezole IM'], ['flumazenil', 'Flumazenil IV'], ['esmolol', 'Esmolol β₁차단'], ['diphenhydramine', 'Diphenhydramine'], ['intralipid', '20% Intralipid']]
         };
         const grid = document.getElementById('s2-drug-grid');
         grid.innerHTML = tabsMap[st.drugSubtab].map(([k, lbl]) => `<button type="button" class="btn" data-drug="${k}" style="padding:8px 6px;">💉 ${lbl}</button>`).join('');
@@ -2177,9 +2185,10 @@
             const needed = p.arrhythmiaRisk >= 42;
             if (res.status === 'over' || (st.species === 'cat' && n >= 2)) {
               hadToxicOrContra = true;
+              p.lidoToxicity = clamp((p.lidoToxicity || 0) + 55, 0, 100);
               st.hr = clamp(st.hr - 35, 22, 220); st.map = clamp(st.map - 20, 25, 140); deductScore(10);
-              addLog(`Lidocaine 과량/반복 독성(${res.ml} mL) — 중증 서맥·저혈압!`, 'danger');
-              showToast('Lidocaine 독성 발생! 서맥·저혈압 주의! (-10점)', 'danger');
+              addLog(`Lidocaine 과량/반복 독성(${res.ml} mL) — 중증 서맥·저혈압! (20% Intralipid 해독 고려)`, 'danger');
+              showToast('Lidocaine 독성 발생! 20% Intralipid로 해독을 고려하세요! (-10점)', 'danger');
             } else {
               p.arrhythmiaRisk = Math.max(8, p.arrhythmiaRisk - 42 * mult);
               addLog(`Lidocaine ${res.ml} mL IV — 심실성 부정맥(VPC/VT) 억제!`, 'good');
@@ -2256,6 +2265,66 @@
           } else if (key === 'atipamezole') {
             p.alpha2Tone = 0; p.svr -= 24; st.hr += 24; st.map -= 16;
             addLog(`Atipamezole ${res.ml} mL — α₂ 역전 (혈관확장성 저혈압·각성 주의)`, 'warn');
+          } else if (key === 'flumazenil') {
+            p.benzoTone = 0; st.rr = clamp(st.rr + 3, 6, 28);
+            addLog(`Flumazenil ${res.ml} mL IV — 벤조디아제핀(Midazolam) 선택적 길항 (재진정 감시)`, 'good');
+            showToast('Flumazenil — 벤조디아제핀 길항 완료!', 'good');
+          } else if (key === 'esmolol') {
+            const isTachy = st.hr >= 150;
+            if (isTachy && st.map >= 65) {
+              st.hr = clamp(st.hr - 34 * mult, 60, 220);
+              p.arrhythmiaRisk = Math.max(8, p.arrhythmiaRisk - 20 * mult);
+              p.vo2 = clamp(p.vo2 - 14, 70, 200);
+              addLog(`Esmolol ${res.ml} mL IV — 단시간 β₁ 차단으로 빈맥·교감흥분 신속 제어!`, 'good');
+              if (awardOnce('fix_tachy_esmolol', 8, 'Esmolol β₁ 차단으로 빈맥·교감흥분 제어', true)) showToast('Esmolol 빈맥 제어 성공! +8점', 'good');
+              else showToast('Esmolol — 심박수 안정화 완료!', 'good');
+            } else {
+              hadToxicOrContra = true;
+              st.hr = clamp(st.hr - 26, 28, 220); st.map = clamp(st.map - 18, 22, 150);
+              p.contractility = clamp(p.contractility - 16, 35, 130); deductScore(8);
+              addLog(`Esmolol 경고(${res.ml} mL) — 서맥/저혈압 상태에서 β₁ 차단 투여로 혈압·심박 급락!`, 'danger');
+              showToast('서맥/저혈압 시 Esmolol 금기! (-8점)', 'danger');
+            }
+          } else if (key === 'diphenhydramine') {
+            if (p.histamineTone > 15) {
+              p.histamineTone = Math.max(0, p.histamineTone - 50 * mult);
+              p.svr = clamp(p.svr + 14, 40, 150); st.map = clamp(st.map + 10, 25, 155);
+              addLog(`Diphenhydramine ${res.ml} mL — H₁ 수용체 차단으로 히스타민 매개 혈관확장·누출 완화!`, 'good');
+              if (awardOnce('fix_histamine', 8, 'Diphenhydramine H₁ 차단으로 히스타민 반응 완화', true)) showToast('히스타민 반응 완화! +8점', 'good');
+              else showToast('Diphenhydramine — 히스타민 차단 완료!', 'good');
+            } else {
+              addLog(`Diphenhydramine ${res.ml} mL — H₁ 항히스타민 보조 투여 (급속 IV 저혈압 주의)`, 'info');
+            }
+          } else if (key === 'intralipid') {
+            if ((p.lidoToxicity || 0) > 10) {
+              p.lidoToxicity = Math.max(0, p.lidoToxicity - 60 * mult);
+              st.hr = clamp(st.hr + 20, 35, 210); st.map = clamp(st.map + 16, 30, 150);
+              p.contractility = clamp(p.contractility + 18, 40, 125); p.arrhythmiaRisk = Math.max(8, p.arrhythmiaRisk - 25);
+              addLog(`20% Intralipid ${res.ml} mL IV — Lidocaine 심근독성 지질 격리(Lipid Sink) 해독 성공!`, 'good');
+              if (awardOnce('fix_lido_tox', 10, '20% Intralipid로 Lidocaine 심근독성 해독', true)) showToast('Lidocaine 독성 해독 성공! +10점', 'good');
+              else showToast('20% Intralipid 해독 완료!', 'good');
+            } else {
+              hadToxicOrContra = true;
+              addLog(`20% Intralipid ${res.ml} mL — 국소마취제 독성 소견 없어 불필요 투여 (지방색전 주의)`, 'warn');
+              showToast('국소마취제 독성이 없을 때는 Intralipid 불필요합니다.', 'warn');
+            }
+          } else if (key === 'insulin') {
+            const wasHighK = p.serumK >= 6.0;
+            p.serumK = clamp(p.serumK - 1.2 * mult, 2.4, 9.5);
+            p.bloodGlucose = clamp(p.bloodGlucose - 44 * mult, 24, 400);
+            if (p.bloodGlucose < 60) {
+              hadToxicOrContra = true;
+              st.hr = clamp(st.hr - 14, 30, 220); st.map = clamp(st.map - 10, 25, 150);
+              addLog(`Regular Insulin ${res.ml} mL — K⁺ ${p.serumK.toFixed(1)}로 강하되었으나 저혈당(Glu ${Math.round(p.bloodGlucose)}) 유발! 50% Dextrose 즉시 병용!`, 'danger');
+              showToast('Insulin 저혈당 발생! 50% Dextrose를 즉시 투여하세요!', 'danger');
+            } else if (wasHighK) {
+              addLog(`Regular Insulin ${res.ml} mL — 세포 내 이동으로 K⁺ ${p.serumK.toFixed(1)} mEq/L 교정 (Glu ${Math.round(p.bloodGlucose)})`, 'good');
+              if (awardOnce('fix_hyperk_insulin', 8, 'Regular Insulin으로 고칼륨혈증 세포 내 이동 교정', true)) showToast('고칼륨 Insulin 교정 성공! +8점', 'good');
+              else showToast('Regular Insulin — K⁺ 하강 완료! 혈당 감시!', 'good');
+            } else {
+              hadToxicOrContra = true;
+              addLog(`Regular Insulin ${res.ml} mL — 정상 K⁺ 상태에서 저칼륨·저혈당 위험 (Glu ${Math.round(p.bloodGlucose)})`, 'warn');
+            }
           }
 
           // +2점 보너스: 직접 용량 계산 모드에서 정확하게 투여한 경우
@@ -2297,6 +2366,8 @@
         });
         document.getElementById('btn-s3-atip').addEventListener('click', () => administerMaintDrug('atipamezole'));
         document.getElementById('btn-s3-nalox').addEventListener('click', () => administerMaintDrug('naloxone'));
+        document.getElementById('btn-s3-flum').addEventListener('click', () => administerMaintDrug('flumazenil'));
+        document.getElementById('btn-s3-esmo').addEventListener('click', () => administerMaintDrug('esmolol'));
         renderCritChat('s3-chat', st.s3Chat, false);
         const s3LvSel = document.getElementById('s3-owner-lv');
         if (s3LvSel) {
@@ -2946,5 +3017,6 @@
     })();
   </script>
 
+  <script src="ui-enhance.js" defer></script>
 </body>
 </html>

@@ -696,6 +696,7 @@
     .status-pill-btn { white-space: nowrap; word-break: keep-all; padding: 3px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 700; cursor: pointer; transition: all 0.15s; border: 1px solid #334155; }
     .status-pill-btn:disabled { opacity: 0.42; cursor: not-allowed; }
   </style>
+  <link rel="stylesheet" href="ui-enhance.css" />
 </head>
 <body class="min-h-screen antialiased selection:bg-sky-500/30">
 
@@ -1716,6 +1717,13 @@
             </div>
             <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-violet-300">pH↓</span>
           </button>
+          <button id="btn-insulin" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-sky-400/40 bg-sky-950/40 px-3 py-1.5 text-left transition hover:bg-sky-900/50 active:scale-[0.99]">
+            <div>
+              <div class="text-xs font-bold text-sky-200">Regular Insulin IV (0.25 U/kg)</div>
+              <div class="text-[10px] text-sky-200/80">고칼륨(K⁺↑) 세포 내 이동 · 반드시 Dextrose 병용!</div>
+            </div>
+            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-sky-300">K⁺↓</span>
+          </button>
         </div>
 
         <!-- Subtab 3: Diuretic & Reversal Agents -->
@@ -1732,7 +1740,7 @@
               <div class="text-xs font-bold text-emerald-200">Naloxone IV/IM (0.02 mg/kg)</div>
               <div class="text-[10px] text-emerald-200">오피오이드 호흡억제·불쾌감 선택적 길항</div>
             </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-emerald-300">길항</span>
+            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-emerald-300">μ역전</span>
           </button>
           <button id="btn-atipamezole" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-amber-500/35 bg-amber-950/30 px-3 py-1.5 text-left transition hover:bg-amber-900/40 active:scale-[0.99]">
             <div>
@@ -1740,6 +1748,34 @@
               <div class="text-[10px] text-amber-200/80">Dexmedetomidine 서맥·진정 역전 (급속 IV 주의)</div>
             </div>
             <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-amber-300">α₂역전</span>
+          </button>
+          <button id="btn-flumazenil" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-sky-500/35 bg-sky-950/30 px-3 py-1.5 text-left transition hover:bg-sky-900/40 active:scale-[0.99]">
+            <div>
+              <div class="text-xs font-bold text-sky-200">Flumazenil IV (0.01 mg/kg)</div>
+              <div class="text-[10px] text-sky-200/80">벤조디아제핀(Midazolam) 진정·역설적 흥분 길항</div>
+            </div>
+            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-sky-300">BZD역전</span>
+          </button>
+          <button id="btn-esmolol" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-violet-500/35 bg-violet-950/30 px-3 py-1.5 text-left transition hover:bg-violet-900/40 active:scale-[0.99]">
+            <div>
+              <div class="text-xs font-bold text-violet-200">Esmolol IV (0.25–0.5 mg/kg)</div>
+              <div class="text-[10px] text-violet-200/80">단시간 β₁ 차단 · 교감폭풍/Epi/Atropine 빈맥·HCM 제어</div>
+            </div>
+            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-violet-300">β₁차단</span>
+          </button>
+          <button id="btn-diphenhydramine" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-pink-500/35 bg-pink-950/30 px-3 py-1.5 text-left transition hover:bg-pink-900/40 active:scale-[0.99]">
+            <div>
+              <div class="text-xs font-bold text-pink-200">Diphenhydramine (1–2 mg/kg IM/sIV)</div>
+              <div class="text-[10px] text-pink-200/80">H₁ 항히스타민 · 아나필락시스·MCT 히스타민 길항</div>
+            </div>
+            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-pink-300">H₁길항</span>
+          </button>
+          <button id="btn-intralipid" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-lime-500/35 bg-lime-950/30 px-3 py-1.5 text-left transition hover:bg-lime-900/40 active:scale-[0.99]">
+            <div>
+              <div class="text-xs font-bold text-lime-200">20% Intralipid (1.5 mL/kg IV)</div>
+              <div class="text-[10px] text-lime-200/80">Lidocaine 국소마취제 심근독성·저혈압 해독</div>
+            </div>
+            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-lime-300">지질해독</span>
           </button>
         </div>
       </div>
@@ -6489,6 +6525,95 @@
         computePhysiology(0); renderMonitorUI();
       });
 
+      bindSpecial('btn-insulin', () => {
+        if (state.arrested) return;
+        const p = state.phys;
+        state.drugCounts = state.drugCounts || {};
+        state.drugCounts.insulin = (state.drugCounts.insulin || 0) + 1;
+        if (p) {
+          const wasHighK = p.serumK >= 6.0;
+          p.serumK = clamp(p.serumK - 1.1, 2.4, 9.5);
+          p.bloodGlucose = clamp(p.bloodGlucose - 42, 24, 380);
+          if (p.bloodGlucose < 60) {
+            state.trueHR = clamp(state.trueHR - 14, 32, 220);
+            state.trueMAP = clamp(state.trueMAP - 10, 28, 150);
+            addLog(`Regular Insulin IV — K⁺ ${p.serumK.toFixed(1)}로 강하되었으나 저혈당(BG ${Math.round(p.bloodGlucose)} mg/dL) 유발! 50% Dextrose 즉시 투여 필요!`, 'danger');
+            showToast('주의! Insulin 투여 후 저혈당 발생 → 50% Dextrose를 병용하세요!', 'danger');
+          } else if (wasHighK) {
+            addLog(`Regular Insulin IV — 세포 내 이동으로 K⁺ ${p.serumK.toFixed(1)} mEq/L 교정 (혈당 ${Math.round(p.bloodGlucose)} mg/dL 감시)`, 'good');
+            showToast('고칼륨혈증 교정(Insulin) 완료! 혈당을 계속 감시하세요.', 'good');
+          } else {
+            addLog(`Regular Insulin IV — 정상 K⁺ 상태에서 저칼륨/저혈당 위험 (BG ${Math.round(p.bloodGlucose)} mg/dL)`, 'warn');
+            showToast('정상 K⁺에서 Insulin 투여: 저칼륨·저혈당 주의!', 'warn');
+          }
+        }
+        computePhysiology(0); renderMonitorUI();
+      });
+
+      bindSpecial('btn-flumazenil', () => {
+        if (state.arrested) return;
+        const p = state.phys;
+        state.apneaActive = false;
+        state.trueRR = Math.max(state.trueRR, 11);
+        if (p) p.benzoTone = 0;
+        addLog('Flumazenil IV (0.01 mg/kg) — 벤조디아제핀(Midazolam) 진정·호흡억제 선택적 길항 (재진정 감시)', 'good');
+        showToast('Flumazenil — 벤조디아제핀 길항 완료!', 'good');
+        computePhysiology(0); renderMonitorUI();
+      });
+
+      bindSpecial('btn-esmolol', () => {
+        if (state.arrested) return;
+        const p = state.phys;
+        const isTachy = state.trueHR >= 150;
+        if (isTachy && state.trueMAP >= 65) {
+          state.trueHR = clamp(state.trueHR - 34, 60, 220);
+          if (p) { p.arrhythmiaRisk = clamp(p.arrhythmiaRisk - 18, 0, 100); p.vo2 = clamp(p.vo2 - 14, 70, 200); }
+          addLog(`Esmolol IV (β₁ 차단) — 빈맥·교감흥분 신속 제어 (HR ${Math.round(state.trueHR)} bpm)`, 'good');
+          showToast('Esmolol — 단시간 β₁ 차단으로 빈맥 제어 완료!', 'good');
+        } else {
+          state.trueHR = clamp(state.trueHR - 26, 30, 220);
+          state.trueMAP = clamp(state.trueMAP - 18, 22, 150);
+          if (p) p.contractility = clamp(p.contractility - 16, 35, 130);
+          state.viability = clamp(state.viability - 10, 0, 100);
+          addLog('경고! 서맥/저혈압 상태에서 Esmolol(β₁ 차단제) 투여 → 심박출량·혈압 급락!', 'danger');
+          showToast('주의! 서맥·저혈압 상태에서 Esmolol은 금기입니다!', 'danger');
+        }
+        computePhysiology(0); renderMonitorUI();
+      });
+
+      bindSpecial('btn-diphenhydramine', () => {
+        if (state.arrested) return;
+        const p = state.phys;
+        if (p && p.histamineTone > 15) {
+          p.histamineTone = Math.max(0, p.histamineTone - 48);
+          p.svr = clamp(p.svr + 14, 40, 145);
+          state.trueMAP = clamp(state.trueMAP + 10, 25, 155);
+          addLog('Diphenhydramine (H₁ 항히스타민) — 히스타민 매개 혈관확장·누출 완화!', 'good');
+          showToast('Diphenhydramine — H₁ 수용체 차단으로 히스타민 반응 완화!', 'good');
+        } else {
+          addLog('Diphenhydramine (H₁ 항히스타민) 투여 — 히스타민 유리 예방 보조 (급속 IV 저혈압 주의)', 'info');
+          showToast('Diphenhydramine 투여 완료', 'info');
+        }
+        computePhysiology(0); renderMonitorUI();
+      });
+
+      bindSpecial('btn-intralipid', () => {
+        if (state.arrested) return;
+        const p = state.phys;
+        if ((state.lidoToxicity || 0) > 10) {
+          state.lidoToxicity = Math.max(0, state.lidoToxicity - 55);
+          state.trueHR = clamp(state.trueHR + 18, 35, 210);
+          state.trueMAP = clamp(state.trueMAP + 16, 30, 150);
+          if (p) { p.contractility = clamp(p.contractility + 20, 40, 125); p.arrhythmiaRisk = clamp(p.arrhythmiaRisk - 25, 0, 100); }
+          addLog('20% Intralipid IV (1.5 mL/kg) — Lidocaine 국소마취제 심근독성 지질 격리(Lipid Sink) 해독 성공!', 'good');
+          showToast('20% Intralipid — Lidocaine 독성 해독 성공!', 'good');
+        } else {
+          addLog('20% Intralipid IV 투여 — 현재 국소마취제 독성 소견이 없어 효과 미미 (지방색전·췌장염 주의)', 'warn');
+          showToast('국소마취제 독성 없을 때는 Intralipid 불필요합니다.', 'warn');
+        }
+        computePhysiology(0); renderMonitorUI();
+      });
+
       // === AI Dynamic Patient Generator (Netlify AI + Instant Offline Fallback Pool) ===
       const btnAiCase = document.getElementById('btn-ai-case');
       const OFFLINE_AI_CASES = [
@@ -6750,5 +6875,6 @@ ${recent}`;
     })();
   </script>
 
+  <script src="ui-enhance.js" defer></script>
 </body>
 </html>

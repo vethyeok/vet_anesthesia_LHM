@@ -130,6 +130,7 @@
 
     body.immersive-full .app-wrap { max-width: 100%; padding: 6px; }
   </style>
+  <link rel="stylesheet" href="ui-enhance.css" />
 </head>
 <body>
   <!-- Standby Start Screen -->
@@ -331,7 +332,9 @@
               <button id="btn-sedate" type="button" class="act-btn"><div class="at" style="color:#ddd6fe;">진정제 (소량 Dex/Ace)</div><div class="ad">불쾌감(Dysphoria)·BOAS 흥분 진정</div></button>
               <button id="btn-naloxone" type="button" class="act-btn"><div class="at" style="color:#a7f3d0;">Naloxone 소량 적정</div><div class="ad">오피오이드 불쾌감·호흡억제 역전</div></button>
               <button id="btn-atip-im" type="button" class="act-btn"><div class="at" style="color:#fde68a;">Atipamezole IM (권장)</div><div class="ad">α₂ 서맥·지연회복 안전 역전</div></button>
-              <button id="btn-atip-iv" type="button" class="act-btn" style="grid-column:span 2; border-color:rgba(244,63,94,0.45);"><div class="at" style="color:#fda4af;">Atipamezole 급속 IV (주의)</div><div class="ad">급속 혈관확장·저혈압·흥분 부작용</div></button>
+              <button id="btn-atip-iv" type="button" class="act-btn" style="border-color:rgba(244,63,94,0.45);"><div class="at" style="color:#fda4af;">Atipamezole 급속 IV (주의)</div><div class="ad">급속 혈관확장·저혈압·흥분 부작용</div></button>
+              <button id="btn-flumazenil" type="button" class="act-btn" style="border-color:rgba(56,189,248,0.45);"><div class="at" style="color:#7dd3fc;">Flumazenil IV (0.01 mg/kg)</div><div class="ad">벤조디아제핀(Midazolam) 지연회복·역설적 흥분 역전</div></button>
+              <button id="btn-esmolol" type="button" class="act-btn" style="grid-column:span 2; border-color:rgba(167,139,250,0.45);"><div class="at" style="color:#c4b5fd;">Esmolol IV (0.25–0.5 mg/kg · β₁ 차단)</div><div class="ad">회복기 심한 빈맥·교감 흥분(Atipamezole IV 등) 제어 · 서맥/저혈압 금기</div></button>
             </div>
           </div>
 
@@ -741,6 +744,34 @@
         st.mistakes.push('Atipamezole 급속 IV 투여 → 급격한 혈관확장 저혈압·흥분 부작용 유발');
         setAlarm('경고! Atipamezole 급속 IV 투여로 MAP가 급락하고 급성 흥분이 발생했습니다!', 'danger');
         addLog('[부작용] Atipamezole 급속 IV → 저혈압(MAP↓)·흥분 발생', 'danger'); updateUI();
+      });
+      document.getElementById('btn-flumazenil').addEventListener('click', () => {
+        st.rr = Math.min(26, st.rr + 3);
+        if (CASES[st.caseId].issue === 'dysphoria' || CASES[st.caseId].issue === 'emergency') {
+          el.behav.textContent = '벤조디아제핀 역전 · 각성 촉진';
+          st.goods.push('Flumazenil IV로 벤조디아제핀 잔여 진정/역설적 흥분 길항');
+          setAlarm('Flumazenil IV 투여 — 벤조디아제핀(Midazolam) 작용 선택적 역전! (재진정 감시 필요)', 'good');
+          addLog('[벤조 길항] Flumazenil IV 투여 — 각성 촉진 및 역설적 흥분 완화', 'good');
+        } else {
+          addLog('[벤조 길항] Flumazenil IV 투여 — 벤조디아제핀 잔여 효과 역전 (재진정 여부 관찰)', 'info');
+        }
+        updateUI();
+      });
+      document.getElementById('btn-esmolol').addEventListener('click', () => {
+        if (st.hr >= 145 && st.map >= 68) {
+          st.hr = Math.max(82, st.hr - 32);
+          st.goods.push('Esmolol IV로 회복기 심한 빈맥·교감 항진 안전 제어');
+          setAlarm('Esmolol IV 투여 — 단시간 β₁ 차단으로 심박수가 안정화되었습니다!', 'good');
+          addLog('[β₁ 차단] Esmolol IV 투여 — 회복기 빈맥 제어', 'good');
+        } else {
+          st.score -= 10;
+          st.hr = Math.max(42, st.hr - 24);
+          st.map = Math.max(46, st.map - 14);
+          st.mistakes.push('서맥/저혈압 상태에서 부적절한 Esmolol(β₁ 차단제) 투여');
+          setAlarm('경고! 서맥·저혈압 상태에서 Esmolol 투여로 심박수와 혈압이 추가 저하되었습니다!', 'danger');
+          addLog('[약물 경고] 부적절한 Esmolol 투여 → HR/MAP 저하', 'danger');
+        }
+        updateUI();
       });
       document.getElementById('btn-reintubate').addEventListener('click', () => {
         st.complicationSolved = true; st.complicationActive = false; st.spo2 = 98; el.behav.textContent = '기도 재확보 완료';
@@ -1532,5 +1563,6 @@
 
     })();
   </script>
+  <script src="ui-enhance.js" defer></script>
 </body>
 </html>
