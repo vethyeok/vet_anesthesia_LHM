@@ -1603,179 +1603,132 @@
         </div>
       </div>
 
-      <!-- 2.5 CRI Infusion Pumps (TLK, Norepinephrine, Dobutamine) -->
-      <div id="mpanel-cri" class="mobile-tab-hidden desktop-tab-hidden rounded-xl border border-violet-500/35 bg-slate-900/95 p-2 lg:block lg:p-3">
-        <div class="mb-2.5 flex items-center justify-between">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-violet-300">CRI 지속주입 펌프 (진통 · 승압 · 강심)</h2>
-          <span class="rounded bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-bold text-violet-200">Multimodal</span>
+      <!-- 2.5 CRI Infusion Pumps (Compact 4-Slider Layout: TLK, Fentanyl, Norepi, Dobu) -->
+      <div id="mpanel-cri" class="mobile-tab-hidden desktop-tab-hidden rounded-xl border border-violet-500/35 bg-slate-900/95 p-2 lg:block lg:p-2.5">
+        <div class="mb-1.5 flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-violet-300">CRI 지속주입 펌프</h2>
         </div>
-        <div class="space-y-2.5">
+        <div class="grid grid-cols-2 gap-x-2.5 gap-y-1.5">
           <!-- TLK CRI -->
-          <div class="flex items-center justify-between gap-2 rounded-lg bg-slate-950/75 px-2.5 py-2 ring-1 ring-slate-800">
-            <div>
-              <div class="text-xs font-bold text-violet-200">TLK CRI <span class="text-[10px] font-normal text-slate-400">(Tramadol·Lido·Ketamine)</span></div>
-              <div id="hint-tlk" class="text-[10px] text-slate-400">통증 억제 · Iso MAC ~25% 절감 (개 권장)</div>
+          <div>
+            <div class="mb-0.5 flex items-center justify-between text-[11px]">
+              <label for="slider-tlk" class="font-semibold text-violet-200">TLK CRI</label>
+              <span class="font-mono-num font-bold text-violet-300"><span id="disp-tlk">0.0</span> mL</span>
             </div>
-            <button id="btn-tlk-cri" type="button" class="shrink-0 rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-slate-300 transition hover:bg-slate-800">
-              OFF
-            </button>
+            <input id="slider-tlk" type="range" min="0.0" max="4.0" step="0.2" value="0.0" class="w-full" />
           </div>
-          <div class="grid grid-cols-2 gap-3 lg:grid-cols-1 lg:gap-2.5">
-            <!-- Norepinephrine CRI -->
-            <div>
-              <div class="mb-1 flex items-center justify-between text-[11px]">
-                <label for="slider-norepi" class="font-semibold text-rose-200">Norepi CRI</label>
-                <span class="font-mono-num font-bold text-rose-300"><span id="disp-norepi">0.0</span> µg</span>
-              </div>
-              <input id="slider-norepi" type="range" min="0.0" max="1.0" step="0.1" value="0.0" class="w-full" />
+          <!-- Fentanyl CRI -->
+          <div>
+            <div class="mb-0.5 flex items-center justify-between text-[11px]">
+              <label for="slider-fentanyl" class="font-semibold text-emerald-200">Fentanyl CRI</label>
+              <span class="font-mono-num font-bold text-emerald-300"><span id="disp-fentanyl">0</span> µg</span>
             </div>
-            <!-- Dobutamine CRI -->
-            <div>
-              <div class="mb-1 flex items-center justify-between text-[11px]">
-                <label for="slider-dobut" class="font-semibold text-amber-200">Dobu CRI</label>
-                <span class="font-mono-num font-bold text-amber-300"><span id="disp-dobut">0</span> µg</span>
-              </div>
-              <input id="slider-dobut" type="range" min="0" max="12" step="1" value="0" class="w-full" />
+            <input id="slider-fentanyl" type="range" min="0" max="20" step="1" value="0" class="w-full" />
+          </div>
+          <!-- Norepinephrine CRI -->
+          <div>
+            <div class="mb-0.5 flex items-center justify-between text-[11px]">
+              <label for="slider-norepi" class="font-semibold text-rose-200">Norepi CRI</label>
+              <span class="font-mono-num font-bold text-rose-300"><span id="disp-norepi">0.0</span> µg</span>
             </div>
+            <input id="slider-norepi" type="range" min="0.0" max="1.0" step="0.1" value="0.0" class="w-full" />
+          </div>
+          <!-- Dobutamine CRI -->
+          <div>
+            <div class="mb-0.5 flex items-center justify-between text-[11px]">
+              <label for="slider-dobut" class="font-semibold text-amber-200">Dobu CRI</label>
+              <span class="font-mono-num font-bold text-amber-300"><span id="disp-dobut">0</span> µg</span>
+            </div>
+            <input id="slider-dobut" type="range" min="0" max="12" step="1" value="0" class="w-full" />
           </div>
         </div>
       </div>
 
-      <!-- 3. Emergency & Special Drugs IV (3 Subtabs: 기본 응급 | 혈액·대사 | 이뇨·길항) -->
-      <div id="mpanel-drug" class="mobile-tab-hidden desktop-tab-hidden rounded-xl border border-slate-800 bg-slate-900/90 p-2 lg:block lg:p-3">
-        <div class="mb-2 flex items-center justify-between gap-1.5">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">응급·특수 약물 IV</h2>
+      <!-- 3. Emergency & Special Drugs IV (Compact, no badges/descriptions, '?' guide modal, 4 subtabs) -->
+      <div id="mpanel-drug" class="mobile-tab-hidden desktop-tab-hidden rounded-xl border border-slate-800 bg-slate-900/90 p-2 lg:block lg:p-2.5">
+        <div class="mb-2 flex flex-wrap items-center justify-between gap-1.5">
+          <div class="flex items-center gap-1.5">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">응급·특수 약물 IV</h2>
+            <button id="btn-drug-guide" type="button" class="btn-drug-help inline-flex h-4 w-4 items-center justify-center rounded-full border border-slate-600 bg-slate-800 text-[10px] font-black text-sky-300 transition hover:border-sky-400 hover:bg-slate-700" title="약물 설명 및 작용↔길항 가이드">?</button>
+          </div>
           <div class="inline-flex rounded-md bg-slate-950 p-0.5 ring-1 ring-slate-700" role="tablist" aria-label="약물 분류">
-            <button id="dsub-basic" type="button" class="rounded bg-sky-500 px-1.5 py-0.5 text-[10px] font-extrabold text-slate-950 transition">기본 응급</button>
+            <button id="dsub-basic" type="button" class="rounded bg-sky-500 px-1.5 py-0.5 text-[10px] font-extrabold text-slate-950 transition">기본</button>
             <button id="dsub-metab" type="button" class="rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-400 hover:text-white transition">혈액·대사</button>
+            <button id="dsub-sed" type="button" class="rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-400 hover:text-white transition">진정·진통</button>
             <button id="dsub-rev" type="button" class="rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-400 hover:text-white transition">이뇨·길항</button>
           </div>
         </div>
 
         <!-- Subtab 1: Core Emergency Drugs -->
-        <div id="drug-pane-basic" class="grid grid-cols-1 gap-1.5 lg:gap-2">
-          <button id="btn-ephedrine" type="button" class="flex items-center justify-between rounded-lg border border-rose-500/35 bg-rose-950/30 px-3 py-2 text-left transition hover:bg-rose-900/40 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-rose-200">Ephedrine IV (0.1 mg/kg)</div>
-              <div class="text-[10px] text-rose-300/80">혈압 상승 (반복 과다 시 빈맥·부정맥/내성)</div>
-            </div>
-            <span id="badge-ephedrine" class="font-mono-num shrink-0 rounded bg-slate-950/80 px-2 py-0.5 text-[10px] font-bold text-slate-400">대기</span>
+        <div id="drug-pane-basic" class="grid grid-cols-2 gap-1.5">
+          <button id="btn-ephedrine" type="button" class="rounded-lg border border-rose-500/35 bg-rose-950/30 px-2.5 py-2 text-left text-xs font-bold text-rose-200 transition hover:bg-rose-900/40 active:scale-[0.99]">
+            Ephedrine IV
           </button>
-
-          <button id="btn-atropine" type="button" class="flex items-center justify-between rounded-lg border border-emerald-500/35 bg-emerald-950/30 px-3 py-2 text-left transition hover:bg-emerald-900/40 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-emerald-200">Atropine IV (0.02 mg/kg)</div>
-              <div class="text-[10px] text-emerald-300/80">서맥 교정 (심장병/빈맥 시 치명적 허혈 위험)</div>
-            </div>
-            <span id="badge-atropine" class="font-mono-num shrink-0 rounded bg-slate-950/80 px-2 py-0.5 text-[10px] font-bold text-slate-400">대기</span>
+          <button id="btn-atropine" type="button" class="rounded-lg border border-emerald-500/35 bg-emerald-950/30 px-2.5 py-2 text-left text-xs font-bold text-emerald-200 transition hover:bg-emerald-900/40 active:scale-[0.99]">
+            Atropine IV
           </button>
-
-          <button id="btn-lidocaine" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-amber-500/35 bg-amber-950/30 px-3 py-2 text-left transition hover:bg-amber-900/40 active:scale-[0.99]">
-            <div>
-              <div id="label-lidocaine" class="text-xs font-bold text-amber-200 leading-snug">Lidocaine IV (2.0 mg/kg)</div>
-              <div id="sub-lidocaine" class="text-[10px] text-amber-300/80 leading-snug">VPC/V-tac 억제 · 과다 투여 시 심근 억제 독성</div>
-            </div>
-            <span id="badge-lidocaine" class="font-mono-num shrink-0 rounded bg-slate-950/80 px-2 py-0.5 text-[10px] font-bold text-slate-400">대기</span>
+          <button id="btn-lidocaine" type="button" class="rounded-lg border border-amber-500/35 bg-amber-950/30 px-2.5 py-2 text-left text-xs font-bold text-amber-200 transition hover:bg-amber-900/40 active:scale-[0.99]">
+            <span id="label-lidocaine">Lidocaine IV</span>
           </button>
-
-          <button id="btn-epinephrine" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-rose-500/60 bg-rose-500/15 px-3 py-1.5 text-left transition hover:bg-rose-500/25 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-rose-100">Epinephrine IV (0.01 mg/kg)</div>
-              <div class="text-[10px] text-rose-200">아나필락시스 쇼크 · 중증 심정지 1차 응급</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-2 py-0.5 text-[10px] font-bold text-rose-300">응급</span>
+          <button id="btn-epinephrine" type="button" class="rounded-lg border border-rose-500/60 bg-rose-500/15 px-2.5 py-2 text-left text-xs font-bold text-rose-100 transition hover:bg-rose-500/25 active:scale-[0.99]">
+            Epinephrine IV
           </button>
         </div>
 
-        <!-- Subtab 2: Blood & Metabolic (Special/AI Dynamic Cases) -->
-        <div id="drug-pane-metab" class="hidden grid-cols-1 gap-1.5 lg:gap-2">
-          <button id="btn-calgluc" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-sky-500/40 bg-sky-500/15 px-3 py-1.5 text-left transition hover:bg-sky-500/25 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-sky-200">10% Ca-Gluconate (1 mL/kg 천천히 IV)</div>
-              <div class="text-[10px] text-sky-100">고칼륨혈증 심근 보호 (P파 소실·Tall T 교정)</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-sky-300">K⁺↑</span>
+        <!-- Subtab 2: Blood & Metabolic -->
+        <div id="drug-pane-metab" class="hidden grid-cols-2 gap-1.5">
+          <button id="btn-calgluc" type="button" class="rounded-lg border border-sky-500/40 bg-sky-500/15 px-2.5 py-2 text-left text-xs font-bold text-sky-200 transition hover:bg-sky-500/25 active:scale-[0.99]">
+            10% Ca-Gluconate
           </button>
-          <button id="btn-dextrose" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-amber-500/40 bg-amber-950/30 px-3 py-1.5 text-left transition hover:bg-amber-900/40 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-amber-200">50% Dextrose (0.5–1 mL/kg 희석 IV)</div>
-              <div class="text-[10px] text-amber-200/80">저혈당(인슐린종·패혈증·초소형) 즉각 교정</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-amber-300">BG↓</span>
+          <button id="btn-dextrose" type="button" class="rounded-lg border border-amber-500/40 bg-amber-950/30 px-2.5 py-2 text-left text-xs font-bold text-amber-200 transition hover:bg-amber-900/40 active:scale-[0.99]">
+            50% Dextrose
           </button>
-          <button id="btn-prbc" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-rose-500/40 bg-rose-950/35 px-3 py-1.5 text-left transition hover:bg-rose-900/50 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-rose-200">pRBC 수혈 / Colloid (5 mL/kg)</div>
-              <div class="text-[10px] text-rose-200">중증 빈혈·저알부민혈증 관류·교질압 보충</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-rose-300">PCV/Alb</span>
+          <button id="btn-insulin" type="button" class="rounded-lg border border-sky-400/40 bg-sky-950/40 px-2.5 py-2 text-left text-xs font-bold text-sky-200 transition hover:bg-sky-900/50 active:scale-[0.99]">
+            Regular Insulin
           </button>
-          <button id="btn-bicarb" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-violet-500/35 bg-violet-500/15 px-3 py-1.5 text-left transition hover:bg-violet-500/30 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-violet-200">NaHCO₃ (1 mEq/kg 천천히 IV)</div>
-              <div class="text-[10px] text-violet-100">대사성 산증 보조 (환기 불량 시 ETCO₂↑ 주의)</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-violet-300">pH↓</span>
+          <button id="btn-prbc" type="button" class="rounded-lg border border-rose-500/40 bg-rose-950/35 px-2.5 py-2 text-left text-xs font-bold text-rose-200 transition hover:bg-rose-900/50 active:scale-[0.99]">
+            pRBC / Colloid
           </button>
-          <button id="btn-insulin" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-sky-400/40 bg-sky-950/40 px-3 py-1.5 text-left transition hover:bg-sky-900/50 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-sky-200">Regular Insulin IV (0.25 U/kg)</div>
-              <div class="text-[10px] text-sky-200/80">고칼륨(K⁺↑) 세포 내 이동 · 반드시 Dextrose 병용!</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-sky-300">K⁺↓</span>
+          <button id="btn-bicarb" type="button" class="rounded-lg border border-violet-500/35 bg-violet-500/15 px-2.5 py-2 text-left text-xs font-bold text-violet-200 transition hover:bg-violet-500/30 active:scale-[0.99]">
+            8.4% NaHCO₃
           </button>
         </div>
 
-        <!-- Subtab 3: Diuretic & Reversal Agents -->
-        <div id="drug-pane-rev" class="hidden grid-cols-1 gap-1.5 lg:gap-2">
-          <button id="btn-furosemide" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-cyan-500/40 bg-cyan-500/20 px-3 py-1.5 text-left transition hover:bg-cyan-500/30 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-cyan-200">Furosemide IV (2 mg/kg)</div>
-              <div class="text-[10px] text-cyan-200">급성 폐수종(MMVD·HCM 수액 과부하) 이뇨 처치</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-cyan-300">이뇨</span>
+        <!-- Subtab 3: Sedation & Analgesia Agonists (Opposing counterparts to antagonists) -->
+        <div id="drug-pane-sed" class="hidden grid-cols-2 gap-1.5">
+          <button id="btn-fentanyl-bolus" type="button" class="rounded-lg border border-emerald-500/35 bg-emerald-950/30 px-2.5 py-2 text-left text-xs font-bold text-emerald-200 transition hover:bg-emerald-900/40 active:scale-[0.99]">
+            Fentanyl IV
           </button>
-          <button id="btn-naloxone" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-emerald-500/35 bg-emerald-950/30 px-3 py-1.5 text-left transition hover:bg-emerald-900/40 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-emerald-200">Naloxone IV/IM (0.02 mg/kg)</div>
-              <div class="text-[10px] text-emerald-200">오피오이드 호흡억제·불쾌감 선택적 길항</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-emerald-300">μ역전</span>
+          <button id="btn-dex-bolus" type="button" class="rounded-lg border border-amber-500/35 bg-amber-950/30 px-2.5 py-2 text-left text-xs font-bold text-amber-200 transition hover:bg-amber-900/40 active:scale-[0.99]">
+            Dexmedetomidine IV
           </button>
-          <button id="btn-atipamezole" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-amber-500/35 bg-amber-950/30 px-3 py-1.5 text-left transition hover:bg-amber-900/40 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-amber-200">Atipamezole IM (α₂ 길항)</div>
-              <div class="text-[10px] text-amber-200/80">Dexmedetomidine 서맥·진정 역전 (급속 IV 주의)</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-amber-300">α₂역전</span>
+          <button id="btn-midaz-bolus" type="button" class="rounded-lg border border-sky-500/35 bg-sky-950/30 px-2.5 py-2 text-left text-xs font-bold text-sky-200 transition hover:bg-sky-900/40 active:scale-[0.99]">
+            Midazolam IV
           </button>
-          <button id="btn-flumazenil" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-sky-500/35 bg-sky-950/30 px-3 py-1.5 text-left transition hover:bg-sky-900/40 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-sky-200">Flumazenil IV (0.01 mg/kg)</div>
-              <div class="text-[10px] text-sky-200/80">벤조디아제핀(Midazolam) 진정·역설적 흥분 길항</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-sky-300">BZD역전</span>
+        </div>
+
+        <!-- Subtab 4: Diuretic & Reversal / Antidote Agents -->
+        <div id="drug-pane-rev" class="hidden grid-cols-2 gap-1.5">
+          <button id="btn-furosemide" type="button" class="rounded-lg border border-cyan-500/40 bg-cyan-500/20 px-2.5 py-2 text-left text-xs font-bold text-cyan-200 transition hover:bg-cyan-500/30 active:scale-[0.99]">
+            Furosemide IV
           </button>
-          <button id="btn-esmolol" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-violet-500/35 bg-violet-950/30 px-3 py-1.5 text-left transition hover:bg-violet-900/40 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-violet-200">Esmolol IV (0.25–0.5 mg/kg)</div>
-              <div class="text-[10px] text-violet-200/80">단시간 β₁ 차단 · 교감폭풍/Epi/Atropine 빈맥·HCM 제어</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-violet-300">β₁차단</span>
+          <button id="btn-naloxone" type="button" class="rounded-lg border border-emerald-500/35 bg-emerald-950/30 px-2.5 py-2 text-left text-xs font-bold text-emerald-200 transition hover:bg-emerald-900/40 active:scale-[0.99]">
+            Naloxone IV/IM
           </button>
-          <button id="btn-diphenhydramine" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-pink-500/35 bg-pink-950/30 px-3 py-1.5 text-left transition hover:bg-pink-900/40 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-pink-200">Diphenhydramine (1–2 mg/kg IM/sIV)</div>
-              <div class="text-[10px] text-pink-200/80">H₁ 항히스타민 · 아나필락시스·MCT 히스타민 길항</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-pink-300">H₁길항</span>
+          <button id="btn-atipamezole" type="button" class="rounded-lg border border-amber-500/35 bg-amber-950/30 px-2.5 py-2 text-left text-xs font-bold text-amber-200 transition hover:bg-amber-900/40 active:scale-[0.99]">
+            Atipamezole IM
           </button>
-          <button id="btn-intralipid" type="button" class="flex items-center justify-between gap-1.5 rounded-lg border border-lime-500/35 bg-lime-950/30 px-3 py-1.5 text-left transition hover:bg-lime-900/40 active:scale-[0.99]">
-            <div>
-              <div class="text-xs font-bold text-lime-200">20% Intralipid (1.5 mL/kg IV)</div>
-              <div class="text-[10px] text-lime-200/80">Lidocaine 국소마취제 심근독성·저혈압 해독</div>
-            </div>
-            <span class="font-mono-num shrink-0 rounded bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-lime-300">지질해독</span>
+          <button id="btn-flumazenil" type="button" class="rounded-lg border border-sky-500/35 bg-sky-950/30 px-2.5 py-2 text-left text-xs font-bold text-sky-200 transition hover:bg-sky-900/40 active:scale-[0.99]">
+            Flumazenil IV
+          </button>
+          <button id="btn-esmolol" type="button" class="rounded-lg border border-violet-500/35 bg-violet-950/30 px-2.5 py-2 text-left text-xs font-bold text-violet-200 transition hover:bg-violet-900/40 active:scale-[0.99]">
+            Esmolol IV
+          </button>
+          <button id="btn-diphenhydramine" type="button" class="rounded-lg border border-pink-500/35 bg-pink-950/30 px-2.5 py-2 text-left text-xs font-bold text-pink-200 transition hover:bg-pink-900/40 active:scale-[0.99]">
+            Diphenhydramine
+          </button>
+          <button id="btn-intralipid" type="button" class="rounded-lg border border-lime-500/35 bg-lime-950/30 px-2.5 py-2 text-left text-xs font-bold text-lime-200 transition hover:bg-lime-900/40 active:scale-[0.99]">
+            20% Intralipid
           </button>
         </div>
       </div>
@@ -2384,6 +2337,8 @@
         fiCO2: 0,
         sodaLimeFault: false,
         tlkCri: false,
+        tlkCriRate: 0.0,
+        fentanylCriRate: 0.0,
         norepiCri: 0.0,
         dobutCri: 0,
         fluidRate: 5,
@@ -2599,6 +2554,10 @@
         dispEtiso: document.getElementById('disp-etiso'),
         btnTlkCri: document.getElementById('btn-tlk-cri'),
         hintTlk: document.getElementById('hint-tlk'),
+        sliderTlk: document.getElementById('slider-tlk'),
+        dispTlk: document.getElementById('disp-tlk'),
+        sliderFentanyl: document.getElementById('slider-fentanyl'),
+        dispFentanyl: document.getElementById('disp-fentanyl'),
         sliderNorepi: document.getElementById('slider-norepi'),
         dispNorepi: document.getElementById('disp-norepi'),
         sliderDobut: document.getElementById('slider-dobut'),
@@ -2909,6 +2868,8 @@
         state.fiCO2 = 0;
         state.sodaLimeFault = false;
         state.tlkCri = false;
+        state.tlkCriRate = 0.0;
+        state.fentanylCriRate = 0.0;
         state.norepiCri = 0.0;
         state.dobutCri = 0;
         state.fluidRate = prof.init.fluid;
@@ -2977,14 +2938,18 @@
         el.dispPeep.textContent = String(state.peep);
         el.sliderO2.value = state.o2Flow.toFixed(1);
         el.dispO2.textContent = state.o2Flow.toFixed(1);
+        if (el.sliderTlk) { el.sliderTlk.value = '0.0'; el.dispTlk.textContent = '0.0'; }
+        if (el.sliderFentanyl) { el.sliderFentanyl.value = '0'; el.dispFentanyl.textContent = '0'; }
         el.sliderNorepi.value = '0.0';
         el.dispNorepi.textContent = '0.0';
         el.sliderDobut.value = '0';
         el.dispDobut.textContent = '0';
         updateTlkButton();
-        el.hintTlk.textContent = state.speciesId === 'dog'
-          ? '통증 억제 · Iso MAC ~25% 절감 (개 권장)'
-          : '주의: 고양이에서 Lidocaine CRI는 독성 위험! (Fentanyl 등 권장)';
+        if (el.hintTlk) {
+          el.hintTlk.textContent = state.speciesId === 'dog'
+            ? '통증 억제 · Iso MAC ~25% 절감 (개 권장)'
+            : '주의: 고양이에서 Lidocaine CRI는 독성 위험! (Fentanyl 등 권장)';
+        }
 
         el.badgeSpecies.textContent = `${state.speciesId === 'dog' ? '개' : '고양이'} ${sp.weight.toFixed(1)} kg`;
         el.badgeAsa.textContent = sc.asa;
@@ -2996,8 +2961,8 @@
         el.hintRr.textContent = `권장 ${sp.rrMin}–${sp.rrMax} bpm`;
         el.hintIso.textContent = `1.0 MAC: ${sp.baseMac}%`;
         el.btnBolus.textContent = `+${sp.bolusDose} mL/kg 볼루스`;
-        el.labelLidocaine.textContent = `Lidocaine IV (${sp.lidoDose})`;
-        el.subLidocaine.textContent = sp.lidoSub;
+        if (el.labelLidocaine) el.labelLidocaine.textContent = `Lidocaine IV (${sp.lidoDose})`;
+        if (el.subLidocaine) el.subLidocaine.textContent = sp.lidoSub;
 
         el.guideTarget.textContent = prof.target;
         el.guideCaution.textContent = prof.caution;
@@ -3027,6 +2992,7 @@
       }
 
       function updateTlkButton() {
+        if (!el.btnTlkCri) return;
         if (state.tlkCri) {
           el.btnTlkCri.textContent = 'ON';
           el.btnTlkCri.className = state.speciesId === 'cat'
@@ -3505,20 +3471,33 @@
         if (dt > 0) {
           const tau = clamp(0.08 + state.o2Flow * 0.085, 0.1, 0.45);
           state.etIso = clamp(state.etIso + (state.iso - state.etIso) * tau * dt, 0.0, 4.0);
-          // Feline TLK CRI lidocaine toxicity risk!
-          if (state.tlkCri && state.speciesId === 'cat') {
-            state.lidoToxicity = clamp(state.lidoToxicity + 1.8 * dt, 0, 100);
+          // TLK CRI dose-dependent lidocaine toxicity (cats any dose, dogs high-dose > 2.4 mL/kg/h)
+          if (state.tlkCriRate > 0) {
+            if (state.speciesId === 'cat') {
+              state.lidoToxicity = clamp(state.lidoToxicity + (1.2 + state.tlkCriRate * 1.4) * dt, 0, 100);
+            } else if (state.tlkCriRate > 2.4) {
+              state.lidoToxicity = clamp(state.lidoToxicity + (state.tlkCriRate - 2.4) * 1.4 * dt, 0, 100);
+            }
+          }
+          // Fentanyl CRI dose-dependent opioid receptor occupancy, analgesia & vagal bradycardia
+          if (state.fentanylCriRate > 0 && state.phys) {
+            state.phys.opioidTone = clamp((state.phys.opioidTone || 0) + state.fentanylCriRate * 0.45 * dt, 0, 100);
+            state.phys.nociception = Math.max(0, (state.phys.nociception || 0) - state.fentanylCriRate * 0.6 * dt);
+            if (state.fentanylCriRate >= 10) {
+              state.phys.vagalTone = clamp((state.phys.vagalTone || 15) + (state.fentanylCriRate - 9) * 0.45 * dt, 0, 85);
+            }
           }
           // Soda lime exhaustion raises FiCO2
           const targetFi = state.sodaLimeFault ? 10 : 0;
           state.fiCO2 = clamp(state.fiCO2 + (targetFi - state.fiCO2) * 0.35 * dt, 0, 14);
         }
 
-        // 1) Temperature-adjusted MAC (6% drop per 1°C below 38°C) + TLK CRI MAC-sparing (~25%)
+        // 1) Temperature-adjusted MAC + Dose-dependent TLK CRI & Fentanyl CRI MAC-sparing
         const tempDrop = Math.max(0, 38.0 - state.trueBT);
         const macTempFactor = clamp(1 - 0.06 * tempDrop, 0.52, 1.0);
-        const lidoMacSpare = state.tlkCri ? 0.75 : (state.lidocaineTime > 0 ? 0.88 : 1.0);
-        const effectiveBaseMac = sp.baseMac * prof.macMult * macTempFactor * lidoMacSpare;
+        const tlkMacSpare = state.tlkCriRate > 0 ? clamp(1 - 0.13 * state.tlkCriRate, 0.58, 1.0) : (state.lidocaineTime > 0 ? 0.88 : 1.0);
+        const fentMacSpare = state.fentanylCriRate > 0 ? clamp(1 - 0.025 * state.fentanylCriRate, 0.50, 1.0) : 1.0;
+        const effectiveBaseMac = sp.baseMac * prof.macMult * macTempFactor * Math.max(0.45, tlkMacSpare * fentMacSpare);
         state.tempAdjustedMac = effectiveBaseMac;
         state.effectiveMac = state.etIso / Math.max(0.28, effectiveBaseMac);
 
@@ -3541,15 +3520,17 @@
         let effectivePip = state.pip;
 
         if (state.ventMode === 'manual') {
-          if (state.apneaActive || state.effectiveMac > 1.85) {
-            // Deep anesthesia or triggered apnea -> relies strictly on manual bagging!
+          const highCriApnea = state.fentanylCriRate >= 16 || state.tlkCriRate >= 3.6;
+          if (state.apneaActive || state.effectiveMac > 1.85 || highCriApnea) {
+            // Deep anesthesia, high-dose CRI apnea, or triggered apnea -> relies strictly on manual bagging!
             effectiveRR = manualRate;
             effectivePip = clamp(state.aplPressure, 6, 22);
             if (effectiveRR === 0 && dt > 0) state.apneaSeconds += dt;
             else state.apneaSeconds = Math.max(0, state.apneaSeconds - dt * 2.5);
           } else {
-            // Light/moderate spontaneous breathing + any manual breaths
-            const spontRR = Math.max(3, Math.round((state.speciesId === 'dog' ? 9 : 12) - (state.effectiveMac - 1.0) * 6));
+            // Light/moderate spontaneous breathing + opioid/TLK CRI respiratory depression
+            const criRespDep = state.fentanylCriRate * 0.38 + Math.max(0, state.tlkCriRate - 1.2) * 1.4;
+            const spontRR = Math.max(2, Math.round((state.speciesId === 'dog' ? 9 : 12) - (state.effectiveMac - 1.0) * 6 - criRespDep));
             effectiveRR = spontRR + manualRate;
             effectivePip = Math.max(9, Math.min(18, state.aplPressure || 10));
             state.apneaSeconds = 0;
@@ -3817,7 +3798,7 @@
             awardCrisisSolve('vagal', '미주신경성 서맥 Atropine 교정');
           }
           // 3) Surgical pain: resolves when Dog TLK CRI is ON, OR EtIso / Effective MAC is raised >= 1.45
-          if (state.activeCrises.pain && ((state.tlkCri && state.speciesId === 'dog') || state.effectiveMac >= 1.45)) {
+          if (state.activeCrises.pain && ((state.tlkCri && state.speciesId === 'dog') || state.fentanylCriRate >= 3 || state.effectiveMac >= 1.45)) {
             state.dynPainActive = false;
             awardCrisisSolve('pain', '수술 통증 자극 진통/마취심도 교정');
           }
@@ -4014,15 +3995,24 @@
                 ? '폐쇄성 파형 (상어지느러미)'
                 : '정상 사각파 (4 mm/s)';
 
-        // Drug timer badges
-        el.badgeEphedrine.textContent = state.ephedrineTime > 0 ? `작용 중 ${Math.ceil(state.ephedrineTime)}s` : '대기';
-        el.badgeEphedrine.className = state.ephedrineTime > 0 ? 'font-mono-num rounded bg-rose-500/30 px-2 py-0.5 text-[10px] font-bold text-rose-200' : 'font-mono-num rounded bg-slate-950/80 px-2 py-0.5 text-[10px] font-bold text-slate-400';
+        // Drug active indicators (badge-free compact UI)
+        if (el.badgeEphedrine) {
+          el.badgeEphedrine.textContent = state.ephedrineTime > 0 ? `작용 중 ${Math.ceil(state.ephedrineTime)}s` : '대기';
+          el.badgeEphedrine.className = state.ephedrineTime > 0 ? 'font-mono-num rounded bg-rose-500/30 px-2 py-0.5 text-[10px] font-bold text-rose-200' : 'font-mono-num rounded bg-slate-950/80 px-2 py-0.5 text-[10px] font-bold text-slate-400';
+        }
+        if (el.btnEphedrine) el.btnEphedrine.classList.toggle('ring-1', state.ephedrineTime > 0);
 
-        el.badgeAtropine.textContent = state.atropineTime > 0 ? `작용 중 ${Math.ceil(state.atropineTime)}s` : '대기';
-        el.badgeAtropine.className = state.atropineTime > 0 ? 'font-mono-num rounded bg-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-200' : 'font-mono-num rounded bg-slate-950/80 px-2 py-0.5 text-[10px] font-bold text-slate-400';
+        if (el.badgeAtropine) {
+          el.badgeAtropine.textContent = state.atropineTime > 0 ? `작용 중 ${Math.ceil(state.atropineTime)}s` : '대기';
+          el.badgeAtropine.className = state.atropineTime > 0 ? 'font-mono-num rounded bg-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-200' : 'font-mono-num rounded bg-slate-950/80 px-2 py-0.5 text-[10px] font-bold text-slate-400';
+        }
+        if (el.btnAtropine) el.btnAtropine.classList.toggle('ring-1', state.atropineTime > 0);
 
-        el.badgeLidocaine.textContent = state.lidocaineTime > 0 ? `작용 중 ${Math.ceil(state.lidocaineTime)}s` : '대기';
-        el.badgeLidocaine.className = state.lidocaineTime > 0 ? 'font-mono-num rounded bg-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-200' : 'font-mono-num rounded bg-slate-950/80 px-2 py-0.5 text-[10px] font-bold text-slate-400';
+        if (el.badgeLidocaine) {
+          el.badgeLidocaine.textContent = state.lidocaineTime > 0 ? `작용 중 ${Math.ceil(state.lidocaineTime)}s` : '대기';
+          el.badgeLidocaine.className = state.lidocaineTime > 0 ? 'font-mono-num rounded bg-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-200' : 'font-mono-num rounded bg-slate-950/80 px-2 py-0.5 text-[10px] font-bold text-slate-400';
+        }
+        if (el.btnLidocaine) el.btnLidocaine.classList.toggle('ring-1', state.lidocaineTime > 0);
 
         setVentModeUI();
 
@@ -5148,20 +5138,49 @@
       el.sliderO2.addEventListener('change', () => addLog(`신선가스 O₂ 유량 → ${state.o2Flow.toFixed(1)} L/min 변경 (EtIso 반응 속도 반영)`, 'info'));
 
       // CRI Infusion Pump listeners
-      el.btnTlkCri.addEventListener('click', () => {
-        if (state.arrested) return;
-        state.tlkCri = !state.tlkCri;
-        updateTlkButton();
-        computePhysiology(0);
-        renderMonitorUI();
-        if (state.tlkCri && state.speciesId === 'cat') {
-          addLog('[경고] 고양이에서 TLK CRI 시작 — Lidocaine 성분으로 심근 억제·독성 축적 위험!', 'danger');
-          showToast('경고: 고양이는 Lidocaine CRI 독성에 민감합니다! (리도카인 제외 진통 권장)', 'danger');
-        } else {
-          addLog(`TLK CRI (Tramadol·Lidocaine·Ketamine) ${state.tlkCri ? 'ON — 통증 차단 및 MAC ~25% 절감' : 'OFF'}`, state.tlkCri ? 'good' : 'info');
-          showToast(`TLK CRI ${state.tlkCri ? '시작 (MAC 절감 · 통증 억제)' : '중단'}`, state.tlkCri ? 'good' : 'info');
-        }
-      });
+      if (el.sliderTlk) {
+        el.sliderTlk.addEventListener('input', (e) => {
+          if (state.arrested) return;
+          state.tlkCriRate = Number(e.target.value);
+          state.tlkCri = state.tlkCriRate > 0;
+          el.dispTlk.textContent = state.tlkCriRate.toFixed(1);
+          computePhysiology(0);
+          renderMonitorUI();
+        });
+        el.sliderTlk.addEventListener('change', () => {
+          if (state.tlkCriRate > 0 && state.speciesId === 'cat') {
+            addLog(`[경고] 고양이 TLK CRI ${state.tlkCriRate.toFixed(1)} mL/kg/h — Lidocaine 심근독성 축적 위험!`, 'danger');
+            showToast('경고: 고양이는 Lidocaine CRI 독성에 민감합니다! (Fentanyl CRI 권장)', 'danger');
+          } else if (state.tlkCriRate > 2.4) {
+            addLog(`[주의] 고용량 TLK CRI ${state.tlkCriRate.toFixed(1)} mL/kg/h — 강력 진통/MAC 절감 + 호흡억제·Lidocaine 독성 감시`, 'warn');
+            showToast('고용량 TLK CRI — 호흡억제 및 리도카인 독성에 유의하세요!', 'warn');
+          } else if (state.tlkCriRate > 0) {
+            addLog(`TLK CRI → ${state.tlkCriRate.toFixed(1)} mL/kg/h (통증 차단 · MAC 절감)`, 'good');
+          } else {
+            addLog('TLK CRI 중단 (0.0 mL/kg/h)', 'info');
+          }
+        });
+      }
+
+      if (el.sliderFentanyl) {
+        el.sliderFentanyl.addEventListener('input', (e) => {
+          if (state.arrested) return;
+          state.fentanylCriRate = Number(e.target.value);
+          el.dispFentanyl.textContent = String(state.fentanylCriRate);
+          computePhysiology(0);
+          renderMonitorUI();
+        });
+        el.sliderFentanyl.addEventListener('change', () => {
+          if (state.fentanylCriRate >= 14) {
+            addLog(`[주의] 고용량 Fentanyl CRI ${state.fentanylCriRate} µg/kg/h — 강력 MAC 절감 + 심한 호흡억제/무호흡·미주신경 서맥 주의!`, 'warn');
+            showToast('고용량 Fentanyl CRI — 호흡억제·서맥 주의 (PCV/배깅 또는 Naloxone 고려)', 'warn');
+          } else if (state.fentanylCriRate > 0) {
+            addLog(`Fentanyl CRI → ${state.fentanylCriRate} µg/kg/h (μ-오피오이드 진통 · MAC 절감)`, 'good');
+          } else {
+            addLog('Fentanyl CRI 중단 (0 µg/kg/h)', 'info');
+          }
+        });
+      }
 
       el.sliderNorepi.addEventListener('input', (e) => {
         state.norepiCri = Number(e.target.value);
@@ -5466,29 +5485,31 @@
       if (btnArrestDebrief) btnArrestDebrief.addEventListener('click', openDebriefModal);
       if (btnAiDebrief) btnAiDebrief.addEventListener('click', requestAiDebrief);
 
-      // === 3-Subtab Special Drug Switcher & Drug Actions ===
+      // === 4-Subtab Special Drug Switcher & Drug Actions ===
       const dsubBasic = document.getElementById('dsub-basic');
       const dsubMetab = document.getElementById('dsub-metab');
+      const dsubSed = document.getElementById('dsub-sed');
       const dsubRev = document.getElementById('dsub-rev');
       const paneBasic = document.getElementById('drug-pane-basic');
       const paneMetab = document.getElementById('drug-pane-metab');
+      const paneSed = document.getElementById('drug-pane-sed');
       const paneRev = document.getElementById('drug-pane-rev');
 
       function setDrugSubtab(which) {
         const on = 'rounded bg-sky-500 px-1.5 py-0.5 text-[10px] font-extrabold text-slate-950 transition';
         const off = 'rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-400 hover:text-white transition';
-        dsubBasic.className = which === 'basic' ? on : off;
-        dsubMetab.className = which === 'metab' ? on : off;
-        dsubRev.className = which === 'rev' ? on : off;
-        paneBasic.classList.toggle('hidden', which !== 'basic');
-        paneBasic.classList.toggle('grid', which === 'basic');
-        paneMetab.classList.toggle('hidden', which !== 'metab');
-        paneMetab.classList.toggle('grid', which === 'metab');
-        paneRev.classList.toggle('hidden', which !== 'rev');
-        paneRev.classList.toggle('grid', which === 'rev');
+        if (dsubBasic) dsubBasic.className = which === 'basic' ? on : off;
+        if (dsubMetab) dsubMetab.className = which === 'metab' ? on : off;
+        if (dsubSed) dsubSed.className = which === 'sed' ? on : off;
+        if (dsubRev) dsubRev.className = which === 'rev' ? on : off;
+        if (paneBasic) { paneBasic.classList.toggle('hidden', which !== 'basic'); paneBasic.classList.toggle('grid', which === 'basic'); }
+        if (paneMetab) { paneMetab.classList.toggle('hidden', which !== 'metab'); paneMetab.classList.toggle('grid', which === 'metab'); }
+        if (paneSed) { paneSed.classList.toggle('hidden', which !== 'sed'); paneSed.classList.toggle('grid', which === 'sed'); }
+        if (paneRev) { paneRev.classList.toggle('hidden', which !== 'rev'); paneRev.classList.toggle('grid', which === 'rev'); }
       }
       if (dsubBasic) dsubBasic.addEventListener('click', () => setDrugSubtab('basic'));
       if (dsubMetab) dsubMetab.addEventListener('click', () => setDrugSubtab('metab'));
+      if (dsubSed) dsubSed.addEventListener('click', () => setDrugSubtab('sed'));
       if (dsubRev) dsubRev.addEventListener('click', () => setDrugSubtab('rev'));
 
       
@@ -6611,6 +6632,57 @@
           addLog('20% Intralipid IV 투여 — 현재 국소마취제 독성 소견이 없어 효과 미미 (지방색전·췌장염 주의)', 'warn');
           showToast('국소마취제 독성 없을 때는 Intralipid 불필요합니다.', 'warn');
         }
+        computePhysiology(0); renderMonitorUI();
+      });
+
+      bindSpecial('btn-fentanyl-bolus', () => {
+        if (state.arrested) return;
+        const p = state.phys;
+        state.drugCounts = state.drugCounts || {};
+        state.drugCounts.fent = (state.drugCounts.fent || 0) + 1;
+        const n = state.drugCounts.fent;
+        state.dynPainActive = false;
+        if (state.activeCrises && state.activeCrises.pain) {
+          awardCrisisSolve('pain', 'Fentanyl IV 볼루스로 수술 통증 즉각 차단');
+        }
+        if (p) {
+          p.opioidTone = clamp((p.opioidTone || 0) + 45, 0, 100);
+          p.nociception = Math.max(0, (p.nociception || 0) - 38);
+          p.vagalTone = clamp((p.vagalTone || 15) + 18, 0, 90);
+        }
+        state.trueHR = clamp(state.trueHR - 18, 32, 220);
+        state.trueRR = Math.max(0, state.trueRR - 4);
+        if (n >= 2 && state.ventMode === 'manual') state.apneaActive = true;
+        addLog(`Fentanyl IV 볼루스 (${n}회) — 강력 진통·통증 차단${n >= 2 ? ' (반복 투여로 호흡억제/무호흡·서맥 주의 — Naloxone 역전 가능)' : ' (호흡억제·서맥 감시)'}`, n >= 2 ? 'warn' : 'good');
+        showToast(n >= 2 ? 'Fentanyl 반복 투여 — 호흡억제·서맥 주의! (Naloxone 역전 가능)' : 'Fentanyl IV — 수술 통증 차단 완료!', n >= 2 ? 'warn' : 'good');
+        computePhysiology(0); renderMonitorUI();
+      });
+
+      bindSpecial('btn-dex-bolus', () => {
+        if (state.arrested) return;
+        const p = state.phys;
+        state.drugCounts = state.drugCounts || {};
+        state.drugCounts.dex = (state.drugCounts.dex || 0) + 1;
+        const n = state.drugCounts.dex;
+        if (p) {
+          p.alpha2Tone = clamp((p.alpha2Tone || 0) + 48, 0, 100);
+          p.svr = clamp((p.svr || 100) + 26, 40, 165);
+          p.nociception = Math.max(0, (p.nociception || 0) - 22);
+        }
+        state.trueHR = clamp(state.trueHR - 26, 26, 220);
+        state.trueMAP = clamp(state.trueMAP + 18, 30, 175);
+        addLog(`Dexmedetomidine IV (${n}회) — α₂ 진정·혈관수축(MAP↑)·반사성 서맥(HR↓) (과도 시 Atipamezole 역전)`, n >= 2 ? 'danger' : 'warn');
+        showToast(n >= 2 ? '경고! Dexmedetomidine 반복 투여 → 중증 서맥·AV차단 위험! (Atipamezole 고려)' : 'Dexmedetomidine IV — 진정·반사성 서맥 감시 (Atipamezole 역전 가능)', n >= 2 ? 'danger' : 'warn');
+        computePhysiology(0); renderMonitorUI();
+      });
+
+      bindSpecial('btn-midaz-bolus', () => {
+        if (state.arrested) return;
+        const p = state.phys;
+        if (p) p.benzoTone = clamp((p.benzoTone || 0) + 52, 0, 100);
+        state.trueRR = Math.max(4, state.trueRR - 2);
+        addLog('Midazolam IV (0.2 mg/kg) — 벤조디아제핀 진정·항경련·근이완 (과진정 시 Flumazenil 역전 가능)', 'good');
+        showToast('Midazolam IV 투여 완료 (Flumazenil로 역전 가능)', 'good');
         computePhysiology(0); renderMonitorUI();
       });
 

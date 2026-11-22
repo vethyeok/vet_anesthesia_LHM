@@ -1182,7 +1182,10 @@
         esmolol:     { name: 'Esmolol (β₁ 차단)', conc: 10.0, unit: 'mg/mL', doseMin: 0.25, doseMax: 0.5, doseUnit: 'mg/kg', note: '단시간 β₁ 차단제 (교감폭풍·Epi/Ket/Atropine 빈맥·HCM 제어, 서맥·저혈압 금기)' },
         diphenhydramine: { name: 'Diphenhydramine (H₁)', conc: 50.0, unit: 'mg/mL', doseMin: 1.0, doseMax: 2.0, doseUnit: 'mg/kg', note: 'H₁ 항히스타민 (아나필락시스·비만세포종 히스타민 차단, 1–2 mg/kg IM/slow IV)' },
         intralipid:  { name: '20% Intralipid (지질유제)', conc: 1.0, unit: 'mL/mL', doseMin: 1.0, doseMax: 2.0, doseUnit: 'mL/kg', note: 'Lidocaine 국소마취제 심근독성 해독 (1.5 mL/kg IV 볼루스)' },
-        insulin:     { name: 'Regular Insulin', conc: 100, unit: 'U/mL', doseMin: 0.2, doseMax: 0.5, doseUnit: 'U/kg', note: '고칼륨혈증(K⁺↑) 세포 내 이동 (0.2–0.5 U/kg IV · 반드시 50% Dextrose 병용!)' }
+        insulin:     { name: 'Regular Insulin', conc: 100, unit: 'U/mL', doseMin: 0.2, doseMax: 0.5, doseUnit: 'U/kg', note: '고칼륨혈증(K⁺↑) 세포 내 이동 (0.2–0.5 U/kg IV · 반드시 50% Dextrose 병용!)' },
+        fentanyl_iv: { name: 'Fentanyl IV (50 µg/mL)', conc: 0.05, unit: 'mg/mL', doseMin: 0.002, doseMax: 0.005, doseUnit: 'mg/kg', note: '강력 μ-오피오이드 진통·MAC 절감 (2–5 µg/kg IV · 과량 호흡억제/서맥 시 Naloxone 역전)' },
+        dex_iv:      { name: 'Dexmedetomidine IV (0.5 mg/mL)', conc: 0.5, unit: 'mg/mL', doseMin: 0.001, doseMax: 0.003, doseUnit: 'mg/kg', note: '소량 α₂ 진정·진통 (1–3 µg/kg IV · 서맥·혈관수축 시 Atipamezole 역전)' },
+        midaz_iv:    { name: 'Midazolam IV (5 mg/mL)', conc: 5.0, unit: 'mg/mL', doseMin: 0.15, doseMax: 0.3, doseUnit: 'mg/kg', note: '벤조디아제핀 진정·항경련 (0.15–0.3 mg/kg IV · 과진정/흥분 시 Flumazenil 역전)' }
       };
 
       const PRACTICE_BEST_KEY = 'vet_anesthesia_practice_best_v1';
@@ -1668,10 +1671,16 @@
             </div>
             </div>
             <div class="s1-pane" data-cpane="drugs" style="${t1==='drugs'?'':'display:none;'}">
-              <div style="font-size:11px; font-weight:800; color:#fda4af; margin-bottom:6px;">도입 전 응급·특수 약물 IV (${doseTag} · 고칼륨·저혈당·빈혈 선교정)</div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:6px;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span style="font-size:11px; font-weight:800; color:#fda4af;">응급·특수 약물 IV (${doseTag})</span>
+                  <button type="button" class="btn-drug-help" title="약물 설명 및 작용↔길항 가이드" style="width:18px; height:18px; border-radius:999px; border:1px solid #475569; background:#1e293b; color:#7dd3fc; font-size:11px; font-weight:900; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0;">?</button>
+                </div>
+              </div>
               <div class="drug-subtabs">
                 <button type="button" class="drug-subtab ${st.drugSubtab==='core'?'active':''}" data-dtab="core">기본 응급</button>
                 <button type="button" class="drug-subtab ${st.drugSubtab==='metab'?'active':''}" data-dtab="metab">혈액·대사</button>
+                <button type="button" class="drug-subtab ${st.drugSubtab==='sed'?'active':''}" data-dtab="sed">진정·진통</button>
                 <button type="button" class="drug-subtab ${st.drugSubtab==='rev'?'active':''}" data-dtab="rev">이뇨·길항</button>
               </div>
               <div id="s1-drug-grid" class="drug-grid" style="margin-bottom:10px;"></div>
@@ -1722,10 +1731,14 @@
               </div>
             </div>
             <div class="s2-pane" data-cpane="drugs" style="${t2==='drugs'?'':'display:none;'}">
-              <div style="font-size:11px; font-weight:800; color:#fda4af; margin-bottom:6px;">응급·특수 약물 IV (${doseTag} · 연쇄 상호작용 &amp; 반복 독성 반영)</div>
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                <span style="font-size:11px; font-weight:800; color:#fda4af;">응급·특수 약물 IV (${doseTag})</span>
+                <button type="button" class="btn-drug-help" title="약물 설명 및 작용↔길항 가이드" style="width:18px; height:18px; border-radius:999px; border:1px solid #475569; background:#1e293b; color:#7dd3fc; font-size:11px; font-weight:900; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0;">?</button>
+              </div>
               <div class="drug-subtabs">
                 <button type="button" class="drug-subtab ${st.drugSubtab==='core'?'active':''}" data-dtab="core">기본 응급</button>
                 <button type="button" class="drug-subtab ${st.drugSubtab==='metab'?'active':''}" data-dtab="metab">혈액·대사</button>
+                <button type="button" class="drug-subtab ${st.drugSubtab==='sed'?'active':''}" data-dtab="sed">진정·진통</button>
                 <button type="button" class="drug-subtab ${st.drugSubtab==='rev'?'active':''}" data-dtab="rev">이뇨·길항</button>
               </div>
               <div id="s2-drug-grid" class="drug-grid" style="margin-bottom:10px;"></div>
@@ -2020,6 +2033,7 @@
         const s1TabsMap = {
           core: [['atropine', 'Atropine IV'], ['ephedrine', 'Ephedrine IV'], ['lidocaine', 'Lidocaine 2% IV'], ['epinephrine', 'Epinephrine IV']],
           metab: [['calgluc', '10% Ca-Gluconate'], ['dextrose', '50% Dextrose'], ['insulin', 'Regular Insulin'], ['prbc', 'pRBC / Colloid'], ['bicarb', '8.4% NaHCO₃']],
+          sed: [['fentanyl_iv', 'Fentanyl IV'], ['dex_iv', 'Dexmedetomidine IV'], ['midaz_iv', 'Midazolam IV']],
           rev: [['furosemide', 'Furosemide IV'], ['naloxone', 'Naloxone IV'], ['atipamezole', 'Atipamezole IM'], ['flumazenil', 'Flumazenil IV'], ['esmolol', 'Esmolol β₁차단'], ['diphenhydramine', 'Diphenhydramine'], ['intralipid', '20% Intralipid']]
         };
         const s1Grid = document.getElementById('s1-drug-grid');
@@ -2078,6 +2092,7 @@
         const tabsMap = {
           core: [['atropine', 'Atropine IV'], ['ephedrine', 'Ephedrine IV'], ['lidocaine', 'Lidocaine 2% IV'], ['epinephrine', 'Epinephrine IV']],
           metab: [['calgluc', '10% Ca-Gluconate'], ['dextrose', '50% Dextrose'], ['insulin', 'Regular Insulin'], ['prbc', 'pRBC / Colloid'], ['bicarb', '8.4% NaHCO₃']],
+          sed: [['fentanyl_iv', 'Fentanyl IV'], ['dex_iv', 'Dexmedetomidine IV'], ['midaz_iv', 'Midazolam IV']],
           rev: [['furosemide', 'Furosemide IV'], ['naloxone', 'Naloxone IV'], ['atipamezole', 'Atipamezole IM'], ['flumazenil', 'Flumazenil IV'], ['esmolol', 'Esmolol β₁차단'], ['diphenhydramine', 'Diphenhydramine'], ['intralipid', '20% Intralipid']]
         };
         const grid = document.getElementById('s2-drug-grid');
@@ -2325,6 +2340,27 @@
               hadToxicOrContra = true;
               addLog(`Regular Insulin ${res.ml} mL — 정상 K⁺ 상태에서 저칼륨·저혈당 위험 (Glu ${Math.round(p.bloodGlucose)})`, 'warn');
             }
+          } else if (key === 'fentanyl_iv') {
+            p.opioidTone = clamp((p.opioidTone || 0) + 42 * mult, 0, 100);
+            p.nociception = Math.max(0, p.nociception - 34 * mult);
+            st.hr = clamp(st.hr - 14 * mult, 34, 220);
+            st.rr = clamp(st.rr - 4 * mult, 4, 28);
+            st.etco2 = clamp(st.etco2 + 6 * mult, 20, 88);
+            addLog(`Fentanyl ${res.ml} mL IV — 강력 진통·통증 차단 (호흡억제·서맥 시 Naloxone 역전 가능)`, 'good');
+            showToast('Fentanyl IV 투여 완료 — 진통 강화 (호흡·HR 감시)', 'good');
+          } else if (key === 'dex_iv') {
+            p.alpha2Tone = clamp((p.alpha2Tone || 0) + 45 * mult, 0, 100);
+            p.svr = clamp(p.svr + 22 * mult, 40, 165);
+            st.hr = clamp(st.hr - 24 * mult, 28, 220);
+            st.map = clamp(st.map + 14 * mult, 25, 165);
+            if (st.caseId === 'cardiac' || st.caseId === 'sepsis') hadToxicOrContra = true;
+            addLog(`Dexmedetomidine ${res.ml} mL IV — α₂ 진정·혈관수축 (과도 서맥 시 Atipamezole 역전)`, hadToxicOrContra ? 'warn' : 'good');
+            showToast('Dexmedetomidine IV 투여 — α₂ 진정·반사성 서맥 감시', hadToxicOrContra ? 'warn' : 'good');
+          } else if (key === 'midaz_iv') {
+            p.benzoTone = clamp((p.benzoTone || 0) + 50 * mult, 0, 100);
+            st.rr = clamp(st.rr - 2 * mult, 6, 28);
+            addLog(`Midazolam ${res.ml} mL IV — 벤조디아제핀 진정·항경련 (과진정 시 Flumazenil 역전)`, 'good');
+            showToast('Midazolam IV 투여 완료 — Flumazenil로 역전 가능', 'good');
           }
 
           // +2점 보너스: 직접 용량 계산 모드에서 정확하게 투여한 경우
@@ -2700,9 +2736,9 @@
         return g(0.16, 0.028, 0.15) - g(0.28, 0.011, 0.14) + g(0.31, 0.015, 1.0) - g(0.34, 0.014, 0.25) + g(0.54, 0.048, 0.28);
       }
 
-      const bufLen = 300;
+      const bufLen = 480;
       const ecgBuf = new Array(bufLen).fill(0), plethBuf = new Array(bufLen).fill(0), co2Buf = new Array(bufLen).fill(0);
-      let wPtr = 0, co2Ptr = 0, co2Acc = 0, beatPhase = 0, beatCount = 0, respPhase = 0, lastTs = performance.now();
+      let wPtr = 0, co2Ptr = 0, waveAcc = 0, co2Acc = 0, beatPhase = 0, beatCount = 0, respPhase = 0, lastTs = performance.now();
 
       function drawWave(id, buf, color, scaleY, baseY, cursor) {
         const cv = document.getElementById(id);
@@ -2712,12 +2748,12 @@
           cv.width = Math.round(r.width); cv.height = Math.round(r.height);
         }
         const ctx = cv.getContext('2d');
-        const W = cv.width || 300, H = cv.height || 64;
+        const W = cv.width || 480, H = cv.height || 64;
         ctx.fillStyle = '#030712'; ctx.fillRect(0, 0, W, H);
-        ctx.strokeStyle = color; ctx.lineWidth = 1.8; ctx.beginPath();
+        ctx.strokeStyle = color; ctx.lineWidth = 1.65; ctx.beginPath();
         let started = false;
         for (let i = 0; i < bufLen; i++) {
-          if (Math.abs(i - cursor) < 5) { started = false; continue; }
+          if (Math.abs(i - cursor) < 6) { started = false; continue; }
           const x = (i / (bufLen - 1)) * W;
           const y = H * baseY - buf[i] * H * scaleY;
           if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
@@ -2730,11 +2766,15 @@
         lastTs = ts;
         stepSim(dt);
         const bps = Math.max(0.3, st.hr / 60);
-        const steps = 2;
+        const samplesPerSec = 75;
+        waveAcc += dt * samplesPerSec;
+        const steps = Math.min(8, Math.floor(waveAcc));
+        waveAcc -= steps;
+        const stepDt = 1 / samplesPerSec;
         for (let k = 0; k < steps; k++) {
-          beatPhase += (dt / steps) * bps;
+          beatPhase += stepDt * bps;
           if (beatPhase >= 1) { beatPhase -= 1; beatCount++; }
-          respPhase = (respPhase + (dt / steps) * (st.rr / 60)) % 1;
+          respPhase = (respPhase + stepDt * (st.rr / 60)) % 1;
           ecgBuf[wPtr] = ecgSample(beatPhase, beatCount, st.rhythm);
           plethBuf[wPtr] = st.arrested ? 0 : Math.pow(Math.max(0, Math.sin(beatPhase * Math.PI)), 1.6) * (st.spo2 / 100);
           wPtr = (wPtr + 1) % bufLen;

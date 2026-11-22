@@ -107,47 +107,99 @@
     });
   }
 
-  // 3. Drug Color-Coding & Agonist<->Antagonist Pair Badges
+  // 3. Drug Color-Coding (clean left accent bar only — no cluttered inline badges)
   const DRUG_DECORATIONS = [
-    { match: /atipamezole/i, cat: 'drug-cat-rev', badge: '↔ Dex(α₂)', cls: '' },
-    { match: /naloxone/i, cat: 'drug-cat-rev', badge: '↔ Opioid', cls: '' },
-    { match: /flumazenil/i, cat: 'drug-cat-rev', badge: '↔ Midaz(BZD)', cls: '' },
-    { match: /esmolol/i, cat: 'drug-cat-rev', badge: '↔ 빈맥/HCM', cls: '' },
-    { match: /diphenhydramine/i, cat: 'drug-cat-anti', badge: '↔ H₁히스타민', cls: '' },
-    { match: /intralipid/i, cat: 'drug-cat-anti', badge: '↔ Lido독성', cls: 'pair-lipid' },
-    { match: /insulin/i, cat: 'drug-cat-metab', badge: '↔ K⁺↑(Dex병용)', cls: 'pair-metab' },
-    { match: /ca-gluconate|calgluc/i, cat: 'drug-cat-metab', badge: '↔ K⁺심근보호', cls: 'pair-metab' },
-    { match: /dextrose/i, cat: 'drug-cat-metab', badge: '↔ 저혈당/Insulin', cls: 'pair-metab' },
-    { match: /epinephrine|ephedrine/i, cat: 'drug-cat-emerg', badge: '', cls: 'pair-emerg' },
-    { match: /lidocaine/i, cat: 'drug-cat-arr', badge: '', cls: '' },
-    { match: /atropine/i, cat: 'drug-cat-arr', badge: '', cls: '' },
-    { match: /furosemide/i, cat: 'drug-cat-diur', badge: '', cls: '' },
-    { match: /prbc|bicarb|nahco/i, cat: 'drug-cat-metab', badge: '', cls: '' }
+    { match: /atipamezole|naloxone|flumazenil|esmolol/i, cat: 'drug-cat-rev' },
+    { match: /diphenhydramine|intralipid/i, cat: 'drug-cat-anti' },
+    { match: /insulin|ca-gluconate|calgluc|dextrose|prbc|bicarb|nahco/i, cat: 'drug-cat-metab' },
+    { match: /epinephrine|ephedrine/i, cat: 'drug-cat-emerg' },
+    { match: /lidocaine|atropine/i, cat: 'drug-cat-arr' },
+    { match: /furosemide/i, cat: 'drug-cat-diur' },
+    { match: /fentanyl|dexmed|midazolam/i, cat: 'drug-cat-anti' }
   ];
 
   function decorateDrugButtons() {
     const btns = document.querySelectorAll(
-      '.pre-adj-btn, .act-btn, [data-drug], [data-s1drug], #drug-pane-core button, #drug-pane-metab button, #drug-pane-rev button, #btn-s3-atip, #btn-s3-nalox, #btn-s3-flum, #btn-s3-esmo'
+      '.pre-adj-btn, .act-btn, [data-drug], [data-s1drug], #drug-pane-basic button, #drug-pane-core button, #drug-pane-metab button, #drug-pane-sed button, #drug-pane-rev button, #btn-s3-atip, #btn-s3-nalox, #btn-s3-flum, #btn-s3-esmo'
     );
     btns.forEach((btn) => {
       if (btn.dataset.uiDrugDecorated === '1') return;
       const txt = `${btn.id || ''} ${btn.dataset.aid || ''} ${btn.dataset.drug || ''} ${btn.dataset.s1drug || ''} ${btn.textContent || ''}`;
       const rule = DRUG_DECORATIONS.find((r) => r.match.test(txt));
       if (!rule) return;
-
       btn.dataset.uiDrugDecorated = '1';
       btn.classList.add(rule.cat);
-
-      if (rule.badge && !btn.querySelector('.drug-pair-badge')) {
-        const badge = document.createElement('span');
-        badge.className = 'drug-pair-badge' + (rule.cls ? ' ' + rule.cls : '');
-        badge.textContent = rule.badge;
-        const titleEl = btn.querySelector('.ot, .at, .text-xs, strong');
-        if (titleEl) titleEl.appendChild(badge);
-        else btn.appendChild(badge);
-      }
     });
   }
+
+  // 3.5 Interactive '?' Drug Reference & Agonist<->Antagonist Guide Modal
+  function ensureDrugGuideModal() {
+    let modal = document.getElementById('vet-drug-guide-modal');
+    if (modal) return modal;
+    modal = document.createElement('div');
+    modal.id = 'vet-drug-guide-modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(2,6,23,0.82);backdrop-filter:blur(4px);';
+    modal.innerHTML = `
+      <div style="width:100%;max-width:680px;max-height:86vh;overflow-y:auto;border-radius:14px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,0.65);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #1e293b;padding-bottom:10px;margin-bottom:12px;">
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#7dd3fc;">💉 응급·특수 약물 IV &amp; 작용↔길항 가이드</div>
+            <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">각 약물의 적응증, 주의사항 및 대응 길항제/해독제 정리</div>
+          </div>
+          <button id="vet-drug-guide-close" type="button" style="border:1px solid #475569;background:#1e293b;color:#f8fafc;border-radius:8px;padding:5px 11px;font-size:12px;font-weight:800;cursor:pointer;">닫기 ✕</button>
+        </div>
+        <div style="display:grid;gap:10px;font-size:12px;line-height:1.5;">
+          <div style="border-radius:10px;border:1px solid rgba(251,113,133,0.35);background:rgba(136,19,55,0.12);padding:10px 12px;">
+            <div style="font-weight:800;color:#fda4af;margin-bottom:4px;">1) 기본 응급 약물</div>
+            <div>• <strong>Ephedrine IV</strong> (0.05–0.15 mg/kg): 저혈압(MAP↓) 일시 승압 · 반복 과투여 시 빈맥·내성</div>
+            <div>• <strong>Atropine IV</strong> (0.02–0.04 mg/kg): 미주신경성 서맥 교정 · 심장병/고칼륨/α₂ 서맥 시 주의</div>
+            <div>• <strong>Lidocaine 2% IV</strong> (개 1–2 / 고양이 0.25–0.5 mg/kg): VPC·VT 항부정맥 · 과량 심근독성 → <strong>20% Intralipid</strong> 해독</div>
+            <div>• <strong>Epinephrine IV</strong> (0.01–0.02 mg/kg): 아나필락시스·심정지 1차 응급 · 반복 시 빈맥/VT → <strong>Esmolol</strong> 제어</div>
+          </div>
+          <div style="border-radius:10px;border:1px solid rgba(56,189,248,0.35);background:rgba(14,165,233,0.10);padding:10px 12px;">
+            <div style="font-weight:800;color:#7dd3fc;margin-bottom:4px;">2) 혈액 · 대사 · 전해질</div>
+            <div>• <strong>10% Ca-Gluconate</strong> (0.5–1 mL/kg slow IV): 고칼륨혈증(K⁺↑) 심근 막안정화 · 급속/과량 시 AV 차단</div>
+            <div>• <strong>Regular Insulin</strong> (0.2–0.5 U/kg IV) ↔ <strong>50% Dextrose</strong> (0.5–1 mL/kg 희석 IV): Insulin은 K⁺를 세포 내로 이동시키며 저혈당 유발 시 Dextrose로 즉각 교정</div>
+            <div>• <strong>pRBC / Colloid</strong> (3–6 mL/kg): 중증 빈혈·저알부민 관류 보충 · 심부전 과부하(TACO) 주의</div>
+            <div>• <strong>8.4% NaHCO₃</strong> (0.5–1.5 mEq/kg slow IV): 중증 대사성 산증 보조 · 환기 불량 시 ETCO₂ 급등 주의</div>
+          </div>
+          <div style="border-radius:10px;border:1px solid rgba(52,211,153,0.35);background:rgba(16,185,129,0.10);padding:10px 12px;">
+            <div style="font-weight:800;color:#6ee7b7;margin-bottom:4px;">3) 진정 · 진통 (작용제 ↔ 대응 길항제)</div>
+            <div>• <strong>Fentanyl IV</strong> (2–5 µg/kg) ↔ <strong>Naloxone</strong> (0.01–0.04 mg/kg): 강력 μ-오피오이드 진통·MAC 절감 / 호흡억제·서맥 시 Naloxone 역전</div>
+            <div>• <strong>Dexmedetomidine IV</strong> (1–3 µg/kg) ↔ <strong>Atipamezole</strong> (IM 권장): α₂ 진정·혈관수축·MAC 절감 / 서맥·지연회복 시 Atipamezole 역전</div>
+            <div>• <strong>Midazolam IV</strong> (0.2 mg/kg) ↔ <strong>Flumazenil</strong> (0.01–0.02 mg/kg): 벤조디아제핀 진정·항경련 / 과진정·역설적 흥분 시 Flumazenil 역전</div>
+          </div>
+          <div style="border-radius:10px;border:1px solid rgba(167,139,250,0.35);background:rgba(139,92,246,0.10);padding:10px 12px;">
+            <div style="font-weight:800;color:#c4b5fd;margin-bottom:4px;">4) 이뇨 · 길항 · 해독제</div>
+            <div>• <strong>Furosemide IV</strong> (1–2.5 mg/kg): 급성 폐수종(MMVD·HCM 수액 과부하) 이뇨 · 저혈량 쇼크 시 금기</div>
+            <div>• <strong>Esmolol IV</strong> (0.25–0.5 mg/kg): 단시간 β₁ 차단제 · 교감폭풍/Epi/Atropine 빈맥·HCM 심박수 제어 (서맥·저혈압 금기)</div>
+            <div>• <strong>Diphenhydramine</strong> (1–2 mg/kg IM/sIV): H₁ 항히스타민 · 아나필락시스·비만세포종(MCT) 히스타민 차단</div>
+            <div>• <strong>20% Intralipid</strong> (1.5 mL/kg IV): Lidocaine 국소마취제 심근독성·저혈압 지질 격리(Lipid Sink) 해독</div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal || e.target.id === 'vet-drug-guide-close') modal.style.display = 'none';
+    });
+    return modal;
+  }
+
+  window.openVetDrugGuide = function () {
+    const m = ensureDrugGuideModal();
+    m.style.display = 'flex';
+  };
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target && e.target.closest && e.target.closest('#btn-drug-guide, .btn-drug-help');
+    if (btn) {
+      e.preventDefault();
+      window.openVetDrugGuide();
+    }
+  });
 
   // 4. Event Log 3-Way Filter Bar & Semantic Icons
   function classifyLogNode(node) {

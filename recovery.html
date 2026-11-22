@@ -510,7 +510,8 @@
       };
 
       function addLog(msg, tone = 'info') {
-        const t = `${String(Math.floor(st.sec / 60)).padStart(2,'0')}:${String(st.sec % 60).padStart(2,'0')}`;
+        const secInt = Math.floor(st.sec);
+        const t = `${String(Math.floor(secInt / 60)).padStart(2,'0')}:${String(secInt % 60).padStart(2,'0')}`;
         st.logs.unshift({ t, msg, tone });
         el.logList.innerHTML = st.logs.slice(0, 20).map(l => `<div class="log-item ${l.tone}"><span class="mono" style="color:#64748b;margin-right:6px;">${l.t}</span>${l.msg}</div>`).join('');
       }
@@ -521,7 +522,8 @@
         el.hdr.textContent = `${st.species === 'dog' ? '개 8.0 kg' : '고양이 4.0 kg'} · ${c.name}`;
         el.desc.textContent = c.desc;
         el.score.textContent = `회복 점수 ${Math.max(0, st.score)}점`;
-        el.clock.textContent = `${String(Math.floor(st.sec / 60)).padStart(2,'0')}:${String(st.sec % 60).padStart(2,'0')}`;
+        const clkInt = Math.floor(st.sec);
+        el.clock.textContent = `${String(Math.floor(clkInt / 60)).padStart(2,'0')}:${String(clkInt % 60).padStart(2,'0')}`;
         el.hr.textContent = Math.round(st.hr);
         el.spo2.textContent = Math.round(st.spo2);
         el.spo2Sub.textContent = st.spo2 < 90 ? '심각한 저산소!' : (st.spo2 < 95 ? '산소 보충 필요' : '정상 산소화');
@@ -994,11 +996,11 @@
 
       
       // === Live Recovery Physiology Ticker & Dual-Speed Waveform Engine (ECG/SpO2 25mm/s, ETCO2 4mm/s) ===
-      const rBufLen = 280;
+      const rBufLen = 480;
       const rEcgBuf = new Array(rBufLen).fill(0);
       const rSpo2Buf = new Array(rBufLen).fill(0);
       const rCo2Buf = new Array(rBufLen).fill(0);
-      let rPtr = 0, rCo2Ptr = 0, rCo2Acc = 0, rBeatPhase = 0, rRespPhase = 0, rLastTs = performance.now(), rUiAcc = 0;
+      let rPtr = 0, rCo2Ptr = 0, rWaveAcc = 0, rCo2Acc = 0, rBeatPhase = 0, rRespPhase = 0, rLastTs = performance.now(), rUiAcc = 0;
 
       function drawRecWave(id, buf, color, scaleY, baseY, cursor) {
         const cv = document.getElementById(id);
@@ -1008,12 +1010,12 @@
           cv.width = Math.round(rect.width); cv.height = Math.round(rect.height);
         }
         const ctx = cv.getContext('2d');
-        const W = cv.width || 280, H = cv.height || 58;
+        const W = cv.width || 480, H = cv.height || 58;
         ctx.fillStyle = '#020617'; ctx.fillRect(0, 0, W, H);
-        ctx.strokeStyle = color; ctx.lineWidth = 1.7; ctx.beginPath();
+        ctx.strokeStyle = color; ctx.lineWidth = 1.65; ctx.beginPath();
         let started = false;
         for (let i = 0; i < rBufLen; i++) {
-          if (Math.abs(i - cursor) < 5) { started = false; continue; }
+          if (Math.abs(i - cursor) < 6) { started = false; continue; }
           const x = (i / (rBufLen - 1)) * W;
           const y = H * baseY - buf[i] * H * scaleY;
           if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
@@ -1053,13 +1055,17 @@
           if (rUiAcc >= 0.25) { rUiAcc = 0; updateUI(); }
         }
 
-        // Advance ECG & Pleth at 25 mm/s, Capnography (ETCO2) at 4 mm/s!
+        // Advance ECG & Pleth at calibrated 25 mm/s (~6.4s sweep window), Capnography (ETCO2) at 4 mm/s!
         const bps = Math.max(0.4, st.hr / 60);
-        const steps = 2;
+        const samplesPerSec = 75;
+        rWaveAcc += dt * samplesPerSec;
+        const steps = Math.min(8, Math.floor(rWaveAcc));
+        rWaveAcc -= steps;
+        const stepDt = 1 / samplesPerSec;
         const g = (ph, c, w, a) => a * Math.exp(-Math.pow((ph - c) / w, 2));
         for (let k = 0; k < steps; k++) {
-          rBeatPhase = (rBeatPhase + (dt / steps) * bps) % 1;
-          rRespPhase = (rRespPhase + (dt / steps) * (Math.max(4, st.rr) / 60)) % 1;
+          rBeatPhase = (rBeatPhase + stepDt * bps) % 1;
+          rRespPhase = (rRespPhase + stepDt * (Math.max(4, st.rr) / 60)) % 1;
           rEcgBuf[rPtr] = g(rBeatPhase, 0.16, 0.028, 0.15) - g(rBeatPhase, 0.28, 0.011, 0.14) + g(rBeatPhase, 0.31, 0.015, 1.0) - g(rBeatPhase, 0.34, 0.014, 0.25) + g(rBeatPhase, 0.54, 0.048, 0.28);
           rSpo2Buf[rPtr] = Math.pow(Math.max(0, Math.sin(rBeatPhase * Math.PI)), 1.6) * (st.spo2 / 100);
           rPtr = (rPtr + 1) % rBufLen;
