@@ -295,89 +295,135 @@
     </div>
   </div>
 
+  
+
+  <!-- AI Patient Case Generator Modal (Auto Random + Custom Briefing) -->
+  <div id="ai-case-modal" style="position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,0.82);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;" role="dialog" aria-modal="true" aria-labelledby="ai-case-modal-title">
+    <div style="width:100%;max-width:460px;background:#0f172a;border:1.5px solid rgba(129,140,248,0.5);border-radius:16px;padding:18px;color:#e2e8f0;box-shadow:0 24px 48px rgba(0,0,0,0.65);font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
+        <h3 id="ai-case-modal-title" style="margin:0;font-size:16px;font-weight:800;color:#c7d2fe;">✦ AI 환자 시나리오 생성 (Gemini)</h3>
+        <button id="ai-case-modal-close" type="button" style="background:transparent;border:1px solid #334155;color:#94a3b8;border-radius:8px;padding:4px 9px;font-size:12px;font-weight:700;cursor:pointer;">닫기</button>
+      </div>
+
+      <div style="background:#020617;border:1px solid #1e293b;border-radius:12px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;color:#6ee7b7;margin-bottom:4px;">1) 완전 랜덤 자동 생성</div>
+        <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;margin-bottom:10px;">36종 품종 · 30종 수술 · 20종 기저질환 조합으로 매번 새로운 케이스를 출제합니다.</div>
+        <button id="ai-case-btn-auto" type="button" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#10b981;color:#020617;font-size:13px;font-weight:800;cursor:pointer;">🎲 AI 랜덤 자동 생성</button>
+      </div>
+
+      <div style="background:#020617;border:1px solid #1e293b;border-radius:12px;padding:12px;">
+        <div style="font-size:12px;font-weight:700;color:#a5b4fc;margin-bottom:4px;">2) 직접 환자 브리핑 입력</div>
+        <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;margin-bottom:8px;">품종·연령·체중·수술·기저질환·혈액검사 등을 자유롭게 적으면 맞춤 시나리오를 생성합니다.</div>
+        <textarea id="ai-case-brief-input" rows="3" placeholder="예: 12세 3.5kg 말티즈, MMVD C기, 담낭점액종 절제술 예정. 알부민 2.0, ALP 1400" style="width:100%;box-sizing:border-box;background:#0f172a;border:1px solid #334155;border-radius:9px;padding:9px 10px;color:#f8fafc;font-size:12.5px;line-height:1.45;resize:vertical;outline:none;font-family:inherit;"></textarea>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px;">
+          <button type="button" class="ai-brief-chip" data-brief="5세 5.2kg 코리안숏헤어 수컷, 급성 요도폐색 48시간, K+ 7.5 고칼륨혈증 및 서맥" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">고양이 요도폐색·고K+</button>
+          <button type="button" class="ai-brief-chip" data-brief="8세 32kg 골든리트리버, 비장종양 파열 복강출혈, PCV 20% 빈혈 및 저혈량 쇼크 응급 비장적출술" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">대형견 비장파열·빈혈</button>
+          <button type="button" class="ai-brief-chip" data-brief="13세 3.6kg 말티즈, MMVD C기 폐수종 병력, 담낭파열 패혈성 복막염, Alb 1.9, ALP 1600" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">노령 말티즈 담낭파열</button>
+        </div>
+        <button id="ai-case-btn-custom" type="button" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#6366f1;color:#ffffff;font-size:13px;font-weight:800;cursor:pointer;">✦ 입력한 브리핑으로 AI 케이스 생성</button>
+      </div>
+
+      <div id="ai-case-modal-status" style="margin-top:10px;font-size:11.5px;color:#38bdf8;min-height:16px;text-align:center;"></div>
+    </div>
+  </div>
+
   <script>
     (function () {
       'use strict';
       const AI_API_PREFIX = (typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.pages.dev')) ? '/api' : ((typeof location !== 'undefined' && location.hostname && location.hostname.endsWith('.netlify.app')) ? '/.netlify/functions' : 'https://vet-anesthesia-lhm.netlify.app/.netlify/functions');
 
       function buildDiverseAiCaseContext(defaultSp) {
-        const sp = Math.random() < 0.65 ? 'dog' : 'cat';
+        const sp = Math.random() < 0.62 ? 'dog' : 'cat';
+        // [breed, avgWt, sizeTag, brachy/specialTag]
         const dogBreeds = [
-          ['말티즈', 3.4, '소형'], ['토이푸들', 4.1, '소형'], ['포메라니안', 2.8, '초소형'], ['치와와', 2.3, '초소형'],
-          ['요크셔테리어', 3.1, '소형'], ['시츄', 6.2, '단두종'], ['프렌치불독', 11.5, '단두종'], ['퍼그', 8.4, '단두종'],
-          ['닥스훈트', 6.8, '소형'], ['웰시코기', 12.2, '중형'], ['비글', 10.5, '중형'], ['코커스패니얼', 11.8, '중형'],
-          ['보더콜리', 17.5, '중형'], ['진돗개', 18.2, '중형'], ['시베리안허스키', 23.0, '대형'], ['골든리트리버', 29.5, '대형'],
-          ['래브라도리트리버', 31.0, '대형'], ['저먼셰퍼드', 33.5, '대형'], ['도베르만', 34.0, '대형'], ['그레이하운드', 28.0, '시각하운드'],
-          ['휘핏', 13.5, '시각하운드'], ['그레이트데인', 54.0, '초대형'], ['비숑프리제', 5.8, '소형'], ['미니어처슈나우저', 7.4, '소형']
+          ['말티즈', 3.4, 'small', 'toy'], ['토이푸들', 4.1, 'small', 'toy'], ['포메라니안', 2.8, 'small', 'toy'],
+          ['치와와', 2.4, 'small', 'toy'], ['요크셔테리어', 3.1, 'small', 'toy'], ['비숑프리제', 5.8, 'small', 'small'],
+          ['미니어처슈나우저', 7.4, 'small', 'small'], ['시츄', 6.2, 'small', 'brachy'], ['프렌치불독', 11.5, 'medium', 'brachy'],
+          ['퍼그', 8.4, 'small', 'brachy'], ['닥스훈트', 6.8, 'small', 'chondro'], ['웰시코기', 12.2, 'medium', 'chondro'],
+          ['비글', 10.5, 'medium', 'medium'], ['코커스패니얼', 11.8, 'medium', 'medium'], ['보더콜리', 17.5, 'medium', 'medium'],
+          ['진돗개', 18.2, 'medium', 'medium'], ['시베리안허스키', 23.0, 'large', 'large'], ['골든리트리버', 29.5, 'large', 'large'],
+          ['래브라도리트리버', 31.0, 'large', 'large'], ['저먼셰퍼드', 33.5, 'large', 'large'], ['도베르만', 34.0, 'large', 'large'],
+          ['그레이하운드', 28.0, 'large', 'sighthound'], ['휘핏', 13.5, 'medium', 'sighthound'], ['그레이트데인', 54.0, 'large', 'giant']
         ];
         const catBreeds = [
-          ['코리안숏헤어', 4.6, '일반묘'], ['러시안블루', 4.2, '일반묘'], ['브리티시숏헤어', 5.5, '단두묘'],
-          ['페르시안', 4.1, '단두묘'], ['랙돌', 5.8, '대형묘'], ['메인쿤', 7.4, '대형묘'], ['스코티시폴드', 4.5, '일반묘'],
-          ['벵갈', 5.0, '활동묘'], ['스핑크스', 3.8, '무모묘'], ['샴', 3.9, '일반묘'], ['노르웨이숲', 6.1, '대형묘'], ['아메리칸숏헤어', 4.8, '일반묘']
+          ['코리안숏헤어', 4.6, 'cat', 'normal'], ['러시안블루', 4.2, 'cat', 'normal'], ['브리티시숏헤어', 5.5, 'cat', 'hcm'],
+          ['페르시안', 4.1, 'cat', 'brachycat'], ['랙돌', 5.8, 'cat', 'hcm'], ['메인쿤', 7.4, 'cat', 'hcm'],
+          ['스코티시폴드', 4.5, 'cat', 'normal'], ['벵갈', 5.0, 'cat', 'normal'], ['스핑크스', 3.8, 'cat', 'hcm'],
+          ['샴', 3.9, 'cat', 'normal'], ['노르웨이숲', 6.1, 'cat', 'hcm'], ['아메리칸숏헤어', 4.8, 'cat', 'normal']
         ];
-        const surgeries = [
-          ['TPLO 십자인대 재건술', '정형', 1.25], ['대퇴골두절제술(FHO)', '정형', 1.2], ['흉요추 추간판탈출 반측추궁절제술', '신경', 1.2],
-          ['경추 추간판 Ventral Slot 감압술', '신경', 1.15], ['담낭점액종 담낭절제술', '간담도', 1.25], ['비장종양 파열 응급 비장적출술', '응급복부', 1.05],
-          ['간종양 간엽절제술', '간담도', 1.15], ['문맥전신단락(PSS) 아메로이드 링 결찰', '간혈관', 1.0], ['자궁축농증 난소자궁적출술', '산과응급', 1.15],
-          ['난산 응급 제왕절개술', '산과응급', 1.0], ['위확장염전(GDV) 응급 위고정술', '응급복부', 1.05], ['선형이물 장절개·문합술', '소화기', 1.2],
-          ['외상성 횡격막탈장 정복술', '흉복부응급', 1.05], ['회음부탈장 정복술', '연부조직', 1.25], ['요도폐색 회음요도루(PU) 성형술', '비뇨응급', 1.15],
-          ['요관폐색 SUB(피하요관우회술)', '비뇨', 1.15], ['방광결석 제거술', '비뇨', 1.3], ['부신종양(갈색세포종 의심) 적출술', '내분비', 1.1],
-          ['췌장 인슐린종 절제술', '내분비', 1.1], ['비만세포종(MCT) 광범위 절제술', '종양', 1.2], ['중증 치주염 전발치술', '치과', 1.3],
-          ['구강 종양 하악절제술', '치과종양', 1.2], ['녹내장 안구적출술', '안과', 1.25], ['백내장 초음파유화술(Phaco)', '안과', 1.2],
-          ['동맥관개존증(PDA) 결찰술', '흉부심장', 1.05], ['폐종양 폐엽절제술', '흉부', 1.1], ['단두종 연구개절제·비공확장술(BOAS)', '상부기도', 1.25],
-          ['기관허탈 기관 내 스텐트 삽입술', '호흡기', 1.15], ['골반 다발성 골절 내고정술', '외상정형', 1.2], ['식도이물 내시경 제거술', '내시경', 1.25]
+
+        // Clinically realistic scenarios: species, allowed breed tags, age range [minAge, maxAge], surgery, dept, iso, risk, asa, baseHR, baseMAP, baseBT, tier, lab
+        const DOG_CASES = [
+          { tags:['toy','small'], age:[9,15], surg:'담낭점액종 담낭절제술', dept:'간담도', iso:1.2, risk:'MMVD Stage C(이첨판폐쇄부전·폐수종 병력) + 고ALP', asa:'ASA III', hr:128, map:70, bt:37.5, tier:'full', lab:{ HCT:40, ALB:2.7, K:4.0, Glu:104, ALP:1280, ALT:340, BUN:32, Crea:1.4 } },
+          { tags:['toy','small'], age:[10,15], surg:'중증 치주염 전발치술', dept:'치과', iso:1.25, risk:'노령 MMVD Stage B2–C(수액 과부하 주의)', asa:'ASA III', hr:124, map:74, bt:37.3, tier:'full', lab:{ HCT:39, ALB:2.9, K:4.1, Glu:100, BUN:30, Crea:1.5 } },
+          { tags:['toy','small'], age:[8,14], surg:'담낭파열 응급 담낭절제술', dept:'간담도응급', iso:1.05, risk:'패혈성 복막염·저알부민·저혈당·초고ALP', asa:'ASA IV-E', hr:148, map:58, bt:38.8, tier:'full', lab:{ HCT:36, ALB:1.9, K:3.6, Glu:64, ALP:1850, ALT:620, WBC:26.4, pH:7.23, pCO2:33, lactate:4.6 } },
+          { tags:['large','giant'], age:[4,11], surg:'위확장염전(GDV) 응급 위고정술', dept:'응급복부', iso:1.05, risk:'저혈량·폐쇄성 쇼크·심실부정맥(VPC) 고위험', asa:'ASA IV-E', hr:156, map:56, bt:37.2, tier:'full', lab:{ HCT:52, ALB:2.3, K:3.5, Glu:76, pH:7.21, pCO2:32, lactate:5.6 } },
+          { tags:['large','medium'], age:[8,14], surg:'비장종양 파열 응급 비장적출술', dept:'응급복부', iso:1.0, risk:'복강 출혈·중증 빈혈(PCV 21%)·저혈량 쇼크', asa:'ASA IV-E', hr:154, map:54, bt:36.4, tier:'emerg_none', lab:{ HCT:21, ALB:1.9, K:4.3, Glu:112, pH:7.22, pCO2:34, lactate:5.3 } },
+          { tags:['medium','large'], age:[2,9], surg:'TPLO 십자인대 재건술', dept:'정형', iso:1.25, risk:'건강한 성견 정형수술(강력한 진통·국소차단 필요)', asa:'ASA II', hr:98, map:82, bt:38.0, tier:'chemi7', lab:{ HCT:45, ALB:3.4, K:4.2, Glu:102 } },
+          { tags:['brachy'], age:[1,8], surg:'단두종 연구개절제·비공확장술(BOAS)', dept:'상부기도', iso:1.25, risk:'상부기도 폐쇄·미주신경 항진·발관 후 호흡곤란 주의', asa:'ASA III', hr:86, map:78, bt:38.4, tier:'chemi7', lab:{ HCT:44, ALB:3.3, K:4.3, pCO2:46, Glu:104 } },
+          { tags:['chondro','brachy'], age:[3,9], surg:'흉요추 추간판탈출(IVDD) 반측추궁절제술', dept:'신경', iso:1.2, risk:'척수 압박·복와위 환기 저하·저혈압 주의', asa:'ASA II', hr:102, map:78, bt:37.8, tier:'full', lab:{ HCT:43, ALB:3.2, K:4.2, Glu:106 } },
+          { tags:['toy'], age:[6,14], surg:'기관허탈 기관 내 스텐트 삽입술', dept:'호흡기', iso:1.15, risk:'중증 기도 허탈·저산소·회복기 기침 발작 위험', asa:'ASA III', hr:130, map:76, bt:37.6, tier:'full', lab:{ HCT:42, ALB:3.1, K:4.2, pCO2:48, Glu:98 } },
+          { tags:['toy'], age:[0.4,1.5], surg:'문맥전신단락(PSS) 아메로이드 링 결찰', dept:'간혈관', iso:1.0, risk:'간기능 저하·저혈당·저알부민·약물대사 지연', asa:'ASA III', hr:142, map:68, bt:37.1, tier:'full', lab:{ HCT:33, ALB:1.9, Glu:58, BUN:5, ALT:185, ALP:160 } },
+          { tags:['small','medium','large'], age:[6,13], surg:'자궁축농증 난소자궁적출술', dept:'산과응급', iso:1.15, risk:'패혈증·탈수·신전성 질소혈증·저혈압 위험', asa:'ASA III-E', hr:140, map:64, bt:39.0, tier:'full', lab:{ HCT:35, ALB:2.3, K:3.9, Glu:82, BUN:38, Crea:1.9, WBC:28.5, pH:7.28, lactate:3.2 } },
+          { tags:['toy','small','brachy'], age:[2,7], surg:'난산 응급 제왕절개술', dept:'산과응급', iso:1.0, risk:'임신 말기 FRC 감소·대정맥 압박·태아 호흡억제 최소화', asa:'ASA III-E', hr:132, map:68, bt:37.5, tier:'chemi7', lab:{ HCT:31, ALB:2.4, iCa:1.02, Glu:76 } },
+          { tags:['medium','large'], age:[8,14], surg:'부신종양(갈색세포종 의심) 적출술', dept:'내분비', iso:1.1, risk:'카테콜아민 급증·발작성 고혈압·심실성 부정맥', asa:'ASA IV', hr:134, map:114, bt:37.8, tier:'full', lab:{ HCT:43, ALB:3.1, K:4.0, Glu:144, ALP:460 } },
+          { tags:['medium','large','small'], age:[8,13], surg:'췌장 인슐린종 절제술', dept:'내분비', iso:1.15, risk:'중증 저혈당(Glu 46)·지속 포도당 모니터링 필수', asa:'ASA III', hr:124, map:72, bt:37.4, tier:'full', lab:{ HCT:40, ALB:3.0, K:3.8, Glu:46, pH:7.34 } },
+          { tags:['small','medium','large'], age:[7,14], surg:'비만세포종(MCT) 광범위 절제술', dept:'종양', iso:1.2, risk:'히스타민 유리·급성 저혈압·기관지경련 주의', asa:'ASA III', hr:122, map:70, bt:37.7, tier:'full', lab:{ HCT:41, ALB:3.0, K:4.1, Glu:102 } },
+          { tags:['small','medium'], age:[8,14], surg:'방광결석 제거술', dept:'비뇨', iso:1.25, risk:'부신피질기능항진증(쿠싱) 동반·고혈압·혈전위험', asa:'ASA III', hr:116, map:106, bt:37.9, tier:'full', lab:{ HCT:45, ALB:3.2, K:3.9, Glu:152, ALP:940, ALT:230 } },
+          { tags:['medium','large','small'], age:[2,8], surg:'외상성 골반 골절 내고정술', dept:'외상정형', iso:1.15, risk:'부신피질기능저하증(애디슨) 병력·저나트륨·고칼륨', asa:'ASA III-E', hr:76, map:62, bt:36.7, tier:'full', lab:{ HCT:34, ALB:2.6, Na:126, K:6.3, Glu:68, pH:7.26 } },
+          { tags:['sighthound'], age:[2,9], surg:'대퇴골두절제술(FHO)', dept:'정형', iso:1.2, risk:'시각하운드 특이 약물대사 지연·저체지방 저체온·생리적 고PCV', asa:'ASA II', hr:72, map:82, bt:37.5, tier:'chemi7', lab:{ HCT:57, ALB:3.2, K:4.2, Glu:98, Crea:1.7 } },
+          { tags:['small','medium'], age:[7,14], surg:'당뇨성 백내장 초음파유화술(Phaco)', dept:'안과', iso:1.2, risk:'당뇨병·고혈당·저혈당 교차 주의 및 안구심장반사', asa:'ASA III', hr:106, map:78, bt:37.7, tier:'full', lab:{ HCT:42, ALB:3.1, K:4.3, Glu:265 } },
+          { tags:['toy','small','medium'], age:[0.4,1.2], surg:'동맥관개존증(PDA) 결찰술', dept:'흉부심장', iso:1.05, risk:'어린 자견 저혈당·저체온·개흉술 양압환기 필수', asa:'ASA III', hr:148, map:66, bt:37.3, tier:'chemi7', lab:{ HCT:34, ALB:2.7, K:4.4, Glu:74, ALP:210 } },
+          { tags:['small','medium','large'], age:[1,4], surg:'식도·위 이물 내시경 제거술', dept:'내시경', iso:1.25, risk:'건강한 성견(역류·오연 및 미주신경 서맥 주의)', asa:'ASA II', hr:104, map:80, bt:38.0, tier:'chemi7', lab:{ HCT:45, ALB:3.4, K:4.2, Glu:104 } }
         ];
-        const risks = [
-          ['MMVD Stage C(이첨판폐쇄부전·폐수종 병력)', 'ASA III', 128, 70, 37.6, 'full', { HCT: 41, ALB: 3.0, K: 4.1, Glu: 108, BUN: 34, Crea: 1.5 }],
-          ['HCM(비대성심근병증·좌심방확장)', 'ASA III', 176, 86, 37.8, 'full', { HCT: 39, ALB: 3.1, K: 4.2, Glu: 148, BUN: 28, Crea: 1.6 }],
-          ['만성신부전 CKD IRIS 3기·질소혈증', 'ASA III', 102, 78, 37.1, 'full', { HCT: 27, ALB: 2.7, K: 5.4, Glu: 96, BUN: 68, Crea: 3.6, pH: 7.26 }],
-          ['급성 요도폐색·중증 고칼륨혈증', 'ASA IV-E', 66, 62, 36.2, 'full', { HCT: 46, ALB: 3.3, K: 7.4, Na: 142, Glu: 135, BUN: 82, Crea: 5.2, pH: 7.18, lactate: 4.2 }],
-          ['인슐린종/패혈증성 저혈당(Glu 48)', 'ASA III-E', 132, 68, 36.6, 'full', { HCT: 36, ALB: 2.8, K: 3.8, Glu: 48, pH: 7.31, lactate: 2.8 }],
-          ['당뇨성 케톤산증(DKA)·심한 탈수·산증', 'ASA IV-E', 142, 62, 36.4, 'full', { HCT: 49, ALB: 3.4, K: 5.9, Na: 134, Glu: 430, pH: 7.16, lactate: 3.9 }],
-          ['복강 출혈·중증 빈혈(PCV 21%)·저혈량쇼크', 'ASA IV-E', 158, 54, 36.3, 'emerg_none', { HCT: 21, ALB: 1.9, K: 4.3, Glu: 118, pH: 7.22, lactate: 5.4 }],
-          ['저알부민혈증(Alb 1.7)·복수·단백소실성장병증', 'ASA III', 114, 64, 37.2, 'full', { HCT: 33, ALB: 1.7, K: 3.6, iCa: 1.04, Glu: 92, ALP: 180 }],
-          ['담낭파열·패혈성 복막염·초고ALP', 'ASA IV-E', 148, 58, 38.9, 'full', { HCT: 38, ALB: 2.1, K: 3.7, Glu: 74, ALP: 1850, ALT: 640, WBC: 26.4, pH: 7.24, lactate: 4.6 }],
-          ['부신피질기능항진증(쿠싱)·고혈압·혈전위험', 'ASA III', 118, 108, 37.9, 'full', { HCT: 45, ALB: 3.2, K: 3.9, Glu: 156, ALP: 920, ALT: 240 }],
-          ['부신피질기능저하증(애디슨)·저나트륨·고칼륨', 'ASA III-E', 78, 60, 36.5, 'full', { HCT: 34, ALB: 2.6, Na: 126, K: 6.4, Glu: 66, pH: 7.25 }],
-          ['단두종 기도증후군(BOAS)·미주신경 항진', 'ASA III', 88, 78, 38.4, 'chemi7', { HCT: 44, ALB: 3.3, K: 4.3, Glu: 102 }],
-          ['시각하운드 특이 대사·저체지방·저체온 취약', 'ASA II', 74, 82, 37.5, 'chemi7', { HCT: 56, ALB: 3.2, K: 4.2, Glu: 98, Crea: 1.7 }],
-          ['간부전·간성뇌증·응고지연', 'ASA IV', 112, 66, 36.8, 'full', { HCT: 31, ALB: 1.8, Glu: 62, ALT: 780, ALP: 540, BUN: 6, PLT: 98 }],
-          ['비만세포종 히스타민 유리·급성 저혈압 위험', 'ASA III', 124, 72, 37.7, 'full', { HCT: 40, ALB: 3.0, K: 4.1, Glu: 104 }],
-          ['갈색세포종 카테콜아민 급증·발작성 고혈압·부정맥', 'ASA IV', 136, 112, 37.8, 'full', { HCT: 43, ALB: 3.1, K: 4.0, Glu: 142 }],
-          ['임신 말기·기능적 잔기량 감소·대정맥 압박', 'ASA III-E', 132, 68, 37.4, 'chemi7', { HCT: 31, ALB: 2.4, iCa: 1.02, Glu: 78 }],
-          ['어린 자견/자묘(5개월)·저혈당·저체온 취약', 'ASA II', 146, 70, 37.4, 'chemi7', { HCT: 34, ALB: 2.8, K: 4.4, Glu: 76, ALP: 210 }],
-          ['초노령(15세)·경도 빈혈·다발성 장기 예비능 저하', 'ASA III', 96, 68, 36.9, 'full', { HCT: 30, ALB: 2.5, K: 4.5, Glu: 94, BUN: 38, Crea: 2.0 }],
-          ['건강한 성체·예정 수술(잠재적 마취 중 이벤트 주의)', 'ASA II', 104, 80, 38.0, 'chemi7', { HCT: 44, ALB: 3.4, K: 4.2, Glu: 102 }]
+
+        const CAT_CASES = [
+          { tags:['normal','hcm','brachycat'], age:[2,9], surg:'요도폐색 도뇨·회음요도루(PU) 성형술', dept:'비뇨응급', iso:1.1, risk:'급성 요도폐색·중증 고칼륨혈증(K+ 7.4)·서맥·대사성 산증', asa:'ASA IV-E', hr:96, map:64, bt:36.2, tier:'full', lab:{ HCT:44, ALB:3.3, K:7.4, Na:146, Glu:152, BUN:86, Crea:5.8, pH:7.18, pCO2:34, lactate:4.1 } },
+          { tags:['hcm','normal'], age:[4,12], surg:'고양이 만성구내염 전발치술', dept:'치과', iso:1.2, risk:'HCM(비대성심근병증·좌심방확장)·빈맥 및 수액 과부하 금기', asa:'ASA III', hr:184, map:86, bt:37.7, tier:'full', lab:{ HCT:38, ALB:3.1, K:4.1, Glu:148, BUN:28, Crea:1.7 } },
+          { tags:['normal','hcm','brachycat'], age:[5,14], surg:'요관폐색 SUB(피하요관우회술)', dept:'비뇨', iso:1.15, risk:'만성·급성 신부전(CKD IRIS 3–4기)·빈혈·고칼륨 경계', asa:'ASA III-E', hr:146, map:74, bt:36.8, tier:'full', lab:{ HCT:26, ALB:2.8, K:5.6, Na:148, Glu:138, BUN:74, Crea:4.4, pH:7.24, lactate:2.6 } },
+          { tags:['normal','brachycat'], age:[10,16], surg:'구강 종양 절제·치과 시술', dept:'치과종양', iso:1.15, risk:'노령 고양이 갑상선기능항진증·빈맥·고혈압·부정맥 위험', asa:'ASA III', hr:204, map:112, bt:38.2, tier:'full', lab:{ HCT:37, ALB:3.0, K:3.7, Glu:134, ALT:168, ALP:132, BUN:34, Crea:1.6 } },
+          { tags:['normal','hcm'], age:[4,12], surg:'식도영양튜브(E-tube) 장착술', dept:'내과시술', iso:1.05, risk:'고양이 간지방증(Hepatic Lipidosis)·저칼륨·응고지연·약물대사 지연', asa:'ASA III', hr:158, map:70, bt:36.9, tier:'full', lab:{ HCT:30, ALB:2.4, K:3.1, Glu:86, ALP:340, ALT:290, PLT:128 } },
+          { tags:['normal','hcm','brachycat'], age:[1,7], surg:'선형이물 장절개·문합술', dept:'소화기응급', iso:1.2, risk:'심한 탈수·저칼륨·저염소 대사성 알칼리증 또는 패혈증 위험', asa:'ASA III-E', hr:172, map:68, bt:37.2, tier:'full', lab:{ HCT:45, ALB:3.2, K:3.2, Cl:104, Na:144, Glu:142, pH:7.46, lactate:2.9 } },
+          { tags:['normal','hcm'], age:[1,10], surg:'외상성 횡격막탈장 정복술', dept:'흉복부응급', iso:1.05, risk:'폐 압박·저산소·고탄산혈증·재팽창성 폐수종 주의', asa:'ASA IV-E', hr:178, map:66, bt:36.6, tier:'emerg_none', lab:{ HCT:32, ALB:2.5, K:4.2, pH:7.24, pCO2:54, Glu:165, lactate:3.8 } },
+          { tags:['normal','brachycat'], age:[7,14], surg:'당뇨성 케톤산증(DKA) 동반 복부 응급 시술', dept:'응급내분비', iso:1.05, risk:'DKA·심한 탈수·산증·고혈당·저칼륨/고칼륨 변동', asa:'ASA IV-E', hr:168, map:64, bt:36.4, tier:'full', lab:{ HCT:43, ALB:3.1, K:5.8, Na:139, Glu:440, pH:7.16, pCO2:30, lactate:3.9 } },
+          { tags:['normal','hcm','brachycat'], age:[6,13], surg:'자궁축농증 난소자궁적출술', dept:'산과응급', iso:1.15, risk:'패혈증·저혈압·탈수·신장 관류 보호 필요', asa:'ASA III-E', hr:176, map:66, bt:38.9, tier:'full', lab:{ HCT:31, ALB:2.3, K:3.8, Glu:96, WBC:25.4, BUN:42, Crea:2.1, lactate:3.1 } },
+          { tags:['normal','brachycat'], age:[1,6], surg:'대퇴골두절제술(FHO) / 추락 골절 정복', dept:'외상정형', iso:1.2, risk:'추락 외상·기흉/폐좌상 감별 및 고양이 후두경련·저체온 주의', asa:'ASA II', hr:162, map:82, bt:37.5, tier:'chemi7', lab:{ HCT:37, ALB:3.1, K:4.1, Glu:158 } },
+          { tags:['normal','hcm','brachycat'], age:[0.5,3], surg:'건강한 성묘 중성화 / 잠복고환 적출술', dept:'일반외과', iso:1.25, risk:'건강한 젊은 고양이(후두경련·저체온·과수액 주의)', asa:'ASA I–II', hr:158, map:84, bt:38.0, tier:'chemi7', lab:{ HCT:38, ALB:3.2, K:4.2, Glu:132 } },
+          { tags:['brachycat','normal'], age:[5,13], surg:'녹내장 안구적출술', dept:'안과', iso:1.2, risk:'안구심장반사(서맥)·단두묘 기도 관리·저체온 주의', asa:'ASA II', hr:152, map:80, bt:37.6, tier:'full', lab:{ HCT:36, ALB:3.0, K:4.1, Glu:128 } }
         ];
+
         let recent = [];
         try { recent = JSON.parse(localStorage.getItem('vet_ai_recent_cases') || '[]'); } catch (e) { recent = []; }
-        const bPool = sp === 'cat' ? catBreeds : dogBreeds;
-        const pickNotRecent = (arr, idxKey) => {
-          const filtered = arr.filter(x => !recent.some(r => r.includes(x[0])));
-          const pool = filtered.length ? filtered : arr;
-          return pool[Math.floor(Math.random() * pool.length)];
-        };
-        const breed = pickNotRecent(bPool);
-        const surgery = pickNotRecent(surgeries);
-        const risk = pickNotRecent(risks);
-        const age = risk[0].includes('5개월') ? '5개월령' : (risk[0].includes('15세') ? '15세' : (Math.floor(Math.random() * 13) + 1) + '세');
-        const wt = (breed[1] * (0.82 + Math.random() * 0.36)).toFixed(1);
+        const cPool = sp === 'cat' ? CAT_CASES : DOG_CASES;
+        const freshCases = cPool.filter(x => !recent.some(r => r.includes(x.surg.slice(0, 6))));
+        const chosenCase = (freshCases.length ? freshCases : cPool)[Math.floor(Math.random() * (freshCases.length ? freshCases : cPool).length)];
+
+        const bPoolAll = sp === 'cat' ? catBreeds : dogBreeds;
+        const matchedBreeds = bPoolAll.filter(b => chosenCase.tags.includes(b[3]) || chosenCase.tags.includes(b[2]));
+        const bPool = matchedBreeds.length ? matchedBreeds : bPoolAll;
+        const freshBreeds = bPool.filter(b => !recent.some(r => r.includes(b[0])));
+        const breed = (freshBreeds.length ? freshBreeds : bPool)[Math.floor(Math.random() * (freshBreeds.length ? freshBreeds : bPool).length)];
+
+        const minA = chosenCase.age[0], maxA = chosenCase.age[1];
+        const ageNum = minA + Math.random() * (maxA - minA);
+        const ageStr = ageNum < 1 ? `${Math.max(4, Math.round(ageNum * 12))}개월령` : `${Math.round(ageNum)}세`;
+        const wt = (breed[1] * (0.85 + Math.random() * 0.30)).toFixed(1);
         const seed = Math.floor(100000 + Math.random() * 900000);
-        const seedHint = `[시드#${seed}] 축종:${sp === 'cat' ? '고양이' : '강아지'}, 품종:${breed[0]}(${breed[2]}), 연령/체중:${age} ${wt}kg, 수술/시술:${surgery[0]}(${surgery[1]}), 핵심리스크:${risk[0]}, 권장ASA:${risk[1]}`;
+        const seedHint = `[시드#${seed}] 축종:${sp === 'cat' ? '고양이' : '강아지'}, 품종:${breed[0]}, 연령/체중:${ageStr} ${wt}kg, 수술/시술:${chosenCase.surg}(${chosenCase.dept}), 핵심리스크:${chosenCase.risk}, 권장ASA:${chosenCase.asa}`;
         const recentStr = recent.slice(-8).join(' / ') || '없음';
-        const speciesDirective = `${sp} (${seedHint} | 최근 출제와 중복 금지: ${recentStr} | 반드시 위 품종·수술·리스크를 반영해 매번 완전히 새로운 케이스로 작성)`;
+        const speciesDirective = `${sp} (${seedHint} | 최근 출제와 중복 금지: ${recentStr} | 축종·품종·연령에 의학적으로 맞는 현실적 케이스로 작성)`;
         const offlineCase = {
-          title: `${breed[0]} ${surgery[0]}`,
+          title: `${breed[0]} ${chosenCase.surg}`,
           species: sp,
-          asa: risk[1],
-          summary: `${age} ${wt}kg ${breed[0]} · ${surgery[0]} · ${risk[0]}`,
-          target: `${risk[0].split('·')[0]} 안정화 및 혈역학·체온·환기 균형 유지`,
-          caution: `${breed[2]} 체형 및 ${surgery[1]} 시술 특이 합병증(저혈압·부정맥·저체온·기도관리) 집중 감시`,
-          baseHR: sp === 'cat' ? Math.max(130, risk[2] + 30) : risk[2],
-          baseMAP: risk[3],
-          baseBT: risk[4],
-          iso: surgery[2],
-          lab: Object.assign({ panelTier: risk[5], Na: 145, Cl: 112, iCa: 1.22, pH: 7.34, ALP: 85, ALT: 48, BUN: 18, Crea: 1.0, WBC: 11.2, PLT: 260, lactate: 1.4 }, risk[6])
+          asa: chosenCase.asa,
+          summary: `${ageStr} ${wt}kg ${breed[0]} · ${chosenCase.surg} · ${chosenCase.risk}`,
+          target: `${chosenCase.risk.split('·')[0]} 안정화 및 혈역학·체온·환기 균형 유지`,
+          caution: `${sp === 'cat' ? '고양이 특이 후두경련·수액과부하·저체온' : breed[0] + ' 품종 특이 리스크'} 및 ${chosenCase.dept} 시술 합병증 집중 감시`,
+          baseHR: chosenCase.hr,
+          baseMAP: chosenCase.map,
+          baseBT: chosenCase.bt,
+          iso: chosenCase.iso,
+          lab: Object.assign({ panelTier: chosenCase.tier, Na: sp === 'cat' ? 150 : 145, Cl: sp === 'cat' ? 119 : 112, iCa: 1.21, pH: sp === 'cat' ? 7.34 : 7.37, pCO2: sp === 'cat' ? 36 : 40, ALP: 82, ALT: 48, BUN: 19, Crea: 1.1, WBC: 11.4, PLT: 255, lactate: 1.4 }, chosenCase.lab)
         };
         return { sp, seedHint, recentCases: recent.slice(-8), speciesDirective, offlineCase };
       }
@@ -1533,36 +1579,6 @@
 
     })();
   </script>
-
-  <!-- AI Patient Case Generator Modal (Auto Random + Custom Briefing) -->
-  <div id="ai-case-modal" style="position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,0.82);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;" role="dialog" aria-modal="true" aria-labelledby="ai-case-modal-title">
-    <div style="width:100%;max-width:460px;background:#0f172a;border:1.5px solid rgba(129,140,248,0.5);border-radius:16px;padding:18px;color:#e2e8f0;box-shadow:0 24px 48px rgba(0,0,0,0.65);font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
-        <h3 id="ai-case-modal-title" style="margin:0;font-size:16px;font-weight:800;color:#c7d2fe;">✦ AI 환자 시나리오 생성 (Gemini)</h3>
-        <button id="ai-case-modal-close" type="button" style="background:transparent;border:1px solid #334155;color:#94a3b8;border-radius:8px;padding:4px 9px;font-size:12px;font-weight:700;cursor:pointer;">닫기</button>
-      </div>
-
-      <div style="background:#020617;border:1px solid #1e293b;border-radius:12px;padding:12px;margin-bottom:12px;">
-        <div style="font-size:12px;font-weight:700;color:#6ee7b7;margin-bottom:4px;">1) 완전 랜덤 자동 생성</div>
-        <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;margin-bottom:10px;">36종 품종 · 30종 수술 · 20종 기저질환 조합으로 매번 새로운 케이스를 출제합니다.</div>
-        <button id="ai-case-btn-auto" type="button" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#10b981;color:#020617;font-size:13px;font-weight:800;cursor:pointer;">🎲 AI 랜덤 자동 생성</button>
-      </div>
-
-      <div style="background:#020617;border:1px solid #1e293b;border-radius:12px;padding:12px;">
-        <div style="font-size:12px;font-weight:700;color:#a5b4fc;margin-bottom:4px;">2) 직접 환자 브리핑 입력</div>
-        <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;margin-bottom:8px;">품종·연령·체중·수술·기저질환·혈액검사 등을 자유롭게 적으면 맞춤 시나리오를 생성합니다.</div>
-        <textarea id="ai-case-brief-input" rows="3" placeholder="예: 12세 3.5kg 말티즈, MMVD C기, 담낭점액종 절제술 예정. 알부민 2.0, ALP 1400" style="width:100%;box-sizing:border-box;background:#0f172a;border:1px solid #334155;border-radius:9px;padding:9px 10px;color:#f8fafc;font-size:12.5px;line-height:1.45;resize:vertical;outline:none;font-family:inherit;"></textarea>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px;">
-          <button type="button" class="ai-brief-chip" data-brief="5세 5.2kg 코리안숏헤어 수컷, 급성 요도폐색 48시간, K+ 7.5 고칼륨혈증 및 서맥" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">고양이 요도폐색·고K+</button>
-          <button type="button" class="ai-brief-chip" data-brief="8세 32kg 골든리트리버, 비장종양 파열 복강출혈, PCV 20% 빈혈 및 저혈량 쇼크 응급 비장적출술" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">대형견 비장파열·빈혈</button>
-          <button type="button" class="ai-brief-chip" data-brief="13세 3.6kg 말티즈, MMVD C기 폐수종 병력, 담낭파열 패혈성 복막염, Alb 1.9, ALP 1600" style="background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;">노령 말티즈 담낭파열</button>
-        </div>
-        <button id="ai-case-btn-custom" type="button" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#6366f1;color:#ffffff;font-size:13px;font-weight:800;cursor:pointer;">✦ 입력한 브리핑으로 AI 케이스 생성</button>
-      </div>
-
-      <div id="ai-case-modal-status" style="margin-top:10px;font-size:11.5px;color:#38bdf8;min-height:16px;text-align:center;"></div>
-    </div>
-  </div>
 
 </body>
 </html>
