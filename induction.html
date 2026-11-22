@@ -615,7 +615,31 @@
       function escHtml(s) {
         return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
+      function isReassuringMsg(text) {
+        return /(안심|걱정\s*마|걱정\s*하지|괜찮|양호|정상|안정적|안정됐|안정화|좋아졌|잘\s*유지|무사히|수치.*좋|혈검.*정상|바이탈.*안정|호전|회복.*좋|잘\s*버티|문제\s*없|안전하게|안정권)/i.test(String(text || ''));
+      }
+      function getIndClinicalStatus(c) {
+        const issues = [];
+        if (st.spo2 < 95) issues.push(`SpO₂ 저하(${Math.round(st.spo2)}%)`);
+        if (st.map < 68) issues.push(`저혈압(MAP ${Math.round(st.map)})`);
+        if (st.hr < 55 || st.hr > 160) issues.push(`심박 이상(HR ${Math.round(st.hr)})`);
+        const lab = st.preopLab;
+        if (lab && Array.isArray(lab.items)) {
+          const critLabs = lab.items.filter((it) => it.flag === 'H' || it.flag === 'L' || it.severe);
+          if (critLabs.length >= 2) {
+            issues.push(`혈액검사 이상(${critLabs.slice(0, 2).map((x) => x.name || x.k).join(', ')})`);
+          }
+        } else if (st.caseId === 'gdv' || st.caseId === 'cardiac' || st.caseId === 'icp') {
+          issues.push(`기저 고위험 상태(${c.asa || '고위험'})`);
+        }
+        const good = issues.length === 0;
+        const summary = good
+          ? `양호 (현재 바이탈 HR ${Math.round(st.hr)}, MAP ${Math.round(st.map)}, SpO₂ ${Math.round(st.spo2)}% 및 마취 전 혈액검사 안정 범위)`
+          : `이상 소견 존재 (${issues.join(', ')})`;
+        return { good, issues, summary };
+      }
       function getOwnerSeverity(c) {
+        if (st.ownerReassured && getIndClinicalStatus(c).good) return 'reassured';
         const text = `${c.asa || ''} ${c.name || ''} ${c.desc || ''}`;
         if (/IV|V|-E|응급|GDV|쇼크|파열|패혈|고칼륨|폐색/i.test(text) || st.caseId === 'gdv') return 'critical';
         if (/ICP|뇌종양|제왕절개|폐수종|MMVD\s*Stage\s*C|HCM/i.test(text) || st.caseId === 'cardiac' || st.caseId === 'icp') return 'high';
@@ -650,6 +674,17 @@
           return sev === 'critical'
             ? '선생님, 지금 아이 상태가 심각한데 그렇게 대충 말씀하시면 어떡해요?! 보호자 입장에서 피가 마르는데 제대로 좀 확인해 주세요!'
             : '선생님… 그렇게 성의 없이 말씀하시니까 좀 답답하고 불안하네요. 보호자가 이해할 수 있게 차근차근 물어봐 주시면 안 될까요?';
+        }
+        const clin = getIndClinicalStatus(c);
+        if (isReassuringMsg(q)) {
+          if (clin.good) {
+            if (lv >= 4) return '바이탈이랑 마취 전 혈액검사 결과 모두 양호하다니 이제야 마음이 놓이네요. 선생님 믿고 차분히 맡기겠습니다.';
+            return '휴… 바이탈이랑 혈액검사 결과 다 괜찮다고 해주시니 이제야 한숨 돌리겠어요! 너무 긴장했었는데 감사합니다 선생님, 안심하고 맡길게요.';
+          } else {
+            return lv >= 4
+              ? `선생님, 지금 검사·상태(${clin.issues.slice(0, 2).join(', ')})를 보면 아직 안심하기는 이른 것 같은데… 마취 전 안정화 계획도 같이 설명해 주세요.`
+              : '정말 괜찮은 거 맞나요…? 지금 아이 상태나 검사 결과가 안 좋다고 들어서 너무 불안해요.';
+          }
         }
         const usedOwner = history.filter(m => m.sender === 'owner').map(m => m.text).join(' ');
         if (/금식|밥|물|음수|사료|먹/i.test(q) && !usedOwner.includes('금식')) {
@@ -897,6 +932,7 @@
         st.aiReviewText = ''; st.mistakes = []; st.abortedByOwner = false; st.goodPoints = []; st.logs = []; st.ownerAsked = false;
         st.ownerLevel = Math.floor(Math.random() * 5) + 1;
         st.ownerBusy = false;
+        st.ownerReassured = false;
         const initSev = getOwnerSeverity(c);
         st.ownerChat = [{ sender: 'owner', text: getOwnerOpening(c, initSev, st.ownerLevel) }];
         el.vAirway.textContent = '의식 명료';
@@ -1173,6 +1209,7 @@
         if (st.step === 1) {
           const sev = getOwnerSeverity(c);
           const sevBadgeMap = {
+            reassured: ['안도·진정됨', 'rgba(16,185,129,0.22)', '#6ee7b7'],
             low: ['안정·정기', 'rgba(16,185,129,0.16)', '#6ee7b7'],
             moderate: ['주의·불안', 'rgba(245,158,11,0.18)', '#fde68a'],
             high: ['고위험·긴장', 'rgba(249,115,22,0.2)', '#fdba74'],
@@ -1188,7 +1225,7 @@
             <div class="card-title">
               <span>1단계 · 환자 평가 &amp; 보호자 AI 문진</span>
               <span style="display:inline-flex; align-items:center; gap:5px;">
-                <span style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:6px; background:${sb[1]}; color:${sb[2]};">${sb[0]}</span>
+                <span id="ind-sev-badge" style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:6px; background:${sb[1]}; color:${sb[2]};">${sb[0]}</span>
                 <select id="owner-lv-sel" class="sel" style="padding:2px 6px; font-size:10.5px; max-width:128px;" title="보호자 의학 지식 수준 (1~5단계)">
                   <option value="1" ${st.ownerLevel===1?'selected':''}>지식 Lv.1 초보</option>
                   <option value="2" ${st.ownerLevel===2?'selected':''}>지식 Lv.2 일반</option>
@@ -1216,7 +1253,7 @@
           document.getElementById('owner-lv-sel').addEventListener('change', (e) => {
             st.ownerLevel = Math.max(1, Math.min(5, Number(e.target.value) || 2));
             if (st.ownerChat.length <= 1) {
-              st.ownerChat = [{ sender: 'owner', text: getOwnerOpening(c, sev, st.ownerLevel) }];
+              st.ownerChat = [{ sender: 'owner', text: getOwnerOpening(c, getOwnerSeverity(c), st.ownerLevel) }];
               chat.innerHTML = renderOwnerChatHtml();
             }
             addLog(`[보호자 설정] 지식 수준 ${OWNER_LEVEL_LABELS[st.ownerLevel]}로 변경`, 'info');
@@ -1240,6 +1277,21 @@
               triggerOwnerAbort(q, abortReply);
               return;
             }
+            const clin = getIndClinicalStatus(c);
+            if (isReassuringMsg(q) && clin.good && !st.ownerReassured) {
+              st.ownerReassured = true;
+              addLog('[보호자 태도 변화] 양호한 바이탈·혈검 근거 안심 설명 → 보호자 안도·진정됨', 'good');
+            } else if (!clin.good) {
+              st.ownerReassured = false;
+            }
+            const liveSev = getOwnerSeverity(c);
+            const liveBadge = document.getElementById('ind-sev-badge');
+            const liveSb = sevBadgeMap[liveSev] || sevBadgeMap.moderate;
+            if (liveBadge) {
+              liveBadge.textContent = liveSb[0];
+              liveBadge.style.background = liveSb[1];
+              liveBadge.style.color = liveSb[2];
+            }
             const typingId = 'owner-typing-' + Date.now();
             chat.innerHTML += `<div id="${typingId}" class="chat-msg owner" style="opacity:0.7; font-style:italic;">보호자가 답변 중입니다...</div>`;
             chat.scrollTop = chat.scrollHeight;
@@ -1251,9 +1303,10 @@
                 body: JSON.stringify({
                   task: 'roleplay', role: 'owner_preop',
                   species: st.species === 'dog' ? '개' : '고양이',
-                  caseName: c.name, asa: c.asa, severity: sev,
+                  caseName: c.name, asa: c.asa, severity: liveSev,
                   knowledgeLevel: st.ownerLevel,
                   caseDesc: c.desc, clue: c.ownerClue,
+                  labSummary: clin.summary,
                   vitals: { hr: Math.round(st.hr), map: Math.round(st.map), spo2: Math.round(st.spo2), rr: Math.round(st.rr) },
                   chatHistory: prevHistory,
                   question: q
@@ -1271,7 +1324,7 @@
                 }
               }
             } catch (e) {}
-            if (!reply) reply = buildOfflineOwnerReply(q, c, sev, st.ownerLevel, st.ownerChat);
+            if (!reply) reply = buildOfflineOwnerReply(q, c, liveSev, st.ownerLevel, st.ownerChat);
             st.ownerBusy = false;
             if (sendBtn && !st.abortedByOwner) sendBtn.disabled = false;
             if (aiAbort) {

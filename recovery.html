@@ -475,11 +475,29 @@
         }).join('');
         box.scrollTop = box.scrollHeight;
       }
+      function isReassuringMsg(text) {
+        return /(안심|걱정\s*마|걱정\s*하지|괜찮|양호|정상|안정적|안정됐|안정화|좋아졌|잘\s*유지|무사히|수치.*좋|혈검.*정상|바이탈.*안정|호전|회복.*좋|잘\s*버티|문제\s*없|안전하게|안정권)/i.test(String(text || ''));
+      }
+      function getRecClinicalStatus() {
+        const issues = [];
+        if (st.arrested) issues.push('심정지');
+        if (st.spo2 < 95) issues.push(`SpO₂ 저하(${Math.round(st.spo2)}%)`);
+        if (st.map < 68) issues.push(`저혈압(MAP ${Math.round(st.map)})`);
+        if (st.bt < 36.6) issues.push(`저체온(${st.bt.toFixed(1)}°C)`);
+        if (st.complicationActive) issues.push('회복기 합병증 미해결');
+        const good = issues.length === 0;
+        const summary = good
+          ? `양호 (회복 바이탈 안정: HR ${Math.round(st.hr)}, MAP ${Math.round(st.map)}, SpO₂ ${Math.round(st.spo2)}%, BT ${st.bt.toFixed(1)}°C)`
+          : `이상 소견 존재 (${issues.join(', ')})`;
+        return { good, issues, summary };
+      }
       function syncDcOwnerMeta() {
-        const sev = getRecSeverity();
+        const clin = getRecClinicalStatus();
+        const sev = (st.ownerReassured && clin.good) ? 'reassured' : getRecSeverity();
         const badge = document.getElementById('dc-sev-badge');
         const sel = document.getElementById('dc-owner-lv');
         const map = {
+          reassured: ['안도·진정됨', 'rgba(16,185,129,0.22)', '#6ee7b7'],
           low: ['안정 회복', 'rgba(16,185,129,0.16)', '#6ee7b7'],
           moderate: ['주의·불안', 'rgba(245,158,11,0.18)', '#fde68a'],
           high: ['고위험·걱정', 'rgba(249,115,22,0.2)', '#fdba74'],
@@ -487,6 +505,7 @@
         };
         if (badge && map[sev]) { badge.textContent = map[sev][0]; badge.style.background = map[sev][1]; badge.style.color = map[sev][2]; }
         if (sel) sel.value = String(st.ownerLevel);
+        return sev;
       }
       function buildOfflineDcReply(msg, sev, lv, history) {
         const prevVet = history.filter(m => m.sender === 'vet').map(m => m.text.trim());
@@ -496,6 +515,16 @@
           return sev === 'critical'
             ? '선생님, 지금 아이가 회복 중에 힘들어했는데 그렇게 대충 말씀하시면 제가 집에서 어떻게 돌봐요?! 제대로 설명해 주세요!'
             : '선생님… 그렇게 성의 없이 말씀하시니까 좀 답답하고 불안하네요. 집에서 뭘 조심해야 하는지 구체적으로 설명해 주세요.';
+        }
+        const clin = getRecClinicalStatus();
+        if (isReassuringMsg(msg)) {
+          if (clin.good) {
+            return lv >= 4
+              ? '회복 바이탈과 체온·산소포화도 모두 안정적이라니 이제야 마음이 놓이네요. 말씀해 주신 퇴원 주의사항 꼼꼼히 챙기겠습니다.'
+              : '휴… 회복 상태랑 바이탈 다 좋다고 해주시니 이제야 한숨 돌리겠어요! 너무 걱정했었는데 감사합니다 선생님, 집에서도 잘 돌볼게요.';
+          } else {
+            return `선생님, 아직 회복 지표(${clin.issues.slice(0, 2).join(', ')})가 완전히 안정되진 않은 것 같은데… 조금 더 지켜보고 퇴원해야 하지 않을까요?`;
+          }
         }
         if (/밥|물|금식|식사|급여/i.test(msg)) return lv >= 4 ? '네, 마취 후 오연 방지를 위해 소량 음수부터 확인하고 구토 없으면 급여할게요. 진통제 복용 타이밍은 식후가 나을까요?' : '알겠어요, 몇 시간 뒤에 물부터 조금씩 줘볼게요. 혹시 토하면 바로 병원으로 데려와야 하나요?';
         if (/체온|보온|따뜻|떨/i.test(msg)) return '집에 가서도 따뜻한 담요 덮어주고 떨림이 계속되는지 잘 볼게요. 숨소리나 잇몸 색깔도 같이 보면 되겠죠?';
@@ -511,7 +540,7 @@
         swallows: 0, extubated: false, o2Supp: false, warming: false,
         complicationActive: false, complicationSolved: false, bagCount15: 0,
         step: 1, mistakes: [], goods: [], logs: [], dischargeDone: false,
-        ownerLevel: 2, dcHistory: [], dcBusy: false,
+        ownerLevel: 2, ownerReassured: false, dcHistory: [], dcBusy: false,
         viability: 100, arrested: false, arrestReason: '', phys: null
       };
 
@@ -760,6 +789,7 @@
         initRecoveryPhys();
         st.ownerLevel = Math.floor(Math.random() * 5) + 1;
         st.dcBusy = false;
+        st.ownerReassured = false;
         st.dcHistory = [{ sender: 'owner', text: getRecOpening(getRecSeverity(), st.ownerLevel) }];
         syncDcOwnerMeta();
         renderDcChat();
@@ -1049,8 +1079,14 @@
           setTimeout(() => openRecoveryDebrief(true), 850);
           return;
         }
-        const sev = getRecSeverity();
-        syncDcOwnerMeta();
+        const clin = getRecClinicalStatus();
+        if (isReassuringMsg(msg) && clin.good && !st.ownerReassured) {
+          st.ownerReassured = true;
+          addLog('[보호자 태도 변화] 안정된 회복 바이탈 안내 → 보호자 안도·진정됨', 'good');
+        } else if (!clin.good) {
+          st.ownerReassured = false;
+        }
+        const sev = syncDcOwnerMeta();
         dcChat.innerHTML += `<div class="chat-msg owner" style="opacity:0.7; font-style:italic;">보호자가 답변 중입니다...</div>`;
         dcChat.scrollTop = dcChat.scrollHeight;
         let reply = '';
@@ -1064,6 +1100,7 @@
               species: st.species === 'dog' ? '개' : '고양이',
               caseName: c.name, caseDesc: c.desc, severity: sev,
               knowledgeLevel: st.ownerLevel,
+              labSummary: clin.summary,
               vitals: { hr: Math.round(st.hr), spo2: Math.round(st.spo2), bt: Number(st.bt.toFixed(1)), extubated: st.extubated, etIso: Number(st.etIso.toFixed(2)) },
               recentLogs: st.logs.slice(0, 8).map(l => `[${l.t}] ${l.msg}`),
               chatHistory: prevHistory,

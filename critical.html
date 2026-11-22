@@ -1319,6 +1319,10 @@
       function getCritSeverity(c, isDischarge) {
         const asa = String(c?.asa || '');
         const p = st.phys || {};
+        const clin = getCritClinicalStatus(isDischarge);
+        if (st.ownerReassured && clin.good) {
+          return { key: 'reassured', label: '안도 · 진정됨', bg: 'rgba(16,185,129,0.20)', color: '#6ee7b7' };
+        }
         if (isDischarge) {
           if (!st.extubated || st.spo2 < 92 || st.map < 60 || st.bt < 35.5) {
             return { key: 'critical', label: '위급 · 회복 불안정', bg: 'rgba(244,63,94,0.22)', color: '#fda4af' };
@@ -1336,6 +1340,38 @@
           return { key: 'high', label: '중증 · 고위험', bg: 'rgba(245,158,11,0.20)', color: '#fcd34d' };
         }
         return { key: 'moderate', label: '주의 · 질환 동반', bg: 'rgba(56,189,248,0.18)', color: '#7dd3fc' };
+      }
+
+      function isReassuringMsg(text) {
+        return /(안심|걱정\s*마|걱정\s*하지|괜찮|양호|정상|안정적|안정됐|안정화|좋아졌|잘\s*유지|무사히|수치.*좋|혈검.*정상|바이탈.*안정|호전|회복.*좋|잘\s*버티|문제\s*없|안전하게|안정권)/i.test(String(text || ''));
+      }
+
+      function getCritClinicalStatus(isDischarge) {
+        const p = st.phys || {};
+        const issues = [];
+        if (st.spo2 < 95) issues.push(`SpO₂ 저하(${Math.round(st.spo2)}%)`);
+        if (st.map < 68) issues.push(`저혈압(MAP ${Math.round(st.map)})`);
+        if (st.bt < 36.6) issues.push(`저체온(${st.bt.toFixed(1)}°C)`);
+        if (st.hr < 55 || st.hr > 165) issues.push(`심박 이상(HR ${Math.round(st.hr)})`);
+        if (isDischarge && (!st.extubated || st.etIso > 0.3)) issues.push('회복·발관 미완료');
+        if ((p.serumK || 4.5) >= 6.0) issues.push(`고칼륨혈증(K⁺ ${(p.serumK).toFixed(1)})`);
+        if ((p.pcv || 38) < 26) issues.push(`빈혈(PCV ${Math.round(p.pcv)}%)`);
+        if ((p.bloodGlucose || 100) < 75) issues.push(`저혈당(Glu ${Math.round(p.bloodGlucose)})`);
+        if ((p.icp || 10) >= 16) issues.push(`뇌압 상승(ICP ${Math.round(p.icp)})`);
+        if ((p.arterialPH || 7.4) < 7.28) issues.push(`산증(pH ${(p.arterialPH).toFixed(2)})`);
+        const good = !st.arrested && issues.length === 0;
+        const summary = good
+          ? `양호 (바이탈·혈액검사 주요 수치 안정: K⁺ ${(p.serumK||4.5).toFixed(1)}, PCV ${Math.round(p.pcv||38)}%, Glu ${Math.round(p.bloodGlucose||100)}, pH ${(p.arterialPH||7.4).toFixed(2)})`
+          : `이상 소견 존재 (${issues.join(', ')})`;
+        return { good, issues, summary };
+      }
+
+      function syncCritSevBadge(badgeId, sev) {
+        const el = document.getElementById(badgeId);
+        if (!el || !sev) return;
+        el.textContent = sev.label;
+        el.style.background = sev.bg;
+        el.style.color = sev.color;
       }
 
       function getCritOpening(c, sev, lv, isDischarge) {
@@ -1401,6 +1437,18 @@
         if (isRepeat) {
           if (sev.key === 'critical') return '선생님, 방금 똑같은 걸 물어보셔서 제가 이미 말씀드렸잖아요! 지금 시간 끌 때가 아닌 것 같은데 다른 거 빨리 확인해 주세요!';
           return '어… 그건 아까 말씀드린 것 같은데요? 혹시 제 말이 잘 전달이 안 됐을까요? 다른 확인하실 부분 있으시면 말씀해 주세요.';
+        }
+
+        const clinStatus = getCritClinicalStatus(isDischarge);
+        if (isReassuringMsg(q)) {
+          if (clinStatus.good) {
+            if (lv >= 4) return '바이탈이랑 혈액검사 주요 수치가 안정 범위라니 이제야 마음이 좀 놓이네요. 선생님 말씀 믿고 차분히 맡기겠습니다. 추가로 확인하실 부분 있으신가요?';
+            if (lv <= 2) return '휴… 바이탈이랑 검사 결과 다 양호하다고 하시니 이제야 한숨 돌리겠어요! 너무 겁먹었었는데 감사합니다 선생님, 안심하고 맡길게요.';
+            return '다행이네요 선생님, 검사 결과랑 바이탈이 안정적이라고 직접 설명해 주시니 마음이 훨씬 놓여요. 진행 부탁드립니다.';
+          } else {
+            if (lv >= 4) return `선생님, 지금 수치(${clinStatus.issues.slice(0, 2).join(', ')})를 보면 아직 완전히 안심할 단계는 아닌 것 같은데요… 이 부분 교정 계획도 같이 설명해 주세요.`;
+            return '정말 괜찮은 거 맞나요…? 지금 상태나 검사 결과가 아직 안 좋다고 들었는데 너무 불안해요. 구체적으로 어떤 처치를 해주시는 건가요?';
+          }
         }
 
         if (isDischarge) {
@@ -1470,6 +1518,7 @@
           ? (Math.floor(Math.random() * 5) + 1)
           : (CASE_OWNER_LEVELS[st.caseId] || 2);
         st.ownerLevel = st.assignedOwnerLevel;
+        st.ownerReassured = false;
         st.chatBusy = false;
 
         const lab = PreopLabEngine.generate(c.labKey, st.species, st.aiCase || null);
@@ -1955,7 +2004,15 @@
           st.chatBusy = true;
           if (btn) btn.disabled = true;
           renderCritChat('s1-chat', st.s1Chat, true);
+          const clin1 = getCritClinicalStatus(false);
+          if (isReassuringMsg(q) && clin1.good && !st.ownerReassured) {
+            st.ownerReassured = true;
+            addLog(`[보호자 태도 변화] 양호한 바이탈·혈검 근거 안심 설명 → 보호자 안도·진정됨`, 'good');
+          } else if (!clin1.good) {
+            st.ownerReassured = false;
+          }
           const sev1 = getCritSeverity(c, false);
+          syncCritSevBadge('s1-sev-badge', sev1);
           const p = st.phys || {};
           let reply = '', aiAbort = false;
           try {
@@ -1968,6 +2025,7 @@
                 question: q,
                 knowledgeLevel: st.ownerLevel,
                 severity: sev1.key,
+                labSummary: clin1.summary,
                 vitals: `HR ${Math.round(st.hr)}, MAP ${Math.round(st.map)}, SpO2 ${Math.round(st.spo2)}%, BT ${st.bt.toFixed(1)}°C, K+ ${(p.serumK||4.5).toFixed(1)}, PCV ${(p.pcv||38).toFixed(0)}%`,
                 recentLogs: st.logs.slice(0, 5).map((l) => l.msg),
                 chatHistory: st.s1Chat.slice(0, -1).slice(-14)
@@ -2497,7 +2555,15 @@
           if (btn) btn.disabled = true;
           renderCritChat('s3-chat', st.s3Chat, true);
           const c3 = getCaseObj();
+          const clin3 = getCritClinicalStatus(true);
+          if (isReassuringMsg(msg) && clin3.good && !st.ownerReassured) {
+            st.ownerReassured = true;
+            addLog(`[보호자 태도 변화] 안정된 회복 바이탈·혈검 안내 → 보호자 안도·진정됨`, 'good');
+          } else if (!clin3.good) {
+            st.ownerReassured = false;
+          }
           const sev3 = getCritSeverity(c3, true);
+          syncCritSevBadge('s3-sev-badge', sev3);
           let reply = '', aiAbort = false;
           try {
             const res = await fetch(AI_API_PREFIX + '/ai', {
@@ -2509,6 +2575,7 @@
                 vetAdvice: msg,
                 knowledgeLevel: st.ownerLevel,
                 severity: sev3.key,
+                labSummary: clin3.summary,
                 vitals: `EtIso ${st.etIso.toFixed(2)}%, BT ${st.bt.toFixed(1)}°C, SpO2 ${Math.round(st.spo2)}%, MAP ${Math.round(st.map)}, 발관 ${st.extubated ? '완료' : '미완료'}, 연하반사 ${st.swallowCount}회`,
                 recentLogs: st.logs.slice(0, 5).map((l) => l.msg),
                 chatHistory: st.s3Chat.slice(0, -1).slice(-14)

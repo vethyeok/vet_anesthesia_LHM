@@ -94,6 +94,7 @@ export async function onRequestPost(context) {
         else sevLevel = 'low';
       }
       const emotionMap = {
+        reassured: '안도·진정됨(차분하고 신뢰함): 처음에는 걱정되고 다급했으나, 실제 바이탈과 혈액검사 결과가 양호하다는 수의사의 차분한 안심 설명을 듣고 마음이 놓여 한결 부드럽고 협조적인 어조.',
         low: '경증/정기 시술(비교적 차분함): 평소 건강해 큰 패닉은 없지만 마취에 대한 소소한 긴장과 궁금증이 있는 차분한 어조.',
         moderate: '중등도/기저질환(뚜렷한 불안·걱정): 기저질환이나 합병증 때문에 걱정이 크고, 안전 여부와 과거 증상에 예민하게 반응하는 어조.',
         high: '중증/고위험(심한 불안·초조): 아이 상태가 좋지 않아 초조하고 목소리가 급하며, 수의사의 확신과 신속한 설명을 간절히 원함.',
@@ -104,19 +105,21 @@ export async function onRequestPost(context) {
         ? historyArr.map((m) => `${m.sender === 'vet' ? '수의사' : '보호자'}: ${m.text}`).join('\n')
         : '(첫 대화)';
       const vitalsText = body.vitals ? JSON.stringify(body.vitals) : '정보 없음';
+      const labSummaryText = body.labSummary ? String(body.labSummary) : '특이 요약 없음';
       const logsText = Array.isArray(body.recentLogs) && body.recentLogs.length ? body.recentLogs.slice(0, 8).join(' | ') : '없음';
       const realismRule = `실전 대화 규칙(필수):
 1) [이전 대화 기록]을 반드시 읽고 맥락을 이어서 답하세요. 이미 말한 내용을 기계적으로 반복하지 마세요(중복 답변 금지).
 2) 수의사가 방금 이미 대답한 걸 또 물어보거나, 환자 상황과 무관한 엉뚱한 말, "네/음/ㅋㅋ/몰라요" 같은 무성의한 단답, 응급 상황에서 시간을 끄는 답답한 질문을 하면 실제 보호자처럼 당황·답답함·짜증·불신을 자연스럽게 표현하세요.
 3) 매번 "네 선생님 ~ 감사합니다!"처럼 판에 박힌 로봇 말투를 절대 쓰지 말고, 실제 병원 진료실/상담실 구어체로 1~3문장으로 자연스럽게 반응하세요.
-4) 환자 시나리오 배경과 현재 상태(경중·바이탈·처치 경과)에 맞는 구체적이고 현실적인 질문이나 반응을 하세요.`;
+4) 환자 시나리오 배경과 현재 상태(경중·바이탈·혈액검사·처치 경과)에 맞는 구체적이고 현실적인 질문이나 반응을 하세요.
+5) [실시간 태도 변화] 처음에 걱정이나 다급함이 있었더라도, 실제 환자의 바이탈과 혈액검사 결과가 양호하고 수의사가 이를 근거로 안심·설명해 주면 억지로 계속 불안해하지 말고 실제로 안도하고 차분해진 태도로 자연스럽게 전환하세요. 반대로 실제 바이탈이나 혈액검사 이상이 뚜렷한데 무조건 괜찮다고만 하면 의구심이나 불안을 표현하세요.`;
 
       if (body.role === 'owner_preop') {
         prompt = `당신은 동물병원에 내원한 반려동물(${body.species}) 보호자입니다.
 ${abortRule}
 [보호자 지식 수준] ${knowledgeMap[lv]}
 [환자 경중 및 감정 상태] ${emotionMap[sevLevel] || emotionMap.moderate}
-[환자 시나리오 배경] 케이스: ${body.caseName || ''} (${asaStr || 'ASA 미상'}) | 상세: ${body.caseDesc || ''} | 보호자가 알고 있는 단서: ${body.clue || ''} | 현재 바이탈: ${vitalsText}
+[환자 시나리오 배경] 케이스: ${body.caseName || ''} (${asaStr || 'ASA 미상'}) | 상세: ${body.caseDesc || ''} | 보호자가 알고 있는 단서: ${body.clue || ''} | 현재 바이탈: ${vitalsText} | 혈액검사 요약: ${labSummaryText}
 [이전 대화 기록]
 ${historyText}
 ${realismRule}
@@ -127,7 +130,7 @@ ${realismRule}
 ${abortRule}
 [보호자 지식 수준] ${knowledgeMap[lv]}
 [환자 경중 및 감정 상태] ${emotionMap[sevLevel] || emotionMap.moderate}
-[환자 회복 상태 및 처치 경과] 상세: ${body.caseDesc || ''} | 현재 바이탈/회복 상태: ${vitalsText} | 최근 처치 로그: ${logsText}
+[환자 회복 상태 및 처치 경과] 상세: ${body.caseDesc || ''} | 현재 바이탈/회복 상태: ${vitalsText} | 혈액검사 요약: ${labSummaryText} | 최근 처치 로그: ${logsText}
 [이전 대화 기록]
 ${historyText}
 ${realismRule}
