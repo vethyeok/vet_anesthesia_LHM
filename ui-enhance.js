@@ -47,23 +47,19 @@
     const fsBtn = document.getElementById('btn-fullscreen');
     const seminarBtn = createSeminarToggle();
 
-    // Maintenance simulator: keep its existing header, just insert seminar toggle cleanly
-    if (!isSplitSim) {
-      if (fsBtn && fsBtn.parentNode && !seminarBtn.parentNode) {
-        fsBtn.parentNode.insertBefore(seminarBtn, fsBtn);
-      }
-      return;
-    }
-
-    // Induction / Recovery / Critical simulators:
-    // Keep ONLY colored mark, difficulty/mode (#btn-mode-easy), 케이스, 설정, and ⛶ in the header!
-    const ctrlRow = document.querySelector('.controls-row, .hdr-controls');
-    if (!ctrlRow || document.getElementById('btn-ui-settings')) return;
+    if (document.getElementById('btn-ui-settings')) return;
 
     if (fsBtn) {
       fsBtn.title = '전체화면 전환';
       fsBtn.textContent = '⛶';
     }
+
+    // Determine header controls container (split sims vs. maintenance.html)
+    const isMaint = !isSplitSim && !!document.getElementById('hdr-drawer');
+    const ctrlRow = isMaint
+      ? document.getElementById('hdr-drawer').parentElement
+      : document.querySelector('.controls-row, .hdr-controls');
+    if (!ctrlRow) return;
 
     // 2A. '케이스' Popover (Species toggle + Case select + AI Random Patient)
     const caseWrap = document.createElement('div');
@@ -89,18 +85,6 @@
     document.body.appendChild(casePop);
     const caseGrid = casePop.querySelector('#ui-case-pop-grid');
 
-    const segEl = ctrlRow.querySelector('.seg');
-    if (segEl) caseGrid.appendChild(segEl);
-    const caseSel = ctrlRow.querySelector('select');
-    if (caseSel) caseGrid.appendChild(caseSel);
-    ['btn-ai-case', 'btn-ai-new-case'].forEach((id) => {
-      const n = document.getElementById(id);
-      if (n && ctrlRow.contains(n)) {
-        n.style.gridColumn = 'span 2';
-        caseGrid.appendChild(n);
-      }
-    });
-
     // 2B. '설정' Popover (all other header buttons except difficulty/mode & fullscreen)
     const wrap = document.createElement('div');
     wrap.className = 'ui-settings-wrap';
@@ -125,30 +109,94 @@
     document.body.appendChild(pop);
     const grid = pop.querySelector('#ui-settings-pop-grid');
 
-    const settingsIds = [
-      'btn-preop-lab',
-      'btn-poc-lab',
-      'btn-phys',
-      'btn-calc-mode',
-      'btn-calc-toggle',
-      'btn-reset',
-      'btn-open-start',
-      'btn-back-start',
-      'btn-credits'
-    ];
-    settingsIds.forEach((id) => {
-      const node = document.getElementById(id);
-      if (node && ctrlRow.contains(node)) grid.appendChild(node);
-    });
-    grid.appendChild(seminarBtn);
+    if (isMaint) {
+      const hdrDrawer = document.getElementById('hdr-drawer');
+      const mobMenu = document.getElementById('btn-mob-menu');
+      const mobFs = document.getElementById('btn-fullscreen-mob');
+      if (mobMenu && mobMenu.parentElement) mobMenu.parentElement.style.display = 'none';
+      if (mobFs) mobFs.style.display = 'none';
 
-    // Insert '케이스' and '설정' right before fullscreen button
-    if (fsBtn && fsBtn.parentNode === ctrlRow) {
-      ctrlRow.insertBefore(caseWrap, fsBtn);
-      ctrlRow.insertBefore(wrap, fsBtn);
-    } else {
+      const speciesGrp = hdrDrawer.querySelector('[role="group"][aria-label="축종 선택"]');
+      if (speciesGrp) {
+        speciesGrp.style.gridColumn = 'span 2';
+        speciesGrp.style.display = 'grid';
+        speciesGrp.style.gridTemplateColumns = '1fr 1fr';
+        caseGrid.appendChild(speciesGrp);
+      }
+      const scenSel = document.getElementById('scenario-select');
+      if (scenSel) {
+        scenSel.style.maxWidth = '100%';
+        scenSel.style.gridColumn = 'span 2';
+        caseGrid.appendChild(scenSel);
+      }
+      const aiCaseBtn = document.getElementById('btn-ai-case');
+      if (aiCaseBtn) {
+        aiCaseBtn.style.gridColumn = 'span 2';
+        caseGrid.appendChild(aiCaseBtn);
+      }
+
+      [
+        'btn-tutorial',
+        'btn-ai-tutor',
+        'btn-audio',
+        'btn-toast-toggle',
+        'btn-pause',
+        'btn-reset',
+        'btn-go-start'
+      ].forEach((id) => {
+        const node = document.getElementById(id);
+        if (node) grid.appendChild(node);
+      });
+      grid.appendChild(seminarBtn);
+
+      hdrDrawer.style.display = 'none';
       ctrlRow.appendChild(caseWrap);
       ctrlRow.appendChild(wrap);
+      if (fsBtn) {
+        fsBtn.classList.remove('hidden', 'lg:inline');
+        fsBtn.style.display = 'inline-flex';
+        fsBtn.style.alignItems = 'center';
+        fsBtn.style.justifyContent = 'center';
+        ctrlRow.appendChild(fsBtn);
+      }
+    } else {
+      const segEl = ctrlRow.querySelector('.seg');
+      if (segEl) caseGrid.appendChild(segEl);
+      const caseSel = ctrlRow.querySelector('select');
+      if (caseSel) caseGrid.appendChild(caseSel);
+      ['btn-ai-case', 'btn-ai-new-case'].forEach((id) => {
+        const n = document.getElementById(id);
+        if (n && ctrlRow.contains(n)) {
+          n.style.gridColumn = 'span 2';
+          caseGrid.appendChild(n);
+        }
+      });
+
+      const settingsIds = [
+        'btn-preop-lab',
+        'btn-poc-lab',
+        'btn-phys',
+        'btn-calc-mode',
+        'btn-calc-toggle',
+        'btn-reset',
+        'btn-open-start',
+        'btn-back-start',
+        'btn-credits'
+      ];
+      settingsIds.forEach((id) => {
+        const node = document.getElementById(id);
+        if (node && ctrlRow.contains(node)) grid.appendChild(node);
+      });
+      grid.appendChild(seminarBtn);
+
+      // Insert '케이스' and '설정' right before fullscreen button
+      if (fsBtn && fsBtn.parentNode === ctrlRow) {
+        ctrlRow.insertBefore(caseWrap, fsBtn);
+        ctrlRow.insertBefore(wrap, fsBtn);
+      } else {
+        ctrlRow.appendChild(caseWrap);
+        ctrlRow.appendChild(wrap);
+      }
     }
 
     const closeAll = () => {
