@@ -1712,6 +1712,7 @@
                 <button type="button" class="choice-btn ${st.premed==='midaz'?'selected':''}" data-premed="midaz"><strong>Midazolam + Fentanyl/Methadone</strong><small>심혈관 안정 · 중환자/심부전/쇼크 Co-induction</small></button>
                 <button type="button" class="choice-btn ${st.premed==='ace'?'selected':''}" data-premed="ace"><strong>Acepromazine + Butorphanol</strong><small>α₁ 혈관확장 · 저혈압/쇼크·출혈 금기</small></button>
                 <button type="button" class="choice-btn ${st.premed==='ket'?'selected':''}" data-premed="ket"><strong>Ketamine + Midazolam</strong><small>교감신경 항진 · HCM/뇌압(ICP) 금기</small></button>
+                <button type="button" class="choice-btn ${st.premed==='none'?'selected':''}" data-premed="none" style="grid-column:span 2;"><strong>전처치 생략 (유도 직행)</strong><small>극도 쇠약·쇼크·응급 환자에서 전처치 없이 신속 유도 시 선택 (유도제 요구량↑)</small></button>
               </div>
               <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
                 <button id="btn-s1-preox" type="button" class="btn ${st.preox?'btn-emerald':'btn-sky'}">${st.preox ? '✓ 전산소화 3분 완료' : '③ 전산소화 (O₂ 3분)'}</button>
@@ -1900,6 +1901,15 @@
         document.querySelectorAll('[data-premed]').forEach((b) => {
           b.addEventListener('click', () => {
             const pmKey = b.dataset.premed;
+            if (pmKey === 'none') {
+              st.premed = 'none';
+              if (st.phys) st.phys.nociception = clamp((st.phys.nociception || 15) + 8, 0, 100);
+              addLog('[전처치 생략] 전처치 없이 유도 직행 선택 — 전산소화 후 유도제를 신중히 적정하세요.', 'info');
+              showToast('전처치 생략 선택 — 유도제 요구량·교감자극 증가에 주의하세요.', 'info');
+              syncHeaderUI();
+              renderStagePanel();
+              return;
+            }
             const drugKey = 'pre_' + pmKey;
             requestDrugDose(drugKey, (res) => {
               const p = st.phys;
