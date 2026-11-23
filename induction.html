@@ -615,6 +615,21 @@
         4: 'Lv.4 숙련',
         5: 'Lv.5 준전문가'
       };
+      const OWNER_PERSONALITIES = {
+        indifferent: '성향: 무관심',
+        optimistic: '성향: 낙관',
+        neutral: '성향: 중립',
+        anxious: '성향: 걱정',
+        negative: '성향: 부정적'
+      };
+      const OWNER_PERS_KEYS = Object.keys(OWNER_PERSONALITIES);
+      function applyOwnerPersTone(baseText, pers) {
+        if (pers === 'indifferent') return '어… 제가 좀 바빠서 대충 맡기고 가려는데, 알아서 잘 해주시겠죠? ' + baseText;
+        if (pers === 'optimistic') return '선생님 믿고 왔어요! 우리 애 원래 튼튼해서 잘 이겨낼 거예요. ' + baseText;
+        if (pers === 'anxious') return '너무 걱정돼서 잠도 못 잤어요… ' + baseText;
+        if (pers === 'negative') return '솔직히 마취했다가 괜히 잘못되는 거 아닌지 좀 미심쩍긴 한데요… ' + baseText;
+        return baseText;
+      }
       function escHtml(s) {
         return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
@@ -934,10 +949,11 @@
         st.o2Flow = 1.5; st.isoInit = 1.5; st.aplOpen = true;
         st.aiReviewText = ''; st.mistakes = []; st.abortedByOwner = false; st.goodPoints = []; st.logs = []; st.ownerAsked = false;
         st.ownerLevel = Math.floor(Math.random() * 5) + 1;
+        st.ownerPersonality = OWNER_PERS_KEYS[Math.floor(Math.random() * OWNER_PERS_KEYS.length)];
         st.ownerBusy = false;
         st.ownerReassured = false;
         const initSev = getOwnerSeverity(c);
-        st.ownerChat = [{ sender: 'owner', text: getOwnerOpening(c, initSev, st.ownerLevel) }];
+        st.ownerChat = [{ sender: 'owner', text: applyOwnerPersTone(getOwnerOpening(c, initSev, st.ownerLevel), st.ownerPersonality) }];
         el.vAirway.textContent = '의식 명료';
         addLog(`[케이스 시작] ${st.species === 'dog' ? '개' : '고양이'} · ${c.name} (${c.asa}) · 보호자 ${OWNER_LEVEL_LABELS[st.ownerLevel]}`, 'info');
         setAlarm('1단계: 환자 신체검사 및 보호자 문진으로 숨겨진 위험 요인을 확인하세요.', 'good');
@@ -1289,16 +1305,19 @@
               <span>1단계 · 환자 평가 &amp; 보호자 AI 문진</span>
               <span style="display:inline-flex; align-items:center; gap:5px;">
                 <span id="ind-sev-badge" style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:6px; background:${sb[1]}; color:${sb[2]};">${sb[0]}</span>
-                <select id="owner-lv-sel" class="sel" style="padding:2px 6px; font-size:10.5px; max-width:128px;" title="보호자 의학 지식 수준 (1~5단계)">
+                <select id="owner-lv-sel" class="sel" style="padding:2px 6px; font-size:10.5px; max-width:118px;" title="보호자 의학 지식 수준 (1~5단계)">
                   <option value="1" ${st.ownerLevel===1?'selected':''}>지식 Lv.1 초보</option>
                   <option value="2" ${st.ownerLevel===2?'selected':''}>지식 Lv.2 일반</option>
                   <option value="3" ${st.ownerLevel===3?'selected':''}>지식 Lv.3 관심</option>
                   <option value="4" ${st.ownerLevel===4?'selected':''}>지식 Lv.4 숙련</option>
                   <option value="5" ${st.ownerLevel===5?'selected':''}>지식 Lv.5 준전문가</option>
                 </select>
+                <select id="owner-pers-sel" class="sel" style="padding:2px 6px; font-size:10.5px; max-width:104px;" title="보호자 성향 (무관심·낙관·중립·걱정·부정적)">
+                  ${OWNER_PERS_KEYS.map((k) => `<option value="${k}" ${st.ownerPersonality===k?'selected':''}>${OWNER_PERSONALITIES[k]}</option>`).join('')}
+                </select>
               </span>
             </div>
-            <p style="font-size:12px; color:#cbd5e1; line-height:1.5;">마취 전 보호자와 실제 대화하듯 문진하고 상단 <strong>[마취전 혈액검사]</strong>를 확인하세요. (지식 수준·환자 경중에 따라 반응과 이해도가 달라집니다)</p>
+            <p style="font-size:12px; color:#cbd5e1; line-height:1.5;">마취 전 보호자와 실제 대화하듯 문진하고 상단 <strong>[마취전 혈액검사]</strong>를 확인하세요. (지식 수준·성향·환자 경중에 따라 반응이 달라집니다)</p>
             <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:8px;">
               <button type="button" class="btn btn-sky q-owner">금식과 음수는 잘 지켰나요?</button>
               <button type="button" class="btn btn-sky q-owner">현재 복용 중인 약이나 증상이 있나요?</button>
@@ -1316,10 +1335,18 @@
           document.getElementById('owner-lv-sel').addEventListener('change', (e) => {
             st.ownerLevel = Math.max(1, Math.min(5, Number(e.target.value) || 2));
             if (st.ownerChat.length <= 1) {
-              st.ownerChat = [{ sender: 'owner', text: getOwnerOpening(c, getOwnerSeverity(c), st.ownerLevel) }];
+              st.ownerChat = [{ sender: 'owner', text: applyOwnerPersTone(getOwnerOpening(c, getOwnerSeverity(c), st.ownerLevel), st.ownerPersonality) }];
               chat.innerHTML = renderOwnerChatHtml();
             }
             addLog(`[보호자 설정] 지식 수준 ${OWNER_LEVEL_LABELS[st.ownerLevel]}로 변경`, 'info');
+          });
+          document.getElementById('owner-pers-sel').addEventListener('change', (e) => {
+            st.ownerPersonality = OWNER_PERSONALITIES[e.target.value] ? e.target.value : 'neutral';
+            if (st.ownerChat.length <= 1) {
+              st.ownerChat = [{ sender: 'owner', text: applyOwnerPersTone(getOwnerOpening(c, getOwnerSeverity(c), st.ownerLevel), st.ownerPersonality) }];
+              chat.innerHTML = renderOwnerChatHtml();
+            }
+            addLog(`[보호자 설정] ${OWNER_PERSONALITIES[st.ownerPersonality]}으로 변경`, 'info');
           });
           async function askOwner(q) {
             if (!q || st.abortedByOwner || st.ownerBusy) return;
@@ -1368,6 +1395,7 @@
                   species: st.species === 'dog' ? '개' : '고양이',
                   caseName: c.name, asa: c.asa, severity: liveSev,
                   knowledgeLevel: st.ownerLevel,
+                  ownerPersonality: st.ownerPersonality,
                   caseDesc: c.desc, clue: c.ownerClue,
                   labSummary: clin.summary,
                   vitals: { hr: Math.round(st.hr), map: Math.round(st.map), spo2: Math.round(st.spo2), rr: Math.round(st.rr) },

@@ -1313,6 +1313,21 @@
         4: 'Lv.4 숙련 (병명·수치·처치 이해)',
         5: 'Lv.5 준전문가 (약물·수치·처치법 능통)'
       };
+      const OWNER_PERSONALITIES = {
+        indifferent: '성향: 무관심',
+        optimistic: '성향: 낙관',
+        neutral: '성향: 중립',
+        anxious: '성향: 걱정',
+        negative: '성향: 부정적'
+      };
+      const OWNER_PERS_KEYS = Object.keys(OWNER_PERSONALITIES);
+      function applyCritPersTone(baseText, pers) {
+        if (pers === 'indifferent') return '어… 제가 좀 바빠서 대충 맡기고 가려는데 알아서 잘 해주시겠죠? ' + baseText;
+        if (pers === 'optimistic') return '선생님 믿고 왔어요! 우리 애 원래 튼튼해서 잘 이겨낼 거예요. ' + baseText;
+        if (pers === 'anxious') return '너무 걱정돼서 손이 떨려요… ' + baseText;
+        if (pers === 'negative') return '솔직히 마취했다가 괜히 잘못되는 거 아닌지 좀 미심쩍은데요… ' + baseText;
+        return baseText;
+      }
 
       function escHtml(s) {
         return String(s || '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -1377,32 +1392,35 @@
       }
 
       function getCritOpening(c, sev, lv, isDischarge) {
+        let txt = '';
         if (isDischarge) {
           if (sev.key === 'critical') {
-            if (lv >= 4) return `선생님, 지금 체온(${st.bt.toFixed(1)}°C)이나 산소포화도(${Math.round(st.spo2)}%) 보면 아직 완전히 안정된 건 아닌 것 같은데… 이 상태로 퇴원 논의해도 되는 건가요?`;
-            if (lv <= 2) return `선생님, 애가 아직도 많이 처지고 숨쉬는 것도 불안해 보이는데… 정말 괜찮은 거 맞나요? 집에 데려가도 되는지 너무 무서워요.`;
-            return `선생님, 수술은 끝났다고 들었는데 아직 회복이 덜 된 것 같아 보여서요. 지금 수치나 상태가 어떤지 정확히 말씀해 주세요.`;
+            if (lv >= 4) txt = `선생님, 지금 체온(${st.bt.toFixed(1)}°C)이나 산소포화도(${Math.round(st.spo2)}%) 보면 아직 완전히 안정된 건 아닌 것 같은데… 이 상태로 퇴원 논의해도 되는 건가요?`;
+            else if (lv <= 2) txt = `선생님, 애가 아직도 많이 처지고 숨쉬는 것도 불안해 보이는데… 정말 괜찮은 거 맞나요? 집에 데려가도 되는지 너무 무서워요.`;
+            else txt = `선생님, 수술은 끝났다고 들었는데 아직 회복이 덜 된 것 같아 보여서요. 지금 수치나 상태가 어떤지 정확히 말씀해 주세요.`;
+          } else if (sev.key === 'high') {
+            if (lv >= 4) txt = `선생님, 고위험 마취였는데 무사히 끝나서 정말 다행입니다. 오늘 밤 진통·보온 관리랑 재내원 기준(호흡수나 점막색 등) 구체적으로 안내해 주세요.`;
+            else if (lv <= 2) txt = `선생님, 큰 고비 넘긴 거 맞죠…? 집에 가서 밥이랑 물은 언제부터 줘도 되고, 뭐가 이상하면 바로 뛰어와야 하나요?`;
+            else txt = `선생님, 수술 잘 끝나서 한숨 놓았어요. 집에 가서 체온 유지랑 약 먹이는 거, 주의해야 할 증상들 정리해서 알려주세요.`;
+          } else if (lv >= 4) {
+            txt = `선생님 고생 많으셨습니다. 마취 회복 경과랑 퇴원 후 식이 재개 시점, 투약 스케줄 확인 부탁드립니다.`;
+          } else {
+            txt = `선생님, 수술 잘 끝났나요? 집에 가서 밥·물·약은 어떻게 챙기면 될지 알려주세요.`;
           }
-          if (sev.key === 'high') {
-            if (lv >= 4) return `선생님, 고위험 마취였는데 무사히 끝나서 정말 다행입니다. 오늘 밤 진통·보온 관리랑 재내원 기준(호흡수나 점막색 등) 구체적으로 안내해 주세요.`;
-            if (lv <= 2) return `선생님, 큰 고비 넘긴 거 맞죠…? 집에 가서 밥이랑 물은 언제부터 줘도 되고, 뭐가 이상하면 바로 뛰어와야 하나요?`;
-            return `선생님, 수술 잘 끝나서 한숨 놓았어요. 집에 가서 체온 유지랑 약 먹이는 거, 주의해야 할 증상들 정리해서 알려주세요.`;
-          }
-          if (lv >= 4) return `선생님 고생 많으셨습니다. 마취 회복 경과랑 퇴원 후 식이 재개 시점, 투약 스케줄 확인 부탁드립니다.`;
-          return `선생님, 수술 잘 끝났나요? 집에 가서 밥·물·약은 어떻게 챙기면 될지 알려주세요.`;
+        } else if (sev.key === 'critical') {
+          if (lv >= 4) txt = `선생님, 애 상태가 급격히 무너져서 응급으로 왔습니다! (${c.asa}) 지금 마취 전에 전해질이나 혈압부터 안정화해야 하는 거 아닌가요? 확인하실 병력 빨리 물어봐 주세요!`;
+          else if (lv <= 2) txt = `선생님!! 우리 애가 갑자기 축 늘어지고 숨도 이상하게 쉬어요! 너무 무서워서 손이 다 떨리는데… 제발 살려주세요, 뭐부터 말씀드리면 될까요?!`;
+          else txt = `선생님, 애 상태가 너무 안 좋아서 급히 데려왔어요! 마취 자체가 위험할 것 같은데… 확인하실 거 있으면 빨리 물어봐 주세요.`;
+        } else if (sev.key === 'high') {
+          if (lv >= 4) txt = `선생님, 기저질환 때문에 마취 위험도가 높다고 들어서 걱정이 큽니다. 이전 처치나 복용 중인 약 정리해 왔으니 필요한 부분 물어봐 주세요.`;
+          else if (lv <= 2) txt = `선생님, 우리 애가 평소에도 몸이 안 좋아서 마취가 너무 걱정돼요… 잘 버텨줄 수 있을까요? 뭘 알려드리면 되나요?`;
+          else txt = `선생님, 마취 위험도가 좀 있다고 해서 많이 긴장되네요. 금식이나 평소 먹던 약 중에 확인하실 거 물어보세요.`;
+        } else if (lv >= 4) {
+          txt = `선생님 안녕하세요. 마취 전 문진 진행할까요? 이전 진단이랑 투약 이력 정리해 왔습니다.`;
+        } else {
+          txt = `선생님, 마취 전에 확인하실 거 있으시면 편하게 물어보세요.`;
         }
-        if (sev.key === 'critical') {
-          if (lv >= 4) return `선생님, 애 상태가 급격히 무너져서 응급으로 왔습니다! (${c.asa}) 지금 마취 전에 전해질이나 혈압부터 안정화해야 하는 거 아닌가요? 확인하실 병력 빨리 물어봐 주세요!`;
-          if (lv <= 2) return `선생님!! 우리 애가 갑자기 축 늘어지고 숨도 이상하게 쉬어요! 너무 무서워서 손이 다 떨리는데… 제발 살려주세요, 뭐부터 말씀드리면 될까요?!`;
-          return `선생님, 애 상태가 너무 안 좋아서 급히 데려왔어요! 마취 자체가 위험할 것 같은데… 확인하실 거 있으면 빨리 물어봐 주세요.`;
-        }
-        if (sev.key === 'high') {
-          if (lv >= 4) return `선생님, 기저질환 때문에 마취 위험도가 높다고 들어서 걱정이 큽니다. 이전 처치나 복용 중인 약 정리해 왔으니 필요한 부분 물어봐 주세요.`;
-          if (lv <= 2) return `선생님, 우리 애가 평소에도 몸이 안 좋아서 마취가 너무 걱정돼요… 잘 버텨줄 수 있을까요? 뭘 알려드리면 되나요?`;
-          return `선생님, 마취 위험도가 좀 있다고 해서 많이 긴장되네요. 금식이나 평소 먹던 약 중에 확인하실 거 물어보세요.`;
-        }
-        if (lv >= 4) return `선생님 안녕하세요. 마취 전 문진 진행할까요? 이전 진단이랑 투약 이력 정리해 왔습니다.`;
-        return `선생님, 마취 전에 확인하실 거 있으시면 편하게 물어보세요.`;
+        return applyCritPersTone(txt, st.ownerPersonality);
       }
 
       function renderCritChat(elId, arr, typing = false) {
@@ -1516,10 +1534,15 @@
         st.iso = 0; st.etIso = 0; st.o2 = 1.5; st.pip = 11; st.rr = 12; st.fluid = st.species === 'cat' ? 3 : 5; st.warming = true; st.aplOpen = true;
         st.tlkCri = 0.0; st.fentanylCri = 0; st.norepiCri = 0.0; st.dobutCri = 0;
         const CASE_OWNER_LEVELS = { hyperk: 2, sepsis: 3, cardiac: 4, hemorrhage: 1, boas_icp: 5 };
+        const CASE_OWNER_PERS = { hyperk: 'anxious', sepsis: 'negative', cardiac: 'anxious', hemorrhage: 'indifferent', boas_icp: 'optimistic' };
         st.assignedOwnerLevel = st.aiCase
           ? (Math.floor(Math.random() * 5) + 1)
           : (CASE_OWNER_LEVELS[st.caseId] || 2);
+        st.assignedOwnerPersonality = st.aiCase
+          ? OWNER_PERS_KEYS[Math.floor(Math.random() * OWNER_PERS_KEYS.length)]
+          : (CASE_OWNER_PERS[st.caseId] || 'neutral');
         st.ownerLevel = st.assignedOwnerLevel;
+        st.ownerPersonality = st.assignedOwnerPersonality;
         st.ownerReassured = false;
         st.chatBusy = false;
 
@@ -1689,13 +1712,15 @@
               ${(() => {
                 const sev1 = getCritSeverity(c, false);
                 const opts = [1,2,3,4,5].map((n) => `<option value="${n}" ${st.ownerLevel===n?'selected':''}>${OWNER_LEVEL_LABELS[n]}</option>`).join('');
+                const pOpts = OWNER_PERS_KEYS.map((k) => `<option value="${k}" ${st.ownerPersonality===k?'selected':''}>${OWNER_PERSONALITIES[k]}</option>`).join('');
                 const lvLocked = !st.easyMode;
                 return `
                   <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; margin-bottom:6px;">
                     <div style="font-size:11px; font-weight:800; color:#7dd3fc;">① 보호자 AI 문진 (+5점 · 욕설 시 실패)</div>
                     <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
                       <span id="s1-sev-badge" style="font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; background:${sev1.bg}; color:${sev1.color};">${sev1.label}</span>
-                      <select id="s1-owner-lv" ${lvLocked ? 'disabled' : ''} title="${lvLocked ? '실전 모드에서는 보호자 지식 수준이 고정됩니다 (초급 모드에서 조절 가능)' : '보호자 의학 지식 수준 (1~5)'}" style="background:#020617; border:1px solid ${lvLocked ? '#475569' : '#334155'}; color:${lvLocked ? '#94a3b8' : '#e2e8f0'}; border-radius:6px; padding:2px 6px; font-size:10.5px; ${lvLocked ? 'opacity:0.82; cursor:not-allowed;' : ''}">${opts}</select>${lvLocked ? '<span style="font-size:10px; color:#94a3b8; font-weight:700;" title="실전 모드 고정">🔒</span>' : ''}
+                      <select id="s1-owner-lv" ${lvLocked ? 'disabled' : ''} title="${lvLocked ? '실전 모드에서는 보호자 지식 수준이 고정됩니다 (초급 모드에서 조절 가능)' : '보호자 의학 지식 수준 (1~5)'}" style="background:#020617; border:1px solid ${lvLocked ? '#475569' : '#334155'}; color:${lvLocked ? '#94a3b8' : '#e2e8f0'}; border-radius:6px; padding:2px 6px; font-size:10.5px; ${lvLocked ? 'opacity:0.82; cursor:not-allowed;' : ''}">${opts}</select>
+                      <select id="s1-owner-pers" ${lvLocked ? 'disabled' : ''} title="${lvLocked ? '실전 모드에서는 보호자 성향이 고정됩니다 (초급 모드에서 조절 가능)' : '보호자 성향 (무관심·낙관·중립·걱정·부정적)'}" style="background:#020617; border:1px solid ${lvLocked ? '#475569' : '#334155'}; color:${lvLocked ? '#94a3b8' : '#e2e8f0'}; border-radius:6px; padding:2px 6px; font-size:10.5px; ${lvLocked ? 'opacity:0.82; cursor:not-allowed;' : ''}">${pOpts}</select>${lvLocked ? '<span style="font-size:10px; color:#94a3b8; font-weight:700;" title="실전 모드 고정">🔒</span>' : ''}
                     </div>
                   </div>`;
               })()}
@@ -1873,13 +1898,15 @@
                 const sev3 = getCritSeverity(c, true);
                 if (!st.s3Chat.length) st.s3Chat = [{ role: 'owner', text: getCritOpening(c, sev3, st.ownerLevel, true) }];
                 const opts = [1,2,3,4,5].map((n) => `<option value="${n}" ${st.ownerLevel===n?'selected':''}>${OWNER_LEVEL_LABELS[n]}</option>`).join('');
+                const pOpts = OWNER_PERS_KEYS.map((k) => `<option value="${k}" ${st.ownerPersonality===k?'selected':''}>${OWNER_PERSONALITIES[k]}</option>`).join('');
                 const lvLocked = !st.easyMode;
                 return `
                   <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; margin-bottom:6px;">
                     <div style="font-size:11px; font-weight:800; color:#7dd3fc;">③ 보호자 퇴원 안내 (+5점 · 욕설 시 실패)</div>
                     <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
                       <span id="s3-sev-badge" style="font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; background:${sev3.bg}; color:${sev3.color};">${sev3.label}</span>
-                      <select id="s3-owner-lv" ${lvLocked ? 'disabled' : ''} title="${lvLocked ? '실전 모드에서는 보호자 지식 수준이 고정됩니다 (초급 모드에서 조절 가능)' : '보호자 의학 지식 수준 (1~5)'}" style="background:#020617; border:1px solid ${lvLocked ? '#475569' : '#334155'}; color:${lvLocked ? '#94a3b8' : '#e2e8f0'}; border-radius:6px; padding:2px 6px; font-size:10.5px; ${lvLocked ? 'opacity:0.82; cursor:not-allowed;' : ''}">${opts}</select>${lvLocked ? '<span style="font-size:10px; color:#94a3b8; font-weight:700;" title="실전 모드 고정">🔒</span>' : ''}
+                      <select id="s3-owner-lv" ${lvLocked ? 'disabled' : ''} title="${lvLocked ? '실전 모드에서는 보호자 지식 수준이 고정됩니다 (초급 모드에서 조절 가능)' : '보호자 의학 지식 수준 (1~5)'}" style="background:#020617; border:1px solid ${lvLocked ? '#475569' : '#334155'}; color:${lvLocked ? '#94a3b8' : '#e2e8f0'}; border-radius:6px; padding:2px 6px; font-size:10.5px; ${lvLocked ? 'opacity:0.82; cursor:not-allowed;' : ''}">${opts}</select>
+                      <select id="s3-owner-pers" ${lvLocked ? 'disabled' : ''} title="${lvLocked ? '실전 모드에서는 보호자 성향이 고정됩니다 (초급 모드에서 조절 가능)' : '보호자 성향 (무관심·낙관·중립·걱정·부정적)'}" style="background:#020617; border:1px solid ${lvLocked ? '#475569' : '#334155'}; color:${lvLocked ? '#94a3b8' : '#e2e8f0'}; border-radius:6px; padding:2px 6px; font-size:10.5px; ${lvLocked ? 'opacity:0.82; cursor:not-allowed;' : ''}">${pOpts}</select>${lvLocked ? '<span style="font-size:10px; color:#94a3b8; font-weight:700;" title="실전 모드 고정">🔒</span>' : ''}
                     </div>
                   </div>`;
               })()}
@@ -2012,6 +2039,19 @@
             addLog(`[보호자 설정] 지식 수준 변경 → ${OWNER_LEVEL_LABELS[st.ownerLevel]}`, '');
           });
         }
+        const s1PersSel = document.getElementById('s1-owner-pers');
+        if (s1PersSel) {
+          s1PersSel.addEventListener('change', () => {
+            if (!st.easyMode) { s1PersSel.value = st.ownerPersonality; return; }
+            st.ownerPersonality = OWNER_PERSONALITIES[s1PersSel.value] ? s1PersSel.value : 'neutral';
+            if (st.s1Chat.length <= 1 && (!st.s1Chat[0] || st.s1Chat[0].role === 'owner')) {
+              const sev1 = getCritSeverity(c, false);
+              st.s1Chat = [{ role: 'owner', text: getCritOpening(c, sev1, st.ownerLevel, false) }];
+              renderCritChat('s1-chat', st.s1Chat, false);
+            }
+            addLog(`[보호자 설정] 성향 변경 → ${OWNER_PERSONALITIES[st.ownerPersonality]}`, '');
+          });
+        }
         const s1AskFn = async () => {
           const inp = document.getElementById('s1-q');
           const btn = document.getElementById('btn-s1-ask');
@@ -2052,6 +2092,7 @@
                 asa: c.asa, caseName: c.name, caseDesc: c.desc, clue: c.ownerClue,
                 question: q,
                 knowledgeLevel: st.ownerLevel,
+                ownerPersonality: st.ownerPersonality,
                 severity: sev1.key,
                 labSummary: clin1.summary,
                 vitals: `HR ${Math.round(st.hr)}, MAP ${Math.round(st.map)}, SpO2 ${Math.round(st.spo2)}%, BT ${st.bt.toFixed(1)}°C, K+ ${(p.serumK||4.5).toFixed(1)}, PCV ${(p.pcv||38).toFixed(0)}%`,
@@ -2591,6 +2632,20 @@
             addLog(`[보호자 설정] 지식 수준 변경 → ${OWNER_LEVEL_LABELS[st.ownerLevel]}`, '');
           });
         }
+        const s3PersSel = document.getElementById('s3-owner-pers');
+        if (s3PersSel) {
+          s3PersSel.addEventListener('change', () => {
+            if (!st.easyMode) { s3PersSel.value = st.ownerPersonality; return; }
+            const c3 = getCaseObj();
+            st.ownerPersonality = OWNER_PERSONALITIES[s3PersSel.value] ? s3PersSel.value : 'neutral';
+            if (st.s3Chat.length <= 1 && (!st.s3Chat[0] || st.s3Chat[0].role === 'owner')) {
+              const sev3 = getCritSeverity(c3, true);
+              st.s3Chat = [{ role: 'owner', text: getCritOpening(c3, sev3, st.ownerLevel, true) }];
+              renderCritChat('s3-chat', st.s3Chat, false);
+            }
+            addLog(`[보호자 설정] 성향 변경 → ${OWNER_PERSONALITIES[st.ownerPersonality]}`, '');
+          });
+        }
         const s3SendFn = async () => {
           const inp = document.getElementById('s3-msg');
           const btn = document.getElementById('btn-s3-send');
@@ -2631,6 +2686,7 @@
                 asa: c3.asa, caseName: c3.name, caseDesc: c3.desc, clue: c3.ownerClue,
                 vetAdvice: msg,
                 knowledgeLevel: st.ownerLevel,
+                ownerPersonality: st.ownerPersonality,
                 severity: sev3.key,
                 labSummary: clin3.summary,
                 vitals: `EtIso ${st.etIso.toFixed(2)}%, BT ${st.bt.toFixed(1)}°C, SpO2 ${Math.round(st.spo2)}%, MAP ${Math.round(st.map)}, 발관 ${st.extubated ? '완료' : '미완료'}, 연하반사 ${st.swallowCount}회`,
@@ -3210,8 +3266,9 @@
         st.easyMode = !st.easyMode;
         const b = document.getElementById('btn-mode-easy');
         b.textContent = st.easyMode ? '초급(상태열림)' : '실전 모드';
-        if (!st.easyMode && st.assignedOwnerLevel) {
-          st.ownerLevel = st.assignedOwnerLevel;
+        if (!st.easyMode && (st.assignedOwnerLevel || st.assignedOwnerPersonality)) {
+          if (st.assignedOwnerLevel) st.ownerLevel = st.assignedOwnerLevel;
+          if (st.assignedOwnerPersonality) st.ownerPersonality = st.assignedOwnerPersonality;
           const cNow = getCaseObj();
           if (st.s1Chat.length <= 1 && (!st.s1Chat[0] || st.s1Chat[0].role === 'owner')) {
             st.s1Chat = [{ role: 'owner', text: getCritOpening(cNow, getCritSeverity(cNow, false), st.ownerLevel, false) }];
