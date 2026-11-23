@@ -1683,7 +1683,7 @@
               <button type="button" class="ctrl-tab ${t1==='interview'?'active':''}" data-ctab="interview">① 보호자 문진</button>
               <button type="button" class="ctrl-tab ${t1==='premed'?'active':''}" data-ctab="premed">② 전처치·유도</button>
               <button type="button" class="ctrl-tab ${t1==='intub'?'active':''}" data-ctab="intub">③ 삽관·연결</button>
-              <button type="button" class="ctrl-tab ${t1==='drugs'?'active':''}" data-ctab="drugs">④ 응급약물</button>
+              <button type="button" class="ctrl-tab ${t1==='drugs'?'active':''}" data-ctab="drugs">④ 수액·약물</button>
             </div>
             <div class="s1-pane" data-cpane="interview" style="${t1==='interview'?'':'display:none;'}">
               ${(() => {
@@ -1728,6 +1728,14 @@
             </div>
             </div>
             <div class="s1-pane" data-cpane="drugs" style="${t1==='drugs'?'':'display:none;'}">
+              <div style="padding:7px 9px; border-radius:8px; background:#020617; border:1px solid #1e293b; margin-bottom:8px;">
+                <div class="slider-hdr" style="margin-bottom:4px;"><span style="color:#7dd3fc;">유지 수액 속도 (결정질)</span><span id="lbl-s1-fl" class="mono" style="color:#38bdf8;">${st.fluid} mL/kg/h</span></div>
+                <input id="sl-s1-fl" type="range" min="0" max="25" step="1" value="${st.fluid}" style="width:100%; margin-bottom:6px;" />
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                  <button id="btn-s1-bolus" type="button" class="btn btn-sky" style="flex:1;">+5 mL/kg 수액 볼루스</button>
+                  <button id="btn-s1-warm" type="button" class="btn ${st.warming?'btn-emerald':''}">가온 ${st.warming?'ON':'OFF'}</button>
+                </div>
+              </div>
               <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:6px;">
                 <div style="display:flex; align-items:center; gap:6px;">
                   <span style="font-size:11px; font-weight:800; color:#fda4af;">응급·특수 약물 IV (${doseTag})</span>
@@ -1747,7 +1755,7 @@
           wireCriticalTabs('s1Tab', '#s1-tabs .ctrl-tab', '.s1-pane');
           wireStage1();
         } else if (st.stage === 2) {
-          const t2 = st.s2Tab || 'vent';
+          const t2 = (st.s2Tab === 'drugs' || st.s2Tab === 'cri') ? 'drugs' : 'vent';
           const crisisBanner = st.activeCrisis
             ? `<div id="crisis-banner" style="padding:7px 10px; border-radius:8px; background:rgba(136,19,55,0.32); border:1px solid rgba(251,113,133,0.55); color:#fecdd3; font-size:11.5px; font-weight:800; margin-bottom:8px;">🚨 돌발 위기 발생: ${st.activeCrisis.label} (해결 시 +6점)</div>`
             : `<div id="crisis-banner" style="display:none;"></div>`;
@@ -1763,22 +1771,31 @@
                 <div id="maint-stable-bar" style="height:100%; width:${Math.min(100, Math.round(st.maintStableSec/45*100))}%; background:#10b981; transition:width 0.25s;"></div>
               </div>
             </div>
-            <div class="ctrl-tabs" id="s2-tabs" style="grid-template-columns:repeat(3,1fr);">
-              <button type="button" class="ctrl-tab ${t2==='vent'?'active':''}" data-ctab="vent">① 기화기·환기</button>
-              <button type="button" class="ctrl-tab ${t2==='drugs'?'active':''}" data-ctab="drugs">② 응급약물</button>
-              <button type="button" class="ctrl-tab ${t2==='cri'?'active':''}" data-ctab="cri">③ CRI 펌프</button>
+            <div class="ctrl-tabs two" id="s2-tabs">
+              <button type="button" class="ctrl-tab ${t2==='vent'?'active':''}" data-ctab="vent">환기 · 장치 · 수액</button>
+              <button type="button" class="ctrl-tab ${t2==='drugs'?'active':''}" data-ctab="drugs">CRI · 응급약물</button>
             </div>
             <div class="s2-pane" data-cpane="vent" style="${t2==='vent'?'':'display:none;'}">
-              <div class="slider-row">
-                <div class="slider-hdr"><span>Isoflurane 기화기</span><span id="lbl-iso" class="mono" style="color:#e879f9;">${st.iso.toFixed(1)}%</span></div>
-                <input id="sl-iso" type="range" min="0" max="4.0" step="0.1" value="${st.iso}" />
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div class="slider-row">
+                  <div class="slider-hdr"><span>Isoflurane</span><span id="lbl-iso" class="mono" style="color:#e879f9;">${st.iso.toFixed(1)}%</span></div>
+                  <input id="sl-iso" type="range" min="0" max="4.0" step="0.1" value="${st.iso}" />
+                </div>
+                <div class="slider-row">
+                  <div class="slider-hdr"><span>O₂ 유량</span><span id="lbl-o2" class="mono" style="color:#7dd3fc;">${st.o2.toFixed(1)} L/m</span></div>
+                  <input id="sl-o2" type="range" min="0.5" max="4.0" step="0.1" value="${st.o2}" />
+                </div>
+                <div class="slider-row">
+                  <div class="slider-hdr"><span>흡기압 (PIP)</span><span id="lbl-pip" class="mono" style="color:#fbbf24;">${st.pip} cmH₂O</span></div>
+                  <input id="sl-pip" type="range" min="6" max="26" step="1" value="${st.pip}" />
+                </div>
+                <div class="slider-row">
+                  <div class="slider-hdr"><span>호흡수 (RR)</span><span id="lbl-rr" class="mono" style="color:#facc15;">${st.rr} bpm</span></div>
+                  <input id="sl-rr" type="range" min="6" max="28" step="1" value="${st.rr}" />
+                </div>
               </div>
               <div class="slider-row">
-                <div class="slider-hdr"><span>호흡수 (RR) / PIP</span><span id="lbl-rr" class="mono" style="color:#facc15;">RR ${st.rr} / PIP ${st.pip}</span></div>
-                <input id="sl-rr" type="range" min="6" max="28" step="1" value="${st.rr}" />
-              </div>
-              <div class="slider-row">
-                <div class="slider-hdr"><span>수액 속도 (결정질)</span><span id="lbl-fl" class="mono" style="color:#38bdf8;">${st.fluid} mL/kg/h</span></div>
+                <div class="slider-hdr"><span>유지 수액 속도 (결정질)</span><span id="lbl-fl" class="mono" style="color:#38bdf8;">${st.fluid} mL/kg/h</span></div>
                 <input id="sl-fl" type="range" min="0" max="25" step="1" value="${st.fluid}" />
               </div>
               <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
@@ -1789,9 +1806,32 @@
               </div>
             </div>
             <div class="s2-pane" data-cpane="drugs" style="${t2==='drugs'?'':'display:none;'}">
-              <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+              <div style="padding:7px 9px; border-radius:8px; background:#020617; border:1px solid #312e81; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:5px;">
+                  <span style="font-size:11px; font-weight:800; color:#c4b5fd;">CRI 지속주입 펌프</span>
+                  <button type="button" class="btn-drug-help" title="약물 및 CRI 가이드" style="width:18px; height:18px; border-radius:999px; border:1px solid #475569; background:#1e293b; color:#7dd3fc; font-size:11px; font-weight:900; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0;">?</button>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 8px;">
+                  <div class="slider-row" style="margin-bottom:0;">
+                    <div class="slider-hdr"><span style="color:#ddd6fe;">TLK CRI</span><span id="lbl-cri-tlk" class="mono" style="color:#c4b5fd;">${st.tlkCri.toFixed(1)} mL</span></div>
+                    <input id="sl-cri-tlk" type="range" min="0" max="4.0" step="0.2" value="${st.tlkCri}" />
+                  </div>
+                  <div class="slider-row" style="margin-bottom:0;">
+                    <div class="slider-hdr"><span style="color:#a7f3d0;">Fentanyl CRI</span><span id="lbl-cri-fent" class="mono" style="color:#6ee7b7;">${st.fentanylCri} µg</span></div>
+                    <input id="sl-cri-fent" type="range" min="0" max="20" step="1" value="${st.fentanylCri}" />
+                  </div>
+                  <div class="slider-row" style="margin-bottom:0;">
+                    <div class="slider-hdr"><span style="color:#fecdd3;">Norepi CRI</span><span id="lbl-cri-norepi" class="mono" style="color:#fda4af;">${st.norepiCri.toFixed(1)} µg</span></div>
+                    <input id="sl-cri-norepi" type="range" min="0" max="1.0" step="0.1" value="${st.norepiCri}" />
+                  </div>
+                  <div class="slider-row" style="margin-bottom:0;">
+                    <div class="slider-hdr"><span style="color:#fde68a;">Dobu CRI</span><span id="lbl-cri-dobut" class="mono" style="color:#fcd34d;">${st.dobutCri} µg</span></div>
+                    <input id="sl-cri-dobut" type="range" min="0" max="12" step="1" value="${st.dobutCri}" />
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
                 <span style="font-size:11px; font-weight:800; color:#fda4af;">응급·특수 약물 IV (${doseTag})</span>
-                <button type="button" class="btn-drug-help" title="약물 설명 및 작용↔길항 가이드" style="width:18px; height:18px; border-radius:999px; border:1px solid #475569; background:#1e293b; color:#7dd3fc; font-size:11px; font-weight:900; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0;">?</button>
               </div>
               <div class="drug-subtabs">
                 <button type="button" class="drug-subtab ${st.drugSubtab==='core'?'active':''}" data-dtab="core">기본 응급</button>
@@ -1800,30 +1840,6 @@
                 <button type="button" class="drug-subtab ${st.drugSubtab==='rev'?'active':''}" data-dtab="rev">이뇨·길항</button>
               </div>
               <div id="s2-drug-grid" class="drug-grid" style="margin-bottom:10px;"></div>
-            </div>
-            <div class="s2-pane" data-cpane="cri" style="${t2==='cri'?'':'display:none;'}">
-              <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-                <span style="font-size:11px; font-weight:800; color:#c4b5fd;">CRI 지속주입 펌프</span>
-                <button type="button" class="btn-drug-help" title="약물 및 CRI 가이드" style="width:18px; height:18px; border-radius:999px; border:1px solid #475569; background:#1e293b; color:#7dd3fc; font-size:11px; font-weight:900; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0;">?</button>
-              </div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-                <div class="slider-row" style="margin-bottom:0;">
-                  <div class="slider-hdr"><span style="color:#ddd6fe;">TLK CRI</span><span id="lbl-cri-tlk" class="mono" style="color:#c4b5fd;">${st.tlkCri.toFixed(1)} mL</span></div>
-                  <input id="sl-cri-tlk" type="range" min="0" max="4.0" step="0.2" value="${st.tlkCri}" />
-                </div>
-                <div class="slider-row" style="margin-bottom:0;">
-                  <div class="slider-hdr"><span style="color:#a7f3d0;">Fentanyl CRI</span><span id="lbl-cri-fent" class="mono" style="color:#6ee7b7;">${st.fentanylCri} µg</span></div>
-                  <input id="sl-cri-fent" type="range" min="0" max="20" step="1" value="${st.fentanylCri}" />
-                </div>
-                <div class="slider-row" style="margin-bottom:0;">
-                  <div class="slider-hdr"><span style="color:#fecdd3;">Norepi CRI</span><span id="lbl-cri-norepi" class="mono" style="color:#fda4af;">${st.norepiCri.toFixed(1)} µg</span></div>
-                  <input id="sl-cri-norepi" type="range" min="0" max="1.0" step="0.1" value="${st.norepiCri}" />
-                </div>
-                <div class="slider-row" style="margin-bottom:0;">
-                  <div class="slider-hdr"><span style="color:#fde68a;">Dobu CRI</span><span id="lbl-cri-dobut" class="mono" style="color:#fcd34d;">${st.dobutCri} µg</span></div>
-                  <input id="sl-cri-dobut" type="range" min="0" max="12" step="1" value="${st.dobutCri}" />
-                </div>
-              </div>
             </div>
             <button id="btn-to-stage3" type="button" class="btn btn-emerald" style="width:100%; padding:10px; font-size:13px;">수술 종료 · STAGE 3 회복기로 전환 →</button>
           `;
@@ -2129,6 +2145,31 @@
           sed: [['fentanyl_iv', 'Fentanyl IV'], ['dex_iv', 'Dexmedetomidine IV'], ['midaz_iv', 'Midazolam IV']],
           rev: [['furosemide', 'Furosemide IV'], ['naloxone', 'Naloxone IV'], ['atipamezole', 'Atipamezole IM'], ['flumazenil', 'Flumazenil IV'], ['esmolol', 'Esmolol β₁차단'], ['diphenhydramine', 'Diphenhydramine'], ['intralipid', '20% Intralipid']]
         };
+        const giveFluidBolus = (stageTag) => {
+          const wasLowMap = st.map < 65;
+          st.phys.preloadVol = clamp(st.phys.preloadVol + 10, 45, 135);
+          st.phys.pcv = clamp(st.phys.pcv - 2.2, 12, 62);
+          st.phys.albumin = clamp(st.phys.albumin - 0.22, 1.2, 4.5);
+          st.phys.serumK = clamp(st.phys.serumK - 0.15, 2.5, 9.5);
+          if (st.caseId === 'cardiac' || st.phys.lungWater > 18) {
+            st.phys.lungWater = clamp(st.phys.lungWater + 16, 0, 100);
+            st.spo2 = clamp(st.spo2 - 5, 60, 100);
+            deductScore(6);
+            addLog(`[${stageTag}] 경고: 심부전/폐수종 환자 수액 볼루스 → 급성 폐수종 악화!`, 'danger');
+            showToast('경고! 심부전 환자 수액 과부하 → 폐수종 악화! (-6점)', 'danger');
+          } else {
+            st.map = clamp(st.map + 7, 25, 150);
+            addLog(`[${stageTag}] 결정질 +5 mL/kg 볼루스 투여 (전부하 증가, 희석성 PCV 소폭 하강)`, 'good');
+            if (wasLowMap && st.map >= 68) awardOnce('fix_hypotension', 6, '수액 볼루스로 저혈압 교정', true);
+          }
+        };
+        const slS1Fl = document.getElementById('sl-s1-fl');
+        if (slS1Fl) slS1Fl.addEventListener('input', () => { st.fluid = Number(slS1Fl.value); document.getElementById('lbl-s1-fl').textContent = st.fluid + ' mL/kg/h'; });
+        const btnS1Bolus = document.getElementById('btn-s1-bolus');
+        if (btnS1Bolus) btnS1Bolus.addEventListener('click', () => giveFluidBolus('도입'));
+        const btnS1Warm = document.getElementById('btn-s1-warm');
+        if (btnS1Warm) btnS1Warm.addEventListener('click', () => { st.warming = !st.warming; renderStagePanel(); });
+
         const s1Grid = document.getElementById('s1-drug-grid');
         if (s1Grid) {
           s1Grid.innerHTML = s1TabsMap[st.drugSubtab].map(([k, lbl]) => `<button type="button" class="btn" data-s1drug="${k}" style="padding:7px 6px;">💉 ${lbl}</button>`).join('');
@@ -2148,10 +2189,14 @@
 
       function wireStage2() {
         const slIso = document.getElementById('sl-iso');
+        const slO2 = document.getElementById('sl-o2');
+        const slPip = document.getElementById('sl-pip');
         const slRr = document.getElementById('sl-rr');
         const slFl = document.getElementById('sl-fl');
         slIso.addEventListener('input', () => { st.iso = Number(slIso.value); document.getElementById('lbl-iso').textContent = st.iso.toFixed(1) + '%'; });
-        slRr.addEventListener('input', () => { st.rr = Number(slRr.value); document.getElementById('lbl-rr').textContent = `RR ${st.rr} / PIP ${st.pip}`; });
+        if (slO2) slO2.addEventListener('input', () => { st.o2 = Number(slO2.value); document.getElementById('lbl-o2').textContent = st.o2.toFixed(1) + ' L/m'; });
+        if (slPip) slPip.addEventListener('input', () => { st.pip = Number(slPip.value); document.getElementById('lbl-pip').textContent = st.pip + ' cmH₂O'; });
+        slRr.addEventListener('input', () => { st.rr = Number(slRr.value); document.getElementById('lbl-rr').textContent = st.rr + ' bpm'; });
         slFl.addEventListener('input', () => { st.fluid = Number(slFl.value); document.getElementById('lbl-fl').textContent = st.fluid + ' mL/kg/h'; });
         const slTlk = document.getElementById('sl-cri-tlk');
         const slFent = document.getElementById('sl-cri-fent');

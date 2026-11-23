@@ -952,19 +952,32 @@
         return id;
       }
 
-      function applyPreopFluid(fid) {
+      function togglePreopFluid(fid) {
+        const idx = st.preFluidsGiven.indexOf(fid);
+        if (idx >= 0) st.preFluidsGiven.splice(idx, 1);
+        else st.preFluidsGiven.push(fid);
+        renderStep();
+      }
+      function togglePreopAdjunct(aid) {
+        const idx = st.preAdjuncts.indexOf(aid);
+        if (idx >= 0) st.preAdjuncts.splice(idx, 1);
+        else st.preAdjuncts.push(aid);
+        renderStep();
+      }
+      function applyPreopFluid(fid, fromCommit = false) {
         const c = getCase();
         const lab = (c && c.lab) || {};
         const isCardiac = st.caseId === 'cardiac' || /MMVD|HCM|심부전|폐수종/i.test(c.desc || c.name || '');
         const isShock = st.caseId === 'gdv' || st.map < 68 || /쇼크|GDV|패혈|출혈|탈수/i.test(c.desc || c.name || '');
         const isAnemia = (lab.HCT && lab.HCT < 26) || /빈혈|출혈|비장/i.test(c.desc || c.name || '');
         const isIcp = (st.caseId === 'icp' && st.species === 'dog') || /두개내압|ICP|뇌종양/i.test(c.desc || c.name || '');
-        const already = st.preFluidsGiven.includes(fid);
-        if (already) {
-          setAlarm(`${getPreopLabel(fid)}은(는) 이미 마취 전 선처치로 투여했습니다.`, 'warn');
-          return;
+        if (!fromCommit) {
+          if (st.preFluidsGiven.includes(fid)) {
+            setAlarm(`${getPreopLabel(fid)}은(는) 이미 마취 전 선처치로 투여했습니다.`, 'warn');
+            return;
+          }
+          st.preFluidsGiven.push(fid);
         }
-        st.preFluidsGiven.push(fid);
         if (fid === 'cryst_bolus') {
           if (isCardiac) {
             st.spo2 = Math.max(84, st.spo2 - 6);
@@ -1029,10 +1042,10 @@
           }
         }
         updateVitalsUI();
-        renderStep();
+        if (!fromCommit) renderStep();
       }
 
-      function applyPreopAdjunct(aid) {
+      function applyPreopAdjunct(aid, fromCommit = false) {
         const c = getCase();
         const lab = (c && c.lab) || {};
         const descAll = `${c.name || ''} ${c.desc || ''}`;
@@ -1041,12 +1054,13 @@
         const isBoas = st.caseId === 'boas' || /단두종|BOAS|프렌치불독|퍼그|시츄/i.test(descAll);
         const isHighK = (lab.K && lab.K >= 6.0) || /고칼륨|요도폐색|K\+\s*[6789]/i.test(descAll);
         const isLowGlu = (lab.Glu && lab.Glu < 70) || /저혈당|인슐린종|패혈|담낭파열/i.test(descAll);
-        const already = st.preAdjuncts.includes(aid);
-        if (already) {
-          setAlarm(`${getPreopLabel(aid)}은(는) 이미 투여 완료되었습니다.`, 'warn');
-          return;
+        if (!fromCommit) {
+          if (st.preAdjuncts.includes(aid)) {
+            setAlarm(`${getPreopLabel(aid)}은(는) 이미 투여 완료되었습니다.`, 'warn');
+            return;
+          }
+          st.preAdjuncts.push(aid);
         }
-        st.preAdjuncts.push(aid);
 
         if (aid === 'maropitant' || aid === 'ondansetron' || aid === 'pantoprazole') {
           if (isBoas || st.caseId === 'gdv' || st.caseId === 'icp') {
@@ -1201,7 +1215,7 @@
           addLog('[항히스타민] Diphenhydramine IM 투여 (H₁ 길항)', 'good');
         }
         updateVitalsUI();
-        renderStep();
+        if (!fromCommit) renderStep();
       }
 
       function renderStep() {
@@ -1387,9 +1401,9 @@
                 <button type="button" class="opt-btn fl-maint-opt ${st.preFluidMaint==='restrict'?'selected':''}" data-v="restrict"><div class="ot">제한 수액</div><div class="od">심장병 2 mL/kg/h</div></button>
                 <button type="button" class="opt-btn fl-maint-opt ${st.preFluidMaint==='none'?'selected':''}" data-v="none"><div class="ot">수액 미연결</div><div class="od">IV 카테터만 확보</div></button>
               </div>
-              <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-top:10px;">② 마취 전 선행 수액·수혈 투여 (클릭 즉시 IV 투여)</div>
+              <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-top:10px;">② 마취 전 선행 수액·수혈 선택 (토글 선택 → 다음 단계 이동 시 적용)</div>
               <div class="opt-grid">
-                ${PREOP_FLUID_ITEMS.map(f => `<button type="button" class="opt-btn pre-fl-btn ${st.preFluidsGiven.includes(f.id)?'applied':''}" data-fid="${f.id}"><div class="ot">${f.name}</div><div class="od">${f.desc}</div></button>`).join('')}
+                ${PREOP_FLUID_ITEMS.map(f => `<button type="button" class="opt-btn pre-fl-btn ${st.preFluidsGiven.includes(f.id)?'selected':''}" data-fid="${f.id}"><div class="ot">${st.preFluidsGiven.includes(f.id)?'✓ ':''}${f.name}</div><div class="od">${f.desc}</div></button>`).join('')}
               </div>
             </div>
 
@@ -1408,9 +1422,9 @@
                     const g = PREOP_ADJUNCT_GROUPS[gi];
                     if (!g) return '';
                     return `
-                      <div style="font-size:11px; font-weight:700; color:#94a3b8; ${idx>0?'margin-top:8px;':''}">${g.title}</div>
+                      <div style="font-size:11px; font-weight:700; color:#94a3b8; ${idx>0?'margin-top:8px;':''}">${g.title} (토글 선택)</div>
                       <div class="opt-grid">
-                        ${g.items.map(a => `<button type="button" class="opt-btn pre-adj-btn ${st.preAdjuncts.includes(a.id)?'applied':''}" data-aid="${a.id}"><div class="ot">${a.name}</div><div class="od">${a.desc}</div></button>`).join('')}
+                        ${g.items.map(a => `<button type="button" class="opt-btn pre-adj-btn ${st.preAdjuncts.includes(a.id)?'selected':''}" data-aid="${a.id}"><div class="ot">${st.preAdjuncts.includes(a.id)?'✓ ':''}${a.name}</div><div class="od">${a.desc}</div></button>`).join('')}
                       </div>`;
                   }).join('')}
                 `;
@@ -1418,12 +1432,12 @@
             </div>
 
             <div class="adj-chip-wrap">
-              <span style="color:#94a3b8; font-weight:700; margin-right:4px;">적용 처치:</span>
+              <span style="color:#94a3b8; font-weight:700; margin-right:4px;">선택 처치(다음 단계 시 적용):</span>
               <span class="adj-pill" style="background:rgba(56,189,248,0.14); border-color:rgba(56,189,248,0.4); color:#7dd3fc;">${maintLabel}</span>
-              ${appliedPills.length ? appliedPills.join('') : '<span style="color:#64748b;">추가 수액·보조약물 없음 (필요 시 위 탭에서 선택)</span>'}
+              ${appliedPills.length ? appliedPills.join('') : '<span style="color:#64748b;">추가 수액·보조약물 없음 (필요 시 위 탭에서 토글 선택)</span>'}
             </div>
 
-            <button id="btn-apply-premed" type="button" class="btn btn-primary" style="width:100%; margin-top:10px; padding:10px;">전처치·선처치 완료 및 3단계(전산소화)로 →</button>`;
+            <button id="btn-apply-premed" type="button" class="btn btn-primary" style="width:100%; margin-top:10px; padding:10px;">선택한 전처치·선처치 일괄 적용 및 3단계(전산소화)로 →</button>`;
 
           document.querySelectorAll('#step2-tabs .sub-tab').forEach(b => b.addEventListener('click', () => { st.step2Tab = b.dataset.s2t; renderStep(); }));
           document.querySelectorAll('#adj-subtabs .adj-sub-tab').forEach(b => b.addEventListener('click', () => { st.adjSubtab = b.dataset.asub; renderStep(); }));
@@ -1431,13 +1445,15 @@
           document.querySelectorAll('.opi-opt').forEach(b => b.addEventListener('click', () => { st.premedOpi = b.dataset.v; renderStep(); }));
           document.querySelectorAll('.fl-maint-opt').forEach(b => b.addEventListener('click', () => {
             st.preFluidMaint = b.dataset.v;
-            addLog(`[유지 수액 설정] ${b.dataset.v === 'std' ? '표준 유지 수액' : (b.dataset.v === 'restrict' ? '심장병 제한 수액(2 mL/kg/h)' : '수액 미연결')}`, 'info');
             renderStep();
           }));
-          document.querySelectorAll('.pre-fl-btn').forEach(b => b.addEventListener('click', () => applyPreopFluid(b.dataset.fid)));
-          document.querySelectorAll('.pre-adj-btn').forEach(b => b.addEventListener('click', () => applyPreopAdjunct(b.dataset.aid)));
+          document.querySelectorAll('.pre-fl-btn').forEach(b => b.addEventListener('click', () => togglePreopFluid(b.dataset.fid)));
+          document.querySelectorAll('.pre-adj-btn').forEach(b => b.addEventListener('click', () => togglePreopAdjunct(b.dataset.aid)));
 
           document.getElementById('btn-apply-premed').addEventListener('click', () => {
+            addLog(`[유지 수액 적용] ${st.preFluidMaint === 'std' ? '표준 유지 수액' : (st.preFluidMaint === 'restrict' ? '심장병 제한 수액(2 mL/kg/h)' : '수액 미연결')}`, 'info');
+            [...st.preFluidsGiven].forEach((fid) => applyPreopFluid(fid, true));
+            [...st.preAdjuncts].forEach((aid) => applyPreopAdjunct(aid, true));
             el.vAirway.textContent = st.premedSed === 'none' ? '각성 유지' : '진정 상태';
             if (st.premedSed === 'dex') {
               st.hr = Math.max(42, st.hr - (st.species === 'dog' ? 38 : 48));
