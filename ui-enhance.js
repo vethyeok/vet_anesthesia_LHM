@@ -109,12 +109,37 @@
     document.body.appendChild(pop);
     const grid = pop.querySelector('#ui-settings-pop-grid');
 
+    let ptBtn = null;
+    let ptPop = null;
+
     if (isMaint) {
       const hdrDrawer = document.getElementById('hdr-drawer');
       const mobMenu = document.getElementById('btn-mob-menu');
       const mobFs = document.getElementById('btn-fullscreen-mob');
       if (mobMenu && mobMenu.parentElement) mobMenu.parentElement.style.display = 'none';
       if (mobFs) mobFs.style.display = 'none';
+
+      // 1) Move elapsed timer (#sim-clock) to top-left right beside square ECG logo (#app-logo)
+      const appLogo = document.getElementById('app-logo');
+      const simClock = document.getElementById('sim-clock');
+      if (appLogo && appLogo.parentElement && simClock) {
+        simClock.style.fontSize = '12px';
+        simClock.style.padding = '3px 8px';
+        appLogo.insertAdjacentElement('afterend', simClock);
+      }
+
+      // 2) Move difficulty selector (초급/중급/고급) into '케이스 ▾' popup
+      const diffGrp = ctrlRow.querySelector('[role="group"][aria-label="난이도 선택"]');
+      if (diffGrp) {
+        const oldDiffWrap = diffGrp.parentElement;
+        diffGrp.style.gridColumn = 'span 2';
+        diffGrp.style.display = 'grid';
+        diffGrp.style.gridTemplateColumns = '1fr 1fr 1fr';
+        caseGrid.appendChild(diffGrp);
+        if (oldDiffWrap && oldDiffWrap !== ctrlRow && oldDiffWrap.children.length === 0) {
+          oldDiffWrap.style.display = 'none';
+        }
+      }
 
       const speciesGrp = hdrDrawer.querySelector('[role="group"][aria-label="축종 선택"]');
       if (speciesGrp) {
@@ -149,7 +174,11 @@
       });
       grid.appendChild(seminarBtn);
 
+      // 3) Push 케이스 / 설정 / ⛶ cleanly to the right side of the header
       hdrDrawer.style.display = 'none';
+      ctrlRow.style.marginLeft = 'auto';
+      ctrlRow.style.justifyContent = 'flex-end';
+      ctrlRow.style.flexWrap = 'nowrap';
       ctrlRow.appendChild(caseWrap);
       ctrlRow.appendChild(wrap);
       if (fsBtn) {
@@ -158,6 +187,47 @@
         fsBtn.style.alignItems = 'center';
         fsBtn.style.justifyContent = 'center';
         ctrlRow.appendChild(fsBtn);
+      }
+
+      // 4) Move breed/weight (#badge-species), ASA (#badge-asa), and summary into a toggleable '환자 ▾' popup
+      const bSpecies = document.getElementById('badge-species');
+      const bAsa = document.getElementById('badge-asa');
+      const pSummary = document.getElementById('patient-summary');
+      if (bSpecies && bSpecies.parentElement) {
+        const barLeft = bSpecies.parentElement;
+        ptBtn = document.createElement('button');
+        ptBtn.id = 'btn-ui-patient';
+        ptBtn.type = 'button';
+        ptBtn.className = 'status-pill-btn';
+        ptBtn.style.cssText = 'background:rgba(56,189,248,0.16); border-color:rgba(56,189,248,0.45); color:#bae6fd;';
+        ptBtn.textContent = '환자 ▾';
+        ptBtn.setAttribute('aria-expanded', 'false');
+        ptBtn.title = '환자 품종 · 체중 · ASA Grade 정보 열기';
+
+        ptPop = document.createElement('div');
+        ptPop.id = 'ui-patient-popover';
+        ptPop.className = 'ui-settings-popover';
+        ptPop.innerHTML = `
+          <div class="ui-settings-pop-hdr">
+            <span>🐾 환자 정보 (품종 · 체중 · ASA)</span>
+            <button id="ui-patient-close" type="button" style="border:none;background:transparent;color:#94a3b8;font-size:12px;font-weight:800;cursor:pointer;">✕</button>
+          </div>
+          <div id="ui-patient-pop-body" style="display:flex; flex-direction:column; gap:6px; font-size:11.5px;"></div>
+        `;
+        document.body.appendChild(ptPop);
+        const ptBody = ptPop.querySelector('#ui-patient-pop-body');
+
+        const badgeRow = document.createElement('div');
+        badgeRow.style.cssText = 'display:flex; flex-wrap:wrap; align-items:center; gap:6px;';
+        badgeRow.appendChild(bSpecies);
+        if (bAsa) badgeRow.appendChild(bAsa);
+        ptBody.appendChild(badgeRow);
+        if (pSummary) {
+          pSummary.classList.remove('hidden', 'sm:inline');
+          pSummary.style.cssText = 'display:block; color:#cbd5e1; line-height:1.45; font-size:11px; padding-top:2px; border-top:1px solid #1e293b;';
+          ptBody.appendChild(pSummary);
+        }
+        barLeft.insertBefore(ptBtn, barLeft.firstChild);
       }
     } else {
       const segEl = ctrlRow.querySelector('.seg');
@@ -206,6 +276,11 @@
       casePop.classList.remove('open');
       caseBtn.classList.remove('open');
       caseBtn.setAttribute('aria-expanded', 'false');
+      if (ptPop && ptBtn) {
+        ptPop.classList.remove('open');
+        ptBtn.classList.remove('open');
+        ptBtn.setAttribute('aria-expanded', 'false');
+      }
     };
 
     const togglePopover = (btn, targetPop) => {
@@ -224,10 +299,19 @@
     setBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePopover(setBtn, pop); });
     casePop.querySelector('#ui-case-close').addEventListener('click', closeAll);
     pop.querySelector('#ui-settings-close').addEventListener('click', closeAll);
+    if (ptBtn && ptPop) {
+      ptBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePopover(ptBtn, ptPop); });
+      ptPop.querySelector('#ui-patient-close').addEventListener('click', closeAll);
+    }
 
     document.addEventListener('click', (e) => {
-      if (!pop.classList.contains('open') && !casePop.classList.contains('open')) return;
-      if (pop.contains(e.target) || setBtn.contains(e.target) || casePop.contains(e.target) || caseBtn.contains(e.target)) return;
+      const anyOpen = pop.classList.contains('open') || casePop.classList.contains('open') || (ptPop && ptPop.classList.contains('open'));
+      if (!anyOpen) return;
+      if (
+        pop.contains(e.target) || setBtn.contains(e.target) ||
+        casePop.contains(e.target) || caseBtn.contains(e.target) ||
+        (ptPop && ptPop.contains(e.target)) || (ptBtn && ptBtn.contains(e.target))
+      ) return;
       closeAll();
     });
     document.addEventListener('keydown', (e) => {

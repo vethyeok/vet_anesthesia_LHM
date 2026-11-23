@@ -759,8 +759,8 @@
   <header class="lg:sticky lg:top-0 z-30 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
     <div class="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-1.5 px-2.5 py-1.5 sm:gap-2 sm:px-4 sm:py-2.5">
       <div class="flex items-center gap-2">
-        <div id="app-logo" class="flex h-7 w-7 lg:h-8 lg:w-8 cursor-pointer items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30 select-none">
-          <svg width="18" height="18" class="h-4 w-4 lg:h-5 lg:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div id="app-logo" class="flex cursor-pointer items-center justify-center bg-emerald-500/15 text-emerald-400 select-none" style="width:30px; height:30px; min-width:30px; border-radius:8px; border:1px solid rgba(16,185,129,0.42);">
+          <svg width="17" height="17" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h3l2-7 4 14 3-9 2 2h4" />
           </svg>
         </div>
@@ -2947,7 +2947,21 @@
             : '주의: 고양이에서 Lidocaine CRI는 독성 위험! (Fentanyl 등 권장)';
         }
 
-        el.badgeSpecies.textContent = `${state.speciesId === 'dog' ? '개' : '고양이'} ${sp.weight.toFixed(1)} kg`;
+        const SCENARIO_PATIENT_META = {
+          routine:     { dog: { breed: '말티즈', wt: 4.8 },           cat: { breed: '코리안 숏헤어', wt: 4.2 } },
+          neuro:       { dog: { breed: '푸들', wt: 6.5 },             cat: { breed: '러시안 블루', wt: 3.8 } },
+          sepsis:      { dog: { breed: '저먼 셰퍼드', wt: 28.0 },     cat: { breed: '아메리칸 숏헤어', wt: 4.5 } },
+          cardiac:     { dog: { breed: '카발리에 킹 찰스', wt: 7.4 }, cat: { breed: '메인쿤', wt: 6.2 } },
+          boas:        { dog: { breed: '프렌치 불독', wt: 10.5 },     cat: { breed: '페르시안', wt: 3.9 } },
+          csection:    { dog: { breed: '포메라니안', wt: 3.4 },       cat: { breed: '스코티시 폴드', wt: 4.1 } },
+          ckd:         { dog: { breed: '시추', wt: 6.2 },             cat: { breed: '코리안 숏헤어(노령)', wt: 3.3 } },
+          thoracic:    { dog: { breed: '진돗개 믹스', wt: 14.5 },     cat: { breed: '코리안 숏헤어', wt: 3.6 } },
+          hypothermia: { dog: { breed: '치와와', wt: 1.8 },           cat: { breed: '자묘(DSH)', wt: 1.6 } },
+          random:      { dog: { breed: '비글', wt: 9.6 },             cat: { breed: '브리티시 숏헤어', wt: 4.8 } }
+        };
+        const pMeta = (SCENARIO_PATIENT_META[state.scenarioId] && SCENARIO_PATIENT_META[state.scenarioId][state.speciesId])
+          || { breed: state.speciesId === 'dog' ? '믹스견' : '코리안 숏헤어', wt: sp.weight };
+        el.badgeSpecies.textContent = `${state.speciesId === 'dog' ? '개' : '고양이'} · ${pMeta.breed} ${pMeta.wt.toFixed(1)} kg`;
         el.badgeAsa.textContent = sc.asa;
         el.patientSummary.textContent = prof.summary;
         el.refHr.textContent = `정상 ${sp.hrMin}–${sp.hrMax}`;
@@ -6724,6 +6738,10 @@
           state.etIso = state.iso;
           el.sliderIso.value = state.iso.toFixed(1);
           el.dispIso.textContent = state.iso.toFixed(1);
+          const aiWtMatch = String(c.summary || c.title || '').match(/(\d+(?:\.\d+)?)\s*kg/i);
+          const aiWt = Number(c.weight) || (aiWtMatch ? Number(aiWtMatch[1]) : (state.speciesId === 'cat' ? Number((2.6 + Math.random() * 3.4).toFixed(1)) : Number((3.0 + Math.random() * 19.0).toFixed(1))));
+          const aiBreed = c.breed || (state.speciesId === 'cat' ? 'AI 랜덤묘' : 'AI 랜덤견');
+          el.badgeSpecies.textContent = `${state.speciesId === 'dog' ? '개' : '고양이'} · ${aiBreed} ${aiWt.toFixed(1)} kg`;
           el.badgeAsa.textContent = c.asa || 'ASA III';
           el.patientSummary.textContent = `[AI 환자] ${c.summary}`;
           el.guideTarget.textContent = c.target || '';
