@@ -2132,7 +2132,7 @@
             breed: '저먼 셰퍼드', weight: 28.0,
             summary: '응급 GDV/패혈성 복막염 저먼 셰퍼드(28.0kg) · 쇼크 및 심실성 부정맥 동반',
             init: { pip: 12, rr: 14, iso: 1.3, fluid: 10, bt: 37.1 },
-            baseHR: 148, baseMAP: 52, compliance: 0.78, baseSpo2: 96,
+            baseHR: 148, baseMAP: 72, compliance: 0.78, baseSpo2: 96,
             macMult: 0.8, vpcProb: 0.3, obstructive: false, fluidSensitive: 0.15,
             hypovolemia: 24, coolingMult: 1.5, mapTarget: 65, etco2Max: 45, septic: true,
             target: '저혈량성 + 혈관확장성 쇼크 상태입니다. Isoflurane을 0.8–1.0%로 낮추고, 수액 볼루스 + Ephedrine으로 MAP ≥ 65 mmHg를 회복하며, VPC에는 Lidocaine IV를 투여하세요.',
@@ -2142,7 +2142,7 @@
             breed: '아메리칸 숏헤어', weight: 4.5,
             summary: '패혈성 복막염/농흉 응급 아메리칸 숏헤어(4.5kg) · 패혈성 쇼크 상태',
             init: { pip: 10, rr: 16, iso: 1.5, fluid: 6, bt: 36.5 },
-            baseHR: 108, baseMAP: 50, compliance: 0.72, baseSpo2: 95,
+            baseHR: 108, baseMAP: 66, compliance: 0.72, baseSpo2: 95,
             macMult: 0.8, vpcProb: 0.2, obstructive: false, fluidSensitive: 0.55,
             hypovolemia: 18, coolingMult: 1.8, mapTarget: 65, etco2Max: 45, septic: true,
             target: '고양이 패혈증은 서맥·저체온·저혈압 3징후가 흔합니다. 가온 ON + Isoflurane 감량 + 소량 볼루스(3 mL/kg)와 Ephedrine을 단계적으로 적용하세요.',
@@ -3060,7 +3060,8 @@
         if (score >= 60) return 'A';
         if (score >= 32) return 'B';
         if (score >= 12) return 'C';
-        return 'D';
+        if (score > 0) return 'D';
+        return 'F';
       }
 
       function getDiffLabel() {
@@ -3658,6 +3659,11 @@
         if (state.dynBleed > 8 && state.trueMAP < 68) targetHR += 28;
         targetHR += ephStrength * (prof.cardiac === 'hcm' ? 38 : 22) + state.ephToxicity * 0.95;
         targetHR += atrStrength * (state.speciesId === 'dog' ? 54 : 60) + state.atrToxicity * 1.15;
+        if (state.esmololTime > 0) {
+          if (dt > 0) state.esmololTime = Math.max(0, state.esmololTime - dt);
+          const esmoStrength = Math.min(1, state.esmololTime / 18);
+          targetHR -= esmoStrength * 42;
+        }
         if (prof.septic && state.speciesId === 'dog' && state.trueMAP < 65 && state.trueSpO2 >= 80) {
           targetHR += (65 - state.trueMAP) * 0.6;
         }
@@ -6605,20 +6611,22 @@
         if (state.arrested) return;
         const p = state.phys;
         const isTachy = state.trueHR >= 150;
+        state.esmololTime = 24;
+        if (state.atropineTime > 0) state.atropineTime = Math.max(0, state.atropineTime - 15);
+        if (state.atrToxicity > 0) state.atrToxicity = Math.max(0, state.atrToxicity - 18);
         if (isTachy && state.trueMAP >= 65) {
-          state.trueHR = clamp(state.trueHR - 34, 60, 220);
           if (p) { p.arrhythmiaRisk = clamp(p.arrhythmiaRisk - 18, 0, 100); p.vo2 = clamp(p.vo2 - 14, 70, 200); }
+          computePhysiology(0); renderMonitorUI();
           addLog(`Esmolol IV (β₁ 차단) — 빈맥·교감흥분 신속 제어 (HR ${Math.round(state.trueHR)} bpm)`, 'good');
           showToast('Esmolol — 단시간 β₁ 차단으로 빈맥 제어 완료!', 'good');
         } else {
-          state.trueHR = clamp(state.trueHR - 26, 30, 220);
           state.trueMAP = clamp(state.trueMAP - 18, 22, 150);
           if (p) p.contractility = clamp(p.contractility - 16, 35, 130);
           state.viability = clamp(state.viability - 10, 0, 100);
+          computePhysiology(0); renderMonitorUI();
           addLog('경고! 서맥/저혈압 상태에서 Esmolol(β₁ 차단제) 투여 → 심박출량·혈압 급락!', 'danger');
           showToast('주의! 서맥·저혈압 상태에서 Esmolol은 금기입니다!', 'danger');
         }
-        computePhysiology(0); renderMonitorUI();
       });
 
       bindSpecial('btn-diphenhydramine', () => {

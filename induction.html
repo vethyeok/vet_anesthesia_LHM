@@ -1725,7 +1725,7 @@
           document.getElementById('sl-o2').addEventListener('input', (e) => { st.o2Flow = Number(e.target.value); document.getElementById('d-o2').textContent = st.o2Flow.toFixed(1) + ' L/min'; });
           document.getElementById('sl-iso').addEventListener('input', (e) => { st.isoInit = Number(e.target.value); document.getElementById('d-iso').textContent = st.isoInit.toFixed(1) + '%'; });
           document.querySelectorAll('.apl-opt').forEach(b => b.addEventListener('click', () => { st.aplOpen = b.dataset.v === '1'; renderStep(); }));
-          document.getElementById('btn-finish').addEventListener('click', finishInduction);
+          document.getElementById('btn-finish').addEventListener('click', () => finishInduction(false));
         }
       }
 
@@ -1749,14 +1749,15 @@
       }
 
       function finishInduction(abortedByOwner = false, abortOwnerMsg = '') {
+        const isAborted = abortedByOwner === true;
         const c = getCase();
-        if (!abortedByOwner) {
+        if (!isAborted) {
           if (!st.aplOpen) { st.score -= 25; st.mistakes.push('유지기 전환 시 APL(Pop-off) 밸브를 열지 않음 (치명적 기도 과압 위험)'); }
           else st.goodPoints.push('마취기 연결 직후 APL 밸브 완전 개방(0 cmH₂O) 확인');
           if (st.isoInit > 2.5) { st.score -= 12; st.mistakes.push(`초기 Isoflurane 과다 설정(${st.isoInit.toFixed(1)}%) → 유지기 초반 저혈압 유발`); }
         }
-        const finalScore = abortedByOwner ? 0 : Math.max(0, st.score);
-        const grade = abortedByOwner ? 'F' : (finalScore >= 90 ? 'S' : finalScore >= 75 ? 'A' : finalScore >= 60 ? 'B' : 'C');
+        const finalScore = isAborted ? 0 : Math.max(0, st.score);
+        const grade = (isAborted || finalScore < 30) ? 'F' : (finalScore >= 90 ? 'S' : finalScore >= 75 ? 'A' : finalScore >= 60 ? 'B' : finalScore >= 45 ? 'C' : 'D');
         document.getElementById('res-score-box').innerHTML = `
           <div class="score-summary-row" style="width:100%;">
             <div class="score-summary-left"><div style="font-size:11px; color:#94a3b8; white-space:nowrap;">최종 도입 안전 등급</div><div class="mono" style="font-size:26px; font-weight:800; color:${grade === 'F' ? '#fb7185' : '#fbbf24'}; white-space:nowrap;">${grade} <span style="font-size:16px; color:#fff; white-space:nowrap;">(${finalScore}점)</span></div></div>
