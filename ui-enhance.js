@@ -411,16 +411,18 @@
     });
   }
 
-  // 5. Interactive '?' Drug Reference & Current-Screen Procedure Guide Modal
+  // 5. Interactive '?' Drug/CRI Reference & Current-Screen Procedure Guide Modal
   function collectCurrentScreenDescs(triggerBtn) {
     const scope = (triggerBtn && triggerBtn.closest && triggerBtn.closest('.rec-pane, .s1-pane, .s2-pane, .s3-pane, .card, .panel, #stage-panel')) || document.querySelector('.main-grid > :last-child') || document;
     const rows = [];
     const seen = new Set();
     scope.querySelectorAll('.opt-btn, .act-btn, .choice-btn').forEach((b) => {
+      // Only include buttons currently visible in the active tab/pane
+      if (b.offsetParent === null) return;
       const tEl = b.querySelector('.ot, .at, strong');
       const dEl = b.querySelector('.od, .ad, small');
       if (!tEl || !dEl) return;
-      const title = tEl.textContent.trim();
+      const title = tEl.textContent.replace(/^[✓✔]\s*/, '').trim();
       const desc = dEl.textContent.trim();
       if (!title || !desc || seen.has(title)) return;
       seen.add(title);
@@ -436,70 +438,91 @@
     modal.id = 'vet-drug-guide-modal';
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
-    modal.style.cssText = 'position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(2,6,23,0.82);backdrop-filter:blur(4px);';
-    modal.innerHTML = `
-      <div style="width:100%;max-width:680px;max-height:86vh;overflow-y:auto;border-radius:14px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,0.65);">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #1e293b;padding-bottom:10px;margin-bottom:12px;">
-          <div>
-            <div style="font-size:15px;font-weight:800;color:#7dd3fc;">📘 처치 · 약물 상세 설명 및 작용↔길항 가이드</div>
-            <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">현재 단계의 처치 항목 설명과 응급·길항 약물 도감</div>
-          </div>
-          <button id="vet-drug-guide-close" type="button" style="border:1px solid #475569;background:#1e293b;color:#f8fafc;border-radius:8px;padding:5px 11px;font-size:12px;font-weight:800;cursor:pointer;">닫기 ✕</button>
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;padding:12px;background:rgba(2,6,23,0.82);backdrop-filter:blur(4px);';
+    const drugEncyclopediaHtml = `
+      <div style="display:grid;gap:8px;font-size:11.5px;line-height:1.48;">
+        <div style="border-radius:10px;border:1px solid rgba(196,181,253,0.35);background:rgba(76,29,149,0.16);padding:9px 11px;">
+          <div style="font-weight:800;color:#c4b5fd;margin-bottom:3px;">1) CRI 지속주입 펌프 (4종)</div>
+          <div>• <strong>TLK CRI</strong> (0–4.0 mL/kg/h): Tramadol+Lido+Ketamine 진통·MAC 절감 · <strong>고양이 금기</strong>(리도카인 독성), 2.4↑ 고용량 호흡억제·독성 주의</div>
+          <div>• <strong>Fentanyl CRI</strong> (0–20 µg/kg/h): 강력 μ-진통·개/고양이 모두 안전 · 14↑ 고용량 호흡억제·서맥 → <strong>Naloxone</strong> 역전</div>
+          <div>• <strong>Norepinephrine CRI</strong> (0–1.0 µg/kg/min): α₁ 혈관수축(패혈성·혈관확장성 쇼크 1차 승압) · 과량 시 극심한 혈관수축·반사성 서맥</div>
+          <div>• <strong>Dobutamine CRI</strong> (0–12 µg/kg/min): β₁ 심근수축력 강화(심부전 저심박출량) · 고용량 시 빈맥·VPC 유발(고양이 주의)</div>
         </div>
-        <div id="vet-context-desc-box" style="display:none;margin-bottom:10px;border-radius:10px;border:1px solid rgba(251,191,36,0.4);background:rgba(120,53,15,0.18);padding:10px 12px;font-size:12px;line-height:1.55;">
-          <div style="font-weight:800;color:#fde68a;margin-bottom:4px;">📌 현재 화면 처치 · 선택 항목 설명</div>
+        <div style="border-radius:10px;border:1px solid rgba(251,113,133,0.35);background:rgba(136,19,55,0.12);padding:9px 11px;">
+          <div style="font-weight:800;color:#fda4af;margin-bottom:3px;">2) 기본 응급 약물</div>
+          <div>• <strong>Ephedrine</strong> (0.05–0.15 mg/kg): 일시 승압(MAP↓) · 반복 시 내성·빈맥</div>
+          <div>• <strong>Atropine</strong> (0.02–0.04 mg/kg): 미주신경성 서맥 교정 · HCM·고칼륨·α₂ 서맥 주의</div>
+          <div>• <strong>Lidocaine 2%</strong> (개 1–2 / 묘 0.25–0.5 mg/kg): VPC·VT 항부정맥 · 독성 시 <strong>20% Intralipid</strong></div>
+          <div>• <strong>Epinephrine</strong> (0.01–0.02 mg/kg): 아나필락시스·심정지 1차 · 과량 빈맥/VT 시 <strong>Esmolol</strong></div>
+        </div>
+        <div style="border-radius:10px;border:1px solid rgba(56,189,248,0.35);background:rgba(14,165,233,0.10);padding:9px 11px;">
+          <div style="font-weight:800;color:#7dd3fc;margin-bottom:3px;">3) 혈액 · 대사 · 전해질</div>
+          <div>• <strong>10% Ca-Gluconate</strong> (0.5–1 mL/kg sIV): 고칼륨(K⁺↑) 심근 보호 · 급속/과량 시 AV 차단</div>
+          <div>• <strong>Regular Insulin</strong> (0.2–0.5 U/kg) ↔ <strong>50% Dextrose</strong> (0.5–1 mL/kg 희석): K⁺ 세포내 이동 / 저혈당 즉각 교정</div>
+          <div>• <strong>pRBC / Colloid</strong> (3–6 mL/kg): 빈혈·저알부민 보충 · 심부전 과부하(TACO) 주의</div>
+          <div>• <strong>8.4% NaHCO₃</strong> (0.5–1.5 mEq/kg sIV): 중증 대사성 산증 · 저환기 시 ETCO₂ 급등 주의</div>
+        </div>
+        <div style="border-radius:10px;border:1px solid rgba(52,211,153,0.35);background:rgba(16,185,129,0.10);padding:9px 11px;">
+          <div style="font-weight:800;color:#6ee7b7;margin-bottom:3px;">4) 진정·진통 ↔ 길항·해독</div>
+          <div>• <strong>Fentanyl</strong> (2–5 µg/kg) ↔ <strong>Naloxone</strong> (0.01–0.04 mg/kg): μ-진통 / 호흡억제·서맥 역전</div>
+          <div>• <strong>Dexmedetomidine</strong> (1–3 µg/kg) ↔ <strong>Atipamezole</strong> (IM 권장): α₂ 진정 / 서맥·지연회복 역전</div>
+          <div>• <strong>Midazolam</strong> (0.2 mg/kg) ↔ <strong>Flumazenil</strong> (0.01–0.02 mg/kg): 벤조 진정 / 과진정·흥분 역전</div>
+          <div>• <strong>Furosemide</strong> (1–2.5 mg/kg): 급성 폐수종 이뇨 (저혈량 쇼크 금기)</div>
+          <div>• <strong>Esmolol</strong> (0.25–0.5 mg/kg): 단시간 β₁ 차단 · 빈맥·HCM 제어 (서맥·저혈압 금기)</div>
+          <div>• <strong>Diphenhydramine</strong> (1–2 mg/kg): H₁ 차단 · 아나필락시스·MCT 히스타민 억제</div>
+          <div>• <strong>20% Intralipid</strong> (1.5 mL/kg): Lidocaine 심근독성 지질 격리(Lipid Sink) 해독</div>
+        </div>
+      </div>
+    `;
+    modal.innerHTML = `
+      <div style="width:100%;max-width:640px;max-height:84vh;overflow-y:auto;border-radius:14px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;padding:15px;box-shadow:0 24px 60px rgba(0,0,0,0.65);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #1e293b;padding-bottom:8px;margin-bottom:10px;">
+          <div id="vet-drug-guide-title" style="font-size:14px;font-weight:800;color:#7dd3fc;">📘 처치 · 약물 가이드</div>
+          <button id="vet-drug-guide-close" type="button" style="border:1px solid #475569;background:#1e293b;color:#f8fafc;border-radius:8px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;">닫기 ✕</button>
+        </div>
+        <div id="vet-context-desc-box" style="display:none;margin-bottom:10px;border-radius:10px;border:1px solid rgba(251,191,36,0.4);background:rgba(120,53,15,0.18);padding:9px 11px;font-size:11.5px;line-height:1.5;">
+          <div style="font-weight:800;color:#fde68a;margin-bottom:4px;">📌 현재 화면 처치 · 선택 항목</div>
           <div id="vet-context-desc-list"></div>
         </div>
-        <div style="display:grid;gap:10px;font-size:12px;line-height:1.5;">
-          <div style="border-radius:10px;border:1px solid rgba(251,113,133,0.35);background:rgba(136,19,55,0.12);padding:10px 12px;">
-            <div style="font-weight:800;color:#fda4af;margin-bottom:4px;">1) 기본 응급 약물</div>
-            <div>• <strong>Ephedrine IV</strong> (0.05–0.15 mg/kg): 저혈압(MAP↓) 일시 승압 · 반복 과투여 시 빈맥·내성</div>
-            <div>• <strong>Atropine IV</strong> (0.02–0.04 mg/kg): 미주신경성 서맥 교정 · 심장병/고칼륨/α₂ 서맥 시 주의</div>
-            <div>• <strong>Lidocaine 2% IV</strong> (개 1–2 / 고양이 0.25–0.5 mg/kg): VPC·VT 항부정맥 · 과량 심근독성 → <strong>20% Intralipid</strong> 해독</div>
-            <div>• <strong>Epinephrine IV</strong> (0.01–0.02 mg/kg): 아나필락시스·심정지 1차 응급 · 반복 시 빈맥/VT → <strong>Esmolol</strong> 제어</div>
-          </div>
-          <div style="border-radius:10px;border:1px solid rgba(56,189,248,0.35);background:rgba(14,165,233,0.10);padding:10px 12px;">
-            <div style="font-weight:800;color:#7dd3fc;margin-bottom:4px;">2) 혈액 · 대사 · 전해질</div>
-            <div>• <strong>10% Ca-Gluconate</strong> (0.5–1 mL/kg slow IV): 고칼륨혈증(K⁺↑) 심근 막안정화 · 급속/과량 시 AV 차단</div>
-            <div>• <strong>Regular Insulin</strong> (0.2–0.5 U/kg IV) ↔ <strong>50% Dextrose</strong> (0.5–1 mL/kg 희석 IV): Insulin은 K⁺를 세포 내로 이동시키며 저혈당 유발 시 Dextrose로 즉각 교정</div>
-            <div>• <strong>pRBC / Colloid</strong> (3–6 mL/kg): 중증 빈혈·저알부민 관류 보충 · 심부전 과부하(TACO) 주의</div>
-            <div>• <strong>8.4% NaHCO₃</strong> (0.5–1.5 mEq/kg slow IV): 중증 대사성 산증 보조 · 환기 불량 시 ETCO₂ 급등 주의</div>
-          </div>
-          <div style="border-radius:10px;border:1px solid rgba(52,211,153,0.35);background:rgba(16,185,129,0.10);padding:10px 12px;">
-            <div style="font-weight:800;color:#6ee7b7;margin-bottom:4px;">3) 진정 · 진통 (작용제 ↔ 대응 길항제)</div>
-            <div>• <strong>Fentanyl IV</strong> (2–5 µg/kg) ↔ <strong>Naloxone</strong> (0.01–0.04 mg/kg): 강력 μ-오피오이드 진통·MAC 절감 / 호흡억제·서맥 시 Naloxone 역전</div>
-            <div>• <strong>Dexmedetomidine IV</strong> (1–3 µg/kg) ↔ <strong>Atipamezole</strong> (IM 권장): α₂ 진정·혈관수축·MAC 절감 / 서맥·지연회복 시 Atipamezole 역전</div>
-            <div>• <strong>Midazolam IV</strong> (0.2 mg/kg) ↔ <strong>Flumazenil</strong> (0.01–0.02 mg/kg): 벤조디아제핀 진정·항경련 / 과진정·역설적 흥분 시 Flumazenil 역전</div>
-          </div>
-          <div style="border-radius:10px;border:1px solid rgba(167,139,250,0.35);background:rgba(139,92,246,0.10);padding:10px 12px;">
-            <div style="font-weight:800;color:#c4b5fd;margin-bottom:4px;">4) 이뇨 · 길항 · 해독제</div>
-            <div>• <strong>Furosemide IV</strong> (1–2.5 mg/kg): 급성 폐수종(MMVD·HCM 수액 과부하) 이뇨 · 저혈량 쇼크 시 금기</div>
-            <div>• <strong>Esmolol IV</strong> (0.25–0.5 mg/kg): 단시간 β₁ 차단제 · 교감폭풍/Epi/Atropine 빈맥·HCM 심박수 제어 (서맥·저혈압 금기)</div>
-            <div>• <strong>Diphenhydramine</strong> (1–2 mg/kg IM/sIV): H₁ 항히스타민 · 아나필락시스·비만세포종(MCT) 히스타민 차단</div>
-            <div>• <strong>20% Intralipid</strong> (1.5 mL/kg IV): Lidocaine 국소마취제 심근독성·저혈압 지질 격리(Lipid Sink) 해독</div>
-          </div>
-        </div>
+        <div id="vet-drug-full-box">${drugEncyclopediaHtml}</div>
+        <details id="vet-drug-collapse-box" style="display:none;margin-top:6px;">
+          <summary style="cursor:pointer;font-size:11.5px;font-weight:800;color:#7dd3fc;padding:6px 8px;border-radius:8px;background:rgba(14,165,233,0.1);border:1px solid rgba(56,189,248,0.3);">📚 전체 CRI · 응급·길항 약물 도감 보기</summary>
+          <div style="margin-top:8px;">${drugEncyclopediaHtml}</div>
+        </details>
       </div>
     `;
     document.body.appendChild(modal);
     modal.addEventListener('click', (e) => {
       if (e.target === modal || e.target.id === 'vet-drug-guide-close') modal.style.display = 'none';
     });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.style.display === 'flex') modal.style.display = 'none';
+    });
     return modal;
   }
 
   window.openVetDrugGuide = function (triggerBtn) {
     const m = ensureDrugGuideModal();
+    const titleEl = m.querySelector('#vet-drug-guide-title');
     const box = m.querySelector('#vet-context-desc-box');
     const list = m.querySelector('#vet-context-desc-list');
-    const rows = collectCurrentScreenDescs(triggerBtn);
-    if (box && list) {
-      if (rows.length) {
-        list.innerHTML = rows.join('');
-        box.style.display = 'block';
-      } else {
-        box.style.display = 'none';
-      }
+    const fullBox = m.querySelector('#vet-drug-full-box');
+    const collapseBox = m.querySelector('#vet-drug-collapse-box');
+    const isDrugTrigger = !!(triggerBtn && triggerBtn.matches && triggerBtn.matches('#btn-drug-guide, .btn-drug-help'));
+    const rows = isDrugTrigger ? [] : collectCurrentScreenDescs(triggerBtn);
+
+    if (rows.length) {
+      if (titleEl) titleEl.textContent = '📌 현재 단계 처치 · 선택 가이드';
+      list.innerHTML = rows.join('');
+      box.style.display = 'block';
+      fullBox.style.display = 'none';
+      collapseBox.style.display = 'block';
+      collapseBox.open = false;
+    } else {
+      if (titleEl) titleEl.textContent = '📘 CRI · 응급·길항 약물 가이드';
+      box.style.display = 'none';
+      fullBox.style.display = 'block';
+      collapseBox.style.display = 'none';
     }
     m.style.display = 'flex';
   };
