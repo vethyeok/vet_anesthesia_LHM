@@ -30,9 +30,9 @@ function buildGenerateCasePrompt(body) {
 1) 사용자가 입력한 품종, 연령, 체중, 수술/시술, 기저질환, 혈액검사 수치나 증상을 빠짐없이 반영하세요.
 2) 사용자가 언급하지 않은 나머지 바이탈(baseHR, baseMAP, baseBT, iso), ASA 등급, 혈액검사 수치들은 이 환자의 연령·질환에 맞게 임상적으로 현실적인 값으로 채우되 비현실적 극단값은 금지합니다.
 3) lab.panelTier는 어린 건강 환자는 "chemi7", 노령·복합질환은 "full", 초응급 채혈 불가는 "emerg_none" 중 하나를 선택하세요.
-4) species 값은 반드시 "dog" 또는 "cat" 중 하나만 넣으세요.
+4) species 값은 반드시 "dog" 또는 "cat" 중 하나만 넣고, weight 숫자(kg)와 summary 안의 체중(kg)을 반드시 동일하게 맞추세요.
 출력 JSON 스키마:
-{"title":"품종+수술명 짧은 제목","species":"dog 또는 cat","asa":"ASA 등급(예: ASA II~IV-E)","summary":"연령·체중·품종·수술·핵심 이상소견 한 줄 요약","target":"핵심 마취 처치 목표","caution":"주의사항 및 금기 약물","baseHR":숫자,"baseMAP":숫자,"baseBT":숫자,"iso":숫자,"lab":{"panelTier":"full|chemi7|emerg_none","HCT":숫자,"ALB":숫자,"Na":숫자,"K":숫자,"Cl":숫자,"iCa":숫자,"Glu":숫자,"pH":숫자,"pCO2":숫자,"ALP":숫자,"ALT":숫자,"BUN":숫자,"Crea":숫자,"WBC":숫자,"PLT":숫자,"lactate":숫자}}`;
+{"title":"품종+수술명 짧은 제목","species":"dog 또는 cat","breed":"품종명","weight":숫자,"asa":"ASA 등급(예: ASA II~IV-E)","summary":"연령·체중·품종·수술·핵심 이상소견 한 줄 요약","target":"핵심 마취 처치 목표","caution":"주의사항 및 금기 약물","baseHR":숫자,"baseMAP":숫자,"baseBT":숫자,"iso":숫자,"lab":{"panelTier":"full|chemi7|emerg_none","HCT":숫자,"ALB":숫자,"Na":숫자,"K":숫자,"Cl":숫자,"iCa":숫자,"Glu":숫자,"pH":숫자,"pCO2":숫자,"ALP":숫자,"ALT":숫자,"BUN":숫자,"Crea":숫자,"WBC":숫자,"PLT":숫자,"lactate":숫자}}`;
   }
   const recentList = Array.isArray(body.recentCases) && body.recentCases.length
     ? body.recentCases.join(' / ')
@@ -45,9 +45,9 @@ function buildGenerateCasePrompt(body) {
 1) 품종, 연령, 체중, 수술/시술, 기저질환을 위 출제 조건에 맞춰 설정하되 축종·품종·연령별 의학적 적합성을 엄격히 지키세요(예: 고양이에 MMVD·GDV·TPLO·쿠싱 금지, 개에 고양이 HCM·PU·지방간 금지, 1~2세 어린 환자에 노령성 종양·MMVD·담낭점액종 금지).
 2) 연령·질환에 맞는 현실적 혈액검사 이상(고칼륨, 저혈당, 빈혈, 저알부민, 담낭파열 초고ALP, 신부전 고BUN/Crea, 패혈증 고Lactate/WBC, 쿠싱, 애디슨 등)을 자연스럽게 반영하되 비현실적 극단값은 금지합니다.
 3) lab.panelTier는 어린 건강 환자는 "chemi7", 노령·복합질환은 "full", 초응급 채혈 불가는 "emerg_none" 중 하나를 선택하세요.
-4) species 값은 반드시 "dog" 또는 "cat" 중 하나만 넣으세요.
+4) species 값은 반드시 "dog" 또는 "cat" 중 하나만 넣고, weight 숫자(kg)와 summary 안의 체중(kg)을 반드시 동일하게 맞추세요.
 출력 JSON 스키마(수치는 반드시 이 환자 상태에 맞게 새로 생성):
-{"title":"품종+수술명 짧은 제목","species":"dog 또는 cat","asa":"ASA 등급(예: ASA II~IV-E)","summary":"연령·체중·품종·수술·핵심 이상소견 한 줄 요약","target":"핵심 마취 처치 목표","caution":"주의사항 및 금기 약물","baseHR":숫자,"baseMAP":숫자,"baseBT":숫자,"iso":숫자,"lab":{"panelTier":"full|chemi7|emerg_none","HCT":숫자,"ALB":숫자,"Na":숫자,"K":숫자,"Cl":숫자,"iCa":숫자,"Glu":숫자,"pH":숫자,"pCO2":숫자,"ALP":숫자,"ALT":숫자,"BUN":숫자,"Crea":숫자,"WBC":숫자,"PLT":숫자,"lactate":숫자}}`;
+{"title":"품종+수술명 짧은 제목","species":"dog 또는 cat","breed":"품종명","weight":숫자,"asa":"ASA 등급(예: ASA II~IV-E)","summary":"연령·체중·품종·수술·핵심 이상소견 한 줄 요약","target":"핵심 마취 처치 목표","caution":"주의사항 및 금기 약물","baseHR":숫자,"baseMAP":숫자,"baseBT":숫자,"iso":숫자,"lab":{"panelTier":"full|chemi7|emerg_none","HCT":숫자,"ALB":숫자,"Na":숫자,"K":숫자,"Cl":숫자,"iCa":숫자,"Glu":숫자,"pH":숫자,"pCO2":숫자,"ALP":숫자,"ALT":숫자,"BUN":숫자,"Crea":숫자,"WBC":숫자,"PLT":숫자,"lactate":숫자}}`;
 }
 
 export async function onRequestOptions() {
@@ -192,6 +192,12 @@ ${realismRule}
       const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
       const caseData = JSON.parse(cleaned);
       caseData.species = String(caseData.species || '').toLowerCase().includes('cat') ? 'cat' : 'dog';
+      const wtM = String(caseData.summary || caseData.title || '').match(/(\d+(?:\.\d+)?)\s*kg/i);
+      if (wtM && Number(wtM[1]) > 0.3 && Number(wtM[1]) < 120) {
+        caseData.weight = Number(wtM[1]);
+      } else if (!(Number(caseData.weight) > 0.3 && Number(caseData.weight) < 120)) {
+        caseData.weight = caseData.species === 'cat' ? 4.2 : 8.5;
+      }
       return jsonRes({ caseData }, 200);
     }
     return jsonRes({ text: rawText, analysis: rawText }, 200);

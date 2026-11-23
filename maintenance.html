@@ -6854,7 +6854,9 @@
           el.sliderIso.value = state.iso.toFixed(1);
           el.dispIso.textContent = state.iso.toFixed(1);
           const aiWtMatch = String(c.summary || c.title || '').match(/(\d+(?:\.\d+)?)\s*kg/i);
-          const aiWt = Number(c.weight) || (aiWtMatch ? Number(aiWtMatch[1]) : (state.speciesId === 'cat' ? Number((2.6 + Math.random() * 3.4).toFixed(1)) : Number((3.0 + Math.random() * 19.0).toFixed(1))));
+          const aiWt = (aiWtMatch && Number(aiWtMatch[1]) > 0.3 && Number(aiWtMatch[1]) < 120)
+            ? Number(aiWtMatch[1])
+            : (Number(c.weight) > 0.3 && Number(c.weight) < 120 ? Number(c.weight) : (state.speciesId === 'cat' ? 4.2 : 8.5));
           const aiBreed = c.breed || (state.speciesId === 'cat' ? 'AI 랜덤묘' : 'AI 랜덤견');
           el.badgeSpecies.textContent = `${state.speciesId === 'dog' ? '개' : '고양이'} · ${aiBreed} ${aiWt.toFixed(1)} kg`;
           el.badgeAsa.textContent = c.asa || 'ASA III';

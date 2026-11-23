@@ -1272,7 +1272,9 @@
       function getCaseObj() {
         if (st.aiCase) {
           const wtM = String(st.aiCase.summary || st.aiCase.title || '').match(/(\d+(?:\.\d+)?)\s*kg/i);
-          const aiWt = Number(st.aiCase.weight) || (wtM ? Number(wtM[1]) : (st.species === 'dog' ? 9.5 : 4.3));
+          const aiWt = (wtM && Number(wtM[1]) > 0.3 && Number(wtM[1]) < 120)
+            ? Number(wtM[1])
+            : (Number(st.aiCase.weight) > 0.3 && Number(st.aiCase.weight) < 120 ? Number(st.aiCase.weight) : (st.species === 'dog' ? 9.5 : 4.3));
           return {
             name: st.aiCase.title, asa: st.aiCase.asa || 'ASA IV-E', labKey: 'random',
             wt: aiWt, desc: st.aiCase.summary,

@@ -253,7 +253,7 @@
         <div class="card">
           <div class="card-title">
             <span id="case-header-title">개 8.0 kg · ASA I–II</span>
-            <span id="score-badge" class="mono" style="color:#fbbf24;">안전 점수 100점</span>
+            <span id="score-badge" class="mono" style="color:#fbbf24; white-space:nowrap; flex-shrink:0;">안전 점수 100점</span>
           </div>
           <p id="case-desc" style="font-size:12px; color:#cbd5e1; line-height:1.5;"></p>
 
@@ -1906,8 +1906,26 @@
         const fallback = { name: '저알부민·빈혈 노령견', asa: 'ASA III–IV', wt: 7.2, desc: '12세 요크셔테리어(7.2kg), 단백소실성장병증(Alb 1.8 g/dL, PCV 23%). 혈압 유지와 저용량 적정 유도 필수.', hr: 136, map: 72, spo2: 97, rr: 24, tube: '5.5mm', ownerClue: '최근 설사가 잦았고 배가 살짝 불러서 검사하러 왔어요.', avoid: ['dex', 'ace', 'fast_bolus'] };
         const aiCtx = buildDiverseAiCaseContext(st.species);
         const oc = customBrief ? buildCustomFallbackCase(customBrief, aiCtx) : aiCtx.offlineCase;
-        let pick = { ...fallback, id: 'ai_' + Date.now(), name: oc.title, asa: oc.asa, desc: oc.summary, hr: oc.baseHR, map: oc.baseMAP, tube: oc.species === 'cat' ? '3.5mm' : '6.0mm', ownerClue: '최근 기력이 떨어지고 상태가 안 좋아서 데려왔어요. 아까 병원에서 링거랑 무슨 주사를 맞긴 했는데 정확한 약 이름이나 용량은 잘 모르겠어요.', lab: oc.lab };
-        st.species = oc.species === 'cat' ? 'cat' : 'dog';
+        const extractAiWt = (obj, sp) => {
+          const m = String((obj && (obj.summary || obj.desc || obj.title)) || '').match(/(\d+(?:\.\d+)?)\s*kg/i);
+          if (m && Number(m[1]) > 0.3 && Number(m[1]) < 120) return Number(m[1]);
+          const w = Number(obj && (obj.weight ?? obj.wt));
+          if (w > 0.3 && w < 120) return w;
+          return sp === 'cat' ? 4.2 : 8.5;
+        };
+        const tubeForWt = (wt, sp) => {
+          if (sp === 'cat') return wt < 3.4 ? '3.0mm' : (wt < 5.5 ? '3.5mm' : '4.0mm');
+          if (wt < 3.5) return '3.5mm';
+          if (wt < 5.5) return '4.5mm';
+          if (wt < 9.5) return '5.5mm';
+          if (wt < 15) return '6.5mm';
+          if (wt < 24) return '8.0mm';
+          return '9.5mm';
+        };
+        const ocSp = oc.species === 'cat' ? 'cat' : 'dog';
+        const ocWt = extractAiWt(oc, ocSp);
+        let pick = { ...fallback, id: 'ai_' + Date.now(), name: oc.title, asa: oc.asa, wt: ocWt, desc: oc.summary, hr: oc.baseHR, map: oc.baseMAP, tube: tubeForWt(ocWt, ocSp), ownerClue: '최근 기력이 떨어지고 상태가 안 좋아서 데려왔어요. 아까 병원에서 링거랑 무슨 주사를 맞긴 했는데 정확한 약 이름이나 용량은 잘 모르겠어요.', lab: oc.lab };
+        st.species = ocSp;
         try {
           const res = await fetch(AI_API_PREFIX + '/ai', {
             method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
@@ -1918,7 +1936,8 @@
             if (d && d.caseData && d.caseData.summary) {
               const cd = d.caseData;
               if (cd.species === 'cat' || cd.species === 'dog') st.species = cd.species;
-              pick = { ...pick, name: cd.title, asa: cd.asa || oc.asa, desc: cd.summary, hr: Number(cd.baseHR) || oc.baseHR, map: Number(cd.baseMAP) || oc.baseMAP, tube: st.species === 'cat' ? '3.5mm' : '6.0mm', ownerClue: '최근 기력이 떨어지고 상태가 안 좋아서 데려왔어요. 아까 병원에서 링거랑 무슨 주사를 맞긴 했는데 정확한 약 이름이나 용량은 잘 모르겠어요.', lab: cd.lab || oc.lab };
+              const cdWt = extractAiWt(cd, st.species);
+              pick = { ...pick, name: cd.title, asa: cd.asa || oc.asa, wt: cdWt, desc: cd.summary, hr: Number(cd.baseHR) || oc.baseHR, map: Number(cd.baseMAP) || oc.baseMAP, tube: tubeForWt(cdWt, st.species), ownerClue: '최근 기력이 떨어지고 상태가 안 좋아서 데려왔어요. 아까 병원에서 링거랑 무슨 주사를 맞긴 했는데 정확한 약 이름이나 용량은 잘 모르겠어요.', lab: cd.lab || oc.lab };
             }
           }
         } catch (e) {}
