@@ -1271,9 +1271,11 @@
 
       function getCaseObj() {
         if (st.aiCase) {
+          const wtM = String(st.aiCase.summary || st.aiCase.title || '').match(/(\d+(?:\.\d+)?)\s*kg/i);
+          const aiWt = Number(st.aiCase.weight) || (wtM ? Number(wtM[1]) : (st.species === 'dog' ? 9.5 : 4.3));
           return {
             name: st.aiCase.title, asa: st.aiCase.asa || 'ASA IV-E', labKey: 'random',
-            wt: st.species === 'dog' ? 9.5 : 4.3, desc: st.aiCase.summary,
+            wt: aiWt, desc: st.aiCase.summary,
             ownerClue: '어제부터 상태가 급격히 나빠져서 응급으로 데려왔어요.',
             initK: st.aiCase.lab?.K || 4.8, initPH: st.aiCase.lab?.pH || 7.28, initHct: st.aiCase.lab?.HCT || 31,
             initAlb: st.aiCase.lab?.ALB || 2.3, initGlu: st.aiCase.lab?.Glu || 76, initIcp: 12, initLung: 8, initArr: 24,
