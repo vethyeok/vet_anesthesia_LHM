@@ -575,22 +575,25 @@
           ]
         },
         {
-          title: '예방적 항생제 (수술 절개 30분 전)',
+          title: '예방적 항생제 (수술·임신 상태별 선택)',
           items: [
-            { id: 'cefazolin', name: 'Cefazolin (22 mg/kg IV)', desc: '정형·일반외과 표준 예방적 항생제' },
-            { id: 'amp_sulb',  name: 'Ampicillin-Sulbactam IV', desc: 'GDV·담낭파열·복막염·장수술 광범위 항생제' }
+            { id: 'cefazolin',     name: 'Cefazolin (22 mg/kg IV)',       desc: '일반·정형·임신/제왕절개 안전 (1세대 β-락탐 표준)' },
+            { id: 'amp_sulb',      name: 'Ampicillin-Sulbactam IV',       desc: 'GDV·복막염·장수술·임신/제왕절개 안전 광범위 항생제' },
+            { id: 'metronidazole', name: 'Metronidazole (10–15 mg/kg)',   desc: '구강/치과·대장·간담도 혐기성균 커버 (임신/제왕절개 금기)' },
+            { id: 'enrofloxacin',  name: 'Enrofloxacin (5 mg/kg sIV)',    desc: '요로·중증 그람음성 감염 (임신·어린 개체·고양이 망막독성 주의)' }
           ]
         },
         {
           title: '전해질 · 대사 · 심폐 안정화',
           items: [
-            { id: 'calgluc',       name: '10% Ca-Gluconate (slow IV)', desc: '고칼륨혈증(K⁺↑) 심근 막안정화 (유도 전 심정지 예방)' },
-            { id: 'dextrose',      name: '50% Dextrose (희석 IV)',     desc: '저혈당(Glu < 70)·패혈증·어린 개체·고칼륨 보조 교정' },
-            { id: 'furosemide',    name: 'Furosemide (1–2 mg/kg IV)',  desc: '심부전(MMVD/HCM) 폐수종 울혈 완화 (탈수·쇼크 금기)' },
-            { id: 'lidocaine',     name: 'Lidocaine 2% (2 mg/kg IV)',  desc: 'GDV/쇼크 심실부정맥(VPC) 예방·진통 보조 (고양이 저용량 주의)' },
+            { id: 'calgluc',       name: '10% Ca-Gluconate (slow IV)',    desc: '고칼륨혈증(K⁺↑) 심근 막안정화 (유도 전 심정지 예방)' },
+            { id: 'dextrose',      name: '50% Dextrose (희석 IV)',        desc: '저혈당(Glu < 70)·패혈증·어린 개체·고칼륨 보조 교정' },
+            { id: 'furosemide',    name: 'Furosemide (1–2 mg/kg IV)',     desc: '심부전(MMVD/HCM) 폐수종 울혈 완화 (탈수·쇼크 금기)' },
+            { id: 'lidocaine',     name: 'Lidocaine 2% (2 mg/kg IV)',     desc: 'GDV/쇼크 심실부정맥(VPC) 예방·진통 보조 (고양이 저용량 주의)' },
             { id: 'ephedrine',     name: 'Ephedrine (0.05–0.1 mg/kg IV)', desc: '유도 전 중증 저혈압(MAP < 65) 일시 승압 안정화' },
-            { id: 'atropine',      name: 'Atropine (0.02 mg/kg IV)',   desc: '심한 미주신경성 서맥 교정 (고칼륨·α₂·고양이 HCM 빈맥 주의)' },
-            { id: 'dexamethasone', name: 'Dexamethasone (0.1 mg/kg IV)', desc: '단두종(BOAS) 상부기도 부종 예방 · 아나필락시스 완화' }
+            { id: 'epinephrine',   name: 'Epinephrine (0.01 mg/kg IV)',   desc: '아나필락시스 쇼크·심각한 서맥/저혈압·심정지 1차 응급 승압' },
+            { id: 'atropine',      name: 'Atropine (0.02 mg/kg IV)',      desc: '심한 미주신경성 서맥 교정 (고칼륨·α₂·고양이 HCM 빈맥 주의)' },
+            { id: 'dexamethasone', name: 'Dexamethasone (0.1 mg/kg IV)',  desc: '단두종(BOAS) 상부기도 부종 예방 · 아나필락시스 완화' }
           ]
         },
         {
@@ -1069,11 +1072,57 @@
           setAlarm(`${getPreopLabel(aid)} 투여 완료 — 마취 유도 전후 구토·위식도 역류 위험을 낮춥니다.`, 'good');
           addLog(`[마취 전 약물] ${getPreopLabel(aid)} 투여 (항구토/위장관 보호)`, 'good');
         } else if (aid === 'cefazolin' || aid === 'amp_sulb') {
-          if ((aid === 'amp_sulb' && isShock) || (aid === 'cefazolin' && !isShock)) {
-            st.goodPoints.push(`수술 절개 전 예방적 항생제(${getPreopLabel(aid)}) 적기 투여`);
+          const isPregnant = (st.caseId === 'icp' && st.species === 'cat') || /제왕절개|임신|난산|모견|모묘/i.test(descAll);
+          if (isPregnant || (aid === 'amp_sulb' && isShock) || (aid === 'cefazolin' && !isShock)) {
+            st.goodPoints.push(`${isPregnant ? '임신·제왕절개에 안전한 ' : '수술 절개 전 '}예방적 항생제(${getPreopLabel(aid)}) 적기 투여`);
           }
           setAlarm(`${getPreopLabel(aid)} IV 투여 완료 — 수술 절개 30분 전 예방적 혈중 농도 확보.`, 'good');
           addLog(`[마취 전 항생제] ${getPreopLabel(aid)} IV 투여`, 'good');
+        } else if (aid === 'metronidazole') {
+          const isPregnant = (st.caseId === 'icp' && st.species === 'cat') || /제왕절개|임신|난산|모견|모묘/i.test(descAll);
+          const isAnaerobic = isShock || /치과|구강|발치|대장|복막염|담낭|간담도|장수술|GDV/i.test(descAll);
+          if (isPregnant) {
+            st.score -= 10;
+            st.mistakes.push('임신·제왕절개 환자에서 Metronidazole 선택 (태아 기형·독성 위험 금기 → Cefazolin/Amp-Sulb 권장)');
+            setAlarm('경고! 임신·제왕절개 환자에서 Metronidazole은 태아 독성 위험으로 금기입니다.', 'danger');
+            addLog('[마취 전 항생제 경고] 임신·제왕절개 환자 Metronidazole 금기!', 'danger');
+          } else {
+            if (isAnaerobic) st.goodPoints.push('구강/소화기·복강 혐기성균 커버를 위한 Metronidazole 예방 투여');
+            setAlarm('Metronidazole 천천히 IV 투여 완료 — 혐기성균 예방 커버 확보.', 'good');
+            addLog('[마취 전 항생제] Metronidazole slow IV 투여 (혐기성균 커버)', 'good');
+          }
+        } else if (aid === 'enrofloxacin') {
+          const isPregnant = (st.caseId === 'icp' && st.species === 'cat') || /제왕절개|임신|난산|모견|모묘/i.test(descAll);
+          const isYoung = /(개월|1세|자견|자묘|어린)/i.test(descAll);
+          if (isPregnant || isYoung) {
+            st.score -= 10;
+            st.mistakes.push(`${isPregnant ? '임신·제왕절개' : '어린 성장기'} 환자에서 Enrofloxacin 선택 (태아·관절연골 손상 위험 금기)`);
+            setAlarm('경고! 임신·성장기 환자에서 Enrofloxacin(플루오로퀴놀론)은 연골·태아 독성 위험이 있습니다.', 'danger');
+            addLog('[마취 전 항생제 경고] 임신/성장기 환자 Enrofloxacin 주의!', 'danger');
+          } else if (st.species === 'cat') {
+            st.score -= 6;
+            st.mistakes.push('고양이에서 Enrofloxacin 선택 시 용량(≤5 mg/kg/day) 초과하면 비가역적 망막독성 위험 (β-락탐 우선 권장)');
+            addLog('[마취 전 항생제 주의] 고양이 Enrofloxacin 망막독성 주의 (5 mg/kg/day 엄수)', 'warn');
+          } else {
+            st.goodPoints.push('그람음성균 감염 대비 Enrofloxacin 예방 투여');
+            addLog('[마취 전 항생제] Enrofloxacin slow IV 투여', 'good');
+          }
+        } else if (aid === 'epinephrine') {
+          const isAnaph = /아나필락시스|쇼크|심정지|과민/i.test(descAll);
+          if (isAnaph || st.map < 55 || st.hr < 48) {
+            st.map = Math.min(135, st.map + 22);
+            st.hr = Math.min(180, st.hr + 28);
+            st.goodPoints.push('중증 쇼크/아나필락시스 상태에서 Epinephrine IV로 신속한 혈압·관류 소생');
+            setAlarm('Epinephrine IV 투여 완료 — 혈압(MAP)과 심박수가 신속히 상승합니다!', 'good');
+            addLog('[마취 전 응급약물] Epinephrine 0.01 mg/kg IV 투여 (승압·기관지확장)', 'good');
+          } else {
+            st.map = Math.min(155, st.map + 28);
+            st.hr = Math.min(220, st.hr + 42);
+            st.score -= (isCardiac ? 14 : 10);
+            st.mistakes.push(`${isCardiac ? '심장병(MMVD/HCM)' : '안정'} 환자에서 불필요한 Epinephrine IV 투여 → 극심한 빈맥·심실부정맥·고혈압 유발`);
+            setAlarm('경고! 적응증이 없는 상태에서 Epinephrine IV 투여로 심한 빈맥·고혈압이 유발되었습니다!', 'danger');
+            addLog('[마취 전 약물 경고] 불필요한 Epinephrine IV → 빈맥·고혈압 위험!', 'danger');
+          }
         } else if (aid === 'calgluc') {
           if (isHighK) {
             st.hr = Math.min(130, st.hr + 12);
@@ -1364,7 +1413,11 @@
           });
         } else if (st.step === 2) {
           const t2 = st.step2Tab || 'premed';
+          const sedLabelMap = { dex: 'Dexmedetomidine', ace: 'Acepromazine', midaz: 'Midazolam' };
+          const opiLabelMap = { methadone: 'Methadone', fentanyl: 'Fentanyl', hydromorphone: 'Hydromorphone', butorphanol: 'Butorphanol' };
           const appliedPills = [
+            ...(st.premedSed && st.premedSed !== 'none' ? [`<span class="adj-pill" style="background:rgba(167,139,250,0.16); border-color:rgba(167,139,250,0.45); color:#ddd6fe;">💊 ${sedLabelMap[st.premedSed] || st.premedSed}</span>`] : []),
+            ...(st.premedOpi && st.premedOpi !== 'none' ? [`<span class="adj-pill" style="background:rgba(16,185,129,0.16); border-color:rgba(16,185,129,0.45); color:#6ee7b7;">💊 ${opiLabelMap[st.premedOpi] || st.premedOpi}</span>`] : []),
             ...st.preFluidsGiven.map(id => `<span class="adj-pill">💧 ${getPreopLabel(id)}</span>`),
             ...st.preAdjuncts.map(id => `<span class="adj-pill">💉 ${getPreopLabel(id)}</span>`)
           ];
@@ -1378,19 +1431,18 @@
             </div>
 
             <div style="${t2==='premed'?'':'display:none;'}">
-              <div style="font-size:11px; font-weight:700; color:#94a3b8;">① 진정제 선택</div>
-              <div class="opt-grid">
-                <button type="button" class="opt-btn sed-opt ${st.premedSed==='dex'?'selected':''}" data-v="dex"><div class="ot">Dexmedetomidine</div><div class="od">강력 진정·MAC 절감 / 서맥·혈관수축(심장·쇼크 주의)</div></button>
-                <button type="button" class="opt-btn sed-opt ${st.premedSed==='ace'?'selected':''}" data-v="ace"><div class="ot">Acepromazine</div><div class="od">부드러운 진정 / 혈관확장·저혈압(쇼크·GDV 금기)</div></button>
-                <button type="button" class="opt-btn sed-opt ${st.premedSed==='midaz'?'selected':''}" data-v="midaz"><div class="ot">Midazolam</div><div class="od">심혈관 영향 최소 / 노령·심장·쇼크 환자에 안전</div></button>
-                <button type="button" class="opt-btn sed-opt ${st.premedSed==='none'?'selected':''}" data-v="none"><div class="ot">진정제 생략</div><div class="od">제왕절개·극도 쇠약 시 고려 (유도제 요구량↑)</div></button>
+              <div style="font-size:11px; font-weight:700; color:#94a3b8;">① 진정제 (토글 선택 · 다시 누르면 해제)</div>
+              <div class="opt-grid" style="grid-template-columns:repeat(3,1fr);">
+                <button type="button" class="opt-btn sed-opt ${st.premedSed==='dex'?'selected':''}" data-v="dex"><div class="ot">${st.premedSed==='dex'?'✓ ':''}Dexmedetomidine</div><div class="od">강력 진정·MAC 절감 / 서맥·혈관수축(심장·쇼크 주의)</div></button>
+                <button type="button" class="opt-btn sed-opt ${st.premedSed==='ace'?'selected':''}" data-v="ace"><div class="ot">${st.premedSed==='ace'?'✓ ':''}Acepromazine</div><div class="od">부드러운 진정 / 혈관확장·저혈압(쇼크·GDV 금기)</div></button>
+                <button type="button" class="opt-btn sed-opt ${st.premedSed==='midaz'?'selected':''}" data-v="midaz"><div class="ot">${st.premedSed==='midaz'?'✓ ':''}Midazolam</div><div class="od">심혈관 영향 최소 / 노령·심장·쇼크 환자에 안전</div></button>
               </div>
-              <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-top:10px;">② 진통제(Opioid) 선택</div>
+              <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-top:10px;">② 진통제 Opioid (토글 선택 · 다시 누르면 해제)</div>
               <div class="opt-grid">
-                <button type="button" class="opt-btn opi-opt ${st.premedOpi==='methadone'?'selected':''}" data-v="methadone"><div class="ot">Methadone (μ 효능제)</div><div class="od">강력한 수술 통증 차단 · 구토 적음 · 유도제 절감</div></button>
-                <button type="button" class="opt-btn opi-opt ${st.premedOpi==='fentanyl'?'selected':''}" data-v="fentanyl"><div class="ot">Fentanyl (단시간 μ)</div><div class="od">심혈관 안정 · 신속 작용 · 중환자/쇼크에 유리</div></button>
-                <button type="button" class="opt-btn opi-opt ${st.premedOpi==='hydromorphone'?'selected':''}" data-v="hydromorphone"><div class="ot">Hydromorphone (μ)</div><div class="od">강력 진통 · 개에서 구토 유발 가능(항구토제 병용)</div></button>
-                <button type="button" class="opt-btn opi-opt ${st.premedOpi==='butorphanol'?'selected':''}" data-v="butorphanol"><div class="ot">Butorphanol (κ 효능제)</div><div class="od">경도 진정·진통 / 강한 수술 통증에는 부족</div></button>
+                <button type="button" class="opt-btn opi-opt ${st.premedOpi==='methadone'?'selected':''}" data-v="methadone"><div class="ot">${st.premedOpi==='methadone'?'✓ ':''}Methadone (μ 효능제)</div><div class="od">강력한 수술 통증 차단 · 구토 적음 · 유도제 절감</div></button>
+                <button type="button" class="opt-btn opi-opt ${st.premedOpi==='fentanyl'?'selected':''}" data-v="fentanyl"><div class="ot">${st.premedOpi==='fentanyl'?'✓ ':''}Fentanyl (단시간 μ)</div><div class="od">심혈관 안정 · 신속 작용 · 중환자/쇼크에 유리</div></button>
+                <button type="button" class="opt-btn opi-opt ${st.premedOpi==='hydromorphone'?'selected':''}" data-v="hydromorphone"><div class="ot">${st.premedOpi==='hydromorphone'?'✓ ':''}Hydromorphone (μ)</div><div class="od">강력 진통 · 개에서 구토 유발 가능(항구토제 병용)</div></button>
+                <button type="button" class="opt-btn opi-opt ${st.premedOpi==='butorphanol'?'selected':''}" data-v="butorphanol"><div class="ot">${st.premedOpi==='butorphanol'?'✓ ':''}Butorphanol (κ 효능제)</div><div class="od">경도 진정·진통 / 강한 수술 통증에는 부족</div></button>
               </div>
             </div>
 
@@ -1434,15 +1486,15 @@
             <div class="adj-chip-wrap">
               <span style="color:#94a3b8; font-weight:700; margin-right:4px;">선택 처치(다음 단계 시 적용):</span>
               <span class="adj-pill" style="background:rgba(56,189,248,0.14); border-color:rgba(56,189,248,0.4); color:#7dd3fc;">${maintLabel}</span>
-              ${appliedPills.length ? appliedPills.join('') : '<span style="color:#64748b;">추가 수액·보조약물 없음 (필요 시 위 탭에서 토글 선택)</span>'}
+              ${appliedPills.length ? appliedPills.join('') : '<span style="color:#64748b;">추가 약물 없음 (필요 시 위 탭에서 토글 선택)</span>'}
             </div>
 
             <button id="btn-apply-premed" type="button" class="btn btn-primary" style="width:100%; margin-top:10px; padding:10px;">선택한 전처치·선처치 일괄 적용 및 3단계(전산소화)로 →</button>`;
 
           document.querySelectorAll('#step2-tabs .sub-tab').forEach(b => b.addEventListener('click', () => { st.step2Tab = b.dataset.s2t; renderStep(); }));
           document.querySelectorAll('#adj-subtabs .adj-sub-tab').forEach(b => b.addEventListener('click', () => { st.adjSubtab = b.dataset.asub; renderStep(); }));
-          document.querySelectorAll('.sed-opt').forEach(b => b.addEventListener('click', () => { st.premedSed = b.dataset.v; renderStep(); }));
-          document.querySelectorAll('.opi-opt').forEach(b => b.addEventListener('click', () => { st.premedOpi = b.dataset.v; renderStep(); }));
+          document.querySelectorAll('.sed-opt').forEach(b => b.addEventListener('click', () => { st.premedSed = (st.premedSed === b.dataset.v ? 'none' : b.dataset.v); renderStep(); }));
+          document.querySelectorAll('.opi-opt').forEach(b => b.addEventListener('click', () => { st.premedOpi = (st.premedOpi === b.dataset.v ? 'none' : b.dataset.v); renderStep(); }));
           document.querySelectorAll('.fl-maint-opt').forEach(b => b.addEventListener('click', () => {
             st.preFluidMaint = b.dataset.v;
             renderStep();
