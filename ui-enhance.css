@@ -433,4 +433,25 @@ body.ui-split-sim .main-grid {
     font-size: 10.5px !important;
     white-space: nowrap;
   }
+  /* Global mobile anti-wrap for compact tabs, pills, headers, and button titles */
+  .ctrl-tabs, .phase-bar, .step-bar, .stage-bar, .lab-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .ctrl-tabs::-webkit-scrollbar, .phase-bar::-webkit-scrollbar, .step-bar::-webkit-scrollbar { display: none; }
+  .ctrl-tab, .drug-tab, .phase-pill, .stage-pill, .step-pill, .lab-tab,
+  .ui-log-filter-btn, .ui-log-toggle-btn, .ui-settings-trigger,
+  header button, header a, .drug-btn, #mon-tab-wave, #mon-tab-vital {
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .act-btn .at, .choice-btn strong {
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    font-size: 11px !important;
+  }
 }

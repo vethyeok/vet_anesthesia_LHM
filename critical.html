@@ -1733,9 +1733,9 @@
             <div class="s1-pane" data-cpane="premed" style="${t1==='premed'?'':'display:none;'}">
               <div style="font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:4px;">② 전처치 투약 (${doseTag} · 즉시 생리 변화 반영 · 과투여 시 사망!)</div>
               <div class="choice-grid two">
-                <button type="button" class="choice-btn ${st.premed==='dex'?'selected':''}" data-premed="dex"><strong>Dexmedetomidine + Methadone</strong><small>강력 진정·혈관수축(α₂↑) · 쇼크/고칼륨 주의</small></button>
-                <button type="button" class="choice-btn ${st.premed==='midaz'?'selected':''}" data-premed="midaz"><strong>Midazolam + Fentanyl/Methadone</strong><small>심혈관 안정 · 중환자/심부전/쇼크 Co-induction</small></button>
-                <button type="button" class="choice-btn ${st.premed==='ace'?'selected':''}" data-premed="ace"><strong>Acepromazine + Butorphanol</strong><small>α₁ 혈관확장 · 저혈압/쇼크·출혈 금기</small></button>
+                <button type="button" class="choice-btn ${st.premed==='dex'?'selected':''}" data-premed="dex"><strong>Dexmed + Methadone</strong><small>강력 진정·혈관수축(α₂↑) · 쇼크/고칼륨 주의</small></button>
+                <button type="button" class="choice-btn ${st.premed==='midaz'?'selected':''}" data-premed="midaz"><strong>Midazolam + Opioid</strong><small>심혈관 안정 · 중환자/심부전/쇼크 Co-induction</small></button>
+                <button type="button" class="choice-btn ${st.premed==='ace'?'selected':''}" data-premed="ace"><strong>Aceprom + Butorphanol</strong><small>α₁ 혈관확장 · 저혈압/쇼크·출혈 금기</small></button>
                 <button type="button" class="choice-btn ${st.premed==='ket'?'selected':''}" data-premed="ket"><strong>Ketamine + Midazolam</strong><small>교감신경 항진 · HCM/뇌압(ICP) 금기</small></button>
                 <button type="button" class="choice-btn ${st.premed==='none'?'selected':''}" data-premed="none" style="grid-column:span 2;"><strong>전처치 생략 (유도 직행)</strong><small>극도 쇠약·쇼크·응급 환자에서 전처치 없이 신속 유도 시 선택 (유도제 요구량↑)</small></button>
               </div>

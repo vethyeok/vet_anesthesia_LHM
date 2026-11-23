@@ -1192,11 +1192,11 @@
 
       <!-- Mobile 2-Tab Monitor View Switcher (< 1024px saves vertical space!) -->
       <div class="grid grid-cols-2 gap-1 rounded-lg border border-slate-800 bg-slate-900/95 p-1 lg:hidden" role="tablist" aria-label="모바일 모니터 화면 전환">
-        <button id="mon-tab-wave" type="button" class="rounded-md bg-sky-500 px-2 py-1 text-[10px] font-extrabold text-slate-950 transition">
-          파형 <span id="mon-pill-wave" class="font-mono-num font-bold opacity-90">(HR 92·SpO₂ 99·CO₂ 44)</span>
+        <button id="mon-tab-wave" type="button" class="whitespace-nowrap overflow-hidden text-ellipsis rounded-md bg-sky-500 px-1.5 py-1 text-[9.5px] font-extrabold text-slate-950 transition">
+          파형 <span id="mon-pill-wave" class="font-mono-num font-bold opacity-90">92·99%·44</span>
         </button>
-        <button id="mon-tab-vital" type="button" class="rounded-md bg-slate-950 px-2 py-1 text-[10px] font-bold text-slate-300 transition">
-          수치·신체검사 <span id="mon-pill-vital" class="font-mono-num font-semibold text-rose-300">(MBP 81·38.0°)</span>
+        <button id="mon-tab-vital" type="button" class="whitespace-nowrap overflow-hidden text-ellipsis rounded-md bg-slate-950 px-1.5 py-1 text-[9.5px] font-bold text-slate-300 transition">
+          수치·검사 <span id="mon-pill-vital" class="font-mono-num font-semibold text-rose-300">81·38.0°·1.2×</span>
         </button>
       </div>
 
@@ -3953,8 +3953,8 @@
         const spo2Pill = state.arrested ? '--' : String(state.dispSpO2);
         const co2Pill = state.arrested ? '0' : String(state.dispETCO2);
         const mapPill = state.arrested ? '0' : String(state.dispMAP);
-        el.monPillWave.textContent = `(HR ${hrPill}·SpO₂ ${spo2Pill}·CO₂ ${co2Pill})`;
-        el.monPillVital.textContent = `(MBP ${mapPill}·${state.trueBT.toFixed(1)}°·${state.effectiveMac.toFixed(1)}×)`;
+        el.monPillWave.textContent = `${hrPill}·${spo2Pill}%·${co2Pill}`;
+        el.monPillVital.textContent = `${mapPill}·${state.trueBT.toFixed(1)}°·${state.effectiveMac.toFixed(1)}×`;
 
         // Viability bar
         const vPct = Math.round(state.viability);
