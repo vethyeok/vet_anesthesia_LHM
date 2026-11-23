@@ -2841,7 +2841,7 @@
         // Hemodynamic drift, dynamic crises & score milestones in Stage 2
         if (st.stage === 2) {
           const mac = st.etIso / (st.species === 'cat' ? 1.63 : 1.28);
-          const mapT = clamp(86 - Math.max(0, mac - 1.1) * 28 - Math.max(0, 95 - p.preloadVol) * 0.55 - Math.max(0, 100 - p.svr) * 0.45 + (p.icp > 23 ? 22 : 0), 22, 165);
+          const mapT = clamp(86 - Math.max(0, mac - 1.1) * 28 - Math.max(0, 95 - p.preloadVol) * 0.55 - Math.max(0, 100 - p.svr) * 0.45 + (p.contractility - 95) * 0.25 - Math.max(0, p.histamineTone - 15) * 0.35 + (p.icp > 23 ? 22 : 0), 22, 165);
           st.map = clamp(st.map + (mapT - st.map) * 0.08 * dt, 18, 175);
           const spo2T = clamp(99 - Math.max(0, p.lungWater - 14) * 0.38 - (st.etco2 > 60 ? 6 : 0), 62, 100);
           st.spo2 = clamp(st.spo2 + (spo2T - st.spo2) * 0.12 * dt, 58, 100);

@@ -2899,6 +2899,14 @@
         state.atropineDoses = 0;
         state.lidocaineTime = 0;
         state.lidocaineDoses = 0;
+        state.esmololTime = 0;
+        state.esmololContra = false;
+        state.epiTime = 0;
+        state.epiMapGain = 0;
+        state.epiHrGain = 0;
+        state.naloxBurstTime = 0;
+        state.atipVasodilTime = 0;
+        state.atipMapDrop = 0;
         state.lidoToxicity = 0;
         state.ephToxicity = 0;
         state.atrToxicity = 0;
@@ -3490,6 +3498,10 @@
         if (dt > 0) {
           const tau = clamp(0.08 + state.o2Flow * 0.085, 0.1, 0.45);
           state.etIso = clamp(state.etIso + (state.iso - state.etIso) * tau * dt, 0.0, 4.0);
+          // Decrement special emergency bolus timers
+          if (state.epiTime > 0) state.epiTime = Math.max(0, state.epiTime - dt);
+          if (state.naloxBurstTime > 0) state.naloxBurstTime = Math.max(0, state.naloxBurstTime - dt);
+          if (state.atipVasodilTime > 0) state.atipVasodilTime = Math.max(0, state.atipVasodilTime - dt);
           // TLK CRI dose-dependent lidocaine toxicity (cats any dose, dogs high-dose > 2.4 mL/kg/h)
           if (state.tlkCriRate > 0) {
             if (state.speciesId === 'cat') {
@@ -3505,18 +3517,48 @@
             if (state.fentanylCriRate >= 10) {
               state.phys.vagalTone = clamp((state.phys.vagalTone || 15) + (state.fentanylCriRate - 9) * 0.45 * dt, 0, 85);
             }
+          } else if (state.phys && !state.tlkCri) {
+            // Gradual pharmacokinetic decay of IV bolus receptor tones (~90-140s)
+            const pb = state.physBase || {};
+            if ((state.phys.opioidTone || 0) > (pb.opioidTone || 0)) {
+              state.phys.opioidTone = Math.max(pb.opioidTone || 0, state.phys.opioidTone - 0.28 * dt);
+            }
+          }
+          if (state.phys) {
+            const pb = state.physBase || {};
+            if ((state.phys.alpha2Tone || 0) > (pb.alpha2Tone || 0)) {
+              state.phys.alpha2Tone = Math.max(pb.alpha2Tone || 0, state.phys.alpha2Tone - 0.22 * dt);
+            }
+            if ((state.phys.benzoTone || 0) > 0) {
+              state.phys.benzoTone = Math.max(0, state.phys.benzoTone - 0.22 * dt);
+            }
+            const baseVagal = pb.vagalTone ?? 18;
+            if (state.fentanylCriRate < 10) {
+              state.phys.vagalTone = clamp(state.phys.vagalTone + (baseVagal - state.phys.vagalTone) * 0.025 * dt, 0, 90);
+            }
+            const baseNoci = pb.nociception ?? 22;
+            if (!state.dynPainActive && state.fentanylCriRate === 0 && !state.tlkCri) {
+              state.phys.nociception = clamp(state.phys.nociception + (baseNoci - state.phys.nociception) * 0.025 * dt, 0, 100);
+            }
           }
           // Soda lime exhaustion raises FiCO2
           const targetFi = state.sodaLimeFault ? 10 : 0;
           state.fiCO2 = clamp(state.fiCO2 + (targetFi - state.fiCO2) * 0.35 * dt, 0, 14);
         }
 
-        // 1) Temperature-adjusted MAC + Dose-dependent TLK CRI & Fentanyl CRI MAC-sparing
+        const p = state.phys || null;
+        const pb = state.physBase || p || {};
+        const dOpioid = p ? ((p.opioidTone || 0) - (pb.opioidTone || 0)) : 0;
+        const dAlpha2 = p ? ((p.alpha2Tone || 0) - (pb.alpha2Tone || 0)) : 0;
+        const dBenzo = p ? ((p.benzoTone || 0) - (pb.benzoTone || 0)) : 0;
+
+        // 1) Temperature-adjusted MAC + Dose-dependent CRI & Bolus Analgesic/Sedative MAC-sparing
         const tempDrop = Math.max(0, 38.0 - state.trueBT);
         const macTempFactor = clamp(1 - 0.06 * tempDrop, 0.52, 1.0);
         const tlkMacSpare = state.tlkCriRate > 0 ? clamp(1 - 0.13 * state.tlkCriRate, 0.58, 1.0) : (state.lidocaineTime > 0 ? 0.88 : 1.0);
         const fentMacSpare = state.fentanylCriRate > 0 ? clamp(1 - 0.025 * state.fentanylCriRate, 0.50, 1.0) : 1.0;
-        const effectiveBaseMac = sp.baseMac * prof.macMult * macTempFactor * Math.max(0.45, tlkMacSpare * fentMacSpare);
+        const bolusMacSpare = clamp(1 - Math.max(0, dOpioid) * 0.0038 - Math.max(0, dAlpha2) * 0.0045 - Math.max(0, dBenzo) * 0.0022, 0.52, 1.0);
+        const effectiveBaseMac = sp.baseMac * prof.macMult * macTempFactor * Math.max(0.42, tlkMacSpare * fentMacSpare * bolusMacSpare);
         state.tempAdjustedMac = effectiveBaseMac;
         state.effectiveMac = state.etIso / Math.max(0.28, effectiveBaseMac);
 
@@ -3539,17 +3581,18 @@
         let effectivePip = state.pip;
 
         if (state.ventMode === 'manual') {
-          const highCriApnea = state.fentanylCriRate >= 16 || state.tlkCriRate >= 3.6;
+          const highCriApnea = state.fentanylCriRate >= 16 || state.tlkCriRate >= 3.6 || (p && (p.opioidTone || 0) >= 84);
           if (state.apneaActive || state.effectiveMac > 1.85 || highCriApnea) {
-            // Deep anesthesia, high-dose CRI apnea, or triggered apnea -> relies strictly on manual bagging!
+            // Deep anesthesia, high-dose opioid/CRI apnea, or triggered apnea -> relies strictly on manual bagging!
             effectiveRR = manualRate;
             effectivePip = clamp(state.aplPressure, 6, 22);
             if (effectiveRR === 0 && dt > 0) state.apneaSeconds += dt;
             else state.apneaSeconds = Math.max(0, state.apneaSeconds - dt * 2.5);
           } else {
-            // Light/moderate spontaneous breathing + opioid/TLK CRI respiratory depression
+            // Light/moderate spontaneous breathing + opioid/alpha2/benzo/CRI respiratory depression
             const criRespDep = state.fentanylCriRate * 0.38 + Math.max(0, state.tlkCriRate - 1.2) * 1.4;
-            const spontRR = Math.max(2, Math.round((state.speciesId === 'dog' ? 9 : 12) - (state.effectiveMac - 1.0) * 6 - criRespDep));
+            const bolusRespDep = Math.max(0, dOpioid) * 0.085 + Math.max(0, dAlpha2) * 0.03 + Math.max(0, dBenzo) * 0.04;
+            const spontRR = Math.max(2, Math.round((state.speciesId === 'dog' ? 9 : 12) - (state.effectiveMac - 1.0) * 6 - criRespDep - bolusRespDep));
             effectiveRR = spontRR + manualRate;
             effectivePip = Math.max(9, Math.min(18, state.aplPressure || 10));
             state.apneaSeconds = 0;
@@ -3588,7 +3631,7 @@
         const targetEdema = clamp(excessFluid * edemaGain * prof.fluidSensitive + rateExcess * 0.45 * prof.fluidSensitive, 0, 30);
         state.pulmonaryEdema = dt > 0 ? state.pulmonaryEdema + (targetEdema - state.pulmonaryEdema) * 0.35 : targetEdema;
 
-        // 4) SpO2 Model (Responds strongly to Apnea, Edema, Barotrauma, APL closed!)
+        // 4) SpO2 Model (Responds strongly to Apnea, Edema, Barotrauma, APL closed, Histamine/LungWater!)
         let targetSpo2 = prof.baseSpo2 + (state.peep > 0 ? Math.min(4, state.peep * (prof.thoracic ? 0.9 : 0.4)) : 0);
         if (state.trueVt < 6.0 && effectiveRR > 0) targetSpo2 -= (6.0 - state.trueVt) * 2.8;
         if (state.apneaSeconds > 4) targetSpo2 -= (state.apneaSeconds - 4) * 1.65;
@@ -3596,11 +3639,16 @@
         if (prof.thoracic && state.circuitPaw > 14) targetSpo2 -= (state.circuitPaw - 14) * 1.8;
         if (state.circuitPaw > 24) targetSpo2 -= (state.circuitPaw - 24) * 1.6; // APL closed barotrauma
         targetSpo2 -= state.pulmonaryEdema;
+        if (p) {
+          targetSpo2 -= ((p.lungWater || 0) - (pb.lungWater || 0)) * 0.25;
+          targetSpo2 -= ((p.histamineTone || 0) - (pb.histamineTone || 0)) * 0.12;
+          if ((pb.pcv || 35) < 24 && p.pcv > pb.pcv) targetSpo2 += Math.min(5, (p.pcv - pb.pcv) * 0.45);
+        }
         if (state.trueMAP < 45) targetSpo2 -= (45 - state.trueMAP) * 0.45;
         const spo2Step = dt > 0 ? 0.3 : 1.0;
         state.trueSpO2 = clamp(Math.round(state.trueSpO2 + (clamp(targetSpo2, 55, 100) - state.trueSpO2) * spo2Step), 55, 100);
 
-        // 5) Blood Pressure (MAP) Model (Much more reactive to over-anesthesia, APL closed, toxicity!)
+        // 5) Blood Pressure (MAP) Model (Responds to Iso, APL, Toxicity, Analgesics/Sedatives, Emergency Drugs!)
         const isoDelta = state.effectiveMac - 1.15;
         // Nonlinear heavy myocardial depression above 1.8x MAC
         const isoMapEffect = isoDelta > 0.65
@@ -3632,17 +3680,37 @@
         const atrMapBoost = atrStrength * (prof.vagalHigh || prof.severeCold || state.dynVagalActive || state.trueHR < sp.hrMin ? 18 : (prof.cardiac ? -12 : 4));
         const cushing = prof.neuroICP && (state.trueETCO2 > 45 || state.circuitPaw > 16) ? (Math.max(0, state.trueETCO2 - 45) * 1.2 + Math.max(0, state.circuitPaw - 16) * 2.0) : 0;
 
-        let targetMap = prof.baseMAP + isoMapEffect + pawPenalty + peepMapPenalty + hyperventMapPenalty + hypocapniaMapPenalty + hypovolemiaPenalty + coldMapPenalty + lidoMapPenalty + hypoxiaMapPenalty + vagalMapPenalty + painMapBoost + ephMapBoost + ephOverdoseMap + atrMapBoost + norepiMapBoost + dobutMapBoost + cardiacTachyPenalty + extremeTachyCollapse + cushing;
+        // Special/Emergency & Analgesic/Sedative MAP Coupling (relative to scenario physBase so baseline vitals stay exact!)
+        const epiStrength = state.epiTime > 0 ? Math.min(1, state.epiTime / 16) : 0;
+        const epiMapBoost = epiStrength * (state.epiMapGain || 24);
+        const naloxStrength = state.naloxBurstTime > 0 ? Math.min(1, state.naloxBurstTime / 14) : 0;
+        const naloxMapBoost = naloxStrength * 20;
+        const atipStrength = state.atipVasodilTime > 0 ? Math.min(1, state.atipVasodilTime / 14) : 0;
+        const atipMapPenalty = -atipStrength * (state.atipMapDrop || 16);
+        const esmoStrengthNow = state.esmololTime > 0 ? Math.min(1, state.esmololTime / 18) : 0;
+        const esmoMapPenalty = (esmoStrengthNow > 0 && state.esmololContra) ? -esmoStrengthNow * 18 : 0;
+        const alpha2MapDelta = dAlpha2 * 0.36; // Dexmedetomidine vasoconstriction (+17 mmHg) / Atipamezole reversal
+        const physMapDelta = p ? (
+          ((p.svr || 100) - (pb.svr ?? 100)) * 0.24 +
+          ((p.preloadVol || 100) - (pb.preloadVol ?? 100)) * 0.55 +
+          ((p.contractility || 98) - (pb.contractility ?? 98)) * 0.32 -
+          ((p.histamineTone || 0) - (pb.histamineTone || 0)) * 0.30 +
+          ((p.nociception || 22) - (pb.nociception ?? 22)) * 0.28 +
+          (Math.min(0, (p.bloodGlucose || 95) - 62) - Math.min(0, (pb.bloodGlucose ?? 95) - 62)) * 0.38 +
+          (Math.min(0, (p.ionizedCa || 1.2) - 1.08) - Math.min(0, (pb.ionizedCa ?? 1.2) - 1.08)) * 30
+        ) : 0;
+
+        let targetMap = prof.baseMAP + isoMapEffect + pawPenalty + peepMapPenalty + hyperventMapPenalty + hypocapniaMapPenalty + hypovolemiaPenalty + coldMapPenalty + lidoMapPenalty + hypoxiaMapPenalty + vagalMapPenalty + painMapBoost + ephMapBoost + ephOverdoseMap + atrMapBoost + norepiMapBoost + dobutMapBoost + cardiacTachyPenalty + extremeTachyCollapse + cushing + epiMapBoost + naloxMapBoost + atipMapPenalty + esmoMapPenalty + alpha2MapDelta + physMapDelta;
         if (state.effectiveMac < 0.75) targetMap += (0.75 - state.effectiveMac) * 28;
         // Viability deterioration weakens cardiac contractility further
         if (state.viability < 50) targetMap -= (50 - state.viability) * 0.45;
 
         const mapStep = dt > 0 ? 0.35 : 1.0;
-        state.trueMAP = clamp(Math.round(state.trueMAP + (clamp(targetMap, 18, 150) - state.trueMAP) * mapStep), 18, 150);
+        state.trueMAP = clamp(Math.round(state.trueMAP + (clamp(targetMap, 18, 170) - state.trueMAP) * mapStep), 18, 170);
 
         const pulsePressure = clamp(Math.round((state.trueMAP * 0.48) - (totalHypovolemia - fluidBenefit) * 0.4 + ephStrength * 6), 12, 62);
-        state.trueDAP = clamp(Math.round(state.trueMAP - pulsePressure / 3), 10, 115);
-        state.trueSAP = clamp(state.trueDAP + pulsePressure, 26, 200);
+        state.trueDAP = clamp(Math.round(state.trueMAP - pulsePressure / 3), 10, 125);
+        state.trueSAP = clamp(state.trueDAP + pulsePressure, 26, 210);
 
         // 6) Heart Rate & Rhythm Model
         let targetHR = prof.baseHR;
@@ -3659,6 +3727,24 @@
         if (state.dynBleed > 8 && state.trueMAP < 68) targetHR += 28;
         targetHR += ephStrength * (prof.cardiac === 'hcm' ? 38 : 22) + state.ephToxicity * 0.95;
         targetHR += atrStrength * (state.speciesId === 'dog' ? 54 : 60) + state.atrToxicity * 1.15;
+        // Special/Emergency & Analgesic/Sedative HR Coupling
+        targetHR += epiStrength * (state.epiHrGain || 36);
+        targetHR += naloxStrength * 28;
+        targetHR += atipStrength * 24;
+        targetHR -= dOpioid * 0.36;  // Fentanyl bolus/CRI bradycardia (-16~22 bpm) / Naloxone reversal
+        targetHR -= dAlpha2 * 0.56;  // Dexmedetomidine reflex bradycardia (-26 bpm) / Atipamezole reversal
+        if (p) {
+          targetHR -= ((p.vagalTone || 18) - (pb.vagalTone ?? 18)) * 0.45;
+          targetHR += ((p.nociception || 22) - (pb.nociception ?? 22)) * 0.48;
+          if ((p.ionizedCa || 1.2) > 1.50) targetHR -= (p.ionizedCa - 1.50) * 65; // Ca-Gluconate overdose bradycardia
+          targetHR += (Math.min(0, (p.bloodGlucose || 95) - 62) - Math.min(0, (pb.bloodGlucose ?? 95) - 62)) * 0.55;
+          if ((p.serumK || 4.3) > 6.4 && (p.myoStability || 98) < 75) {
+            const baseKPen = ((pb.serumK || 4.3) > 6.4 && (pb.myoStability || 98) < 75) ? ((pb.serumK - 6.4) * 14 * (1 - (pb.myoStability / 85))) : 0;
+            const curKPen = (p.serumK - 6.4) * 14 * (1 - (p.myoStability / 85));
+            targetHR -= (curKPen - baseKPen);
+          }
+          if ((pb.pcv || 35) < 25 && p.pcv > pb.pcv) targetHR -= Math.min(18, (p.pcv - pb.pcv) * 1.1);
+        }
         if (state.esmololTime > 0) {
           if (dt > 0) state.esmololTime = Math.max(0, state.esmololTime - dt);
           const esmoStrength = Math.min(1, state.esmololTime / 18);
@@ -5996,7 +6082,7 @@
         const prof = getProfile();
         const ht = (lab && lab.hiddenTrue) ? lab.hiddenTrue : { pH: 7.38, pCO2: 40, Na: 146, K: 4.3, Cl: 113, iCa: 1.24, Hct: 42, ALB: 3.2, Glu: 96, PLT: 270, BE: 0, lactate: 1.3, alpha2: 0, opioid: 25, histamine: 0, icp: 10, lungWater: 0 };
         if (lab) { lab._sc = state.scenarioId; lab._sp = state.speciesId; } state.preopLab = lab;
-        state.drugCounts = { epi: 0, cal: 0, dex: 0, prbc: 0, bicarb: 0, furo: 0, nalox: 0, atip: 0 };
+        state.drugCounts = { epi: 0, cal: 0, dex: 0, dexmed: 0, fent: 0, insulin: 0, prbc: 0, bicarb: 0, furo: 0, nalox: 0, atip: 0 };
         state.phys = {
           // 1. 심혈관·혈역학 (4)
           preloadVol: clamp(100 - (prof.hypovolemia || 0) * 0.6, 55, 120),
@@ -6027,12 +6113,31 @@
           // 5. 수용체·자율신경 (4)
           alpha2Tone: ht.alpha2 || 0,
           opioidTone: ht.opioid ?? 25,
+          benzoTone: 0,
           nociception: 22,
           vagalTone: prof.obstructive ? 38 : 18,
           // 6. 신경·면역·신장 (3)
           icp: ht.icp || (prof.neuroICP ? 19 : 10),
           histamineTone: ht.histamine || 0,
           urineOutput: prof.ckd ? 0.4 : 1.5
+        };
+        // Snapshot initial scenario baseline so drug/metabolic deltas apply without double-counting starting scenario vitals
+        state.physBase = {
+          preloadVol: state.phys.preloadVol,
+          svr: state.phys.svr,
+          contractility: state.phys.contractility,
+          pcv: state.phys.pcv,
+          lungWater: state.phys.lungWater,
+          ionizedCa: state.phys.ionizedCa,
+          bloodGlucose: state.phys.bloodGlucose,
+          serumK: state.phys.serumK,
+          myoStability: state.phys.myoStability,
+          alpha2Tone: state.phys.alpha2Tone,
+          opioidTone: state.phys.opioidTone,
+          benzoTone: 0,
+          nociception: state.phys.nociception,
+          vagalTone: state.phys.vagalTone,
+          histamineTone: state.phys.histamineTone
         };
         // Sync initial pulmonary edema if lungWater elevated
         if (state.phys.lungWater > 10) state.pulmonaryEdema = Math.max(state.pulmonaryEdema || 0, state.phys.lungWater * 0.12);
@@ -6154,7 +6259,6 @@
         if (!modal) return;
         const _aiKey = state.customAiMeta ? (state.customAiMeta.title || 'ai') : ''; const lab = (state.preopLab && state.preopLab._sc === state.scenarioId && state.preopLab._sp === state.speciesId && state.preopLab._ai === _aiKey) ? state.preopLab : Object.assign(PreopLabEngine.generate(state.scenarioId, state.speciesId, state.customAiMeta || null), { _sc: state.scenarioId, _sp: state.speciesId, _ai: _aiKey });
         state.preopLab = lab;
-        state.drugCounts = { epi: 0, cal: 0, dex: 0, prbc: 0, bicarb: 0, furo: 0, nalox: 0, atip: 0 };
         document.getElementById('preop-lab-title').textContent = `마취 전 혈액검사 · ${SCENARIOS[state.scenarioId]?.name || '환자'}`;
         document.getElementById('preop-lab-meta').innerHTML = `<strong>${lab.panelLabel}</strong> — ${lab.note}`;
         document.getElementById('preop-lab-body').innerHTML = PreopLabEngine.renderTabHtml(lab, activePreopTab);
@@ -6314,14 +6418,16 @@
           p.histamineTone = Math.max(0, p.histamineTone - 55);
           p.airwayResistance = Math.max(14, p.airwayResistance - 35);
           p.svr = clamp(p.svr + 28, 45, 140);
-          state.trueMAP = clamp(state.trueMAP + 28, 25, 150);
-          state.trueSpO2 = clamp(state.trueSpO2 + 6, 55, 100);
+          state.epiTime = 28;
+          state.epiMapGain = 22;
+          state.epiHrGain = 26;
           state.viability = clamp(state.viability + 16, 0, 100);
           addLog(`Epinephrine 0.01 mg/kg IV (${n}회) — 아나필락시스 1차 특효! 혈관저항 회복 + 기관지경련 완화`, 'good');
           showToast('Epinephrine IV — 아나필락시스 혈압·기도 저항 즉시 개선!', 'good');
         } else if (n >= 2) {
-          state.trueHR = clamp(state.trueHR + 42, 30, 240);
-          state.trueMAP = clamp(state.trueMAP + Math.round(20 * acidPenalty), 20, 175);
+          state.epiTime = 30;
+          state.epiMapGain = Math.round(20 * acidPenalty);
+          state.epiHrGain = 46;
           if (p) {
             p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + 34, 0, 100);
             p.vo2 = clamp(p.vo2 + 25, 70, 200);
@@ -6332,8 +6438,9 @@
           showToast(`Epinephrine ${n}회 반복 독성! 중증 빈맥·부정맥·젖산 상승 위험!`, 'danger');
         } else {
           const mapGain = Math.round(26 * acidPenalty * volPenalty);
-          state.trueMAP = clamp(state.trueMAP + mapGain, 20, 155);
-          state.trueHR = clamp(state.trueHR + 36, 20, 240);
+          state.epiTime = 26;
+          state.epiMapGain = mapGain;
+          state.epiHrGain = 36;
           if (p) { p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + 22, 0, 100); p.svr = clamp(p.svr + 18 * acidPenalty, 45, 150); }
           if (acidPenalty < 1 || volPenalty < 1) {
             addLog(`Epinephrine IV — 산증(pH ${p.arterialPH})/저혈량으로 승압 효과 반감(+${mapGain} mmHg), 부정맥 위험 급증!`, 'danger');
@@ -6534,8 +6641,7 @@
             p.nociception = clamp(p.nociception + 40, 0, 100);
             p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + (n >= 2 ? 28 : 14), 0, 100);
             if (n >= 2) { p.lungWater = clamp(p.lungWater + 12, 0, 100); state.viability = clamp(state.viability - 8, 0, 100); }
-            state.trueHR = clamp(state.trueHR + 32, 35, 240);
-            state.trueMAP = clamp(state.trueMAP + 22, 30, 175);
+            state.naloxBurstTime = 24;
             addLog(`Naloxone IV (${n}회) — 진통 소실로 카테콜아민 폭풍(빈맥·고혈압·부정맥${n >= 2 ? '·신경성 폐수종 위험' : ''})!`, n >= 2 ? 'danger' : 'warn');
             showToast(n >= 2 ? '경고! Naloxone 반복 투여 → 카테콜아민 폭풍·부정맥·폐수종 위험!' : 'Naloxone — 호흡 회복 / 진통 소실로 급성 통증 반응 주의!', n >= 2 ? 'danger' : 'warn');
           } else {
@@ -6557,14 +6663,14 @@
           p.alpha2Tone = 0;
           p.svr = clamp(p.svr - (n >= 2 ? 32 : 24), 40, 140);
           p.arrhythmiaRisk = clamp(p.arrhythmiaRisk + (n >= 2 ? 22 : 8), 0, 100);
-          state.trueHR = clamp(state.trueHR + 30, 35, 235);
-          state.trueMAP = clamp(state.trueMAP - (n >= 2 ? 24 : 16), 20, 145);
+          state.atipVasodilTime = 24;
+          state.atipMapDrop = n >= 2 ? 24 : 16;
           if (n >= 2) state.viability = clamp(state.viability - 10, 0, 100);
           addLog(`Atipamezole 투여 (${n}회) — ${n >= 2 ? '반복 과투여로 중추 흥분·빈맥 및 급격한 혈관확장성 저혈압 쇼크!' : 'α₂ 역전 완료 + 말초혈관 확장(MAP 하락) 및 마취 얕아짐 주의!'}`, n >= 2 ? 'danger' : 'warn');
           showToast(n >= 2 ? '경고! Atipamezole 반복 투여 → 혈관확장성 저혈압 쇼크·흥분!' : 'Atipamezole — α₂ 역전 완료 (혈압 저하·각성 주의!)', n >= 2 ? 'danger' : 'warn');
         } else {
-          state.trueHR = clamp(state.trueHR + 12, 35, 230);
-          state.trueMAP = clamp(state.trueMAP - 8, 25, 140);
+          state.atipVasodilTime = 16;
+          state.atipMapDrop = 8;
           addLog('Atipamezole 투여 — α₂ 점유도가 낮아 경도 혈압 저하만 발생', 'info');
           showToast('Atipamezole 투여 완료', 'info');
         }
@@ -6615,12 +6721,13 @@
         if (state.atropineTime > 0) state.atropineTime = Math.max(0, state.atropineTime - 15);
         if (state.atrToxicity > 0) state.atrToxicity = Math.max(0, state.atrToxicity - 18);
         if (isTachy && state.trueMAP >= 65) {
+          state.esmololContra = false;
           if (p) { p.arrhythmiaRisk = clamp(p.arrhythmiaRisk - 18, 0, 100); p.vo2 = clamp(p.vo2 - 14, 70, 200); }
           computePhysiology(0); renderMonitorUI();
           addLog(`Esmolol IV (β₁ 차단) — 빈맥·교감흥분 신속 제어 (HR ${Math.round(state.trueHR)} bpm)`, 'good');
           showToast('Esmolol — 단시간 β₁ 차단으로 빈맥 제어 완료!', 'good');
         } else {
-          state.trueMAP = clamp(state.trueMAP - 18, 22, 150);
+          state.esmololContra = true;
           if (p) p.contractility = clamp(p.contractility - 16, 35, 130);
           state.viability = clamp(state.viability - 10, 0, 100);
           computePhysiology(0); renderMonitorUI();
@@ -6635,7 +6742,6 @@
         if (p && p.histamineTone > 15) {
           p.histamineTone = Math.max(0, p.histamineTone - 48);
           p.svr = clamp(p.svr + 14, 40, 145);
-          state.trueMAP = clamp(state.trueMAP + 10, 25, 155);
           addLog('Diphenhydramine (H₁ 항히스타민) — 히스타민 매개 혈관확장·누출 완화!', 'good');
           showToast('Diphenhydramine — H₁ 수용체 차단으로 히스타민 반응 완화!', 'good');
         } else {
@@ -6650,8 +6756,6 @@
         const p = state.phys;
         if ((state.lidoToxicity || 0) > 10) {
           state.lidoToxicity = Math.max(0, state.lidoToxicity - 55);
-          state.trueHR = clamp(state.trueHR + 18, 35, 210);
-          state.trueMAP = clamp(state.trueMAP + 16, 30, 150);
           if (p) { p.contractility = clamp(p.contractility + 20, 40, 125); p.arrhythmiaRisk = clamp(p.arrhythmiaRisk - 25, 0, 100); }
           addLog('20% Intralipid IV (1.5 mL/kg) — Lidocaine 국소마취제 심근독성 지질 격리(Lipid Sink) 해독 성공!', 'good');
           showToast('20% Intralipid — Lidocaine 독성 해독 성공!', 'good');
@@ -6677,40 +6781,35 @@
           p.nociception = Math.max(0, (p.nociception || 0) - 38);
           p.vagalTone = clamp((p.vagalTone || 15) + 18, 0, 90);
         }
-        state.trueHR = clamp(state.trueHR - 18, 32, 220);
-        state.trueRR = Math.max(0, state.trueRR - 4);
         if (n >= 2 && state.ventMode === 'manual') state.apneaActive = true;
-        addLog(`Fentanyl IV 볼루스 (${n}회) — 강력 진통·통증 차단${n >= 2 ? ' (반복 투여로 호흡억제/무호흡·서맥 주의 — Naloxone 역전 가능)' : ' (호흡억제·서맥 감시)'}`, n >= 2 ? 'warn' : 'good');
-        showToast(n >= 2 ? 'Fentanyl 반복 투여 — 호흡억제·서맥 주의! (Naloxone 역전 가능)' : 'Fentanyl IV — 수술 통증 차단 완료!', n >= 2 ? 'warn' : 'good');
         computePhysiology(0); renderMonitorUI();
+        addLog(`Fentanyl IV 볼루스 (${n}회) — 강력 진통·통증 차단 (HR ${Math.round(state.trueHR)}, RR ${state.trueRR})${n >= 2 ? ' · 반복 투여 호흡억제/무호흡 주의 — Naloxone 역전 가능' : ''}`, n >= 2 ? 'warn' : 'good');
+        showToast(n >= 2 ? 'Fentanyl 반복 투여 — 호흡억제·서맥 주의! (Naloxone 역전 가능)' : 'Fentanyl IV — 수술 통증 차단 완료!', n >= 2 ? 'warn' : 'good');
       });
 
       bindSpecial('btn-dex-bolus', () => {
         if (state.arrested) return;
         const p = state.phys;
         state.drugCounts = state.drugCounts || {};
-        state.drugCounts.dex = (state.drugCounts.dex || 0) + 1;
-        const n = state.drugCounts.dex;
+        state.drugCounts.dexmed = (state.drugCounts.dexmed || 0) + 1;
+        const n = state.drugCounts.dexmed;
         if (p) {
           p.alpha2Tone = clamp((p.alpha2Tone || 0) + 48, 0, 100);
           p.svr = clamp((p.svr || 100) + 26, 40, 165);
           p.nociception = Math.max(0, (p.nociception || 0) - 22);
         }
-        state.trueHR = clamp(state.trueHR - 26, 26, 220);
-        state.trueMAP = clamp(state.trueMAP + 18, 30, 175);
-        addLog(`Dexmedetomidine IV (${n}회) — α₂ 진정·혈관수축(MAP↑)·반사성 서맥(HR↓) (과도 시 Atipamezole 역전)`, n >= 2 ? 'danger' : 'warn');
-        showToast(n >= 2 ? '경고! Dexmedetomidine 반복 투여 → 중증 서맥·AV차단 위험! (Atipamezole 고려)' : 'Dexmedetomidine IV — 진정·반사성 서맥 감시 (Atipamezole 역전 가능)', n >= 2 ? 'danger' : 'warn');
         computePhysiology(0); renderMonitorUI();
+        addLog(`Dexmedetomidine IV (${n}회) — α₂ 진정·혈관수축(MAP ${Math.round(state.trueMAP)})·반사성 서맥(HR ${Math.round(state.trueHR)}) (과도 시 Atipamezole 역전)`, n >= 2 ? 'danger' : 'warn');
+        showToast(n >= 2 ? '경고! Dexmedetomidine 반복 투여 → 중증 서맥·AV차단 위험! (Atipamezole 고려)' : 'Dexmedetomidine IV — 진정·반사성 서맥 감시 (Atipamezole 역전 가능)', n >= 2 ? 'danger' : 'warn');
       });
 
       bindSpecial('btn-midaz-bolus', () => {
         if (state.arrested) return;
         const p = state.phys;
         if (p) p.benzoTone = clamp((p.benzoTone || 0) + 52, 0, 100);
-        state.trueRR = Math.max(4, state.trueRR - 2);
-        addLog('Midazolam IV (0.2 mg/kg) — 벤조디아제핀 진정·항경련·근이완 (과진정 시 Flumazenil 역전 가능)', 'good');
-        showToast('Midazolam IV 투여 완료 (Flumazenil로 역전 가능)', 'good');
         computePhysiology(0); renderMonitorUI();
+        addLog(`Midazolam IV (0.2 mg/kg) — 벤조디아제핀 진정·항경련·MAC 절감 (RR ${state.trueRR} · 과진정 시 Flumazenil 역전 가능)`, 'good');
+        showToast('Midazolam IV 투여 완료 (Flumazenil로 역전 가능)', 'good');
       });
 
       // === AI Dynamic Patient Generator (Netlify AI + Instant Offline Fallback Pool) ===
