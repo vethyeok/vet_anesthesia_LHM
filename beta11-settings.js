@@ -1,4 +1,4 @@
-/* 마취 시뮬레이터 베타 1.1 — 공통 설정 상태 유지 + 챕터 공통 헤더/팝업(도움말·단계·설정) */
+/* 마취 시뮬레이터 베타 1.1 — 공통 설정 상태 유지 + 챕터 공통 헤더/팝업 + 전체화면 유지 SPA 전환 */
 (function () {
   const KEY_FONT = 'vet_b11_font_size';   // '0' (소) | '1' (중) | '2' (대)
   const KEY_SOUND = 'vet_b11_sound';      // 'on' | 'off'
@@ -21,7 +21,8 @@
   }
 
   function isFullscreenOn() {
-    try { return localStorage.getItem(KEY_FS) === 'on'; } catch { return false; }
+    const nativeFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    try { return nativeFs || localStorage.getItem(KEY_FS) === 'on'; } catch { return nativeFs; }
   }
 
   function setFullscreenPref(on) {
@@ -38,18 +39,6 @@
         if (isFullscreenOn()) document.body.classList.add('b11-immersive');
       }, { once: true });
     }
-    // Re-enter native Fullscreen API on first user gesture after page navigation
-    const reEnter = () => {
-      if (!isFullscreenOn()) return;
-      const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-      if (fsEl) return;
-      const el = document.documentElement;
-      try {
-        if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-      } catch {}
-    };
-    window.addEventListener('pointerdown', reEnter, { once: true, capture: true });
   }
 
   function playTone(freq = 540, dur = 0.06, vol = 0.04) {
@@ -102,12 +91,22 @@
         else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
       } else if (targetOn && !fsEl) {
         const el = document.documentElement;
-        if (el.requestFullscreen) await el.requestFullscreen();
+        if (el.requestFullscreen) await el.requestFullscreen({ navigationUI: 'hide' }).catch(() => el.requestFullscreen());
         else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
       }
     } catch {}
     return targetOn;
   }
+
+  // Keep preference synced if user exits native fullscreen via OS gesture/back
+  const onFsChange = () => {
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    if (!fsEl && document.body && document.body.classList.contains('b11-immersive')) {
+      setFullscreenPref(false);
+    }
+  };
+  document.addEventListener('fullscreenchange', onFsChange);
+  document.addEventListener('webkitfullscreenchange', onFsChange);
 
   async function shareSimulator() {
     const url = window.location.href.split('#')[0];
@@ -141,6 +140,90 @@
       return { method: 'fail', ok: false };
     }
   }
+
+  /* Seamless SPA navigation between index2.html and chapter1~5.html so mobile native Fullscreen NEVER exits! */
+  const BETA11_PAGES = /^(index2|chapter[1-5])\.html$/i;
+  let navBusy = false;
+
+  async function navigateTo(url, opts = {}) {
+    const push = opts.push !== false;
+    const cleanFile = String(url || '').split('?')[0].split('#')[0].split('/').pop();
+    if (!BETA11_PAGES.test(cleanFile) || window.location.protocol === 'file:') {
+      window.location.href = url;
+      return;
+    }
+    if (navBusy) return;
+    navBusy = true;
+    try {
+      const res = await fetch(url, { cache: 'no-cache' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const newShell = doc.querySelector('.app-shell');
+      const curShell = document.querySelector('.app-shell');
+      if (!newShell || !curShell) throw new Error('Missing app-shell');
+
+      // Remove existing modals from previous page
+      document.querySelectorAll('.modal-backdrop, #ch-modal-host').forEach((el) => el.remove());
+
+      // Swap app shell & title
+      document.title = doc.title || document.title;
+      curShell.replaceWith(document.importNode(newShell, true));
+
+      // Append any top-level modal backdrops from target page (e.g. index2.html settings/credits)
+      doc.querySelectorAll('body > .modal-backdrop').forEach((m) => {
+        document.body.appendChild(document.importNode(m, true));
+      });
+
+      // Execute target page's inline scripts inside an isolated IIFE scope
+      const scripts = Array.from(doc.querySelectorAll('body script:not([src])'));
+      for (const sc of scripts) {
+        const code = sc.textContent || '';
+        if (code.trim()) {
+          new Function(code)();
+        }
+      }
+
+      if (push) {
+        history.pushState({ beta11: true, url }, '', url);
+      }
+      window.scrollTo(0, 0);
+      applyFontLevel(getFontLevel());
+      if (isFullscreenOn()) document.body.classList.add('b11-immersive');
+    } catch {
+      window.location.href = url;
+    } finally {
+      navBusy = false;
+    }
+  }
+
+  // Intercept internal Beta 1.1 links (excluding a.menu-btn which runs its own fade-out then calls navigateTo)
+  document.addEventListener('click', (e) => {
+    const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a || a.classList.contains('menu-btn')) return;
+    const href = a.getAttribute('href') || '';
+    const file = href.split('?')[0].split('#')[0].split('/').pop();
+    if (BETA11_PAGES.test(file)) {
+      e.preventDefault();
+      navigateTo(href, { push: true });
+    }
+  });
+
+  // Handle browser/Android back & forward buttons seamlessly inside Fullscreen
+  window.addEventListener('popstate', () => {
+    const file = window.location.pathname.split('/').pop() || 'index2.html';
+    if (BETA11_PAGES.test(file)) {
+      navigateTo(file, { push: false });
+    }
+  });
+
+  // Single global Escape handler for any open modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach((m) => m.classList.add('hidden'));
+      document.querySelectorAll('.menu-btn.fade-out-lr').forEach((b) => b.classList.remove('fade-out-lr'));
+    }
+  });
 
   /* Mount Chapter 1~5 common top-right actions (?, 3-line stage icon, gear settings) & blur popups */
   function initChapterCommon(cfg) {
@@ -177,8 +260,12 @@
       </button>
     `;
 
-    // Inject 3 Full-Screen Blur Modals: Help (draggable carousel), Stage (튜토리얼/단계/실전), Settings (shared)
+    // Remove any stale modal host before injecting
+    const oldHost = document.getElementById('ch-modal-host');
+    if (oldHost) oldHost.remove();
+
     const modalHost = document.createElement('div');
+    modalHost.id = 'ch-modal-host';
     modalHost.innerHTML = `
       <!-- 도움말 팝업 (드래그 슬라이드) -->
       <div id="ch-help-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch-help-title" style="backdrop-filter:blur(6px);">
@@ -367,14 +454,6 @@
     document.getElementById('ch-btn-settings').addEventListener('click', () => { syncChSettings(); toastEl.textContent = ''; playTone(500, 0.05, 0.03); settingsModal.classList.remove('hidden'); });
     document.getElementById('ch-settings-close').addEventListener('click', () => settingsModal.classList.add('hidden'));
     settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        helpModal.classList.add('hidden');
-        stageModal.classList.add('hidden');
-        settingsModal.classList.add('hidden');
-      }
-    });
   }
 
   // Apply saved font size & fullscreen immediately on every Beta 1.1 page
@@ -390,6 +469,7 @@
     playTone,
     toggleFullscreen,
     shareSimulator,
+    navigateTo,
     initChapterCommon
   };
 })();

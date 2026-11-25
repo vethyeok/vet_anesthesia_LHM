@@ -207,7 +207,7 @@
     document.getElementById('btn-settings-close').addEventListener('click', () => settingsModal.classList.add('hidden'));
     settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
 
-    // 챕터 이동 버튼: 좌측 -> 우측 fade out 후 페이지 이동
+    // 챕터 이동 버튼: 좌측 -> 우측 fade out 후 SPA 전환 (모바일 전체화면 유지!)
     document.querySelectorAll('a.menu-btn').forEach((link) => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -215,7 +215,7 @@
         const target = link.getAttribute('href');
         Beta11Settings.playTone(540, 0.06, 0.03);
         link.classList.add('fade-out-lr');
-        setTimeout(() => { window.location.href = target; }, FADE_MS);
+        setTimeout(() => { Beta11Settings.navigateTo(target, { push: true }); }, FADE_MS);
       });
     });
 
