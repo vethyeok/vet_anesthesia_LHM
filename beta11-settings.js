@@ -2,6 +2,7 @@
 (function () {
   const KEY_FONT = 'vet_b11_font_size';   // '0' (소) | '1' (중) | '2' (대)
   const KEY_SOUND = 'vet_b11_sound';      // 'on' | 'off'
+  const KEY_FS = 'vet_b11_fullscreen';    // 'on' | 'off'
 
   let audioCtx = null;
   function getAudioCtx() {
@@ -17,6 +18,38 @@
 
   function isSoundOn() {
     try { return localStorage.getItem(KEY_SOUND) !== 'off'; } catch { return true; }
+  }
+
+  function isFullscreenOn() {
+    try { return localStorage.getItem(KEY_FS) === 'on'; } catch { return false; }
+  }
+
+  function setFullscreenPref(on) {
+    try { localStorage.setItem(KEY_FS, on ? 'on' : 'off'); } catch {}
+    if (document.body) document.body.classList.toggle('b11-immersive', Boolean(on));
+  }
+
+  function applySavedFullscreen() {
+    if (!isFullscreenOn()) return;
+    if (document.body) {
+      document.body.classList.add('b11-immersive');
+    } else {
+      document.addEventListener('DOMContentLoaded', () => {
+        if (isFullscreenOn()) document.body.classList.add('b11-immersive');
+      }, { once: true });
+    }
+    // Re-enter native Fullscreen API on first user gesture after page navigation
+    const reEnter = () => {
+      if (!isFullscreenOn()) return;
+      const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+      if (fsEl) return;
+      const el = document.documentElement;
+      try {
+        if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      } catch {}
+    };
+    window.addEventListener('pointerdown', reEnter, { once: true, capture: true });
   }
 
   function playTone(freq = 540, dur = 0.06, vol = 0.04) {
@@ -61,26 +94,19 @@
 
   async function toggleFullscreen() {
     const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    const targetOn = !(isFullscreenOn() || Boolean(fsEl));
+    setFullscreenPref(targetOn);
     try {
-      if (fsEl) {
+      if (!targetOn && fsEl) {
         if (document.exitFullscreen) await document.exitFullscreen();
         else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
-        document.body.classList.remove('b11-immersive');
-        return false;
-      } else {
+      } else if (targetOn && !fsEl) {
         const el = document.documentElement;
-        if (el.requestFullscreen) {
-          await el.requestFullscreen();
-          document.body.classList.add('b11-immersive');
-          return true;
-        } else if (el.webkitRequestFullscreen) {
-          await el.webkitRequestFullscreen();
-          document.body.classList.add('b11-immersive');
-          return true;
-        }
+        if (el.requestFullscreen) await el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
       }
     } catch {}
-    return document.body.classList.toggle('b11-immersive');
+    return targetOn;
   }
 
   async function shareSimulator() {
@@ -128,9 +154,9 @@
       { mark: '2', label: `Chapter ${chNum} 예시 사진 2 (추후 첨부)`, desc: '좌우 드래그(스와이프)로 다음 도움말 사진으로 넘어갑니다.' }
     ];
     const stages = Array.isArray(cfg.stages) && cfg.stages.length ? cfg.stages : [
-      { id: 'tutorial', name: '튜토리얼', sub: '안내를 따라 기본 흐름 익히기' },
-      { id: 'step',     name: '단계',     sub: '단계별 핵심 케이스 집중 연습' },
-      { id: 'practice', name: '실전',     sub: '실전 조건으로 종합 수행' }
+      { id: 'tutorial', name: '튜토리얼' },
+      { id: 'step',     name: '단계' },
+      { id: 'practice', name: '실전' }
     ];
 
     // 3 Top-Right Buttons: 도움말(?), 단계(무채색 3줄 계단 아이콘), 설정(톱니바퀴)
@@ -181,15 +207,14 @@
         </div>
       </div>
 
-      <!-- 단계 팝업 (튜토리얼 · 단계 · 실전) -->
+      <!-- 단계 팝업 (튜토리얼 · 단계 · 실전 — 부가 설명 없음) -->
       <div id="ch-stage-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch-stage-title" style="backdrop-filter:blur(6px);">
         <div class="modal-card">
           <h2 id="ch-stage-title" class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown);">단계 · ${chTitle}</h2>
           <div class="stage-list" id="ch-stage-list">
             ${stages.map((st, idx) => `
-              <button type="button" class="b-btn stage-btn ${idx === 0 ? 'active' : ''}" data-stage="${st.id}">
+              <button type="button" class="b-btn stage-btn ${idx === 0 ? 'active' : ''}" data-stage="${st.id}" style="justify-content:center;">
                 <span>${st.name}</span>
-                <span class="st-sub">${st.sub}</span>
               </button>
             `).join('')}
           </div>
@@ -303,6 +328,9 @@
       sToggle.classList.toggle('is-on', snd);
       sToggle.setAttribute('aria-checked', String(snd));
       sLbl.textContent = snd ? 'On' : 'Off';
+      const fs = isFullscreenOn();
+      btnFs.classList.toggle('active', fs);
+      btnFs.textContent = fs ? '전체화면 종료' : '전체화면';
     }
     syncChSettings();
 
@@ -349,14 +377,16 @@
     });
   }
 
-  // Apply saved font size immediately on every Beta 1.1 page
+  // Apply saved font size & fullscreen immediately on every Beta 1.1 page
   applyFontLevel(getFontLevel());
+  applySavedFullscreen();
 
   window.Beta11Settings = {
     getFontLevel,
     applyFontLevel,
     isSoundOn,
     setSound,
+    isFullscreenOn,
     playTone,
     toggleFullscreen,
     shareSimulator,

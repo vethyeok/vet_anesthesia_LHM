@@ -153,6 +153,9 @@
       btnSound.classList.toggle('is-on', snd);
       btnSound.setAttribute('aria-checked', String(snd));
       soundLbl.textContent = snd ? 'On' : 'Off';
+      const fs = Beta11Settings.isFullscreenOn();
+      btnFs.classList.toggle('active', fs);
+      btnFs.textContent = fs ? '전체화면 종료' : '전체화면';
     }
     syncSettingsUI();
 
