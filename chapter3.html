@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Chapter 3 · 전처치 · 마취 도입 · 전환 — 베타 1.1</title>
+  <link rel="stylesheet" href="beta11.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="top-left">
+        <a href="index2.html" class="b-btn b-btn-icon" title="메인으로">←</a>
+        <div>
+          <div class="top-title">Chapter 3</div>
+          <div class="top-sub">전처치 · 마취 도입 · 유지 전환</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button type="button" class="b-btn b-btn-icon" title="술전검사 빠른 보기 (레이아웃)">📋</button>
+        <button type="button" class="b-btn b-btn-icon" title="일시정지 (레이아웃)">⏸</button>
+      </div>
+    </header>
+
+    <main class="page-body">
+      <!-- 상단 컴팩트 바이탈 모니터 영역 -->
+      <section class="monitor-mock">
+        <div style="display:flex; justify-content:space-between; font-size:10.5px; opacity:0.75;">
+          <span>도입 모니터 (레이아웃)</span>
+          <span>00:00</span>
+        </div>
+        <div class="monitor-row">
+          <div class="m-cell"><span class="mk">HR</span><span class="mv">--</span></div>
+          <div class="m-cell"><span class="mk">SpO₂</span><span class="mv">--%</span></div>
+          <div class="m-cell"><span class="mk">MAP</span><span class="mv">--</span></div>
+          <div class="m-cell"><span class="mk">RR</span><span class="mv">--</span></div>
+        </div>
+      </section>
+
+      <div class="step-tabs" role="tablist">
+        <button type="button" class="step-tab active" data-pane="p1">① 전처치</button>
+        <button type="button" class="step-tab" data-pane="p2">② 도입 · 삽관</button>
+        <button type="button" class="step-tab" data-pane="p3">③ 유지 전환</button>
+      </div>
+
+      <!-- Pane 1: 전처치 -->
+      <section class="b-card" data-content="p1">
+        <div class="b-label">
+          <span>전처치 약물 투여 (토글 선택 → 일괄 적용)</span>
+        </div>
+        <div class="wire-grid-2" style="margin-bottom:10px;">
+          <button type="button" class="b-btn b-btn-sm">진정제 선택</button>
+          <button type="button" class="b-btn b-btn-sm">진통제 선택</button>
+          <button type="button" class="b-btn b-btn-sm">예방적 항생제</button>
+          <button type="button" class="b-btn b-btn-sm">보조약물 · 수액</button>
+        </div>
+        <div class="wire-box">
+          <span class="wire-tag">전산소화(Pre-O₂) 및 진정 상태 피드백 영역</span>
+          <p class="muted">선택한 전처치 약물의 진정 깊이·심박·혈압 변화가 표시될 영역입니다.</p>
+        </div>
+      </section>
+
+      <!-- Pane 2: 마취 도입 & 삽관 -->
+      <section class="b-card pane-hidden" data-content="p2">
+        <div class="b-label">
+          <span>유도제 적정 &amp; 기관튜브(ETT) 삽관</span>
+        </div>
+        <div class="wire-grid-2" style="margin-bottom:10px;">
+          <button type="button" class="b-btn b-btn-sm">💉 유도제 적정</button>
+          <button type="button" class="b-btn b-btn-sm">📏 ETT 규격 선택</button>
+        </div>
+        <div class="wire-box">
+          <span class="wire-tag">삽관 확인 (ETCO₂ 파형 · 커프 팽창) 영역</span>
+          <p class="muted">기도/식도 삽관 확인 및 튜브 고정 단계가 배치될 영역입니다.</p>
+        </div>
+      </section>
+
+      <!-- Pane 3: 유지 마취 전환 -->
+      <section class="b-card pane-hidden" data-content="p3">
+        <div class="b-label">
+          <span>호흡회로 연결 및 유지 마취 전환</span>
+        </div>
+        <div class="wire-grid-2" style="margin-bottom:10px;">
+          <button type="button" class="b-btn b-btn-sm">O₂ 유량 설정</button>
+          <button type="button" class="b-btn b-btn-sm">기화기(Iso) 시작</button>
+          <button type="button" class="b-btn b-btn-sm">APL 밸브 개방 확인</button>
+          <button type="button" class="b-btn b-btn-sm">모니터 부착 완료</button>
+        </div>
+        <div class="wire-box">
+          <span class="wire-tag">Chapter 4 전환 준비 체크리스트</span>
+          <p class="muted">전환 체크 완료 후 마취 유지 모니터링 단계로 이어집니다.</p>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-bar">
+      <a href="chapter2.html" class="b-btn">← Chapter 2</a>
+      <a href="chapter4.html" class="b-btn">Chapter 4 →</a>
+    </nav>
+  </div>
+
+  <script>
+    document.querySelectorAll('.step-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.step-tab').forEach((t) => t.classList.toggle('active', t === tab));
+        document.querySelectorAll('[data-content]').forEach((p) => p.classList.toggle('pane-hidden', p.dataset.content !== tab.dataset.pane));
+      });
+    });
+  </script>
+</body>
+</html>

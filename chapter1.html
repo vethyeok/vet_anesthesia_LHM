@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Chapter 1 · 보호자 문진 및 술전 평가 — 베타 1.1</title>
+  <link rel="stylesheet" href="beta11.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="top-left">
+        <a href="index2.html" class="b-btn b-btn-icon" title="메인으로">←</a>
+        <div>
+          <div class="top-title">Chapter 1</div>
+          <div class="top-sub">문진 · 마취 전 검사 · ASA 및 예후 평가</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button type="button" class="b-btn b-btn-icon" title="일시정지 (레이아웃)">⏸</button>
+        <button type="button" class="b-btn b-btn-icon" title="도움말 (레이아웃)">?</button>
+      </div>
+    </header>
+
+    <main class="page-body">
+      <!-- 블라인드 환자 기본 카드 (제목에 정답 질환 비노출 컨셉 반영) -->
+      <section class="b-card-soft">
+        <div class="b-label">
+          <span>내원 환자 기본 정보</span>
+          <span>문진 전 블라인드 모드</span>
+        </div>
+        <div style="font-size:15px; font-weight:800;">초코 · 개 · 8세 · 5.4 kg</div>
+        <p class="muted" style="margin-top:4px;">
+          주호소: 보호자 문진과 신체검사·술전검사를 통해 숨겨진 질환 단서를 파악하세요.
+        </p>
+      </section>
+
+      <!-- 서브 단계 탭 (레이아웃 미리보기 전환용) -->
+      <div class="step-tabs" role="tablist">
+        <button type="button" class="step-tab active" data-pane="p1">① 보호자 문진</button>
+        <button type="button" class="step-tab" data-pane="p2">② 마취 전 검사</button>
+        <button type="button" class="step-tab" data-pane="p3">③ ASA · 예후</button>
+      </div>
+
+      <!-- Pane 1: 보호자 문진 -->
+      <section class="b-card" data-content="p1">
+        <div class="b-label">
+          <span>AI 보호자 문진 영역</span>
+          <span>지식 Lv · 성향</span>
+        </div>
+        <div class="wire-box" style="min-height:175px; justify-content:space-between;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div class="b-card-soft" style="padding:10px 12px; font-size:12.5px;">
+              <strong>보호자:</strong> 안녕하세요 선생님, 오늘 수술 전 상담하러 왔어요. 어떤 걸 여쭤보실 건가요?
+            </div>
+            <div class="wire-tag">문진으로 획득한 단서 칩이 상단에 자동 정리될 영역</div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <input type="text" class="b-input" placeholder="금식, 복용약, 최근 증상 질문 입력 (레이아웃)" disabled />
+            <button type="button" class="b-btn b-btn-sm" style="flex-shrink:0;">전송</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pane 2: 마취 전 검사 선택 및 결과 -->
+      <section class="b-card pane-hidden" data-content="p2">
+        <div class="b-label">
+          <span>마취 전 검사 항목 선택 및 결과</span>
+          <span>신체검사 · 혈검 · 영상</span>
+        </div>
+        <div class="wire-grid-2" style="margin-bottom:10px;">
+          <button type="button" class="b-btn b-btn-sm">🩺 신체검사</button>
+          <button type="button" class="b-btn b-btn-sm">🩸 CBC · 혈화학</button>
+          <button type="button" class="b-btn b-btn-sm">🧪 전해질 · VBG</button>
+          <button type="button" class="b-btn b-btn-sm">🩻 흉부 X-ray · 심초음파</button>
+        </div>
+        <div class="wire-box">
+          <span class="wire-tag">검사 결과 요약 카드 영역</span>
+          <p class="muted">선택한 검사 항목의 수치와 이상 플래그가 바로 펼쳐지는 영역입니다.</p>
+        </div>
+      </section>
+
+      <!-- Pane 3: ASA Grade 및 예후 평가 -->
+      <section class="b-card pane-hidden" data-content="p3">
+        <div class="b-label">
+          <span>ASA Grade 및 마취 위험도 · 예후 평가</span>
+        </div>
+        <div class="wire-grid-3" style="margin-bottom:10px;">
+          <button type="button" class="b-btn b-btn-sm">ASA I</button>
+          <button type="button" class="b-btn b-btn-sm">ASA II</button>
+          <button type="button" class="b-btn b-btn-sm">ASA III</button>
+          <button type="button" class="b-btn b-btn-sm">ASA IV</button>
+          <button type="button" class="b-btn b-btn-sm">ASA V</button>
+          <button type="button" class="b-btn b-btn-sm">+ 응급(-E)</button>
+        </div>
+        <div class="wire-box">
+          <span class="wire-tag">예후 및 핵심 위험 인자 선택 영역</span>
+          <div class="wire-grid-2">
+            <button type="button" class="b-btn b-btn-sm">양호 (Good)</button>
+            <button type="button" class="b-btn b-btn-sm">주의 (Guarded)</button>
+            <button type="button" class="b-btn b-btn-sm">불량 (Poor)</button>
+            <button type="button" class="b-btn b-btn-sm">위독 (Grave)</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-bar">
+      <a href="index2.html" class="b-btn">← 메인</a>
+      <a href="chapter2.html" class="b-btn">Chapter 2 →</a>
+    </nav>
+  </div>
+
+  <script>
+    document.querySelectorAll('.step-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.step-tab').forEach((t) => t.classList.toggle('active', t === tab));
+        document.querySelectorAll('[data-content]').forEach((p) => p.classList.toggle('pane-hidden', p.dataset.content !== tab.dataset.pane));
+      });
+    });
+  </script>
+</body>
+</html>

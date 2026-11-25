@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>마취 시뮬레이터 베타 1.1</title>
+  <link rel="stylesheet" href="beta11.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="top-left">
+        <div>
+          <div class="top-title">수의 마취 시뮬레이터</div>
+          <div class="top-sub">Beta 1.1 · Layout Prototype</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <a href="index.html" class="b-btn b-btn-sm">기존 버전</a>
+      </div>
+    </header>
+
+    <main class="page-body" style="justify-content:center;">
+      <section class="b-card-soft" style="text-align:center; padding:18px 16px;">
+        <div class="wire-tag" style="margin:0 auto 8px;">VET ANESTHESIA · BETA 1.1</div>
+        <h1 style="font-size:20px; font-weight:800; color:var(--brown); line-height:1.3;">
+          임상 마취 스토리 워크플로우
+        </h1>
+        <p class="muted" style="margin-top:6px;">
+          Chapter 1부터 Chapter 5까지 단계별 레이아웃을 미리 확인해 보세요.
+        </p>
+      </section>
+
+      <!-- 총 6개 메인 버튼: Chapter 1 ~ 5 + 크레딧 -->
+      <nav aria-label="베타 1.1 챕터 메뉴" style="display:flex; flex-direction:column; gap:10px;">
+        <a class="b-btn menu-btn" href="chapter1.html">
+          <span class="m-left">
+            <span class="m-kicker">CHAPTER 1</span>
+            <span class="m-title">보호자 문진 · 마취 전 검사 · ASA 및 예후 평가</span>
+          </span>
+          <span class="m-arrow">→</span>
+        </a>
+
+        <a class="b-btn menu-btn" href="chapter2.html">
+          <span class="m-left">
+            <span class="m-kicker">CHAPTER 2</span>
+            <span class="m-title">마취 전 검사 통보 · 마취 계획 수립 · 보호자 통보</span>
+          </span>
+          <span class="m-arrow">→</span>
+        </a>
+
+        <a class="b-btn menu-btn" href="chapter3.html">
+          <span class="m-left">
+            <span class="m-kicker">CHAPTER 3</span>
+            <span class="m-title">전처치 · 마취 도입 · 전환</span>
+          </span>
+          <span class="m-arrow">→</span>
+        </a>
+
+        <a class="b-btn menu-btn" href="chapter4.html">
+          <span class="m-left">
+            <span class="m-kicker">CHAPTER 4</span>
+            <span class="m-title">마취 유지 모니터링</span>
+          </span>
+          <span class="m-arrow">→</span>
+        </a>
+
+        <a class="b-btn menu-btn" href="chapter5.html">
+          <span class="m-left">
+            <span class="m-kicker">CHAPTER 5</span>
+            <span class="m-title">마취 종료</span>
+          </span>
+          <span class="m-arrow">→</span>
+        </a>
+
+        <button id="btn-credits" type="button" class="b-btn menu-btn">
+          <span class="m-left">
+            <span class="m-kicker">CREDITS</span>
+            <span class="m-title">크레딧</span>
+          </span>
+          <span class="m-arrow">ⓘ</span>
+        </button>
+      </nav>
+    </main>
+
+    <footer style="padding:12px 16px 16px; text-align:center; font-size:11px; color:var(--brown-soft); border-top:1px solid var(--brown-border);">
+      <strong>© 2026 DVM 이혁민</strong> · 교육용 레이아웃 프로토타입 (Beta 1.1)
+    </footer>
+  </div>
+
+  <!-- 크레딧 팝업 -->
+  <div id="credits-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="credits-title">
+    <div class="modal-card">
+      <div class="wire-tag" style="margin-bottom:8px;">CREDITS · BETA 1.1</div>
+      <h2 id="credits-title" style="font-size:18px; font-weight:800; margin-bottom:10px;">제작 정보</h2>
+      <div class="b-card" style="padding:6px 14px; margin-bottom:14px;">
+        <div class="modal-row"><span class="muted">기획 · 제작</span><strong>DVM 이혁민</strong></div>
+        <div class="modal-row"><span class="muted">버전</span><strong>Beta 1.1 (Layout)</strong></div>
+        <div class="modal-row"><span class="muted">제작 도구</span><strong>Gemini · Antigravity</strong></div>
+      </div>
+      <p class="muted" style="font-size:11.5px; margin-bottom:14px; line-height:1.55;">
+        본 시뮬레이터는 수의 마취 임상 교육 목적의 프로토타입이며, 실제 환자의 진료·처방은 담당 수의사의 의학적 판단에 따라야 합니다.
+      </p>
+      <button id="btn-credits-close" type="button" class="b-btn" style="width:100%;">닫기</button>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById('credits-modal');
+    document.getElementById('btn-credits').addEventListener('click', () => modal.classList.remove('hidden'));
+    document.getElementById('btn-credits-close').addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,420 @@
+/* 마취 시뮬레이터 베타 1.1 — 공통 디자인 시스템
+ * Palette: Ivory (#FAF6EE), Deep Ivory (#EAE0CE), Brown (#4A3423), White (#FFFFFF), Black (#1C1917)
+ * Font: Noto Sans KR | Layout: Mobile-first 9:16 ~ 9:18
+ */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --ivory: #FAF6EE;
+  --ivory-deep: #EAE0CE;
+  --ivory-card: #F3ECE0;
+  --brown: #4A3423;
+  --brown-soft: #755943;
+  --brown-border: #D4C3AA;
+  --white: #FFFFFF;
+  --black: #1C1917;
+  --radius-xl: 22px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-pill: 999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  min-height: 100dvh;
+  background: #EFE7D8;
+  color: var(--brown);
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Mobile 9:16 ~ 9:18 App Shell (full-bleed on mobile, phone-proportioned on desktop) */
+.app-shell {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--ivory);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 18px 48px rgba(74, 52, 35, 0.14);
+}
+
+@media (min-width: 460px) {
+  body {
+    padding: 16px 0;
+  }
+  .app-shell {
+    min-height: min(860px, calc(100dvh - 32px));
+    border-radius: 28px;
+    border: 1px solid var(--brown-border);
+    overflow: hidden;
+  }
+}
+
+/* Top Header */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px 12px;
+  background: var(--ivory);
+  border-bottom: 1px solid var(--brown-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.top-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--brown);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-sub {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--brown-soft);
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Main Content Area */
+.page-body {
+  flex: 1 1 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Soft Rounded Buttons (Deep Ivory -> Hover Brown, Text Brown -> Hover Ivory/White) */
+.b-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--ivory-deep);
+  color: var(--brown);
+  border: 1.5px solid var(--brown-border);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+}
+
+.b-btn:hover,
+.b-btn:focus-visible,
+.b-btn.active {
+  background: var(--brown);
+  color: var(--white);
+  border-color: var(--brown);
+  outline: none;
+}
+
+.b-btn:active {
+  transform: scale(0.985);
+}
+
+.b-btn-sm {
+  padding: 7px 11px;
+  font-size: 12px;
+  border-radius: var(--radius-md);
+}
+
+.b-btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+/* Chapter Menu Button (index2.html) */
+.menu-btn {
+  width: 100%;
+  justify-content: space-between;
+  text-align: left;
+  padding: 15px 18px;
+  border-radius: var(--radius-xl);
+}
+
+.menu-btn .m-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menu-btn .m-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  opacity: 0.72;
+}
+
+.menu-btn .m-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.menu-btn .m-arrow {
+  font-size: 16px;
+  font-weight: 800;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+/* Soft Cards & Text Boxes */
+.b-card {
+  background: var(--white);
+  border: 1px solid var(--brown-border);
+  border-radius: var(--radius-xl);
+  padding: 14px 16px;
+}
+
+.b-card-soft {
+  background: var(--ivory-card);
+  border: 1px solid var(--brown-border);
+  border-radius: var(--radius-xl);
+  padding: 14px 16px;
+}
+
+.b-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--brown-soft);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.b-input, .b-textarea {
+  width: 100%;
+  background: var(--white);
+  color: var(--brown);
+  border: 1.5px solid var(--brown-border);
+  border-radius: var(--radius-md);
+  padding: 10px 13px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.b-input:focus, .b-textarea:focus {
+  border-color: var(--brown);
+}
+
+/* Step / Sub-tab Pills */
+.step-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: var(--ivory-deep);
+  border-radius: var(--radius-lg);
+}
+
+.step-tab {
+  flex: 1 1 0;
+  border: none;
+  background: transparent;
+  color: var(--brown);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 8px 6px;
+  border-radius: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.step-tab:hover,
+.step-tab.active {
+  background: var(--brown);
+  color: var(--ivory);
+}
+
+/* Wireframe / Layout Placeholder Box */
+.wire-box {
+  border: 1.5px dashed var(--brown-border);
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wire-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--brown);
+  background: var(--ivory-deep);
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+
+.wire-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.wire-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+/* Compact Dark Clinical Monitor Mockup (Chapter 3, 4, 5) */
+.monitor-mock {
+  background: var(--black);
+  color: var(--white);
+  border-radius: var(--radius-xl);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.monitor-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  text-align: center;
+}
+
+.m-cell {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 6px 4px;
+}
+
+.m-cell .mk {
+  font-size: 9.5px;
+  opacity: 0.7;
+  display: block;
+}
+
+.m-cell .mv {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* Progress Bar (Story / Procedure Progress) */
+.prog-track {
+  width: 100%;
+  height: 8px;
+  background: var(--ivory-deep);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.prog-fill {
+  height: 100%;
+  background: var(--brown);
+  border-radius: var(--radius-pill);
+}
+
+/* Bottom Navigation Bar */
+.bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--ivory);
+  border-top: 1px solid var(--brown-border);
+}
+
+.bottom-bar .b-btn {
+  flex: 1 1 0;
+  padding: 11px 12px;
+  font-size: 13px;
+}
+
+/* Modal / Popup */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 25, 23, 0.56);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modal-backdrop.hidden {
+  display: none;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--ivory);
+  color: var(--brown);
+  border: 1.5px solid var(--brown-border);
+  border-radius: 24px;
+  padding: 22px 20px 18px;
+  box-shadow: 0 24px 60px rgba(28, 25, 23, 0.35);
+}
+
+.modal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--brown-border);
+  font-size: 13px;
+}
+
+.modal-row:last-child {
+  border-bottom: none;
+}
+
+/* Helper */
+.pane-hidden {
+  display: none !important;
+}
+
+.muted {
+  color: var(--brown-soft);
+  font-size: 12px;
+}
