@@ -10,9 +10,8 @@
   <div class="app-shell">
     <header class="top-bar">
       <div class="top-left">
-        <div>
-          <div class="top-title">수의 마취 시뮬레이터</div>
-          <div class="top-sub">Vet Anesthesia Simulator</div>
+        <div class="top-title" style="font-size:clamp(11px, 3.1vw, 13.5px);">
+          수의 마취 시뮬레이터 - Vet Anesthesia Simulator
         </div>
       </div>
       <div class="top-actions">
@@ -35,48 +34,30 @@
         </p>
       </section>
 
-      <!-- 총 6개 버튼: Chapter 1 ~ 5 + 크레딧(느낌표 마크) -->
+      <!-- 총 6개 버튼: Chapter - 제목 (한 줄) + 좌측 부드러운 사각형 / 우측 원형 마무리 -->
       <nav class="menu-list" aria-label="베타 1.1 챕터 메뉴">
         <a class="b-btn menu-btn" href="chapter1.html">
-          <span class="m-left">
-            <span class="m-kicker">CHAPTER 1</span>
-            <span class="m-title">마취 전 검사</span>
-          </span>
+          <span class="m-inline"><span class="m-kicker">Chapter 1</span><span class="m-sep">-</span><span class="m-title">마취 전 검사</span></span>
         </a>
 
         <a class="b-btn menu-btn" href="chapter2.html">
-          <span class="m-left">
-            <span class="m-kicker">CHAPTER 2</span>
-            <span class="m-title">마취 플랜</span>
-          </span>
+          <span class="m-inline"><span class="m-kicker">Chapter 2</span><span class="m-sep">-</span><span class="m-title">마취 플랜</span></span>
         </a>
 
         <a class="b-btn menu-btn" href="chapter3.html">
-          <span class="m-left">
-            <span class="m-kicker">CHAPTER 3</span>
-            <span class="m-title">마취 도입</span>
-          </span>
+          <span class="m-inline"><span class="m-kicker">Chapter 3</span><span class="m-sep">-</span><span class="m-title">마취 도입</span></span>
         </a>
 
         <a class="b-btn menu-btn" href="chapter4.html">
-          <span class="m-left">
-            <span class="m-kicker">CHAPTER 4</span>
-            <span class="m-title">마취 유지</span>
-          </span>
+          <span class="m-inline"><span class="m-kicker">Chapter 4</span><span class="m-sep">-</span><span class="m-title">마취 유지</span></span>
         </a>
 
         <a class="b-btn menu-btn" href="chapter5.html">
-          <span class="m-left">
-            <span class="m-kicker">CHAPTER 5</span>
-            <span class="m-title">마취 회복</span>
-          </span>
+          <span class="m-inline"><span class="m-kicker">Chapter 5</span><span class="m-sep">-</span><span class="m-title">마취 회복</span></span>
         </a>
 
         <button id="btn-credits" type="button" class="b-btn menu-btn">
-          <span class="m-left">
-            <span class="m-kicker">CREDITS</span>
-            <span class="m-title">크레딧</span>
-          </span>
+          <span class="m-inline"><span class="m-title">크레딧</span></span>
           <span class="m-excl" aria-hidden="true">!</span>
         </button>
       </nav>
@@ -119,16 +100,49 @@
   <script>
     const settingsModal = document.getElementById('settings-modal');
     const creditsModal = document.getElementById('credits-modal');
+    const btnCredits = document.getElementById('btn-credits');
+    const FADE_MS = 420;
+
+    // 설정 버튼은 즉시 블러 팝업 오픈
     document.getElementById('btn-settings').addEventListener('click', () => settingsModal.classList.remove('hidden'));
     document.getElementById('btn-settings-close').addEventListener('click', () => settingsModal.classList.add('hidden'));
     settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
-    document.getElementById('btn-credits').addEventListener('click', () => creditsModal.classList.remove('hidden'));
-    document.getElementById('btn-credits-close').addEventListener('click', () => creditsModal.classList.add('hidden'));
-    creditsModal.addEventListener('click', (e) => { if (e.target === creditsModal) creditsModal.classList.add('hidden'); });
+
+    // 챕터 이동 버튼: 좌측 -> 우측 fade out 후 페이지 이동
+    document.querySelectorAll('a.menu-btn').forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (link.classList.contains('fade-out-lr')) return;
+        const target = link.getAttribute('href');
+        link.classList.add('fade-out-lr');
+        setTimeout(() => { window.location.href = target; }, FADE_MS);
+      });
+    });
+
+    // 크레딧 버튼: 좌측 -> 우측 fade out 후 팝업 오픈, 팝업 닫히면 버튼 복원
+    const closeCredits = () => {
+      creditsModal.classList.add('hidden');
+      btnCredits.classList.remove('fade-out-lr');
+    };
+    btnCredits.addEventListener('click', () => {
+      if (btnCredits.classList.contains('fade-out-lr')) return;
+      btnCredits.classList.add('fade-out-lr');
+      setTimeout(() => { creditsModal.classList.remove('hidden'); }, FADE_MS);
+    });
+    document.getElementById('btn-credits-close').addEventListener('click', closeCredits);
+    creditsModal.addEventListener('click', (e) => { if (e.target === creditsModal) closeCredits(); });
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         settingsModal.classList.add('hidden');
-        creditsModal.classList.add('hidden');
+        if (!creditsModal.classList.contains('hidden')) closeCredits();
+      }
+    });
+
+    // 브라우저 뒤로가기(bfcache) 복귀 시 버튼 상태 복원
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) {
+        document.querySelectorAll('.menu-btn.fade-out-lr').forEach((el) => el.classList.remove('fade-out-lr'));
       }
     });
   </script>
