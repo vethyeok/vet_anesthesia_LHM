@@ -15,11 +15,19 @@
           <div class="top-sub">Vet Anesthesia Simulator</div>
         </div>
       </div>
+      <div class="top-actions">
+        <button id="btn-settings" type="button" class="b-btn b-btn-icon" aria-label="설정" title="설정">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
     </header>
 
     <main class="page-body" style="justify-content:center; gap:28px; padding:24px 16px 28px;">
       <section style="text-align:center; padding:8px 0 4px;">
-        <h1 style="font-size:24px; font-weight:700; color:var(--black); letter-spacing:-0.02em; line-height:1.3;">
+        <h1 class="font-maru" style="font-size:24px; font-weight:600; color:var(--black); letter-spacing:-0.02em; line-height:1.3;">
           수의 마취 시뮬레이터
         </h1>
         <p style="margin-top:6px; font-size:14px; font-weight:500; color:var(--brown-soft);">
@@ -79,11 +87,23 @@
     </footer>
   </div>
 
+  <!-- 설정 팝업 (전체 화면 블러 + 가운데 팝업) -->
+  <div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title" style="backdrop-filter:blur(6px);">
+    <div class="modal-card">
+      <div class="wire-tag" style="margin-bottom:8px;">SETTINGS</div>
+      <h2 id="settings-title" class="font-maru" style="font-size:18px; font-weight:600; margin-bottom:10px;">설정</h2>
+      <div class="wire-box" style="margin-bottom:14px; min-height:110px; justify-content:center; text-align:center;">
+        <p class="muted">설정 항목이 배치될 팝업 영역입니다.<br />(세부 내용은 추후 구성 예정)</p>
+      </div>
+      <button id="btn-settings-close" type="button" class="b-btn" style="width:100%;">닫기</button>
+    </div>
+  </div>
+
   <!-- 크레딧 팝업 -->
-  <div id="credits-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="credits-title">
+  <div id="credits-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="credits-title" style="backdrop-filter:blur(6px);">
     <div class="modal-card">
       <div class="wire-tag" style="margin-bottom:8px;">CREDITS · BETA 1.1</div>
-      <h2 id="credits-title" style="font-size:18px; font-weight:800; margin-bottom:10px;">제작 정보</h2>
+      <h2 id="credits-title" class="font-maru" style="font-size:18px; font-weight:600; margin-bottom:10px;">제작 정보</h2>
       <div class="b-card" style="padding:6px 14px; margin-bottom:14px;">
         <div class="modal-row"><span class="muted">기획 · 제작</span><strong>DVM 이혁민</strong></div>
         <div class="modal-row"><span class="muted">버전</span><strong>Beta 1.1 (Layout)</strong></div>
@@ -97,10 +117,20 @@
   </div>
 
   <script>
-    const modal = document.getElementById('credits-modal');
-    document.getElementById('btn-credits').addEventListener('click', () => modal.classList.remove('hidden'));
-    document.getElementById('btn-credits-close').addEventListener('click', () => modal.classList.add('hidden'));
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+    const settingsModal = document.getElementById('settings-modal');
+    const creditsModal = document.getElementById('credits-modal');
+    document.getElementById('btn-settings').addEventListener('click', () => settingsModal.classList.remove('hidden'));
+    document.getElementById('btn-settings-close').addEventListener('click', () => settingsModal.classList.add('hidden'));
+    settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
+    document.getElementById('btn-credits').addEventListener('click', () => creditsModal.classList.remove('hidden'));
+    document.getElementById('btn-credits-close').addEventListener('click', () => creditsModal.classList.add('hidden'));
+    creditsModal.addEventListener('click', (e) => { if (e.target === creditsModal) creditsModal.classList.add('hidden'); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        settingsModal.classList.add('hidden');
+        creditsModal.classList.add('hidden');
+      }
+    });
   </script>
 </body>
 </html>

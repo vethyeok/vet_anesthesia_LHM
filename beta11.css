@@ -1,8 +1,9 @@
 /* 마취 시뮬레이터 베타 1.1 — 공통 디자인 시스템
  * Palette: Ivory (#FAF6EE), Deep Ivory (#EAE0CE), Brown (#4A3423), White (#FFFFFF), Black (#1C1917)
- * Font: Noto Sans KR | Layout: Mobile-first 9:16 ~ 9:18
+ * Font: MaruBuri (Headings & Buttons) + Noto Sans KR (Body) | Layout: Mobile-first 9:16 ~ 9:18
  */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+@import url('https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css');
 
 :root {
   --ivory: #FAF6EE;
@@ -13,6 +14,8 @@
   --brown-border: #D4C3AA;
   --white: #FFFFFF;
   --black: #1C1917;
+  --font-body: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+  --font-display: 'MaruBuri', 'MaruBuriSemiBold', 'Noto Sans KR', serif;
   --radius-xl: 22px;
   --radius-lg: 18px;
   --radius-md: 14px;
@@ -30,9 +33,14 @@ html, body {
   min-height: 100dvh;
   background: #EFE7D8;
   color: var(--brown);
-  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+  font-family: var(--font-body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .font-maru {
+  font-family: var(--font-display);
+  font-weight: 600;
 }
 
 /* Mobile 9:16 ~ 9:18 App Shell (full-bleed on mobile, phone-proportioned on desktop) */
@@ -82,8 +90,9 @@ html, body {
 }
 
 .top-title {
-  font-size: 14px;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 600;
   color: var(--brown);
   white-space: nowrap;
   overflow: hidden;
@@ -91,8 +100,9 @@ html, body {
 }
 
 .top-sub {
+  font-family: var(--font-display);
   font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--brown-soft);
 }
 
@@ -123,9 +133,9 @@ html, body {
   border: 1.5px solid var(--brown-border);
   border-radius: var(--radius-lg);
   padding: 12px 16px;
-  font-family: inherit;
+  font-family: var(--font-display);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
@@ -174,6 +184,7 @@ html, body {
   text-align: left;
   padding: 0 18px;
   border-radius: 18px;
+  font-family: var(--font-display);
 }
 
 .menu-btn .m-left {
