@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>수의 마취 시뮬레이터 · Beta 1.1</title>
   <link rel="stylesheet" href="beta11.css" />
+  <script src="beta11-settings.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -68,32 +69,66 @@
     </footer>
   </div>
 
-  <!-- 설정 팝업 (전체 화면 블러 + 가운데 팝업) -->
+  <!-- 그림 2: 설정 팝업 (전체 화면 블러 + 2x2 설정 그리드) -->
   <div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title" style="backdrop-filter:blur(6px);">
     <div class="modal-card">
-      <div class="wire-tag" style="margin-bottom:8px;">SETTINGS</div>
-      <h2 id="settings-title" class="font-maru" style="font-size:18px; font-weight:600; margin-bottom:10px;">설정</h2>
-      <div class="wire-box" style="margin-bottom:14px; min-height:110px; justify-content:center; text-align:center;">
-        <p class="muted">설정 항목이 배치될 팝업 영역입니다.<br />(세부 내용은 추후 구성 예정)</p>
+      <h2 id="settings-title" class="font-maru" style="font-size:20px; font-weight:600; color:var(--brown);">설정</h2>
+
+      <div class="settings-grid">
+        <!-- 좌상단: 글씨 크기 (소-중-대 드래그) -->
+        <div class="setting-cell">
+          <label for="setting-font-range" class="setting-lbl">글씨 크기</label>
+          <input id="setting-font-range" class="b-range" type="range" min="0" max="2" step="1" value="1" aria-label="글씨 크기 선택" />
+          <div class="range-marks" id="font-marks">
+            <button type="button" data-fval="0">소</button>
+            <button type="button" data-fval="1" class="active">중</button>
+            <button type="button" data-fval="2">대</button>
+          </div>
+        </div>
+
+        <!-- 우상단: 소리 On/Off -->
+        <div class="setting-cell">
+          <span class="setting-lbl">소리</span>
+          <button id="btn-sound-toggle" type="button" class="sound-toggle is-on" role="switch" aria-checked="true">
+            <span class="sound-track"><span class="sound-thumb"></span></span>
+            <span id="sound-state-lbl">On</span>
+          </button>
+        </div>
+
+        <!-- 좌하단: 전체화면 -->
+        <div class="setting-cell">
+          <button id="btn-fullscreen" type="button" class="b-btn b-btn-sm" style="width:100%;">전체화면</button>
+        </div>
+
+        <!-- 우하단: 공유하기 -->
+        <div class="setting-cell">
+          <button id="btn-share" type="button" class="b-btn b-btn-sm" style="width:100%;">공유하기</button>
+        </div>
       </div>
-      <button id="btn-settings-close" type="button" class="b-btn" style="width:100%;">닫기</button>
+
+      <div id="share-toast" class="share-toast" aria-live="polite"></div>
+
+      <div class="modal-close-wrap">
+        <button id="btn-settings-close" type="button" class="b-btn modal-close-btn">닫기</button>
+      </div>
     </div>
   </div>
 
-  <!-- 크레딧 팝업 -->
+  <!-- 그림 3: 크레딧 팝업 -->
   <div id="credits-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="credits-title" style="backdrop-filter:blur(6px);">
     <div class="modal-card">
-      <div class="wire-tag" style="margin-bottom:8px;">CREDITS · BETA 1.1</div>
-      <h2 id="credits-title" class="font-maru" style="font-size:18px; font-weight:600; margin-bottom:10px;">제작 정보</h2>
+      <h2 id="credits-title" class="font-maru" style="font-size:20px; font-weight:600; color:var(--brown); margin-bottom:14px;">제작 정보</h2>
       <div class="b-card" style="padding:6px 14px; margin-bottom:14px;">
         <div class="modal-row"><span class="muted">기획 · 제작</span><strong>DVM 이혁민</strong></div>
         <div class="modal-row"><span class="muted">버전</span><strong>Beta 1.1 (Layout)</strong></div>
         <div class="modal-row"><span class="muted">제작 도구</span><strong>Gemini · Antigravity</strong></div>
       </div>
-      <p class="muted" style="font-size:11.5px; margin-bottom:14px; line-height:1.55;">
+      <p class="muted" style="font-size:11.5px; margin-bottom:16px; line-height:1.55;">
         본 시뮬레이터는 수의 마취 임상 교육 목적의 프로토타입이며, 실제 환자의 진료·처방은 담당 수의사의 의학적 판단에 따라야 합니다.
       </p>
-      <button id="btn-credits-close" type="button" class="b-btn" style="width:100%;">닫기</button>
+      <div class="modal-close-wrap">
+        <button id="btn-credits-close" type="button" class="b-btn modal-close-btn">닫기</button>
+      </div>
     </div>
   </div>
 
@@ -101,10 +136,71 @@
     const settingsModal = document.getElementById('settings-modal');
     const creditsModal = document.getElementById('credits-modal');
     const btnCredits = document.getElementById('btn-credits');
+    const fontRange = document.getElementById('setting-font-range');
+    const fontMarks = document.querySelectorAll('#font-marks button');
+    const btnSound = document.getElementById('btn-sound-toggle');
+    const soundLbl = document.getElementById('sound-state-lbl');
+    const btnFs = document.getElementById('btn-fullscreen');
+    const btnShare = document.getElementById('btn-share');
+    const shareToast = document.getElementById('share-toast');
     const FADE_MS = 420;
 
+    function syncSettingsUI() {
+      const lv = Beta11Settings.getFontLevel();
+      fontRange.value = String(lv);
+      fontMarks.forEach((b) => b.classList.toggle('active', Number(b.dataset.fval) === lv));
+      const snd = Beta11Settings.isSoundOn();
+      btnSound.classList.toggle('is-on', snd);
+      btnSound.setAttribute('aria-checked', String(snd));
+      soundLbl.textContent = snd ? 'On' : 'Off';
+    }
+    syncSettingsUI();
+
+    fontRange.addEventListener('input', () => {
+      Beta11Settings.applyFontLevel(fontRange.value);
+      syncSettingsUI();
+    });
+    fontMarks.forEach((b) => {
+      b.addEventListener('click', () => {
+        Beta11Settings.applyFontLevel(b.dataset.fval);
+        syncSettingsUI();
+        Beta11Settings.playTone(520, 0.05, 0.03);
+      });
+    });
+
+    btnSound.addEventListener('click', () => {
+      Beta11Settings.setSound(!Beta11Settings.isSoundOn());
+      syncSettingsUI();
+    });
+
+    btnFs.addEventListener('click', async () => {
+      const on = await Beta11Settings.toggleFullscreen();
+      btnFs.classList.toggle('active', on);
+      btnFs.textContent = on ? '전체화면 종료' : '전체화면';
+      Beta11Settings.playTone(560, 0.05, 0.03);
+    });
+
+    btnShare.addEventListener('click', async () => {
+      Beta11Settings.playTone(580, 0.05, 0.03);
+      const res = await Beta11Settings.shareSimulator();
+      if (res.method === 'clipboard' && res.ok) {
+        shareToast.textContent = '시뮬레이터 링크가 클립보드에 복사되었습니다.';
+        setTimeout(() => { shareToast.textContent = ''; }, 2400);
+      } else if (res.method === 'native' && res.ok) {
+        shareToast.textContent = '공유 창이 열렸습니다.';
+        setTimeout(() => { shareToast.textContent = ''; }, 2000);
+      } else if (res.method === 'fail') {
+        shareToast.textContent = '주소창의 링크를 직접 복사해 주세요.';
+      }
+    });
+
     // 설정 버튼은 즉시 블러 팝업 오픈
-    document.getElementById('btn-settings').addEventListener('click', () => settingsModal.classList.remove('hidden'));
+    document.getElementById('btn-settings').addEventListener('click', () => {
+      syncSettingsUI();
+      shareToast.textContent = '';
+      Beta11Settings.playTone(500, 0.05, 0.03);
+      settingsModal.classList.remove('hidden');
+    });
     document.getElementById('btn-settings-close').addEventListener('click', () => settingsModal.classList.add('hidden'));
     settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
 
@@ -114,6 +210,7 @@
         e.preventDefault();
         if (link.classList.contains('fade-out-lr')) return;
         const target = link.getAttribute('href');
+        Beta11Settings.playTone(540, 0.06, 0.03);
         link.classList.add('fade-out-lr');
         setTimeout(() => { window.location.href = target; }, FADE_MS);
       });
@@ -126,6 +223,7 @@
     };
     btnCredits.addEventListener('click', () => {
       if (btnCredits.classList.contains('fade-out-lr')) return;
+      Beta11Settings.playTone(500, 0.05, 0.03);
       btnCredits.classList.add('fade-out-lr');
       setTimeout(() => { creditsModal.classList.remove('hidden'); }, FADE_MS);
     });
@@ -139,11 +237,11 @@
       }
     });
 
-    // 브라우저 뒤로가기(bfcache) 복귀 시 버튼 상태 복원
     window.addEventListener('pageshow', (e) => {
       if (e.persisted) {
         document.querySelectorAll('.menu-btn.fade-out-lr').forEach((el) => el.classList.remove('fade-out-lr'));
       }
+      syncSettingsUI();
     });
   </script>
 </body>
