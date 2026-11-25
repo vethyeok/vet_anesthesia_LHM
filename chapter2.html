@@ -8,62 +8,77 @@
   <script src="beta11-settings.js"></script>
 </head>
 <body>
-  <div class="app-shell">
+  <div class="app-shell chapter-shell">
     <header class="top-bar">
       <div class="top-left">
-        <a href="index2.html" class="top-title" style="text-decoration:none;">Chapter 2. 마취 플랜</a>
+        <div class="top-title">Chapter 2. 마취 플랜</div>
       </div>
       <div id="chapter-top-actions" class="top-actions"></div>
     </header>
 
     <main class="page-body">
-      <div class="step-tabs" role="tablist">
-        <button type="button" class="step-tab active" data-pane="p1">1. 검사 결과 통보</button>
-        <button type="button" class="step-tab" data-pane="p2">2. 마취 계획 수립</button>
-        <button type="button" class="step-tab" data-pane="p3">3. 보호자 통보</button>
+      <div class="chapter-split">
+        <!-- 좌측(데스크탑): 술전 검사 요약 영역 -->
+        <div class="chapter-col">
+          <section class="b-card-soft" id="ch2-summary-card">
+            <div class="b-label">
+              <span>마취 전 검사 요약</span>
+              <span>Chapter 1 연동</span>
+            </div>
+            <p class="muted">술전 혈액검사·영상검사 이상 소견과 ASA 등급이 좌측 요약 영역에 고정 표시됩니다.</p>
+          </section>
+        </div>
+
+        <!-- 우측(데스크탑): 계획 수립 & 보호자 통보 영역 -->
+        <div class="chapter-col">
+          <div class="step-tabs" role="tablist">
+            <button type="button" class="step-tab active" data-pane="p1">1. 검사 결과 통보</button>
+            <button type="button" class="step-tab" data-pane="p2">2. 마취 계획 수립</button>
+            <button type="button" class="step-tab" data-pane="p3">3. 보호자 통보</button>
+          </div>
+
+          <section class="b-card" data-content="p1">
+            <div class="b-label">
+              <span>마취 전 검사 결과 핵심 브리핑</span>
+            </div>
+            <div class="wire-box">
+              <span class="wire-tag">이상 소견 요약 카드 영역</span>
+              <p class="muted">혈액검사·영상검사 이상 소견과 ASA 등급 평가 결과를 한눈에 정리해 보호자에게 설명할 핵심 포인트를 확인하는 영역입니다.</p>
+            </div>
+          </section>
+
+          <section class="b-card pane-hidden" data-content="p2">
+            <div class="b-label">
+              <span>마취 프로토콜 및 약물 조합 설계</span>
+              <span>시너지 · 금기 미리보기</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
+              <button type="button" class="b-btn b-btn-sm" style="justify-content:space-between;"><span>1. 전처치 · 진정 · 진통 조합</span><span>선택</span></button>
+              <button type="button" class="b-btn b-btn-sm" style="justify-content:space-between;"><span>2. 유도제 · 유지 마취 방식</span><span>선택</span></button>
+              <button type="button" class="b-btn b-btn-sm" style="justify-content:space-between;"><span>3. 예방적 항생제 · 수액 · CRI 계획</span><span>선택</span></button>
+            </div>
+            <div class="wire-box">
+              <span class="wire-tag">약물 시너지 / 상호작용 피드백 영역</span>
+              <p class="muted">선택한 약물 조합의 MAC 절감 시너지·심혈관 영향·금기 경고가 표시될 영역입니다.</p>
+            </div>
+          </section>
+
+          <section class="b-card pane-hidden" data-content="p3">
+            <div class="b-label">
+              <span>보호자 마취 위험도 통보 &amp; 동의서</span>
+            </div>
+            <div class="wire-box" style="min-height:175px; justify-content:space-between;">
+              <div class="b-card-soft" style="padding:10px 12px; font-size:12.5px;">
+                <strong>보호자:</strong> 검사 결과랑 마취 계획 설명 들었어요. 마취 위험이랑 수술 중 주의할 점이 뭔가요?
+              </div>
+              <div style="display:flex; gap:6px;">
+                <input type="text" class="b-input" placeholder="검사 결과·마취 계획·위험성 설명 입력 (레이아웃)" disabled />
+                <button type="button" class="b-btn b-btn-sm" style="flex-shrink:0;">통보</button>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
-
-      <section class="b-card" data-content="p1">
-        <div class="b-label">
-          <span>마취 전 검사 결과 핵심 브리핑</span>
-          <span>Chapter 1 연동</span>
-        </div>
-        <div class="wire-box">
-          <span class="wire-tag">이상 소견 요약 카드 영역</span>
-          <p class="muted">혈액검사·영상검사 이상 소견과 ASA 등급 평가 결과를 한눈에 정리해 보호자에게 설명할 핵심 포인트를 확인하는 영역입니다.</p>
-        </div>
-      </section>
-
-      <section class="b-card pane-hidden" data-content="p2">
-        <div class="b-label">
-          <span>마취 프로토콜 및 약물 조합 설계</span>
-          <span>시너지 · 금기 미리보기</span>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
-          <button type="button" class="b-btn b-btn-sm" style="justify-content:space-between;"><span>1. 전처치 · 진정 · 진통 조합</span><span>선택</span></button>
-          <button type="button" class="b-btn b-btn-sm" style="justify-content:space-between;"><span>2. 유도제 · 유지 마취 방식</span><span>선택</span></button>
-          <button type="button" class="b-btn b-btn-sm" style="justify-content:space-between;"><span>3. 예방적 항생제 · 수액 · CRI 계획</span><span>선택</span></button>
-        </div>
-        <div class="wire-box">
-          <span class="wire-tag">약물 시너지 / 상호작용 피드백 영역</span>
-          <p class="muted">선택한 약물 조합의 MAC 절감 시너지·심혈관 영향·금기 경고가 표시될 영역입니다.</p>
-        </div>
-      </section>
-
-      <section class="b-card pane-hidden" data-content="p3">
-        <div class="b-label">
-          <span>보호자 마취 위험도 통보 &amp; 동의서</span>
-        </div>
-        <div class="wire-box" style="min-height:175px; justify-content:space-between;">
-          <div class="b-card-soft" style="padding:10px 12px; font-size:12.5px;">
-            <strong>보호자:</strong> 검사 결과랑 마취 계획 설명 들었어요. 마취 위험이랑 수술 중 주의할 점이 뭔가요?
-          </div>
-          <div style="display:flex; gap:6px;">
-            <input type="text" class="b-input" placeholder="검사 결과·마취 계획·위험성 설명 입력 (레이아웃)" disabled />
-            <button type="button" class="b-btn b-btn-sm" style="flex-shrink:0;">통보</button>
-          </div>
-        </div>
-      </section>
     </main>
   </div>
 
@@ -76,10 +91,9 @@
         { mark: '2', label: '마취 계획 & 약물 시너지', desc: '전처치·유도·유지·수액 조합을 구성하고 시너지와 금기를 미리 확인합니다.' },
         { mark: '3', label: '보호자 설명 및 마취 동의', desc: '보호자 수준과 성향에 맞춰 마취 위험성과 계획을 설명합니다.' }
       ],
-      stages: [
-        { id: 'tutorial', name: '튜토리얼', sub: '표준 환자 마취 플랜 수립 가이드' },
-        { id: 'step',     name: '단계',     sub: '질환별 약물 조합 · 금기 연습' },
-        { id: 'practice', name: '실전',     sub: '고위험 환자 프로토콜 & 보호자 통보' }
+      tutorialSteps: [
+        { sel: '#ch2-summary-card', text: 'Chapter 1에서 확인한 술전 검사 결과를 먼저 확인합니다.' },
+        { sel: '.step-tabs', text: '검사 통보 → 마취 계획 수립 → 보호자 통보 순으로 진행합니다.' }
       ]
     });
     document.querySelectorAll('.step-tab').forEach((tab) => {

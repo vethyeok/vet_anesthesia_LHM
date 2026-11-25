@@ -1,8 +1,9 @@
-/* 마취 시뮬레이터 베타 1.1 — 공통 설정 상태 유지 + 챕터 공통 헤더/팝업 + 전체화면 유지 SPA 전환 */
+/* 마취 시뮬레이터 베타 1.1 — 공통 설정 + 7단계 팝업(완료 도장) + 메인화면 확인 팝업 + 튜토리얼 블러 + SPA 전환 */
 (function () {
   const KEY_FONT = 'vet_b11_font_size';   // '0' (소) | '1' (중) | '2' (대)
   const KEY_SOUND = 'vet_b11_sound';      // 'on' | 'off'
   const KEY_FS = 'vet_b11_fullscreen';    // 'on' | 'off'
+  const KEY_PROG = 'vet_b11_progress';    // JSON: { ch1: { tutorial: true, ... }, ... }
 
   let audioCtx = null;
   function getAudioCtx() {
@@ -39,6 +40,23 @@
         if (isFullscreenOn()) document.body.classList.add('b11-immersive');
       }, { once: true });
     }
+  }
+
+  function getProgressMap() {
+    try { return JSON.parse(localStorage.getItem(KEY_PROG) || '{}') || {}; } catch { return {}; }
+  }
+
+  function isStageComplete(chNum, stageId) {
+    const map = getProgressMap();
+    return Boolean(map['ch' + chNum] && map['ch' + chNum][stageId]);
+  }
+
+  function markStageComplete(chNum, stageId) {
+    const map = getProgressMap();
+    const k = 'ch' + chNum;
+    map[k] = map[k] || {};
+    map[k][stageId] = true;
+    try { localStorage.setItem(KEY_PROG, JSON.stringify(map)); } catch {}
   }
 
   function playTone(freq = 540, dur = 0.06, vol = 0.04) {
@@ -98,7 +116,6 @@
     return targetOn;
   }
 
-  // Keep preference synced if user exits native fullscreen via OS gesture/back
   const onFsChange = () => {
     const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
     if (!fsEl && document.body && document.body.classList.contains('b11-immersive')) {
@@ -108,8 +125,10 @@
   document.addEventListener('fullscreenchange', onFsChange);
   document.addEventListener('webkitfullscreenchange', onFsChange);
 
+  /* Always share canonical main simulator link (index2.html) */
   async function shareSimulator() {
-    const url = window.location.href.split('#')[0];
+    let url = window.location.href.split('#')[0];
+    try { url = new URL('index2.html', window.location.href).href; } catch {}
     const title = '수의 마취 시뮬레이터 (Beta 1.1)';
     const text = '수의 마취 자기 주도적 학습 시뮬레이터';
     if (navigator.share) {
@@ -141,7 +160,7 @@
     }
   }
 
-  /* Seamless SPA navigation between index2.html and chapter1~5.html so mobile native Fullscreen NEVER exits! */
+  /* Seamless SPA navigation between index2.html and chapter1~5.html so mobile native Fullscreen NEVER exits */
   const BETA11_PAGES = /^(index2|chapter[1-5])\.html$/i;
   let navBusy = false;
 
@@ -163,30 +182,22 @@
       const curShell = document.querySelector('.app-shell');
       if (!newShell || !curShell) throw new Error('Missing app-shell');
 
-      // Remove existing modals from previous page
-      document.querySelectorAll('.modal-backdrop, #ch-modal-host').forEach((el) => el.remove());
+      document.querySelectorAll('.modal-backdrop, #ch-modal-host, .tut-backdrop, .tut-callout').forEach((el) => el.remove());
 
-      // Swap app shell & title
       document.title = doc.title || document.title;
       curShell.replaceWith(document.importNode(newShell, true));
 
-      // Append any top-level modal backdrops from target page (e.g. index2.html settings/credits)
       doc.querySelectorAll('body > .modal-backdrop').forEach((m) => {
         document.body.appendChild(document.importNode(m, true));
       });
 
-      // Execute target page's inline scripts inside an isolated IIFE scope
       const scripts = Array.from(doc.querySelectorAll('body script:not([src])'));
       for (const sc of scripts) {
         const code = sc.textContent || '';
-        if (code.trim()) {
-          new Function(code)();
-        }
+        if (code.trim()) new Function(code)();
       }
 
-      if (push) {
-        history.pushState({ beta11: true, url }, '', url);
-      }
+      if (push) history.pushState({ beta11: true, url }, '', url);
       window.scrollTo(0, 0);
       applyFontLevel(getFontLevel());
       if (isFullscreenOn()) document.body.classList.add('b11-immersive');
@@ -197,7 +208,6 @@
     }
   }
 
-  // Intercept internal Beta 1.1 links (excluding a.menu-btn which runs its own fade-out then calls navigateTo)
   document.addEventListener('click', (e) => {
     const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
     if (!a || a.classList.contains('menu-btn')) return;
@@ -209,15 +219,11 @@
     }
   });
 
-  // Handle browser/Android back & forward buttons seamlessly inside Fullscreen
   window.addEventListener('popstate', () => {
     const file = window.location.pathname.split('/').pop() || 'index2.html';
-    if (BETA11_PAGES.test(file)) {
-      navigateTo(file, { push: false });
-    }
+    if (BETA11_PAGES.test(file)) navigateTo(file, { push: false });
   });
 
-  // Single global Escape handler for any open modal
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach((m) => m.classList.add('hidden'));
@@ -225,7 +231,18 @@
     }
   });
 
-  /* Mount Chapter 1~5 common top-right actions (?, 3-line stage icon, gear settings) & blur popups */
+  /* Default 7 stages: 튜토리얼, 케이스 5개(무증상·경증·노령·중증·응급), 실전 */
+  const DEFAULT_STAGES = [
+    { id: 'tutorial', name: '튜토리얼' },
+    { id: 'asymp',    name: '무증상' },
+    { id: 'mild',     name: '경증' },
+    { id: 'geriatric',name: '노령' },
+    { id: 'severe',   name: '중증' },
+    { id: 'emerg',    name: '응급' },
+    { id: 'practice', name: '실전' }
+  ];
+
+  /* Mount Chapter 1~5 common top-right actions (?, 3-line stage icon, gear settings), blur popups & tutorial spotlight */
   function initChapterCommon(cfg) {
     const actionsEl = document.getElementById('chapter-top-actions');
     if (!actionsEl) return;
@@ -236,13 +253,12 @@
       { mark: '1', label: `Chapter ${chNum} 예시 사진 1 (추후 첨부)`, desc: '빨간 마킹과 함께 핵심 조작 방법을 안내하는 영역입니다.' },
       { mark: '2', label: `Chapter ${chNum} 예시 사진 2 (추후 첨부)`, desc: '좌우 드래그(스와이프)로 다음 도움말 사진으로 넘어갑니다.' }
     ];
-    const stages = Array.isArray(cfg.stages) && cfg.stages.length ? cfg.stages : [
-      { id: 'tutorial', name: '튜토리얼' },
-      { id: 'step',     name: '단계' },
-      { id: 'practice', name: '실전' }
+    const stages = Array.isArray(cfg.stages) && cfg.stages.length ? cfg.stages : DEFAULT_STAGES;
+    const tutSteps = Array.isArray(cfg.tutorialSteps) && cfg.tutorialSteps.length ? cfg.tutorialSteps : [
+      { sel: '.step-tabs', text: `Chapter ${chNum}의 상단 단계 탭에서 현재 진행할 과정을 순서대로 확인합니다.` },
+      { sel: '.b-card:not(.pane-hidden)', text: '현재 강조된 영역에서 해당 과정의 조작을 진행합니다.' }
     ];
 
-    // 3 Top-Right Buttons: 도움말(?), 단계(무채색 3줄 계단 아이콘), 설정(톱니바퀴)
     actionsEl.innerHTML = `
       <button id="ch-btn-help" type="button" class="b-btn b-btn-icon" aria-label="도움말" title="도움말">?</button>
       <button id="ch-btn-stage" type="button" class="b-btn b-btn-icon" aria-label="단계" title="단계 선택">
@@ -260,7 +276,6 @@
       </button>
     `;
 
-    // Remove any stale modal host before injecting
     const oldHost = document.getElementById('ch-modal-host');
     if (oldHost) oldHost.remove();
 
@@ -294,25 +309,18 @@
         </div>
       </div>
 
-      <!-- 단계 팝업 (튜토리얼 · 단계 · 실전 — 부가 설명 없음) -->
+      <!-- 단계 팝업 (튜토리얼 · 무증상 · 경증 · 노령 · 중증 · 응급 · 실전 / 하단 닫기만) -->
       <div id="ch-stage-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch-stage-title" style="backdrop-filter:blur(6px);">
         <div class="modal-card">
           <h2 id="ch-stage-title" class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown);">단계 · ${chTitle}</h2>
-          <div class="stage-list" id="ch-stage-list">
-            ${stages.map((st, idx) => `
-              <button type="button" class="b-btn stage-btn ${idx === 0 ? 'active' : ''}" data-stage="${st.id}" style="justify-content:center;">
-                <span>${st.name}</span>
-              </button>
-            `).join('')}
-          </div>
-          <div style="display:flex; justify-content:center; gap:8px;">
-            <a href="index2.html" class="b-btn b-btn-sm" style="padding:10px 16px; border-radius:14px;">메인화면</a>
+          <div class="stage-list" id="ch-stage-list"></div>
+          <div class="modal-close-wrap">
             <button id="ch-stage-close" type="button" class="b-btn modal-close-btn">닫기</button>
           </div>
         </div>
       </div>
 
-      <!-- 공통 설정 팝업 (메인화면과 동일한 설정값 공유) -->
+      <!-- 공통 설정 팝업 (+ 메인화면 버튼 추가) -->
       <div id="ch-settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch-settings-title" style="backdrop-filter:blur(6px);">
         <div class="modal-card">
           <h2 id="ch-settings-title" class="font-maru" style="font-size:20px; font-weight:600; color:var(--brown);">설정</h2>
@@ -340,16 +348,46 @@
               <button id="ch-btn-share" type="button" class="b-btn b-btn-sm" style="width:100%;">공유하기</button>
             </div>
           </div>
+          <div style="margin-bottom:10px;">
+            <button id="ch-btn-main-warn" type="button" class="b-btn b-btn-sm" style="width:100%; padding:10px 14px;">메인화면</button>
+          </div>
           <div id="ch-share-toast" class="share-toast" aria-live="polite"></div>
           <div class="modal-close-wrap">
             <button id="ch-settings-close" type="button" class="b-btn modal-close-btn">닫기</button>
           </div>
         </div>
       </div>
+
+      <!-- 메인화면 이동 경고 팝업 (예 / 아니오) -->
+      <div id="ch-confirm-main-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" style="backdrop-filter:blur(6px); z-index:110;">
+        <div class="modal-card" style="text-align:center;">
+          <p class="font-maru" style="font-size:15px; font-weight:600; color:var(--brown); line-height:1.55; margin:6px 0 18px;">
+            현재 과정이 중단되며 다시 진행해야 합니다
+          </p>
+          <div style="display:flex; justify-content:center; gap:10px;">
+            <button id="ch-confirm-yes" type="button" class="b-btn modal-close-btn" style="min-width:96px;">예</button>
+            <button id="ch-confirm-no" type="button" class="b-btn modal-close-btn" style="min-width:96px;">아니오</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 튜토리얼 블러 스포트라이트 + 안내문 -->
+      <div id="ch-tut-backdrop" class="tut-backdrop hidden"></div>
+      <div id="ch-tut-callout" class="tut-callout hidden" role="dialog" aria-live="polite">
+        <div class="b-label" style="margin:0;">
+          <span id="ch-tut-step-lbl">튜토리얼</span>
+          <span id="ch-tut-counter">1 / 2</span>
+        </div>
+        <p id="ch-tut-text" style="font-size:calc(13px * var(--text-scale, 1)); color:var(--brown); line-height:1.55;"></p>
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button id="ch-tut-exit" type="button" class="b-btn b-btn-sm">종료</button>
+          <button id="ch-tut-next" type="button" class="b-btn b-btn-sm">다음</button>
+        </div>
+      </div>
     `;
     document.body.appendChild(modalHost);
 
-    // Wire Help Drag Carousel
+    // Help Drag Carousel
     const helpModal = document.getElementById('ch-help-modal');
     const helpViewport = document.getElementById('ch-help-viewport');
     const helpTrack = document.getElementById('ch-help-track');
@@ -387,18 +425,86 @@
     helpViewport.addEventListener('pointerup', finishDrag);
     helpViewport.addEventListener('pointercancel', finishDrag);
 
-    // Wire Stage Modal
-    const stageModal = document.getElementById('ch-stage-modal');
-    const stageBtns = document.querySelectorAll('#ch-stage-list .stage-btn');
-    stageBtns.forEach((b) => {
-      b.addEventListener('click', () => {
-        stageBtns.forEach((x) => x.classList.toggle('active', x === b));
-        playTone(540, 0.05, 0.03);
-      });
+    // Tutorial Spotlight Controller
+    const tutBackdrop = document.getElementById('ch-tut-backdrop');
+    const tutCallout = document.getElementById('ch-tut-callout');
+    const tutCounter = document.getElementById('ch-tut-counter');
+    const tutText = document.getElementById('ch-tut-text');
+    const tutNextBtn = document.getElementById('ch-tut-next');
+    let tutIdx = 0;
+    let tutFocusedEl = null;
+
+    function clearTutFocus() {
+      if (tutFocusedEl) {
+        tutFocusedEl.classList.remove('tut-focus');
+        tutFocusedEl = null;
+      }
+    }
+    function stopTutorial() {
+      clearTutFocus();
+      tutBackdrop.classList.add('hidden');
+      tutCallout.classList.add('hidden');
+    }
+    function showTutStep(i) {
+      clearTutFocus();
+      tutIdx = i;
+      const step = tutSteps[tutIdx];
+      if (!step) { stopTutorial(); return; }
+      const target = document.querySelector(step.sel);
+      if (target) {
+        tutFocusedEl = target;
+        tutFocusedEl.classList.add('tut-focus');
+      }
+      tutCounter.textContent = `${tutIdx + 1} / ${tutSteps.length}`;
+      tutText.textContent = step.text;
+      tutNextBtn.textContent = tutIdx === tutSteps.length - 1 ? '완료' : '다음';
+      tutBackdrop.classList.remove('hidden');
+      tutCallout.classList.remove('hidden');
+    }
+    document.getElementById('ch-tut-exit').addEventListener('click', stopTutorial);
+    tutNextBtn.addEventListener('click', () => {
+      playTone(560, 0.05, 0.03);
+      if (tutIdx >= tutSteps.length - 1) {
+        markStageComplete(chNum, 'tutorial');
+        stopTutorial();
+        renderStageList();
+      } else {
+        showTutStep(tutIdx + 1);
+      }
     });
 
-    // Wire Shared Settings Modal
+    // Stage Modal (with Red '완료' stamp)
+    const stageModal = document.getElementById('ch-stage-modal');
+    const stageListEl = document.getElementById('ch-stage-list');
+    let activeStageId = stages[0].id;
+
+    function renderStageList() {
+      stageListEl.innerHTML = stages.map((st) => {
+        const done = isStageComplete(chNum, st.id);
+        return `
+          <button type="button" class="b-btn stage-btn ${st.id === activeStageId ? 'active' : ''}" data-stage="${st.id}">
+            <span>${st.name}</span>
+            ${done ? '<span class="stamp-done">완료</span>' : ''}
+          </button>
+        `;
+      }).join('');
+      stageListEl.querySelectorAll('.stage-btn').forEach((b) => {
+        b.addEventListener('click', () => {
+          activeStageId = b.dataset.stage;
+          renderStageList();
+          playTone(540, 0.05, 0.03);
+          if (activeStageId === 'tutorial') {
+            stageModal.classList.add('hidden');
+            showTutStep(0);
+          }
+        });
+      });
+    }
+    renderStageList();
+
+    // Shared Settings Modal + Main Screen Confirm Warning Modal
     const settingsModal = document.getElementById('ch-settings-modal');
+    const confirmModal = document.getElementById('ch-confirm-main-modal');
     const fRange = document.getElementById('ch-font-range');
     const fMarks = document.querySelectorAll('#ch-font-marks button');
     const sToggle = document.getElementById('ch-sound-toggle');
@@ -434,7 +540,7 @@
       playTone(580, 0.05, 0.03);
       const res = await shareSimulator();
       if (res.method === 'clipboard' && res.ok) {
-        toastEl.textContent = '시뮬레이터 링크가 클립보드에 복사되었습니다.';
+        toastEl.textContent = '시뮬레이터 메인 링크가 클립보드에 복사되었습니다.';
         setTimeout(() => { toastEl.textContent = ''; }, 2400);
       } else if (res.method === 'native' && res.ok) {
         toastEl.textContent = '공유 창이 열렸습니다.';
@@ -442,12 +548,24 @@
       }
     });
 
+    document.getElementById('ch-btn-main-warn').addEventListener('click', () => {
+      playTone(460, 0.06, 0.03);
+      confirmModal.classList.remove('hidden');
+    });
+    document.getElementById('ch-confirm-no').addEventListener('click', () => confirmModal.classList.add('hidden'));
+    confirmModal.addEventListener('click', (e) => { if (e.target === confirmModal) confirmModal.classList.add('hidden'); });
+    document.getElementById('ch-confirm-yes').addEventListener('click', () => {
+      confirmModal.classList.add('hidden');
+      settingsModal.classList.add('hidden');
+      navigateTo('index2.html', { push: true });
+    });
+
     // Open / Close Handlers
     document.getElementById('ch-btn-help').addEventListener('click', () => { goSlide(0); playTone(500, 0.05, 0.03); helpModal.classList.remove('hidden'); });
     document.getElementById('ch-help-close').addEventListener('click', () => helpModal.classList.add('hidden'));
     helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
 
-    document.getElementById('ch-btn-stage').addEventListener('click', () => { playTone(500, 0.05, 0.03); stageModal.classList.remove('hidden'); });
+    document.getElementById('ch-btn-stage').addEventListener('click', () => { renderStageList(); playTone(500, 0.05, 0.03); stageModal.classList.remove('hidden'); });
     document.getElementById('ch-stage-close').addEventListener('click', () => stageModal.classList.add('hidden'));
     stageModal.addEventListener('click', (e) => { if (e.target === stageModal) stageModal.classList.add('hidden'); });
 
@@ -456,7 +574,6 @@
     settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
   }
 
-  // Apply saved font size & fullscreen immediately on every Beta 1.1 page
   applyFontLevel(getFontLevel());
   applySavedFullscreen();
 
@@ -466,6 +583,8 @@
     isSoundOn,
     setSound,
     isFullscreenOn,
+    isStageComplete,
+    markStageComplete,
     playTone,
     toggleFullscreen,
     shareSimulator,

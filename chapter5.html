@@ -8,63 +8,71 @@
   <script src="beta11-settings.js"></script>
 </head>
 <body>
-  <div class="app-shell">
+  <div class="app-shell chapter-shell">
     <header class="top-bar">
       <div class="top-left">
-        <a href="index2.html" class="top-title" style="text-decoration:none;">Chapter 5. 마취 회복</a>
+        <div class="top-title">Chapter 5. 마취 회복</div>
       </div>
       <div id="chapter-top-actions" class="top-actions"></div>
     </header>
 
     <main class="page-body">
-      <section class="monitor-mock">
-        <div style="display:flex; justify-content:space-between; font-size:10.5px; opacity:0.75;">
-          <span>회복기 모니터 (레이아웃)</span>
-          <span>연하반사 · EtIso</span>
+      <div class="chapter-split">
+        <!-- 좌측(데스크탑): 회복기 모니터 -->
+        <div class="chapter-col">
+          <section class="monitor-mock" id="ch5-monitor">
+            <div style="display:flex; justify-content:space-between; font-size:10.5px; opacity:0.75;">
+              <span>회복기 모니터 (레이아웃)</span>
+              <span>연하반사 · EtIso</span>
+            </div>
+            <div class="monitor-row">
+              <div class="m-cell"><span class="mk">HR</span><span class="mv">--</span></div>
+              <div class="m-cell"><span class="mk">SpO₂</span><span class="mv">--%</span></div>
+              <div class="m-cell"><span class="mk">BT</span><span class="mv">--.-°</span></div>
+              <div class="m-cell"><span class="mk">EtIso</span><span class="mv">-.--</span></div>
+            </div>
+          </section>
         </div>
-        <div class="monitor-row">
-          <div class="m-cell"><span class="mk">HR</span><span class="mv">--</span></div>
-          <div class="m-cell"><span class="mk">SpO₂</span><span class="mv">--%</span></div>
-          <div class="m-cell"><span class="mk">BT</span><span class="mv">--.-°</span></div>
-          <div class="m-cell"><span class="mk">EtIso</span><span class="mv">-.--</span></div>
-        </div>
-      </section>
 
-      <div class="step-tabs" role="tablist">
-        <button type="button" class="step-tab active" data-pane="p1">1. 세척 · 발관</button>
-        <button type="button" class="step-tab" data-pane="p2">2. 회복 처치</button>
-        <button type="button" class="step-tab" data-pane="p3">3. 퇴원 · 리뷰</button>
+        <!-- 우측(데스크탑): 조작창 -->
+        <div class="chapter-col">
+          <div class="step-tabs" role="tablist">
+            <button type="button" class="step-tab active" data-pane="p1">1. 세척 · 발관</button>
+            <button type="button" class="step-tab" data-pane="p2">2. 회복 처치</button>
+            <button type="button" class="step-tab" data-pane="p3">3. 퇴원 · 리뷰</button>
+          </div>
+
+          <section class="b-card" data-content="p1">
+            <div class="b-label"><span>마취 가스 세척 &amp; 발관 결정</span></div>
+            <div class="wire-grid-2" style="margin-bottom:10px;">
+              <button type="button" class="b-btn b-btn-sm">기화기 OFF · O₂ 세척</button>
+              <button type="button" class="b-btn b-btn-sm">기관튜브 발관</button>
+            </div>
+            <div class="wire-box">
+              <span class="wire-tag">발관 준비도 확인 (연하반사·자발호흡·체온)</span>
+              <p class="muted">적정 발관 시점과 호흡·기도 상태를 확인하는 영역입니다.</p>
+            </div>
+          </section>
+
+          <section class="b-card pane-hidden" data-content="p2">
+            <div class="b-label"><span>필요 시 회복기 보조 처치 (선택적)</span></div>
+            <div class="wire-grid-2">
+              <button type="button" class="b-btn b-btn-sm">산소 공급</button>
+              <button type="button" class="b-btn b-btn-sm">능동 가온</button>
+              <button type="button" class="b-btn b-btn-sm">진통 · 진정</button>
+              <button type="button" class="b-btn b-btn-sm">필요 시 길항제</button>
+            </div>
+          </section>
+
+          <section class="b-card pane-hidden" data-content="p3">
+            <div class="b-label"><span>보호자 퇴원 안내 &amp; 전주기 사후 피드백</span></div>
+            <div class="wire-box">
+              <span class="wire-tag">마취 종료 후 통합 리포트 영역</span>
+              <p class="muted">플레이 중 실시간 점수 부담 없이, 모든 챕터 종료 후 잘한 처치·보완점·약물 시너지 요약을 한 번에 복기하는 영역입니다.</p>
+            </div>
+          </section>
+        </div>
       </div>
-
-      <section class="b-card" data-content="p1">
-        <div class="b-label"><span>마취 가스 세척 &amp; 발관 결정</span></div>
-        <div class="wire-grid-2" style="margin-bottom:10px;">
-          <button type="button" class="b-btn b-btn-sm">기화기 OFF · O₂ 세척</button>
-          <button type="button" class="b-btn b-btn-sm">기관튜브 발관</button>
-        </div>
-        <div class="wire-box">
-          <span class="wire-tag">발관 준비도 확인 (연하반사·자발호흡·체온)</span>
-          <p class="muted">적정 발관 시점과 호흡·기도 상태를 확인하는 영역입니다.</p>
-        </div>
-      </section>
-
-      <section class="b-card pane-hidden" data-content="p2">
-        <div class="b-label"><span>필요 시 회복기 보조 처치 (선택적)</span></div>
-        <div class="wire-grid-2">
-          <button type="button" class="b-btn b-btn-sm">산소 공급</button>
-          <button type="button" class="b-btn b-btn-sm">능동 가온</button>
-          <button type="button" class="b-btn b-btn-sm">진통 · 진정</button>
-          <button type="button" class="b-btn b-btn-sm">필요 시 길항제</button>
-        </div>
-      </section>
-
-      <section class="b-card pane-hidden" data-content="p3">
-        <div class="b-label"><span>보호자 퇴원 안내 &amp; 전주기 사후 피드백</span></div>
-        <div class="wire-box">
-          <span class="wire-tag">마취 종료 후 통합 리포트 영역</span>
-          <p class="muted">플레이 중 실시간 점수 부담 없이, 모든 챕터 종료 후 잘한 처치·보완점·약물 시너지 요약을 한 번에 복기하는 영역입니다.</p>
-        </div>
-      </section>
     </main>
   </div>
 
@@ -77,10 +85,9 @@
         { mark: '2', label: '통증 vs 불쾌감 & 선택적 처치', desc: '필요한 경우에만 진통·진정·길항제·가온·산소를 선택해 투여합니다.' },
         { mark: '3', label: '보호자 퇴원 안내 및 복기', desc: '퇴원 주의사항을 안내하고 전체 마취 경과 리포트를 확인합니다.' }
       ],
-      stages: [
-        { id: 'tutorial', name: '튜토리얼', sub: '안전 발관 및 회복 기본 가이드' },
-        { id: 'step',     name: '단계',     sub: '지연회복 · 기도폐쇄 · 불쾌감 연습' },
-        { id: 'practice', name: '실전',     sub: '복합 회복 합병증 & 보호자 퇴원 안내' }
+      tutorialSteps: [
+        { sel: '#ch5-monitor', text: '회복기 모니터에서 EtIso, 체온, 연하반사 추이를 확인합니다.' },
+        { sel: '.step-tabs', text: '세척·발관 → 회복 처치 → 퇴원·리뷰 순으로 마취를 안전하게 종료합니다.' }
       ]
     });
     document.querySelectorAll('.step-tab').forEach((tab) => {

@@ -8,79 +8,87 @@
   <script src="beta11-settings.js"></script>
 </head>
 <body>
-  <div class="app-shell">
+  <div class="app-shell chapter-shell">
     <header class="top-bar">
       <div class="top-left">
-        <a href="index2.html" class="top-title" style="text-decoration:none;">Chapter 3. 마취 도입</a>
+        <div class="top-title">Chapter 3. 마취 도입</div>
       </div>
       <div id="chapter-top-actions" class="top-actions"></div>
     </header>
 
     <main class="page-body">
-      <section class="monitor-mock">
-        <div style="display:flex; justify-content:space-between; font-size:10.5px; opacity:0.75;">
-          <span>도입 모니터 (레이아웃)</span>
-          <span>00:00</span>
+      <div class="chapter-split">
+        <!-- 좌측(데스크탑): 모니터링 창 -->
+        <div class="chapter-col">
+          <section class="monitor-mock" id="ch3-monitor">
+            <div style="display:flex; justify-content:space-between; font-size:10.5px; opacity:0.75;">
+              <span>도입 모니터 (레이아웃)</span>
+              <span>00:00</span>
+            </div>
+            <div class="monitor-row">
+              <div class="m-cell"><span class="mk">HR</span><span class="mv">--</span></div>
+              <div class="m-cell"><span class="mk">SpO₂</span><span class="mv">--%</span></div>
+              <div class="m-cell"><span class="mk">MAP</span><span class="mv">--</span></div>
+              <div class="m-cell"><span class="mk">RR</span><span class="mv">--</span></div>
+            </div>
+          </section>
         </div>
-        <div class="monitor-row">
-          <div class="m-cell"><span class="mk">HR</span><span class="mv">--</span></div>
-          <div class="m-cell"><span class="mk">SpO₂</span><span class="mv">--%</span></div>
-          <div class="m-cell"><span class="mk">MAP</span><span class="mv">--</span></div>
-          <div class="m-cell"><span class="mk">RR</span><span class="mv">--</span></div>
-        </div>
-      </section>
 
-      <div class="step-tabs" role="tablist">
-        <button type="button" class="step-tab active" data-pane="p1">1. 전처치</button>
-        <button type="button" class="step-tab" data-pane="p2">2. 도입 · 삽관</button>
-        <button type="button" class="step-tab" data-pane="p3">3. 유지 전환</button>
+        <!-- 우측(데스크탑): 조작창 -->
+        <div class="chapter-col">
+          <div class="step-tabs" role="tablist">
+            <button type="button" class="step-tab active" data-pane="p1">1. 전처치</button>
+            <button type="button" class="step-tab" data-pane="p2">2. 도입 · 삽관</button>
+            <button type="button" class="step-tab" data-pane="p3">3. 유지 전환</button>
+          </div>
+
+          <section class="b-card" data-content="p1">
+            <div class="b-label">
+              <span>전처치 약물 투여 (토글 선택 → 일괄 적용)</span>
+            </div>
+            <div class="wire-grid-2" style="margin-bottom:10px;">
+              <button type="button" class="b-btn b-btn-sm">진정제 선택</button>
+              <button type="button" class="b-btn b-btn-sm">진통제 선택</button>
+              <button type="button" class="b-btn b-btn-sm">예방적 항생제</button>
+              <button type="button" class="b-btn b-btn-sm">보조약물 · 수액</button>
+            </div>
+            <div class="wire-box">
+              <span class="wire-tag">전산소화(Pre-O₂) 및 진정 상태 피드백 영역</span>
+              <p class="muted">선택한 전처치 약물의 진정 깊이·심박·혈압 변화가 표시될 영역입니다.</p>
+            </div>
+          </section>
+
+          <section class="b-card pane-hidden" data-content="p2">
+            <div class="b-label">
+              <span>유도제 적정 &amp; 기관튜브(ETT) 삽관</span>
+            </div>
+            <div class="wire-grid-2" style="margin-bottom:10px;">
+              <button type="button" class="b-btn b-btn-sm">유도제 적정</button>
+              <button type="button" class="b-btn b-btn-sm">ETT 규격 선택</button>
+            </div>
+            <div class="wire-box">
+              <span class="wire-tag">삽관 확인 (ETCO₂ 파형 · 커프 팽창) 영역</span>
+              <p class="muted">기도/식도 삽관 확인 및 튜브 고정 단계가 배치될 영역입니다.</p>
+            </div>
+          </section>
+
+          <section class="b-card pane-hidden" data-content="p3">
+            <div class="b-label">
+              <span>호흡회로 연결 및 유지 마취 전환</span>
+            </div>
+            <div class="wire-grid-2" style="margin-bottom:10px;">
+              <button type="button" class="b-btn b-btn-sm">O₂ 유량 설정</button>
+              <button type="button" class="b-btn b-btn-sm">기화기(Iso) 시작</button>
+              <button type="button" class="b-btn b-btn-sm">APL 밸브 개방 확인</button>
+              <button type="button" class="b-btn b-btn-sm">모니터 부착 완료</button>
+            </div>
+            <div class="wire-box">
+              <span class="wire-tag">Chapter 4 전환 준비 체크리스트</span>
+              <p class="muted">전환 체크 완료 후 마취 유지 모니터링 단계로 이어집니다.</p>
+            </div>
+          </section>
+        </div>
       </div>
-
-      <section class="b-card" data-content="p1">
-        <div class="b-label">
-          <span>전처치 약물 투여 (토글 선택 → 일괄 적용)</span>
-        </div>
-        <div class="wire-grid-2" style="margin-bottom:10px;">
-          <button type="button" class="b-btn b-btn-sm">진정제 선택</button>
-          <button type="button" class="b-btn b-btn-sm">진통제 선택</button>
-          <button type="button" class="b-btn b-btn-sm">예방적 항생제</button>
-          <button type="button" class="b-btn b-btn-sm">보조약물 · 수액</button>
-        </div>
-        <div class="wire-box">
-          <span class="wire-tag">전산소화(Pre-O₂) 및 진정 상태 피드백 영역</span>
-          <p class="muted">선택한 전처치 약물의 진정 깊이·심박·혈압 변화가 표시될 영역입니다.</p>
-        </div>
-      </section>
-
-      <section class="b-card pane-hidden" data-content="p2">
-        <div class="b-label">
-          <span>유도제 적정 &amp; 기관튜브(ETT) 삽관</span>
-        </div>
-        <div class="wire-grid-2" style="margin-bottom:10px;">
-          <button type="button" class="b-btn b-btn-sm">유도제 적정</button>
-          <button type="button" class="b-btn b-btn-sm">ETT 규격 선택</button>
-        </div>
-        <div class="wire-box">
-          <span class="wire-tag">삽관 확인 (ETCO₂ 파형 · 커프 팽창) 영역</span>
-          <p class="muted">기도/식도 삽관 확인 및 튜브 고정 단계가 배치될 영역입니다.</p>
-        </div>
-      </section>
-
-      <section class="b-card pane-hidden" data-content="p3">
-        <div class="b-label">
-          <span>호흡회로 연결 및 유지 마취 전환</span>
-        </div>
-        <div class="wire-grid-2" style="margin-bottom:10px;">
-          <button type="button" class="b-btn b-btn-sm">O₂ 유량 설정</button>
-          <button type="button" class="b-btn b-btn-sm">기화기(Iso) 시작</button>
-          <button type="button" class="b-btn b-btn-sm">APL 밸브 개방 확인</button>
-          <button type="button" class="b-btn b-btn-sm">모니터 부착 완료</button>
-        </div>
-        <div class="wire-box">
-          <span class="wire-tag">Chapter 4 전환 준비 체크리스트</span>
-          <p class="muted">전환 체크 완료 후 마취 유지 모니터링 단계로 이어집니다.</p>
-        </div>
-      </section>
     </main>
   </div>
 
@@ -93,10 +101,9 @@
         { mark: '2', label: '유도제 적정 & ETT 선택', desc: '환자 반응에 맞춰 유도제를 적정하고 흉강입구 직경 기준 ETT를 삽관합니다.' },
         { mark: '3', label: '호흡회로 연결 및 전환', desc: 'O₂·기화기·APL 밸브를 점검해 마취 유지 단계로 안전하게 전환합니다.' }
       ],
-      stages: [
-        { id: 'tutorial', name: '튜토리얼', sub: '전처치·도입·삽관 기본 흐름' },
-        { id: 'step',     name: '단계',     sub: '고위험군 도입 · ETT 규격 연습' },
-        { id: 'practice', name: '실전',     sub: '응급·무전처치 포함 실전 도입' }
+      tutorialSteps: [
+        { sel: '#ch3-monitor', text: '도입 과정 중 HR, SpO₂, MAP, RR 변화를 실시간으로 감시합니다.' },
+        { sel: '.step-tabs', text: '전처치 → 도입·삽관 → 유지 전환 순으로 진행합니다.' }
       ]
     });
     document.querySelectorAll('.step-tab').forEach((tab) => {
