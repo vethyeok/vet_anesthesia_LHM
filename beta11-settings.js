@@ -231,15 +231,15 @@
     }
   });
 
-  /* Default 7 stages: 튜토리얼, 케이스 5개(무증상·경증·노령·중증·응급), 실전 */
-  const DEFAULT_STAGES = [
-    { id: 'tutorial', name: '튜토리얼' },
-    { id: 'asymp',    name: '무증상' },
-    { id: 'mild',     name: '경증' },
-    { id: 'geriatric',name: '노령' },
-    { id: 'severe',   name: '중증' },
-    { id: 'emerg',    name: '응급' },
-    { id: 'practice', name: '실전' }
+  /* Default Stage Rows: 튜토리얼 (단독) + 케이스 5종(개/고양이 좌우) + 실전(개/고양이 좌우) */
+  const DEFAULT_STAGE_ROWS = [
+    [{ id: 'tutorial', name: '튜토리얼' }],
+    [{ id: 'asymp_dog', name: '무증상 (개)' },     { id: 'asymp_cat', name: '무증상 (고양이)' }],
+    [{ id: 'mild_dog', name: '경증 (개)' },        { id: 'mild_cat', name: '경증 (고양이)' }],
+    [{ id: 'geriatric_dog', name: '노령 (개)' },   { id: 'geriatric_cat', name: '노령 (고양이)' }],
+    [{ id: 'severe_dog', name: '중증 (개)' },      { id: 'severe_cat', name: '중증 (고양이)' }],
+    [{ id: 'emerg_dog', name: '응급 (개)' },       { id: 'emerg_cat', name: '응급 (고양이)' }],
+    [{ id: 'practice_dog', name: '실전 (개)' },    { id: 'practice_cat', name: '실전 (고양이)' }]
   ];
 
   /* Mount Chapter 1~5 common top-right actions (?, 3-line stage icon, gear settings), blur popups & tutorial spotlight */
@@ -253,7 +253,7 @@
       { mark: '1', label: `Chapter ${chNum} 예시 사진 1 (추후 첨부)`, desc: '빨간 마킹과 함께 핵심 조작 방법을 안내하는 영역입니다.' },
       { mark: '2', label: `Chapter ${chNum} 예시 사진 2 (추후 첨부)`, desc: '좌우 드래그(스와이프)로 다음 도움말 사진으로 넘어갑니다.' }
     ];
-    const stages = Array.isArray(cfg.stages) && cfg.stages.length ? cfg.stages : DEFAULT_STAGES;
+    const stageRows = Array.isArray(cfg.stageRows) && cfg.stageRows.length ? cfg.stageRows : DEFAULT_STAGE_ROWS;
     const tutSteps = Array.isArray(cfg.tutorialSteps) && cfg.tutorialSteps.length ? cfg.tutorialSteps : [
       { sel: '.step-tabs', text: `Chapter ${chNum}의 상단 단계 탭에서 현재 진행할 과정을 순서대로 확인합니다.` },
       { sel: '.b-card:not(.pane-hidden)', text: '현재 강조된 영역에서 해당 과정의 조작을 진행합니다.' }
@@ -309,7 +309,7 @@
         </div>
       </div>
 
-      <!-- 단계 팝업 (튜토리얼 · 무증상 · 경증 · 노령 · 중증 · 응급 · 실전 / 하단 닫기만) -->
+      <!-- 단계 팝업 (튜토리얼 · 케이스 5개 개/고양이 · 실전 개/고양이 / 하단 닫기만) -->
       <div id="ch-stage-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch-stage-title" style="backdrop-filter:blur(6px);">
         <div class="modal-card">
           <h2 id="ch-stage-title" class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown);">단계 · ${chTitle}</h2>
@@ -349,7 +349,7 @@
             </div>
           </div>
           <div style="margin-bottom:10px;">
-            <button id="ch-btn-main-warn" type="button" class="b-btn b-btn-sm" style="width:100%; padding:10px 14px;">메인화면</button>
+            <button id="ch-btn-main-warn" type="button" class="b-btn b-btn-sm" style="width:100%;">메인화면</button>
           </div>
           <div id="ch-share-toast" class="share-toast" aria-live="polite"></div>
           <div class="modal-close-wrap">
@@ -473,20 +473,25 @@
       }
     });
 
-    // Stage Modal (with Red '완료' stamp)
+    // Stage Modal (13 buttons: 튜토리얼 + 5종 개/고양이 + 실전 개/고양이, each with Red '완료' stamp)
     const stageModal = document.getElementById('ch-stage-modal');
     const stageListEl = document.getElementById('ch-stage-list');
-    let activeStageId = stages[0].id;
+    let activeStageId = stageRows[0][0].id;
+
+    function renderStageBtn(st) {
+      const done = isStageComplete(chNum, st.id);
+      return `
+        <button type="button" class="b-btn stage-btn ${st.id === activeStageId ? 'active' : ''}" data-stage="${st.id}">
+          <span>${st.name}</span>
+          ${done ? '<span class="stamp-done">완료</span>' : ''}
+        </button>
+      `;
+    }
 
     function renderStageList() {
-      stageListEl.innerHTML = stages.map((st) => {
-        const done = isStageComplete(chNum, st.id);
-        return `
-          <button type="button" class="b-btn stage-btn ${st.id === activeStageId ? 'active' : ''}" data-stage="${st.id}">
-            <span>${st.name}</span>
-            ${done ? '<span class="stamp-done">완료</span>' : ''}
-          </button>
-        `;
+      stageListEl.innerHTML = stageRows.map((row) => {
+        if (row.length === 1) return renderStageBtn(row[0]);
+        return `<div class="stage-row-2">${row.map(renderStageBtn).join('')}</div>`;
       }).join('');
       stageListEl.querySelectorAll('.stage-btn').forEach((b) => {
         b.addEventListener('click', () => {
