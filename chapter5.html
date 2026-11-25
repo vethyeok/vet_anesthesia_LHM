@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Chapter 5 · 마취 종료 — 베타 1.1</title>
+  <title>Chapter 5. 마취 회복 — 베타 1.1</title>
   <link rel="stylesheet" href="beta11.css" />
   <script src="beta11-settings.js"></script>
 </head>
@@ -11,20 +11,12 @@
   <div class="app-shell">
     <header class="top-bar">
       <div class="top-left">
-        <a href="index2.html" class="b-btn b-btn-icon" title="메인으로">←</a>
-        <div>
-          <div class="top-title">Chapter 5</div>
-          <div class="top-sub">마취 종료 · 회복 · 최종 리뷰</div>
-        </div>
+        <a href="index2.html" class="top-title" style="text-decoration:none;">Chapter 5. 마취 회복</a>
       </div>
-      <div class="top-actions">
-        <button type="button" class="b-btn b-btn-sm" title="일시정지 (레이아웃)">정지</button>
-        <button type="button" class="b-btn b-btn-icon" title="도움말 (레이아웃)">?</button>
-      </div>
+      <div id="chapter-top-actions" class="top-actions"></div>
     </header>
 
     <main class="page-body">
-      <!-- 회복기 컴팩트 모니터 -->
       <section class="monitor-mock">
         <div style="display:flex; justify-content:space-between; font-size:10.5px; opacity:0.75;">
           <span>회복기 모니터 (레이아웃)</span>
@@ -44,7 +36,6 @@
         <button type="button" class="step-tab" data-pane="p3">3. 퇴원 · 리뷰</button>
       </div>
 
-      <!-- Pane 1: 기화기 OFF & 발관 -->
       <section class="b-card" data-content="p1">
         <div class="b-label"><span>마취 가스 세척 &amp; 발관 결정</span></div>
         <div class="wire-grid-2" style="margin-bottom:10px;">
@@ -57,7 +48,6 @@
         </div>
       </section>
 
-      <!-- Pane 2: 회복 처치 -->
       <section class="b-card pane-hidden" data-content="p2">
         <div class="b-label"><span>필요 시 회복기 보조 처치 (선택적)</span></div>
         <div class="wire-grid-2">
@@ -68,7 +58,6 @@
         </div>
       </section>
 
-      <!-- Pane 3: 보호자 퇴원 안내 & 사후 종합 리뷰 -->
       <section class="b-card pane-hidden" data-content="p3">
         <div class="b-label"><span>보호자 퇴원 안내 &amp; 전주기 사후 피드백</span></div>
         <div class="wire-box">
@@ -77,14 +66,23 @@
         </div>
       </section>
     </main>
-
-    <nav class="bottom-bar">
-      <a href="chapter4.html" class="b-btn">← Chapter 4</a>
-      <a href="index2.html" class="b-btn">메인으로 ✓</a>
-    </nav>
   </div>
 
   <script>
+    Beta11Settings.initChapterCommon({
+      chapterNum: 5,
+      chapterTitle: '마취 회복',
+      helpSlides: [
+        { mark: '1', label: '마취 가스 세척 & 발관 타이밍', desc: '기화기 OFF 후 O₂ 세척과 연하반사·체온을 확인해 안전하게 발관합니다.' },
+        { mark: '2', label: '통증 vs 불쾌감 & 선택적 처치', desc: '필요한 경우에만 진통·진정·길항제·가온·산소를 선택해 투여합니다.' },
+        { mark: '3', label: '보호자 퇴원 안내 및 복기', desc: '퇴원 주의사항을 안내하고 전체 마취 경과 리포트를 확인합니다.' }
+      ],
+      stages: [
+        { id: 'tutorial', name: '튜토리얼', sub: '안전 발관 및 회복 기본 가이드' },
+        { id: 'step',     name: '단계',     sub: '지연회복 · 기도폐쇄 · 불쾌감 연습' },
+        { id: 'practice', name: '실전',     sub: '복합 회복 합병증 & 보호자 퇴원 안내' }
+      ]
+    });
     document.querySelectorAll('.step-tab').forEach((tab) => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.step-tab').forEach((t) => t.classList.toggle('active', t === tab));

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Chapter 1 · 보호자 문진 및 술전 평가 — 베타 1.1</title>
+  <title>Chapter 1. 마취 전 검사 — 베타 1.1</title>
   <link rel="stylesheet" href="beta11.css" />
   <script src="beta11-settings.js"></script>
 </head>
@@ -11,20 +11,12 @@
   <div class="app-shell">
     <header class="top-bar">
       <div class="top-left">
-        <a href="index2.html" class="b-btn b-btn-icon" title="메인으로">←</a>
-        <div>
-          <div class="top-title">Chapter 1</div>
-          <div class="top-sub">문진 · 마취 전 검사 · ASA 및 예후 평가</div>
-        </div>
+        <a href="index2.html" class="top-title" style="text-decoration:none;">Chapter 1. 마취 전 검사</a>
       </div>
-      <div class="top-actions">
-        <button type="button" class="b-btn b-btn-sm" title="일시정지 (레이아웃)">정지</button>
-        <button type="button" class="b-btn b-btn-icon" title="도움말 (레이아웃)">?</button>
-      </div>
+      <div id="chapter-top-actions" class="top-actions"></div>
     </header>
 
     <main class="page-body">
-      <!-- 블라인드 환자 기본 카드 (제목에 정답 질환 비노출 컨셉 반영) -->
       <section class="b-card-soft">
         <div class="b-label">
           <span>내원 환자 기본 정보</span>
@@ -36,14 +28,12 @@
         </p>
       </section>
 
-      <!-- 서브 단계 탭 (레이아웃 미리보기 전환용) -->
       <div class="step-tabs" role="tablist">
         <button type="button" class="step-tab active" data-pane="p1">1. 보호자 문진</button>
         <button type="button" class="step-tab" data-pane="p2">2. 마취 전 검사</button>
         <button type="button" class="step-tab" data-pane="p3">3. ASA · 예후</button>
       </div>
 
-      <!-- Pane 1: 보호자 문진 -->
       <section class="b-card" data-content="p1">
         <div class="b-label">
           <span>AI 보호자 문진 영역</span>
@@ -63,7 +53,6 @@
         </div>
       </section>
 
-      <!-- Pane 2: 마취 전 검사 선택 및 결과 -->
       <section class="b-card pane-hidden" data-content="p2">
         <div class="b-label">
           <span>마취 전 검사 항목 선택 및 결과</span>
@@ -81,7 +70,6 @@
         </div>
       </section>
 
-      <!-- Pane 3: ASA Grade 및 예후 평가 -->
       <section class="b-card pane-hidden" data-content="p3">
         <div class="b-label">
           <span>ASA Grade 및 마취 위험도 · 예후 평가</span>
@@ -105,14 +93,23 @@
         </div>
       </section>
     </main>
-
-    <nav class="bottom-bar">
-      <a href="index2.html" class="b-btn">← 메인</a>
-      <a href="chapter2.html" class="b-btn">Chapter 2 →</a>
-    </nav>
   </div>
 
   <script>
+    Beta11Settings.initChapterCommon({
+      chapterNum: 1,
+      chapterTitle: '마취 전 검사',
+      helpSlides: [
+        { mark: '1', label: '보호자 문진 예시 화면', desc: '금식, 복용약, 기저증상을 질문해 숨겨진 단서를 수집하는 화면입니다.' },
+        { mark: '2', label: '술전 검사 선택 및 판독', desc: '환자 상태에 맞는 신체검사·혈액검사·영상 항목을 선택해 결과를 확인합니다.' },
+        { mark: '3', label: 'ASA Grade 및 예후 평가', desc: '문진과 검사 결과를 종합해 ASA 등급과 마취 예후를 최종 판정합니다.' }
+      ],
+      stages: [
+        { id: 'tutorial', name: '튜토리얼', sub: '문진·검사·ASA 평가 기본 가이드' },
+        { id: 'step',     name: '단계',     sub: '질환군별 술전 평가 단계 연습' },
+        { id: 'practice', name: '실전',     sub: '블라인드 환자 종합 술전 평가' }
+      ]
+    });
     document.querySelectorAll('.step-tab').forEach((tab) => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.step-tab').forEach((t) => t.classList.toggle('active', t === tab));

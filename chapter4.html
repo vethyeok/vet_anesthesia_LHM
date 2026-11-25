@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Chapter 4 · 마취 유지 모니터링 — 베타 1.1</title>
+  <title>Chapter 4. 마취 유지 — 베타 1.1</title>
   <link rel="stylesheet" href="beta11.css" />
   <script src="beta11-settings.js"></script>
 </head>
@@ -11,21 +11,12 @@
   <div class="app-shell">
     <header class="top-bar">
       <div class="top-left">
-        <a href="index2.html" class="b-btn b-btn-icon" title="메인으로">←</a>
-        <div>
-          <div class="top-title">Chapter 4</div>
-          <div class="top-sub">마취 유지 모니터링</div>
-        </div>
+        <a href="index2.html" class="top-title" style="text-decoration:none;">Chapter 4. 마취 유지</a>
       </div>
-      <div class="top-actions">
-        <button type="button" class="b-btn b-btn-sm" title="술전검사 결과 (모니터 상단 배치)">검사</button>
-        <button type="button" class="b-btn b-btn-sm" title="일시정지 (학습·가이드 열람 중 정지)">정지</button>
-        <button type="button" class="b-btn b-btn-sm" title="약물 도감 · 가이드">도감</button>
-      </div>
+      <div id="chapter-top-actions" class="top-actions"></div>
     </header>
 
     <main class="page-body">
-      <!-- 피드백 반영: 수술 스토리 진행률 바 (절개 → 핵심 시술 → 봉합) -->
       <section class="b-card-soft" style="padding:10px 14px;">
         <div class="b-label" style="margin-bottom:5px;">
           <span>수술 진행률 (스토리 모드)</span>
@@ -39,7 +30,6 @@
         </div>
       </section>
 
-      <!-- 실시간 모니터 영역 (실시간 점수 비표시로 임상 집중도 유지) -->
       <section class="monitor-mock">
         <div style="display:flex; justify-content:space-between; font-size:10.5px; opacity:0.75;">
           <span>ECG · SpO₂ · ETCO₂ 파형 영역</span>
@@ -90,14 +80,23 @@
         </div>
       </section>
     </main>
-
-    <nav class="bottom-bar">
-      <a href="chapter3.html" class="b-btn">← Chapter 3</a>
-      <a href="chapter5.html" class="b-btn">Chapter 5 →</a>
-    </nav>
   </div>
 
   <script>
+    Beta11Settings.initChapterCommon({
+      chapterNum: 4,
+      chapterTitle: '마취 유지',
+      helpSlides: [
+        { mark: '1', label: '모니터 파형 및 수치 판독', desc: 'ECG·SpO₂·ETCO₂·MAP 추이와 수술 진행률 바를 함께 모니터링합니다.' },
+        { mark: '2', label: '환기 · 기화기 · 수액 조절', desc: '저혈압·고탄산혈증 발생 시 Iso 감량, 환기 조절, 수액 보충 순으로 대응합니다.' },
+        { mark: '3', label: 'CRI & 응급·특수 약물 대응', desc: '돌발 출혈·부정맥·통증·전해질 이상에 맞춰 적절한 CRI와 약물을 투여합니다.' }
+      ],
+      stages: [
+        { id: 'tutorial', name: '튜토리얼', sub: '안정 수술 코스 기본 모니터링' },
+        { id: 'step',     name: '단계',     sub: '수술 스토리별 돌발 이벤트 대응' },
+        { id: 'practice', name: '실전',     sub: '고난도 복합 위기 실전 모니터링' }
+      ]
+    });
     document.querySelectorAll('.step-tab').forEach((tab) => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.step-tab').forEach((t) => t.classList.toggle('active', t === tab));
