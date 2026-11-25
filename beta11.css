@@ -158,39 +158,57 @@ html, body {
   font-size: 15px;
 }
 
-/* Chapter Menu Button (index2.html) */
-.menu-btn {
+/* Chapter Menu Button (index2.html) — 70% width, fixed pixel height, no arrows */
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
   width: 100%;
+}
+
+.menu-btn {
+  width: 70%;
+  height: 62px;
   justify-content: space-between;
   text-align: left;
-  padding: 15px 18px;
-  border-radius: var(--radius-xl);
+  padding: 0 18px;
+  border-radius: 18px;
 }
 
 .menu-btn .m-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  justify-content: center;
+  gap: 1px;
 }
 
 .menu-btn .m-kicker {
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 10.5px;
+  font-weight: 700;
   letter-spacing: 0.06em;
   opacity: 0.72;
+  line-height: 1.2;
 }
 
 .menu-btn .m-title {
   font-size: 14.5px;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
-.menu-btn .m-arrow {
-  font-size: 16px;
+.menu-btn .m-excl {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1.5px solid currentColor;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
   font-weight: 800;
   flex-shrink: 0;
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 /* Soft Cards & Text Boxes */
