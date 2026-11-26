@@ -470,14 +470,8 @@
         </div>
       </div>
 
-      <!-- 튜토리얼 4분할 실제 블러 스포트라이트 + 남는 공간 안내문 -->
-      <div id="ch-tut-layer" class="tut-layer hidden">
-        <div id="ch-tut-top" class="tut-blur-pane"></div>
-        <div id="ch-tut-bottom" class="tut-blur-pane"></div>
-        <div id="ch-tut-left" class="tut-blur-pane"></div>
-        <div id="ch-tut-right" class="tut-blur-pane"></div>
-        <div id="ch-tut-ring" class="tut-ring"></div>
-      </div>
+      <!-- 튜토리얼 블러 스포트라이트 + 안내문 -->
+      <div id="ch-tut-backdrop" class="tut-backdrop hidden"></div>
       <div id="ch-tut-callout" class="tut-callout hidden" role="dialog" aria-live="polite">
         <div class="b-label" style="margin:0;">
           <span id="ch-tut-step-lbl">튜토리얼</span>
@@ -530,13 +524,8 @@
     helpViewport.addEventListener('pointerup', finishDrag);
     helpViewport.addEventListener('pointercancel', finishDrag);
 
-    // Tutorial 4-Pane True-Cutout Blur Spotlight Controller
-    const tutLayer = document.getElementById('ch-tut-layer');
-    const tutTop = document.getElementById('ch-tut-top');
-    const tutBottom = document.getElementById('ch-tut-bottom');
-    const tutLeft = document.getElementById('ch-tut-left');
-    const tutRight = document.getElementById('ch-tut-right');
-    const tutRing = document.getElementById('ch-tut-ring');
+    // Tutorial Spotlight Controller (Original smooth full-screen blur + .tut-focus + open-space callout)
+    const tutBackdrop = document.getElementById('ch-tut-backdrop');
     const tutCallout = document.getElementById('ch-tut-callout');
     const tutStepLbl = document.getElementById('ch-tut-step-lbl');
     const tutCounter = document.getElementById('ch-tut-counter');
@@ -544,52 +533,41 @@
     const tutNextBtn = document.getElementById('ch-tut-next');
     let tutIdx = 0;
     let tutActive = false;
+    let tutFocusedEl = null;
 
-    function layoutTutCutout(target) {
+    function clearTutFocus() {
+      if (tutFocusedEl) {
+        tutFocusedEl.classList.remove('tut-focus');
+        tutFocusedEl = null;
+      }
+    }
+
+    function positionCallout(target) {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const pad = 4;
-      let r = target ? target.getBoundingClientRect() : null;
-      if (!r || (r.width === 0 && r.height === 0)) {
-        r = { top: vh * 0.45, left: vw * 0.5, right: vw * 0.5, bottom: vh * 0.45, width: 0, height: 0 };
-      }
-      const t = Math.max(0, Math.round(r.top - pad));
-      const l = Math.max(0, Math.round(r.left - pad));
-      const b = Math.min(vh, Math.round(r.bottom + pad));
-      const ri = Math.min(vw, Math.round(r.right + pad));
-      const w = Math.max(0, ri - l);
-      const h = Math.max(0, b - t);
-
-      tutTop.style.cssText = `top:0px; left:0px; width:${vw}px; height:${t}px;`;
-      tutBottom.style.cssText = `top:${b}px; left:0px; width:${vw}px; height:${Math.max(0, vh - b)}px;`;
-      tutLeft.style.cssText = `top:${t}px; left:0px; width:${l}px; height:${h}px;`;
-      tutRight.style.cssText = `top:${t}px; left:${ri}px; width:${Math.max(0, vw - ri)}px; height:${h}px;`;
-      tutRing.style.cssText = w > 0 && h > 0
-        ? `top:${t}px; left:${l}px; width:${w}px; height:${h}px; display:block;`
-        : 'display:none;';
-
-      // Place callout in the largest remaining blurred space so it never covers the highlighted target
       const cw = Math.min(350, vw - 28);
       const ch = tutCallout.offsetHeight || 132;
-      const spaceTop = t;
-      const spaceBottom = vh - b;
-      const spaceLeft = l;
-      const spaceRight = vw - ri;
+      const r = target ? target.getBoundingClientRect() : null;
 
       let cLeft = Math.round((vw - cw) / 2);
-      let cTop = Math.round((vh - ch) / 2);
+      let cTop = Math.round(vh - ch - 24);
 
-      if (vw >= 960 && Math.max(spaceLeft, spaceRight) >= cw + 24) {
-        if (spaceRight >= spaceLeft) {
-          cLeft = Math.round(ri + (spaceRight - cw) / 2);
+      if (r && (r.width > 0 || r.height > 0)) {
+        const spaceTop = r.top;
+        const spaceBottom = vh - r.bottom;
+        const spaceLeft = r.left;
+        const spaceRight = vw - r.right;
+
+        if (vw >= 960 && Math.max(spaceLeft, spaceRight) >= cw + 24) {
+          cLeft = spaceRight >= spaceLeft
+            ? Math.round(r.right + (spaceRight - cw) / 2)
+            : Math.round((spaceLeft - cw) / 2);
+          cTop = Math.max(16, Math.min(vh - ch - 16, Math.round(r.top + (r.height - ch) / 2)));
+        } else if (spaceBottom >= spaceTop) {
+          cTop = Math.max(14, Math.min(vh - ch - 14, Math.round(r.bottom + Math.max(12, (spaceBottom - ch) / 2))));
         } else {
-          cLeft = Math.round((spaceLeft - cw) / 2);
+          cTop = Math.max(14, Math.min(r.top - ch - 12, Math.round((spaceTop - ch) / 2)));
         }
-        cTop = Math.max(16, Math.min(vh - ch - 16, Math.round(t + (h - ch) / 2)));
-      } else if (spaceBottom >= spaceTop) {
-        cTop = Math.max(14, Math.min(vh - ch - 14, Math.round(b + Math.max(12, (spaceBottom - ch) / 2))));
-      } else {
-        cTop = Math.max(14, Math.min(t - ch - 12, Math.round((spaceTop - ch) / 2)));
       }
       tutCallout.style.left = `${cLeft}px`;
       tutCallout.style.top = `${cTop}px`;
@@ -597,7 +575,8 @@
 
     function stopTutorial(runFinishCb = false) {
       tutActive = false;
-      tutLayer.classList.add('hidden');
+      clearTutFocus();
+      tutBackdrop.classList.add('hidden');
       tutCallout.classList.add('hidden');
       if (runFinishCb && typeof cfg.onTutorialFinish === 'function') {
         cfg.onTutorialFinish();
@@ -605,6 +584,7 @@
     }
 
     function showTutStep(i) {
+      clearTutFocus();
       tutIdx = i;
       const step = tutSteps[tutIdx];
       if (!step) { stopTutorial(true); return; }
@@ -612,22 +592,24 @@
       if (typeof step.onEnter === 'function') {
         try { step.onEnter(); } catch {}
       }
+      const target = document.querySelector(step.sel);
+      if (target) {
+        tutFocusedEl = target;
+        tutFocusedEl.classList.add('tut-focus');
+      }
       tutStepLbl.textContent = step.title || '튜토리얼';
       tutCounter.textContent = `${tutIdx + 1} / ${tutSteps.length}`;
       tutText.textContent = step.text;
       tutNextBtn.textContent = tutIdx === tutSteps.length - 1 ? '시작하기' : '다음';
-      tutLayer.classList.remove('hidden');
+      tutBackdrop.classList.remove('hidden');
       tutCallout.classList.remove('hidden');
-      requestAnimationFrame(() => {
-        const target = document.querySelector(step.sel);
-        layoutTutCutout(target);
-      });
+      requestAnimationFrame(() => positionCallout(target));
     }
 
     window.addEventListener('resize', () => {
       if (!tutActive) return;
       const step = tutSteps[tutIdx];
-      if (step) layoutTutCutout(document.querySelector(step.sel));
+      if (step) positionCallout(document.querySelector(step.sel));
     });
 
     document.getElementById('ch-tut-exit').addEventListener('click', () => {

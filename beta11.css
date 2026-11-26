@@ -842,33 +842,24 @@ body.b11-immersive .app-shell {
   pointer-events: none;
 }
 
-/* Tutorial True-Cutout Blur Spotlight Overlay */
-.tut-layer {
+/* Tutorial Blur Spotlight Overlay */
+.tut-backdrop {
   position: fixed;
   inset: 0;
+  background: rgba(28, 25, 23, 0.48);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   z-index: 80;
-  pointer-events: auto;
 }
 
-.tut-layer.hidden {
+.tut-backdrop.hidden {
   display: none;
 }
 
-.tut-blur-pane {
-  position: fixed;
-  background: rgba(28, 25, 23, 0.46);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-}
-
-.tut-ring {
-  position: fixed;
-  border-radius: 18px;
-  border: 2.5px solid var(--ivory);
-  box-shadow: 0 0 0 2px var(--brown), 0 10px 28px rgba(28, 25, 23, 0.35);
-  pointer-events: none;
-  z-index: 82;
-  transition: all 0.22s ease;
+.tut-focus {
+  position: relative !important;
+  z-index: 90 !important;
+  box-shadow: 0 0 0 3px var(--ivory), 0 12px 32px rgba(28, 25, 23, 0.35) !important;
 }
 
 .tut-callout {
