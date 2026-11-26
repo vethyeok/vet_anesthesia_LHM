@@ -1287,17 +1287,55 @@
         chapterTitle: '마취 계획',
         initialStageId: 'tutorial',
         helpSlides: [
-          { mark: '1', label: '마취 전 검사 결과 확인', desc: '좌측 모니터링창에서 신체검사·혈액 이상 수치·영상 핵심 소견을 확인하고, 상세 버튼으로 전체 검사 결과를 열람합니다.' },
-          { mark: '2', label: '전처치 · 유도·유지제 선택', desc: '환자 상태에 맞춰 전처치(안정화·항생제·기타 주사제·진정제·진통제)와 유도제·유지제·수액을 선택합니다.' },
-          { mark: '3', label: '보호자 안내 및 계획 확정', desc: '마취 계획, 수술 예정·소요 시간, 수술 전후 연락, 입원 안내를 마친 뒤 계획을 확정합니다.' }
+          {
+            img: 'assets/help/ch2_help_1.png',
+            label: '1. 마취 전 검사 결과 확인',
+            desc: '좌측 모니터링창에서 신체검사·혈액 이상 수치·영상 핵심 소견을 확인하고, 상세 버튼으로 전체 검사 결과를 열람합니다.'
+          },
+          {
+            img: 'assets/help/ch2_help_2.png',
+            label: '2. 전처치 · 유도·유지제 선택',
+            desc: '환자 상태에 맞춰 전처치와 마취제, 수액을 선택합니다.'
+          },
+          {
+            img: 'assets/help/ch2_help_3.png',
+            label: '3. 보호자 안내 및 계획 확정',
+            desc: '마취 계획, 수술 예정·소요 시간, 수술 전후 연락, 입원 안내를 마친 뒤 계획을 확정합니다.'
+          }
         ],
         tutorialSteps: [
-          { title: '1. 마취 전 검사 결과', sel: '#ch2-monitor', onEnter: () => activateTab('premed'), text: '고정 헤더와 마취 전 검사 결과 요약(상세 팝업 포함), 수립된 처치 계획 및 보호자 안내 현황을 확인합니다.' },
-          { title: '2. 전처치 구성', sel: '#ch2-control', onEnter: () => activateTab('premed'), text: '안정화·항생제·기타 주사제·진정제·진통제/진통수액을 선택합니다. 각 범주 우측 ? 버튼에서 약물 설명을 확인할 수 있습니다.' },
-          { title: '3. 유도·유지제 및 수액', sel: '#ch2-control', onEnter: () => activateTab('indmaint'), text: '환자에게 적합한 유도제, 유지제, 수액을 단일 선택합니다.' },
-          { title: '4. 보호자 안내 및 확정', sel: '#ch2-control', onEnter: () => activateTab('notify'), text: '보호자에게 마취 계획·수술 시간·연락·입원 안내를 마친 뒤 계획을 확정합니다.' }
+          {
+            title: '1. 모니터링창',
+            sel: '#ch2-monitor',
+            onEnter: () => { detailModalEl.classList.add('hidden'); activateTab('premed'); },
+            text: '환자의 상태에 적절한 처치 계획 및 보호자 안내 현황을 확인합니다. 각 박스 우측의 접기/열기 버튼으로 정리하며 위아래로 스크롤할 수 있습니다.'
+          },
+          {
+            title: '1-2. 마취 전 검사 상세',
+            sel: '#ch2-preop-detail-modal .modal-card',
+            onEnter: () => { setDetailTab('pe'); detailModalEl.classList.remove('hidden'); },
+            text: '상세 버튼을 누르면 마취 전 신체검사·혈액검사·영상검사 전체 결과를 팝업으로 자세히 확인할 수 있습니다.'
+          },
+          {
+            title: '2. 전처치 구성',
+            sel: '#ch2-control',
+            onEnter: () => { detailModalEl.classList.add('hidden'); activateTab('premed'); },
+            text: '환자에게 적합한 전처치를 선택합니다. 처치의 도움말을 눌러 상세한 설명을 확인할 수 있습니다.'
+          },
+          {
+            title: '3. 유도·유지제 및 수액',
+            sel: '#ch2-control',
+            onEnter: () => { detailModalEl.classList.add('hidden'); activateTab('indmaint'); },
+            text: '환자에게 적합한 마취제를 선택합니다. 처치의 도움말을 눌러 상세한 설명을 확인할 수 있습니다.'
+          },
+          {
+            title: '4. 보호자 안내 및 확정',
+            sel: '#ch2-control',
+            onEnter: () => { detailModalEl.classList.add('hidden'); activateTab('notify'); },
+            text: '보호자에게 안내를 마친 뒤 계획을 확정합니다.'
+          }
         ],
-        onTutorialFinish: () => activateTab('premed'),
+        onTutorialFinish: () => { detailModalEl.classList.add('hidden'); activateTab('premed'); },
         onSelectStage: (stageId, opts) => loadStage(stageId, opts)
       });
 
