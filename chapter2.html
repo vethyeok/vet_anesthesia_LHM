@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Chapter 2. 마취 플랜 — 베타 1.1</title>
+  <title>Chapter 2. 마취 계획 — 베타 1.1</title>
   <link rel="stylesheet" href="beta11.css" />
   <script src="beta11-settings.js"></script>
   <script src="beta11-ch1-data.js"></script>
@@ -12,7 +12,7 @@
   <div class="app-shell chapter-shell">
     <header class="top-bar">
       <div class="top-left">
-        <div class="top-title">Chapter 2. 마취 플랜</div>
+        <div class="top-title">Chapter 2. 마취 계획</div>
       </div>
       <div id="chapter-top-actions" class="top-actions"></div>
     </header>
@@ -20,7 +20,7 @@
     <main class="ch1-page-body">
       <div class="ch1-split" id="ch2-split">
         <!-- 좌측(데스크탑) / 상단(모바일): 모니터링창 -->
-        <section class="ch1-monitor" id="ch2-monitor" aria-label="마취 플랜 모니터링창">
+        <section class="ch1-monitor" id="ch2-monitor" aria-label="마취 계획 모니터링창">
           <!-- 고정 영역: 이름, 품종, 나이, 체중, 성별(중성화 유무), ASA grade (예후) / 주호소 -->
           <div class="ch1-sig-pinned">
             <div class="ch1-sig-head" id="ch2-sig-head"></div>
@@ -40,10 +40,10 @@
               <div class="mon-sec-body" id="ch2-preop-body"></div>
             </div>
 
-            <!-- 2. 마취 플랜 -->
+            <!-- 2. 처치 계획 -->
             <div class="mon-sec" id="ch2-sec-plan">
               <div class="mon-sec-title">
-                <span>2. 마취 플랜</span>
+                <span>2. 처치 계획</span>
                 <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch2-sec-plan">접기</button>
               </div>
               <div class="mon-sec-body" id="ch2-plan-body"></div>
@@ -63,7 +63,7 @@
         </section>
 
         <!-- 우측(데스크탑) / 하단(모바일): 조작창 -->
-        <section class="ch1-control" id="ch2-control" aria-label="마취 플랜 조작창">
+        <section class="ch1-control" id="ch2-control" aria-label="마취 계획 조작창">
           <div class="ch1-ctrl-handle" id="ch2-ctrl-handle" role="button" tabindex="0" aria-label="조작창 접기 및 펼치기">
             <div class="ch1-ctrl-handle-bar"></div>
           </div>
@@ -176,14 +176,14 @@
               </div>
             </div>
 
-            <!-- 3. 보호자 안내 & 플랜 확정 -->
+            <!-- 3. 보호자 안내 & 계획 확정 -->
             <div class="ch1-pane pane-hidden" data-content="notify">
               <div class="ch1-chat-log" id="ch2-chat-log"></div>
               <form class="ch1-chat-form" id="ch2-chat-form" autocomplete="off">
-                <input id="ch2-chat-input" type="text" class="b-input" placeholder="마취 계획·수술 시간·연락·입원 안내 입력" />
+                <input id="ch2-chat-input" type="text" class="b-input" placeholder="안내사항을 입력하세요." />
                 <button id="ch2-chat-send" type="submit" class="b-btn b-btn-sm" style="flex-shrink:0;">전송</button>
               </form>
-              <button type="button" class="b-btn" id="ch2-eval-submit" style="width:100%; height:42px; border-radius:14px; flex-shrink:0;">플랜 확정</button>
+              <button type="button" class="b-btn" id="ch2-eval-submit" style="width:100%; height:42px; border-radius:14px; flex-shrink:0;">계획 확정</button>
             </div>
 
             <!-- 50% 투명도 빨간 사각형 도장 -->
@@ -196,6 +196,19 @@
         </section>
       </div>
     </main>
+  </div>
+
+  <!-- 실패 팝업 (F 등급 또는 보호자 신뢰 붕괴 시 — 배경 클릭/ESC로 닫히지 않음) -->
+  <div id="ch2-fail-modal" class="modal-backdrop no-dismiss hidden" role="dialog" aria-modal="true" aria-labelledby="ch2-fail-title" style="backdrop-filter:blur(6px); z-index:105;">
+    <div class="modal-card" style="text-align:center;">
+      <h2 id="ch2-fail-title" class="font-maru" style="font-size:20px; font-weight:700; color:#dc2626; margin-bottom:8px;">진료 중단</h2>
+      <p id="ch2-fail-desc" class="muted" style="font-size:15px; font-weight:600; line-height:1.5; margin-bottom:16px;"></p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button id="ch2-fail-review" type="button" class="b-btn" style="width:100%; height:42px; border-radius:14px;">해설 보기</button>
+        <button id="ch2-fail-restart" type="button" class="b-btn" style="width:100%; height:42px; border-radius:14px;">재시작</button>
+        <button id="ch2-fail-main" type="button" class="b-btn" style="width:100%; height:42px; border-radius:14px;">메인화면</button>
+      </div>
+    </div>
   </div>
 
   <!-- 범주별 약물/처치 도움말 팝업 -->
@@ -367,15 +380,23 @@
         {
           key: 'c_plan',
           label: '마취 계획',
-          note: '마취 약물·진행 계획 안내',
-          test: (low) => /계획|프로토콜|약물|전처치|진정|진통|유도|유지|호흡마취|가스|항생제|수액|안정화|산소|마취\s*방식/.test(low)
+          note: '처치·마취 진행 방식 및 주의사항 안내',
+          test: (low) => /계획|처치|프로토콜|약물|전처치|진정|진통|유도|유지|호흡마취|가스|항생제|수액|안정화|산소|마취\s*방식/.test(low)
         },
         {
           key: 'c_sched',
           label: '수술 예정 시간',
-          note: '최소 3~4시간 수화 후 진행',
-          test: (low) => /(예정|시작|시\s*쯤|오후|오전|몇\s*시|시간\s*뒤|시간\s*후|대기)/.test(low) && /(수화|수액|안정화|3\s*시간|4\s*시간|3~4|3-4|세\s*시간|네\s*시간|전처치|수술)/.test(low)
-            || /(3\s*~\s*4|3\s*-\s*4|3시간|4시간|세\s*시간|네\s*시간).*(수화|수액|안정화|대기|수술)/.test(low)
+          note: '최소 3~4시간 수화 후 진행 (응급 시 즉시 처치)',
+          test: (low, c) => {
+            const hasHydrationSched =
+              (/(예정|시작|시\s*쯤|오후|오전|몇\s*시|시간\s*뒤|시간\s*후|대기)/.test(low) && /(수화|수액|안정화|3\s*시간|4\s*시간|3~4|3-4|세\s*시간|네\s*시간|전처치|수술)/.test(low))
+              || /(3\s*~\s*4|3\s*-\s*4|3시간|4시간|세\s*시간|네\s*시간).*(수화|수액|안정화|대기|수술)/.test(low);
+            if (hasHydrationSched) return true;
+            if (c && c.trueEmergency) {
+              return /(즉시|바로|곧바로|응급|지체\s*없이|최대한\s*빨리|지금\s*바로|서둘러)/.test(low) && /(처치|수술|진행|마취|들어가|안정화)/.test(low);
+            }
+            return false;
+          }
         },
         {
           key: 'c_dur',
@@ -398,6 +419,10 @@
         }
       ];
 
+      const failModalEl = document.getElementById('ch2-fail-modal');
+      const failTitleEl = document.getElementById('ch2-fail-title');
+      const failDescEl = document.getElementById('ch2-fail-desc');
+
       let currentStageId = 'tutorial';
       let currentCase = null;
       let currentLabPanel = null;
@@ -415,6 +440,8 @@
       let chatHistory = [];
       let chatBusy = false;
       let evaluated = false;
+      let ownerMood = 85;
+      let ownerAborted = false;
       let lastReport = null;
       let aiText = null;
       let soapText = null;
@@ -862,17 +889,117 @@
         }).join('');
       }
 
-      function setChatLocked(locked) {
-        chatInputEl.disabled = Boolean(locked);
-        chatSendBtn.disabled = Boolean(locked);
-        chatInputEl.placeholder = locked ? '평가가 완료되어 안내가 종료되었습니다' : '마취 계획·수술 시간·연락·입원 안내 입력';
+      function setControlsLocked(locked) {
+        const flag = Boolean(locked);
+        chatInputEl.disabled = flag;
+        chatSendBtn.disabled = flag;
+        chatInputEl.placeholder = flag ? '평가가 완료되어 안내가 종료되었습니다' : '안내사항을 입력하세요.';
+        document.querySelectorAll('[data-single-cat], [data-multi-cat]').forEach((b) => { b.disabled = flag; });
       }
+
+      function moodPenalty(mood, aborted) {
+        if (aborted || mood <= 0) return 100;
+        if (mood >= 70) return 0;
+        if (mood >= 60) return 5;
+        if (mood >= 50) return 7;
+        if (mood >= 40) return 9;
+        if (mood >= 30) return 11;
+        return 15;
+      }
+
+      function openFailModal(score, grade) {
+        failTitleEl.textContent = '진료 중단';
+        failDescEl.textContent = `${score}점 · ${grade} 등급`;
+        failModalEl.classList.remove('hidden');
+        Settings.playTone(220, 0.16, 0.05);
+      }
+
+      function buildWrongNoteHtml(rep) {
+        const ev = rep.ev;
+        const trustPen = Number(rep.trustPen || 0);
+        const trustText = rep.ownerAborted
+          ? `<span style="color:#b91c1c; font-weight:600;">보호자 진료 중단 (-100점)</span>`
+          : trustPen > 0
+            ? `<span style="color:#b91c1c; font-weight:600;">보호자 기분 악화 (-${trustPen}점)</span>`
+            : '없음 (양호)';
+        return `
+          <div class="b-card-soft" style="padding:12px; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-family:var(--font-display); font-size:15px;">마취 계획 평가</strong>
+              <strong style="font-family:var(--font-display); font-size:17px; color:#dc2626;">${rep.score}점 (${rep.grade})</strong>
+            </div>
+            <div class="modal-row"><span class="muted">대기 중 안정화</span><strong>${ev.stab || '미선택'}</strong></div>
+            <div class="modal-row"><span class="muted">주사제</span><strong>${[...ev.abx, ...ev.inj, ...ev.sed, ...ev.analg].join(', ') || '미선택'}</strong></div>
+            <div class="modal-row"><span class="muted">유도제 / 유지제</span><strong>${ev.ind || '미선택'} / ${ev.maint || '미선택'}</strong></div>
+            <div class="modal-row"><span class="muted">수액</span><strong>${ev.fluid || '미선택'}</strong></div>
+            <div class="modal-row"><span class="muted">보호자 안내</span><strong>${revealedConsents.size} / ${CONSENT_ITEMS.length} 완료</strong></div>
+            <div class="modal-row"><span class="muted">신뢰 붕괴</span><span>${trustText}</span></div>
+          </div>
+          <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
+            <div class="b-label"><span>오답노트</span></div>
+            ${rep.ownerAborted ? '<p style="color:#b91c1c;">• 보호자와의 신뢰가 붕괴되어 진료가 즉시 중단되었습니다.</p>' : ''}
+            ${ev.warnings.length ? ev.warnings.map((w) => `<p style="color:#b91c1c;">• ${escapeHtml(w)}</p>`).join('') : (!rep.ownerAborted ? '<p>• 약물 금기 및 누락 없이 안전한 마취 계획을 구성했습니다.</p>' : '')}
+            ${ev.synergies.map((s) => `<p style="margin-top:4px;">• ${escapeHtml(s)}</p>`).join('')}
+          </div>
+        `;
+      }
+
+      function triggerImmediateTrustFailure() {
+        if (!currentCase || evaluated) return;
+        evaluated = true;
+        setControlsLocked(true);
+        ownerAborted = true;
+        ownerMood = 0;
+
+        const ev = evaluatePlan(currentCase);
+        lastReport = {
+          caseObj: currentCase,
+          ev,
+          score: 0,
+          grade: 'F',
+          missedConsents: CONSENT_ITEMS.length - revealedConsents.size,
+          trustPen: 100,
+          ownerAborted: true
+        };
+        aiText = null;
+        soapText = null;
+        rvWrongEl.innerHTML = buildWrongNoteHtml(lastReport);
+
+        evalSubmitBtn.textContent = '해설 보기';
+        evalSubmitBtn.disabled = false;
+
+        if (currentStageId !== 'tutorial') {
+          Settings.saveStageResult(2, currentStageId, { grade: 'F', score: 0 });
+        }
+        if (chapterCtrl) chapterCtrl.refreshStages();
+
+        openFailModal(0, 'F');
+      }
+
+      // 실패 팝업 버튼 (배경 클릭/ESC로 닫히지 않음; 해설 닫기 시에도 실패 팝업 유지)
+      document.getElementById('ch2-fail-review').addEventListener('click', () => {
+        Settings.playTone(540, 0.05, 0.03);
+        setReviewTab('wrong');
+        reviewModalEl.classList.remove('hidden');
+      });
+      document.getElementById('ch2-fail-restart').addEventListener('click', () => {
+        Settings.playTone(520, 0.05, 0.03);
+        reviewModalEl.classList.add('hidden');
+        failModalEl.classList.add('hidden');
+        loadStage(currentStageId);
+      });
+      document.getElementById('ch2-fail-main').addEventListener('click', () => {
+        Settings.playTone(480, 0.05, 0.03);
+        reviewModalEl.classList.add('hidden');
+        failModalEl.classList.add('hidden');
+        Settings.navigateTo('index.html', { push: true });
+      });
 
       function revealConsents(vetText) {
         const low = String(vetText || '').toLowerCase();
         const hits = [];
         CONSENT_ITEMS.forEach((item) => {
-          if (!revealedConsents.has(item.key) && item.test(low)) {
+          if (!revealedConsents.has(item.key) && item.test(low, currentCase)) {
             revealedConsents.add(item.key);
             hits.push(item);
           }
@@ -907,43 +1034,77 @@
         chatBusy = true;
         chatSendBtn.disabled = true;
 
-        let reply = '';
-        try {
-          const resp = await fetch('/api/ai', {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-            body: JSON.stringify({
-              task: 'roleplay',
-              role: 'owner_preop',
-              species: currentCase.species === 'cat' ? '고양이' : '개',
-              caseName: `${currentCase.name} (${currentCase.breed})`,
-              asa: `ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? '-E' : ''}`,
-              caseDesc: `${currentCase.chiefComplaint} | 마취 플랜: 안정화(${planState.stab || '미선택'}), 항생제(${Array.from(planState.abx).join(',')}), 기타주사제(${Array.from(planState.inj).join(',')}), 진정제(${Array.from(planState.sed).join(',')}), 진통제(${Array.from(planState.analg).join(',')}), 유도제(${planState.ind || '미선택'}), 유지제(${planState.maint || '미선택'}), 수액(${planState.fluid || '미선택'})`,
-              clue: currentCase.ownerClue || '',
-              ownerPersonality: currentCase.ownerPersonality || 'neutral',
-              knowledgeLevel: currentCase.ownerLevel || 2,
-              chatHistory: chatHistory.slice(-10),
-              question: msg
-            })
-          });
-          if (resp.ok) {
-            const d = await resp.json();
-            if (d && d.text) reply = String(d.text).trim();
-          }
-        } catch {}
+        const isProfane = /씨발|시발|병신|미친|개새|지랄|꺼져|닥쳐|죽어|좆|fuck|shit|bitch|새끼|멍청이|쓰레기|무식|짜증나게/i.test(msg);
+        const isRudeOrDismissive = /^(네|응|음|ㅋㅋ+|ㅎㅎ+|몰라|몰라요|알아서|귀찮|시끄|대충|아몰랑|글쎄|뭐래)[\s.?!]*$/i.test(msg) || /귀찮|대충|알아서\s*하|상관없|됐어요|그만\s*물어|입\s*닫/.test(msg);
+        const prevVetMsgs = chatHistory.filter((m) => m.sender === 'vet').slice(0, -1).map((m) => m.text.trim());
+        const isRepeated = prevVetMsgs.includes(msg);
 
-        if (!reply) {
-          const missing = CONSENT_ITEMS.filter((it) => !revealedConsents.has(it.key));
-          if (!missing.length) {
-            reply = '마취 계획부터 수술 시간, 연락, 입원 안내까지 꼼꼼하게 설명해 주셔서 감사합니다 선생님. 동의하겠습니다. 잘 부탁드려요.';
-          } else {
-            reply = `네 선생님, 설명 감사합니다. 혹시 ${missing[0].label} 부분도 안내해 주실 수 있을까요?`;
+        let reply = '';
+        let aiAborted = false;
+
+        if (isProfane) {
+          aiAborted = true;
+          reply = '지금 보호자에게 무슨 막말을 하시는 거예요? 이런 병원에 우리 아이 절대 못 맡깁니다. 당장 나갈게요!';
+        } else {
+          try {
+            const resp = await fetch('/api/ai', {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+              body: JSON.stringify({
+                task: 'roleplay',
+                role: 'owner_preop',
+                species: currentCase.species === 'cat' ? '고양이' : '개',
+                caseName: `${currentCase.name} (${currentCase.breed})`,
+                asa: `ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? '-E' : ''}`,
+                caseDesc: `${currentCase.chiefComplaint} | 마취 계획: 안정화(${planState.stab || '미선택'}), 항생제(${Array.from(planState.abx).join(',')}), 기타주사제(${Array.from(planState.inj).join(',')}), 진정제(${Array.from(planState.sed).join(',')}), 진통제(${Array.from(planState.analg).join(',')}), 유도제(${planState.ind || '미선택'}), 유지제(${planState.maint || '미선택'}), 수액(${planState.fluid || '미선택'})`,
+                clue: currentCase.ownerClue || '',
+                ownerPersonality: currentCase.ownerPersonality || 'neutral',
+                knowledgeLevel: currentCase.ownerLevel || 2,
+                chatHistory: chatHistory.slice(-10),
+                question: msg
+              })
+            });
+            if (resp.ok) {
+              const d = await resp.json();
+              if (d && d.text) reply = String(d.text).trim();
+            }
+          } catch {}
+
+          if (!reply) {
+            if (isRudeOrDismissive) {
+              reply = '선생님, 지금 너무 성의 없게 설명하시는 거 아니에요? 아이 맡기기 불안해지네요.';
+            } else {
+              const missing = CONSENT_ITEMS.filter((it) => !revealedConsents.has(it.key));
+              if (!missing.length) {
+                reply = '마취 계획부터 수술 시간, 연락, 입원 안내까지 꼼꼼하게 설명해 주셔서 감사합니다 선생님. 동의하겠습니다. 잘 부탁드려요.';
+              } else {
+                reply = `네 선생님, 설명 감사합니다. 혹시 ${missing[0].label} 부분도 안내해 주실 수 있을까요?`;
+              }
+            }
           }
+          if (/^\[ABORT\]/i.test(reply)) aiAborted = true;
         }
+
         const clean = reply.replace(/^\[ABORT\]\s*/i, '');
         appendBubble('owner', clean, false);
         chatHistory.push({ sender: 'owner', text: clean });
+
+        if (aiAborted) {
+          ownerAborted = true;
+          ownerMood = 0;
+        } else {
+          if (isRudeOrDismissive) ownerMood -= 22;
+          else if (isRepeated) ownerMood -= 12;
+          else if (/짜증|불안해지|불신|성의\s*없|무례|답답|기분\s*나쁘|못\s*믿|나가겠/i.test(clean)) ownerMood -= 15;
+          else if (newHits.length > 0) ownerMood += 4;
+          ownerMood = Math.max(0, Math.min(100, ownerMood));
+        }
+
         chatBusy = false;
+        if (ownerAborted || ownerMood <= 0) {
+          triggerImmediateTrustFailure();
+          return;
+        }
         if (!evaluated) {
           chatSendBtn.disabled = false;
           chatInputEl.focus();
@@ -967,11 +1128,11 @@
         return {
           task,
           phase: 'chapter2',
-          chapterLabel: 'Chapter 2 마취 플랜',
+          chapterLabel: 'Chapter 2 마취 계획',
           species: c.species === 'cat' ? '고양이' : '개',
           scenario: `${c.name} (${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex}) - ${c.chiefComplaint}`,
           chatSummary: chatHistory.map((m) => `${m.sender === 'vet' ? '수의사' : '보호자'}: ${m.text}`).slice(-8).join(' | '),
-          examSummary: `안정화: ${ev.stab || '없음'} / 항생제: ${ev.abx.join(',') || '없음'} / 기타주사제: ${ev.inj.join(',') || '없음'} / 진정제: ${ev.sed.join(',') || '없음'} / 진통제: ${ev.analg.join(',') || '없음'} / 유도제: ${ev.ind || '없음'} / 유지제: ${ev.maint || '없음'} / 수액: ${ev.fluid || '없음'}`,
+          examSummary: `안정화: ${ev.stab || '없음'} / 항생제: ${ev.abx.join(',') || '없음'} / 기타주사제: ${ev.inj.join(',') || '없음'} / 진정제: ${ev.sed.join(',') || '없음'} / 진통제: ${ev.analg.join(',') || '없음'} / 유도제: ${ev.ind || '없음'} / 유지제: ${ev.maint || '없음'} / 수액: ${ev.fluid || '없음'} / 신뢰 붕괴 감점: -${lastReport.trustPen || 0}점`,
           studentEval: `점수 ${lastReport.score}점 (${lastReport.grade}), 보호자 안내 ${revealedConsents.size}/${CONSENT_ITEMS.length}`,
           trueEval: `ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} (${c.truePrognosis}) 맞춤 안전 프로토콜`
         };
@@ -987,7 +1148,7 @@
         if (!t) {
           const ev = lastReport.ev;
           const allInj = [...ev.abx, ...ev.inj, ...ev.sed, ...ev.analg];
-          t = `1) 선택한 마취 플랜: 안정화(${ev.stab || '미선택'}), 주사제(${allInj.join(', ') || '미선택'}), 유도제(${ev.ind || '미선택'}), 유지제(${ev.maint || '미선택'}), 수액(${ev.fluid || '미선택'}).\n2) 주의·개선 포인트: ${ev.warnings.length ? ev.warnings.join(' / ') : '약물 중복·금기 없이 균형 잡힌 플랜입니다.'}\n3) 보호자 안내: ${revealedConsents.size}/${CONSENT_ITEMS.length} 항목 완료.`;
+          t = `1) 선택한 마취 계획: 안정화(${ev.stab || '미선택'}), 주사제(${allInj.join(', ') || '미선택'}), 유도제(${ev.ind || '미선택'}), 유지제(${ev.maint || '미선택'}), 수액(${ev.fluid || '미선택'}).\n2) 주의·개선 포인트: ${ev.warnings.length ? ev.warnings.join(' / ') : '약물 중복·금기 없이 균형 잡힌 계획입니다.'}\n3) 보호자 안내: ${revealedConsents.size}/${CONSENT_ITEMS.length} 항목 완료.`;
         }
         aiText = t;
         rvAiEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(t)}</div>`;
@@ -1023,45 +1184,34 @@
           return;
         }
         evaluated = true;
-        setChatLocked(true);
+        setControlsLocked(true);
         const ev = evaluatePlan(currentCase);
         const missedConsents = CONSENT_ITEMS.length - revealedConsents.size;
-        const score = Math.max(0, Math.min(100, 100 - ev.penalty - missedConsents * 4));
+        const trustPen = moodPenalty(ownerMood, ownerAborted);
+        const score = Math.max(0, Math.min(100, 100 - ev.penalty - missedConsents * 4 - trustPen));
         const grade = scoreToGrade(score);
 
-        lastReport = { caseObj: currentCase, ev, score, grade, missedConsents };
+        lastReport = { caseObj: currentCase, ev, score, grade, missedConsents, trustPen, ownerAborted };
         aiText = null;
         soapText = null;
 
-        rvWrongEl.innerHTML = `
-          <div class="b-card-soft" style="padding:12px; display:flex; flex-direction:column; gap:6px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <strong style="font-family:var(--font-display); font-size:15px;">마취 플랜 평가</strong>
-              <strong style="font-family:var(--font-display); font-size:17px; color:#dc2626;">${score}점 (${grade})</strong>
-            </div>
-            <div class="modal-row"><span class="muted">대기 중 안정화</span><strong>${ev.stab || '미선택'}</strong></div>
-            <div class="modal-row"><span class="muted">주사제</span><strong>${[...ev.abx, ...ev.inj, ...ev.sed, ...ev.analg].join(', ') || '미선택'}</strong></div>
-            <div class="modal-row"><span class="muted">유도제 / 유지제</span><strong>${ev.ind || '미선택'} / ${ev.maint || '미선택'}</strong></div>
-            <div class="modal-row"><span class="muted">수액</span><strong>${ev.fluid || '미선택'}</strong></div>
-            <div class="modal-row"><span class="muted">보호자 안내</span><strong>${revealedConsents.size} / ${CONSENT_ITEMS.length} 완료</strong></div>
-          </div>
-          <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
-            <div class="b-label"><span>오답노트</span></div>
-            ${ev.warnings.length ? ev.warnings.map((w) => `<p style="color:#b91c1c;">• ${escapeHtml(w)}</p>`).join('') : '<p>• 약물 금기 및 누락 없이 안전한 마취 플랜을 구성했습니다.</p>'}
-            ${ev.synergies.map((s) => `<p style="margin-top:4px;">• ${escapeHtml(s)}</p>`).join('')}
-          </div>
-        `;
+        rvWrongEl.innerHTML = buildWrongNoteHtml(lastReport);
 
         evalSubmitBtn.textContent = '해설 보기';
         stampAsaEl.textContent = `ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? 'E' : ''}`;
         stampProgEl.textContent = 'PLAN OK';
         stampGradeEl.textContent = currentStageId === 'tutorial' ? '완료' : grade;
         stampOverlayEl.classList.remove('hidden');
-        Settings.playTone(760, 0.12, 0.05);
 
         Settings.saveStageResult(2, currentStageId, { grade, score });
         if (chapterCtrl) chapterCtrl.refreshStages();
-        Settings.triggerStageGlow();
+
+        if (currentStageId !== 'tutorial' && grade === 'F') {
+          openFailModal(score, grade);
+        } else {
+          Settings.playTone(760, 0.12, 0.05);
+          Settings.triggerStageGlow();
+        }
       });
 
       async function loadStage(stageId) {
@@ -1081,16 +1231,19 @@
         chatHistory = [];
         chatBusy = false;
         evaluated = false;
+        ownerMood = 85;
+        ownerAborted = false;
         lastReport = null;
         aiText = null;
         soapText = null;
 
-        setChatLocked(false);
+        setControlsLocked(false);
+        failModalEl.classList.add('hidden');
         catHelpModalEl.classList.add('hidden');
         detailModalEl.classList.add('hidden');
         reviewModalEl.classList.add('hidden');
         stampOverlayEl.classList.add('hidden');
-        evalSubmitBtn.textContent = '플랜 확정';
+        evalSubmitBtn.textContent = '계획 확정';
         document.querySelectorAll('[data-single-cat], [data-multi-cat]').forEach((b) => b.classList.remove('active'));
         ['ch2-sec-preop', 'ch2-sec-plan', 'ch2-sec-consent'].forEach((id) => setMonCollapsed(id, false));
         renderConsentList();
@@ -1120,18 +1273,18 @@
 
       const chapterCtrl = Settings.initChapterCommon({
         chapterNum: 2,
-        chapterTitle: '마취 플랜',
+        chapterTitle: '마취 계획',
         initialStageId: 'tutorial',
         helpSlides: [
           { mark: '1', label: '마취 전 검사 결과 확인', desc: '좌측 모니터링창에서 신체검사·혈액 이상 수치·영상 핵심 소견을 확인하고, 상세 버튼으로 전체 검사 결과를 열람합니다.' },
           { mark: '2', label: '전처치 · 유도·유지제 선택', desc: '환자 상태에 맞춰 전처치(안정화·항생제·기타 주사제·진정제·진통제)와 유도제·유지제·수액을 선택합니다.' },
-          { mark: '3', label: '보호자 안내 및 플랜 확정', desc: '마취 계획, 수술 예정·소요 시간, 수술 전후 연락, 입원 안내를 마친 뒤 플랜을 확정합니다.' }
+          { mark: '3', label: '보호자 안내 및 계획 확정', desc: '마취 계획, 수술 예정·소요 시간, 수술 전후 연락, 입원 안내를 마친 뒤 계획을 확정합니다.' }
         ],
         tutorialSteps: [
-          { title: '1. 마취 전 검사 결과', sel: '#ch2-monitor', onEnter: () => activateTab('premed'), text: '고정 헤더와 마취 전 검사 결과 요약(상세 팝업 포함), 수립된 마취 플랜 및 보호자 안내 현황을 확인합니다.' },
+          { title: '1. 마취 전 검사 결과', sel: '#ch2-monitor', onEnter: () => activateTab('premed'), text: '고정 헤더와 마취 전 검사 결과 요약(상세 팝업 포함), 수립된 처치 계획 및 보호자 안내 현황을 확인합니다.' },
           { title: '2. 전처치 구성', sel: '#ch2-control', onEnter: () => activateTab('premed'), text: '안정화·항생제·기타 주사제·진정제·진통제/진통수액을 선택합니다. 각 범주 우측 ? 버튼에서 약물 설명을 확인할 수 있습니다.' },
           { title: '3. 유도·유지제 및 수액', sel: '#ch2-control', onEnter: () => activateTab('indmaint'), text: '환자에게 적합한 유도제, 유지제, 수액을 단일 선택합니다.' },
-          { title: '4. 보호자 안내 및 확정', sel: '#ch2-control', onEnter: () => activateTab('notify'), text: '보호자에게 마취 계획·수술 시간·연락·입원 안내를 마친 뒤 플랜을 확정합니다.' }
+          { title: '4. 보호자 안내 및 확정', sel: '#ch2-control', onEnter: () => activateTab('notify'), text: '보호자에게 마취 계획·수술 시간·연락·입원 안내를 마친 뒤 계획을 확정합니다.' }
         ],
         onTutorialFinish: () => activateTab('premed'),
         onSelectStage: (stageId) => loadStage(stageId)
