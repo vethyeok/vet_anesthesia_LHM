@@ -574,6 +574,21 @@
     const stageModal = document.getElementById('ch-stage-modal');
     const stageListEl = document.getElementById('ch-stage-list');
     let activeStageId = cfg.initialStageId || stageRows[0][0].id;
+    let pendingStageId = null;
+
+    function applyStageSelection(stId) {
+      activeStageId = stId;
+      renderStageList();
+      playTone(540, 0.05, 0.03);
+      stageModal.classList.add('hidden');
+      clearStageGlow();
+      if (typeof cfg.onSelectStage === 'function') {
+        cfg.onSelectStage(stId);
+      }
+      if (stId === 'tutorial' && !cfg.customTutorial) {
+        showTutStep(0);
+      }
+    }
 
     function renderStageBtn(st) {
       const unlocked = isStageUnlocked(chNum, st.id);
@@ -596,17 +611,14 @@
         b.addEventListener('click', () => {
           const stId = b.dataset.stage;
           if (!isStageUnlocked(chNum, stId)) return;
-          activeStageId = stId;
-          renderStageList();
-          playTone(540, 0.05, 0.03);
-          stageModal.classList.add('hidden');
-          clearStageGlow();
-          if (typeof cfg.onSelectStage === 'function') {
-            cfg.onSelectStage(stId);
+          if (stId === activeStageId) {
+            playTone(520, 0.04, 0.025);
+            stageModal.classList.add('hidden');
+            return;
           }
-          if (stId === 'tutorial' && !cfg.customTutorial) {
-            showTutStep(0);
-          }
+          pendingStageId = stId;
+          playTone(460, 0.06, 0.03);
+          confirmModal.classList.remove('hidden');
         });
       });
     }
@@ -659,13 +671,28 @@
     });
 
     document.getElementById('ch-btn-main-warn').addEventListener('click', () => {
+      pendingStageId = null;
       playTone(460, 0.06, 0.03);
       confirmModal.classList.remove('hidden');
     });
-    document.getElementById('ch-confirm-no').addEventListener('click', () => confirmModal.classList.add('hidden'));
-    confirmModal.addEventListener('click', (e) => { if (e.target === confirmModal) confirmModal.classList.add('hidden'); });
+    document.getElementById('ch-confirm-no').addEventListener('click', () => {
+      pendingStageId = null;
+      confirmModal.classList.add('hidden');
+    });
+    confirmModal.addEventListener('click', (e) => {
+      if (e.target === confirmModal) {
+        pendingStageId = null;
+        confirmModal.classList.add('hidden');
+      }
+    });
     document.getElementById('ch-confirm-yes').addEventListener('click', () => {
       confirmModal.classList.add('hidden');
+      if (pendingStageId) {
+        const targetStage = pendingStageId;
+        pendingStageId = null;
+        applyStageSelection(targetStage);
+        return;
+      }
       settingsModal.classList.add('hidden');
       navigateTo('index2.html', { push: true });
     });

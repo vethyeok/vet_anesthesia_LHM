@@ -161,7 +161,7 @@
         { key: 'hx_allergy', label: '알러지', text: '약물 및 식이 알러지 특이사항 없음', keywords: ['알러지', '과민', '부작용', '두드러기'] },
         { key: 'hx_fast', label: '금식 / 특이사항', text: '12시간 금식 완료, 복용 약물 없음, 활력·식욕 정상', keywords: ['금식', '밥', '먹', '약', '복용', '증상', '특이'] }
       ],
-      pe: { bt: 38.4, bpSys: 122, bpDia: 76, bpMap: 91, cuff: 2, hr: 112, rr: 24, crt: 1.5, mmc: 'wet - pink' },
+      pe: { bt: 38.4, bpSys: 122, bpDia: 76, bpMap: 91, cuff: 2, hr: 112, rr: 24, crt: 1.5, mmc: 'wet - pink', auscHeart: '심잡음 없음 (정상 심음)', auscLung: '정상 폐포음', auscBowel: '정상 복명음' },
       lab: { pH: 7.40, pCO2: 39, pO2: 43, Na: 146, K: 4.3, Cl: 113, iCa: 1.26, Hct: 44, WBC: 9.2, PLT: 310, ALP: 58, ALT: 36, BUN: 14, Crea: 0.8, Glu: 98, TP: 6.4, ALB: 3.4 },
       imaging: {
         thoracic: { vhs: '9.6v', vlas: '1.9v (RLAD 1.4v)', trachea: '정상 주행 및 내경 유지', lung: '정상 폐야 (특이 침윤 없음)', extra: '흉강 내 특이 소견 없음' },
@@ -191,7 +191,7 @@
         { key: 'hx_allergy', label: '알러지', text: '알려진 약물·음식 알러지 없음', keywords: ['알러지', '과민', '부작용'] },
         { key: 'hx_fast', label: '금식 / 복용약', text: '10시간 금식 완료, 복용 약물 없음, 심장사상충 예방 중', keywords: ['금식', '밥', '먹', '약', '복용', '예방', '특이'] }
       ],
-      pe: { bt: 38.5, bpSys: 126, bpDia: 78, bpMap: 94, cuff: 2, hr: 108, rr: 22, crt: 1.5, mmc: 'wet - pink' },
+      pe: { bt: 38.5, bpSys: 126, bpDia: 78, bpMap: 94, cuff: 2, hr: 108, rr: 22, crt: 1.5, mmc: 'wet - pink', auscHeart: '심잡음 없음 (정상 심음)', auscLung: '정상 폐포음', auscBowel: '정상 복명음' },
       lab: { pH: 7.41, pCO2: 38, pO2: 44, Na: 147, K: 4.4, Cl: 112, iCa: 1.27, Hct: 46, WBC: 8.9, PLT: 295, ALP: 64, ALT: 34, BUN: 15, Crea: 0.9, Glu: 101, TP: 6.5, ALB: 3.5 },
       imaging: {
         thoracic: { vhs: '9.8v', vlas: '2.0v (RLAD 1.5v)', trachea: '정상 주행 및 내경 유지', lung: '정상 폐야 (침윤 및 종괴 없음)', extra: '특이사항 없음' },
@@ -221,7 +221,7 @@
         { key: 'hx_allergy', label: '알러지', text: '특이 알러지 이력 없음', keywords: ['알러지', '과민', '부작용'] },
         { key: 'hx_fast', label: '금식 / 특이사항', text: '10시간 금식 완료, 실내 사육, 복용 약물 및 이상 증상 없음', keywords: ['금식', '밥', '먹', '사료', '약', '복용', '증상', '특이'] }
       ],
-      pe: { bt: 38.6, bpSys: 132, bpDia: 82, bpMap: 99, cuff: 2, hr: 168, rr: 28, crt: 1.5, mmc: 'wet - pink' },
+      pe: { bt: 38.6, bpSys: 132, bpDia: 82, bpMap: 99, cuff: 2, hr: 168, rr: 28, crt: 1.5, mmc: 'wet - pink', auscHeart: '심잡음 없음 (정상 심음)', auscLung: '정상 폐포음', auscBowel: '정상 복명음' },
       lab: { pH: 7.37, pCO2: 36, pO2: 43, Na: 151, K: 4.1, Cl: 120, iCa: 1.23, Hct: 39, WBC: 9.6, PLT: 320, ALP: 42, ALT: 40, BUN: 21, Crea: 1.1, Glu: 118, TP: 6.8, ALB: 3.3, proBNP: 38, SAA: 1.2 },
       imaging: {
         thoracic: { vhs: '7.4v', vlas: '1.6v (RLAD 1.2v)', trachea: '정상 주행 및 내경 유지', lung: '정상 폐야 (폐수종·흉수 없음)', extra: '심장 음영 정상' },
@@ -251,7 +251,7 @@
         { key: 'hx_allergy', label: '알러지', text: '닭고기 식이 알러지 및 경도 아토피 피부염', keywords: ['알러지', '과민', '피부', '부작용'] },
         { key: 'hx_med', label: '복용약 / 금식', text: 'Oclacitinib(아포퀠) 복용 중, 12시간 금식 완료', keywords: ['약', '복용', '금식', '밥', '먹', '병력', '특이'] }
       ],
-      pe: { bt: 38.6, bpSys: 134, bpDia: 84, bpMap: 101, cuff: 3, hr: 116, rr: 26, crt: 1.5, mmc: 'wet - pink' },
+      pe: { bt: 38.6, bpSys: 134, bpDia: 84, bpMap: 101, cuff: 3, hr: 116, rr: 26, crt: 1.5, mmc: 'wet - pink', auscHeart: '심잡음 없음 (정상 심음)', auscLung: '정상 폐포음', auscBowel: '정상 복명음' },
       lab: { pH: 7.39, pCO2: 39, pO2: 42, Na: 146, K: 4.3, Cl: 113, iCa: 1.25, Hct: 45, WBC: 10.6, PLT: 315, ALP: 162, ALT: 68, BUN: 17, Crea: 1.0, Glu: 104, TP: 6.8, ALB: 3.3, CRP: 6.5 },
       imaging: {
         thoracic: { vhs: '10.1v', vlas: '2.1v (RLAD 1.6v)', trachea: '정상 주행 및 내경 유지', lung: '정상 폐야 (경미한 기관지 패턴)', extra: '심폐 특이 이상 없음' },
@@ -281,7 +281,7 @@
         { key: 'hx_allergy', label: '알러지', text: '약물 알러지 없음', keywords: ['알러지', '과민', '부작용'] },
         { key: 'hx_med', label: '특이사항 / 금식', text: '경도 비만(BCS 7/9), 병원 스트레스 심함, 10시간 금식 완료', keywords: ['약', '복용', '금식', '밥', '먹', '증상', '체중', '비만', '특이'] }
       ],
-      pe: { bt: 38.7, bpSys: 148, bpDia: 92, bpMap: 111, cuff: 2, hr: 186, rr: 34, crt: 1.5, mmc: 'wet - pink' },
+      pe: { bt: 38.7, bpSys: 148, bpDia: 92, bpMap: 111, cuff: 2, hr: 186, rr: 34, crt: 1.5, mmc: 'wet - pink', auscHeart: '심잡음 없음 (스트레스성 빈맥)', auscLung: '정상 폐포음 (경도 빠른 호흡)', auscBowel: '정상 복명음' },
       lab: { pH: 7.36, pCO2: 35, pO2: 43, Na: 152, K: 4.2, Cl: 120, iCa: 1.24, Hct: 40, WBC: 12.1, PLT: 305, ALP: 52, ALT: 54, BUN: 24, Crea: 1.4, Glu: 178, TP: 7.3, ALB: 3.4, proBNP: 58, SAA: 4.2 },
       imaging: {
         thoracic: { vhs: '7.6v', vlas: '1.7v (RLAD 1.3v)', trachea: '정상 주행 및 내경 유지', lung: '정상 폐야 (흉벽 지방 침착 경도)', extra: '심비대 소견 없음' },
@@ -312,7 +312,7 @@
         { key: 'hx_med', label: '기저질환 / 복용약', text: 'MMVD Stage B2 진단, Pimobendan BID 복용 중 (아침 약 투여함)', keywords: ['심장', '약', '복용', '질환', '병력', '피모벤단', '베트메딘'] },
         { key: 'hx_fast', label: '금식 / 최근 증상', text: '10시간 금식 완료, 흥분 시 간헐적 마른 기침 동반', keywords: ['금식', '밥', '기침', '호흡', '증상', '특이'] }
       ],
-      pe: { bt: 38.2, bpSys: 138, bpDia: 84, bpMap: 102, cuff: 2, hr: 134, rr: 32, crt: 2.0, mmc: 'wet - pink (좌측 심첨부 수축기 잡음 3/6)' },
+      pe: { bt: 38.2, bpSys: 138, bpDia: 84, bpMap: 102, cuff: 2, hr: 134, rr: 32, crt: 2.0, mmc: 'wet - pink', auscHeart: '좌측 심첨부 수축기 심잡음 Grade 3/6', auscLung: '전반적 거친 폐음 (수포음 없음)', auscBowel: '정상 복명음' },
       lab: { pH: 7.38, pCO2: 38, pO2: 41, Na: 145, K: 4.5, Cl: 112, iCa: 1.24, Hct: 41, WBC: 11.4, PLT: 340, ALP: 196, ALT: 88, BUN: 29, Crea: 1.3, Glu: 102, TP: 6.9, ALB: 3.1, proBNP: 1420, SDMA: 13, CRP: 8.5 },
       imaging: {
         thoracic: { vhs: '11.3v (경도~중등도 심비대)', vlas: '2.6v (RLAD 2.0v · 좌심방 확장)', trachea: '기관 원위부 경도 등쪽 변위', lung: '폐정맥 경도 확장, 명확한 폐수종 침윤 없음', extra: 'MMVD Stage B2 부합' },
@@ -343,7 +343,7 @@
         { key: 'hx_med', label: '기저질환 / 복용약', text: '만성신장병(CKD IRIS 2기), Telmisartan(세민트라) 복용 중', keywords: ['신장', '약', '복용', '질환', '병력', '세민트라', '혈압'] },
         { key: 'hx_fast', label: '금식 / 최근 증상', text: '8시간 금식 완료, 최근 다음다뇨 및 0.4kg 체중 감소', keywords: ['금식', '밥', '물', '체중', '증상', '구토', '특이'] }
       ],
-      pe: { bt: 37.9, bpSys: 162, bpDia: 96, bpMap: 118, cuff: 2, hr: 196, rr: 32, crt: 2.0, mmc: 'slightly dry - pale pink' },
+      pe: { bt: 37.9, bpSys: 162, bpDia: 96, bpMap: 118, cuff: 2, hr: 196, rr: 32, crt: 2.0, mmc: 'slightly dry - pale pink', auscHeart: '흉골연 수축기 심잡음 Grade 2/6', auscLung: '정상 폐포음 (경도 거친 호흡음)', auscBowel: '경도 감소된 복명음' },
       lab: { pH: 7.30, pCO2: 34, pO2: 41, Na: 153, K: 3.4, Cl: 121, iCa: 1.21, Hct: 28, WBC: 12.8, PLT: 260, ALP: 74, ALT: 98, BUN: 48, Crea: 2.6, Phos: 6.4, Glu: 132, TP: 7.8, ALB: 3.1, proBNP: 135, T4: 5.4, SDMA: 19, SAA: 6.4 },
       imaging: {
         thoracic: { vhs: '7.9v (경계성 심비대)', vlas: '1.8v (RLAD 1.4v)', trachea: '정상 주행', lung: '노령성 경도 기관지 패턴, 폐수종 없음', extra: '경계성 좌심실 비대 의심' },
@@ -374,7 +374,7 @@
         { key: 'hx_med', label: '병력 / 최근 증상', text: '이틀간 반복 구토·식욕부진·황달·복부 통증, 이전 병원 담낭점액종 의심', keywords: ['구토', '황달', '담낭', '복통', '증상', '약', '병력', '질환'] },
         { key: 'hx_fast', label: '금식 상태', text: '48시간 이상 자발적 절식 (물 소량 섭취 후 구토)', keywords: ['금식', '밥', '먹', '물', '특이'] }
       ],
-      pe: { bt: 39.4, bpSys: 92, bpDia: 54, bpMap: 67, cuff: 3, hr: 152, rr: 38, crt: 2.5, mmc: 'dry - yellow (icteric)' },
+      pe: { bt: 39.4, bpSys: 92, bpDia: 54, bpMap: 67, cuff: 3, hr: 152, rr: 38, crt: 2.5, mmc: 'dry - yellow (icteric)', auscHeart: '심잡음 없음 (빈맥 · 약한 맥박)', auscLung: '얕고 빠른 호흡음 (수포음 없음)', auscBowel: '복명음 현저히 감소 (전복부 압통)' },
       lab: { pH: 7.26, pCO2: 33, pO2: 38, Na: 139, K: 3.5, Cl: 103, iCa: 1.11, Hct: 34, WBC: 26.4, neuP: 84, lymP: 7, PLT: 168, ALP: 1840, ALT: 620, AST: 215, GGT: 64, BUN: 34, Crea: 1.5, Tchol: 388, Glu: 78, TP: 5.4, ALB: 2.1, CRP: 118, cPL: 480 },
       imaging: {
         thoracic: { vhs: '10.0v', vlas: '2.0v (RLAD 1.5v)', trachea: '정상', lung: '특이 폐침윤 없음', extra: '횡격막 전방 특이 소견 없음' },
@@ -405,7 +405,7 @@
         { key: 'hx_med', label: '병력 / 증상', text: '36시간 무뇨(요도폐색 의심), 구토 3회, 과거 하부요로계질환(FLUTD) 이력', keywords: ['소변', '배뇨', '무뇨', '요도', '방광', '구토', '증상', '병력', '약'] },
         { key: 'hx_fast', label: '금식 상태', text: '24시간 이상 식욕 전무', keywords: ['금식', '밥', '먹', '특이'] }
       ],
-      pe: { bt: 36.6, bpSys: 88, bpDia: 52, bpMap: 64, cuff: 2, hr: 118, rr: 36, crt: 2.8, mmc: 'dry - pale pink (방광 극심 팽만·경직)' },
+      pe: { bt: 36.6, bpSys: 88, bpDia: 52, bpMap: 64, cuff: 2, hr: 118, rr: 36, crt: 2.8, mmc: 'dry - pale pink', auscHeart: '서맥 및 부정맥 의심 (심잡음 없음)', auscLung: '정상 폐포음 (빠른 얕은 호흡)', auscBowel: '복명음 감소 (하복부 방광 극심 팽만·경직)' },
       lab: { pH: 7.18, pCO2: 31, pO2: 36, Na: 144, K: 7.4, Cl: 114, iCa: 0.96, Hct: 47, WBC: 16.2, PLT: 245, ALP: 46, ALT: 62, BUN: 112, Crea: 7.8, Phos: 9.8, Glu: 164, TP: 8.2, ALB: 3.6, SDMA: 42, SAA: 18 },
       imaging: {
         thoracic: { vhs: '7.5v', vlas: '1.6v (RLAD 1.2v)', trachea: '정상', lung: '정상 폐야', extra: 'ECG: 서맥 및 Tenting T파, P파 소실 의심(고칼륨혈증)' },
@@ -436,7 +436,7 @@
         { key: 'hx_med', label: '급성 증상 / 병력', text: '급성 복부 팽만, 비생산성 헛구역질, 허탈(GDV 강력 의심), 기저질환 없음', keywords: ['복부', '팽만', '헛구역질', '구토', '허탈', '쓰러', '증상', '병력', '약'] },
         { key: 'hx_fast', label: '금식 상태', text: '미금식 (2시간 전 사료 다량 급여 및 음수)', keywords: ['금식', '밥', '먹', '사료', '식사', '특이'] }
       ],
-      pe: { bt: 37.1, bpSys: 72, bpDia: 40, bpMap: 51, cuff: 5, hr: 184, rr: 48, crt: 3.5, mmc: 'dry - pale / muddy (복부 고창·고음 타진)' },
+      pe: { bt: 37.1, bpSys: 72, bpDia: 40, bpMap: 51, cuff: 5, hr: 184, rr: 48, crt: 3.5, mmc: 'dry - pale / muddy', auscHeart: '심한 빈맥 및 부정맥(맥박 결손 동반)', auscLung: '얕고 매우 빠른 호흡음', auscBowel: '복명음 소실 (위 고창 · 타진 시 고음)' },
       lab: { pH: 7.14, pCO2: 29, pO2: 33, Na: 141, K: 3.3, Cl: 102, iCa: 1.04, Hct: 56, WBC: 21.8, neuP: 86, lymP: 5, PLT: 118, ALP: 185, ALT: 142, BUN: 44, Crea: 2.3, Glu: 66, TP: 5.8, ALB: 2.4, CRP: 94 },
       imaging: {
         thoracic: { vhs: '8.9v (소심증 · 저혈량 쇼크)', vlas: '1.7v', trachea: '정상', lung: '저관류 폐야, 후대정맥(CVC) 직경 현저히 감소', extra: 'ECG: 다발성 심실조기수축(VPCs) 관찰' },
@@ -467,7 +467,7 @@
         { key: 'hx_med', label: '기저질환 / 복용약', text: '비대성 심근병증(HCM) 진단 이력, 최근 3개월 Clopidogrel·이뇨제 임의 중단', keywords: ['심장', 'HCM', '약', '복용', '질환', '병력', '이뇨제', '혈전'] },
         { key: 'hx_fast', label: '급성 증상 / 금식', text: '1시간 전 급성 개구호흡·후지 마비, 4시간 전 습식 급여(미금식)', keywords: ['호흡', '개구', '다리', '마비', '금식', '밥', '먹', '증상', '특이'] }
       ],
-      pe: { bt: 35.8, bpSys: 78, bpDia: 46, bpMap: 57, cuff: 2, hr: 228, rr: 68, crt: 3.5, mmc: 'dry - cyanotic / pale (양측 대퇴동맥 맥박 소실, 분마음 청진)' },
+      pe: { bt: 35.8, bpSys: 78, bpDia: 46, bpMap: 57, cuff: 2, hr: 228, rr: 68, crt: 3.5, mmc: 'dry - cyanotic / pale', auscHeart: '분마음(Gallop) 및 수축기 심잡음 Grade 3/6', auscLung: '양측 전폐야 습성 수포음(Crackles) 및 호흡음 감약', auscBowel: '복명음 감소 (양측 대퇴동맥 맥박 소실)' },
       lab: { pH: 7.16, pCO2: 49, pO2: 29, Na: 150, K: 5.9, Cl: 117, iCa: 1.08, Hct: 44, WBC: 18.4, PLT: 142, ALP: 58, ALT: 196, AST: 340, BUN: 52, Crea: 2.9, Glu: 248, TP: 7.1, ALB: 3.2, proBNP: 980, SAA: 24 },
       imaging: {
         thoracic: { vhs: '9.1v (심한 심비대 · Valentine heart)', vlas: '2.5v', trachea: '기관 등쪽 거상', lung: '미만성 폐포성·간질성 침윤(급성 심인성 폐수종) 및 중등도 흉수', extra: '산소화 극심 저하' },
@@ -493,7 +493,7 @@
           { key: 'hx_med', label: '병력 / 복용약', text: '기관허탈 2기 (간헐적 기관지확장제 복용), 유선종양 6개월 경과', keywords: ['기침', '기관', '약', '복용', '병력', '질환', '종양'] },
           { key: 'hx_fast', label: '금식 상태', text: '10시간 금식 완료', keywords: ['금식', '밥', '먹', '특이'] }
         ],
-        pe: { bt: 38.3, bpSys: 132, bpDia: 82, bpMap: 99, cuff: 2, hr: 128, rr: 30, crt: 1.8, mmc: 'wet - pink' },
+        pe: { bt: 38.3, bpSys: 132, bpDia: 82, bpMap: 99, cuff: 2, hr: 128, rr: 30, crt: 1.8, mmc: 'wet - pink', auscHeart: '좌측 심첨부 수축기 심잡음 Grade 1/6', auscLung: '기관 부위 거친 흡기음 (수포음 없음)', auscBowel: '정상 복명음' },
         lab: { pH: 7.38, pCO2: 41, pO2: 40, Na: 146, K: 4.4, Cl: 113, iCa: 1.24, Hct: 42, WBC: 11.2, PLT: 330, ALP: 175, ALT: 72, BUN: 22, Crea: 1.1, Glu: 99, TP: 6.8, ALB: 3.2, proBNP: 620, CRP: 12 },
         imaging: {
           thoracic: { vhs: '10.4v', vlas: '2.1v (RLAD 1.6v)', trachea: '흉강 입구부 기관 내경 45% 협착(기관허탈 2기)', lung: '폐 전이 결절 없음, 경도 기관지 패턴', extra: '삽관 시 기관 자극 최소화 필요' },
@@ -511,7 +511,7 @@
           { key: 'hx_med', label: '병력 / 증상', text: '발정 5주 후 농성 질분비물, 다음다뇨, 무기력, 구토 2회', keywords: ['발정', '분비물', '자궁', '구토', '물', '증상', '병력', '약'] },
           { key: 'hx_fast', label: '금식 상태', text: '24시간 자발적 절식', keywords: ['금식', '밥', '먹', '특이'] }
         ],
-        pe: { bt: 39.6, bpSys: 96, bpDia: 58, bpMap: 71, cuff: 4, hr: 148, rr: 36, crt: 2.5, mmc: 'dry - dark red (injected)' },
+        pe: { bt: 39.6, bpSys: 96, bpDia: 58, bpMap: 71, cuff: 4, hr: 148, rr: 36, crt: 2.5, mmc: 'dry - dark red (injected)', auscHeart: '빈맥 (심잡음 없음)', auscLung: '빠른 폐포음 (수포음 없음)', auscBowel: '복명음 감소 (중후복부 팽만)' },
         lab: { pH: 7.28, pCO2: 33, pO2: 39, Na: 140, K: 3.7, Cl: 106, iCa: 1.15, Hct: 35, WBC: 31.4, neuP: 86, lymP: 6, PLT: 192, ALP: 265, ALT: 74, BUN: 38, Crea: 1.9, Glu: 82, TP: 7.6, ALB: 2.4, CRP: 145 },
         imaging: {
           thoracic: { vhs: '10.1v', vlas: '2.0v (RLAD 1.5v)', trachea: '정상', lung: '특이 폐침윤 없음', extra: '특이사항 없음' },
@@ -532,7 +532,7 @@
           { key: 'hx_med', label: '병력 / 증상', text: '실(선형 이물) 섭취 의심, 새벽부터 구토 5회, 복통', keywords: ['이물', '실', '구토', '토', '증상', '병력', '약'] },
           { key: 'hx_fast', label: '금식 상태', text: '14시간 이상 섭취 불가 (구토 지속)', keywords: ['금식', '밥', '먹', '물', '특이'] }
         ],
-        pe: { bt: 38.1, bpSys: 104, bpDia: 64, bpMap: 77, cuff: 2, hr: 194, rr: 34, crt: 2.3, mmc: 'dry - pink (설하 이물 미확인, 복부 촉진 시 통증)' },
+        pe: { bt: 38.1, bpSys: 104, bpDia: 64, bpMap: 77, cuff: 2, hr: 194, rr: 34, crt: 2.3, mmc: 'dry - pink', auscHeart: '빈맥 (심잡음 없음)', auscLung: '정상 폐포음', auscBowel: '복명음 항진 후 감소 (복부 촉진 시 통증)' },
         lab: { pH: 7.46, pCO2: 43, pO2: 41, Na: 145, K: 3.1, Cl: 104, iCa: 1.18, Hct: 46, WBC: 15.8, PLT: 280, ALP: 52, ALT: 68, BUN: 42, Crea: 1.9, Glu: 156, TP: 8.1, ALB: 3.7, SAA: 22 },
         imaging: {
           thoracic: { vhs: '7.5v', vlas: '1.6v (RLAD 1.2v)', trachea: '정상', lung: '정상 폐야', extra: '특이사항 없음' },
@@ -551,7 +551,7 @@
           { key: 'hx_med', label: '병력 / 특이사항', text: '작년 건강검진 시 심잡음 청진 이력(정밀 심초음파 미실시), 복용약 없음', keywords: ['심장', '잡음', '병력', '약', '복용', '질환', '증상'] },
           { key: 'hx_fast', label: '금식 상태', text: '10시간 금식 완료', keywords: ['금식', '밥', '먹', '특이'] }
         ],
-        pe: { bt: 38.4, bpSys: 142, bpDia: 88, bpMap: 106, cuff: 2, hr: 192, rr: 30, crt: 1.5, mmc: 'wet - pink (흉골연 수축기 잡음 2/6)' },
+        pe: { bt: 38.4, bpSys: 142, bpDia: 88, bpMap: 106, cuff: 2, hr: 192, rr: 30, crt: 1.5, mmc: 'wet - pink', auscHeart: '흉골연 수축기 심잡음 Grade 2/6', auscLung: '정상 폐포음', auscBowel: '정상 복명음' },
         lab: { pH: 7.36, pCO2: 36, pO2: 42, Na: 151, K: 4.3, Cl: 120, iCa: 1.23, Hct: 38, WBC: 10.2, PLT: 270, ALP: 44, ALT: 52, BUN: 25, Crea: 1.5, Glu: 142, TP: 7.0, ALB: 3.3, proBNP: 285, SAA: 2.1 },
         imaging: {
           thoracic: { vhs: '8.1v (경도 심비대)', vlas: '1.9v (RLAD 1.4v)', trachea: '정상', lung: '폐수종·흉수 없음', extra: '무증상 HCM B1 의심' },

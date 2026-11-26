@@ -30,25 +30,45 @@
 
           <div class="ch1-monitor-scroll" id="ch1-monitor-scroll">
             <div class="mon-sec" id="mon-sec-hx">
-              <div class="mon-sec-title"><span>1. Signalment · 이전 병력</span></div>
-              <div class="sig-hx-list" id="ch1-hx-list">
-                <div class="mon-empty">문진 후 확인</div>
+              <div class="mon-sec-title">
+                <span>1. Signalment · 이전 병력</span>
+                <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="mon-sec-hx">접기</button>
+              </div>
+              <div class="mon-sec-body">
+                <div class="sig-hx-list" id="ch1-hx-list">
+                  <div class="mon-empty">문진 후 확인</div>
+                </div>
               </div>
             </div>
 
             <div class="mon-sec" id="mon-sec-pe">
-              <div class="mon-sec-title"><span>2. 신체검사</span></div>
-              <div id="ch1-pe-body"><div class="mon-empty">검사 전</div></div>
+              <div class="mon-sec-title">
+                <span>2. 신체검사</span>
+                <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="mon-sec-pe">접기</button>
+              </div>
+              <div class="mon-sec-body">
+                <div id="ch1-pe-body"><div class="mon-empty">검사 전</div></div>
+              </div>
             </div>
 
             <div class="mon-sec" id="mon-sec-lab">
-              <div class="mon-sec-title"><span>3. 혈액검사</span></div>
-              <div id="ch1-lab-body"><div class="mon-empty">검사 전</div></div>
+              <div class="mon-sec-title">
+                <span>3. 혈액검사</span>
+                <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="mon-sec-lab">접기</button>
+              </div>
+              <div class="mon-sec-body">
+                <div id="ch1-lab-body"><div class="mon-empty">검사 전</div></div>
+              </div>
             </div>
 
             <div class="mon-sec" id="mon-sec-img">
-              <div class="mon-sec-title"><span>4. 영상검사</span></div>
-              <div id="ch1-img-body"><div class="mon-empty">검사 전</div></div>
+              <div class="mon-sec-title">
+                <span>4. 영상검사</span>
+                <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="mon-sec-img">접기</button>
+              </div>
+              <div class="mon-sec-body">
+                <div id="ch1-img-body"><div class="mon-empty">검사 전</div></div>
+              </div>
             </div>
           </div>
         </section>
@@ -229,6 +249,25 @@
       });
       window.addEventListener('pointerup', () => { monDrag = false; });
 
+      /* Monitoring Section Fold / Unfold Buttons */
+      function setMonCollapsed(secId, collapsed) {
+        const sec = document.getElementById(secId);
+        if (!sec) return;
+        sec.classList.toggle('is-collapsed', Boolean(collapsed));
+        const btn = sec.querySelector('.mon-toggle-btn');
+        if (btn) btn.textContent = collapsed ? '열기' : '접기';
+      }
+      document.querySelectorAll('[data-mon-toggle]').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const secId = btn.dataset.monToggle;
+          const sec = document.getElementById(secId);
+          if (!sec) return;
+          Settings.playTone(500, 0.04, 0.025);
+          setMonCollapsed(secId, !sec.classList.contains('is-collapsed'));
+        });
+      });
+
       /* Control Menu Tabs */
       function activateTab(paneName) {
         setCollapsed(false);
@@ -246,10 +285,9 @@
         });
       });
 
-      /* Typing animation for newly discovered Signalment items in Blue font */
+      /* Typing animation in Monitoring Window — keeps default monitor font color */
       function typeIntoElement(el, fullText) {
         el.textContent = '';
-        el.classList.add('sig-blue');
         el.classList.remove('mon-empty');
         let idx = 0;
         function step() {
@@ -275,25 +313,67 @@
           } else {
             const h = (currentCase.history || []).find((item) => item.key === k);
             if (!h) return;
+            setMonCollapsed('mon-sec-hx', false);
             const emptyNode = hxListEl.querySelector('.mon-empty');
             if (emptyNode) emptyNode.remove();
             const row = document.createElement('div');
             row.className = 'sig-hx-row';
-            row.innerHTML = `<span class="sig-hx-k">${h.label}:</span> <span class="sig-blue"></span>`;
+            row.innerHTML = `<span class="sig-hx-k">${h.label}:</span> <span class="sig-hx-v"></span>`;
             hxListEl.appendChild(row);
-            typeIntoElement(row.querySelector('.sig-blue'), h.text);
+            typeIntoElement(row.querySelector('.sig-hx-v'), h.text);
           }
         });
         if (newlyAdded) Settings.playTone(640, 0.05, 0.025);
       }
 
-      /* Chat Helpers */
-      function appendBubble(sender, text) {
+      /* Chat Helpers — Important Signalment info highlighted in Blue inside Chat Bubble */
+      function escapeHtml(s) {
+        return String(s || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function formatOwnerChatHtml(text, caseObj, hits) {
+        const safe = escapeHtml(text);
+        if (!caseObj || !hits || !hits.length) return safe;
+
+        // Highlight sentences/clauses containing discovered Signalment facts or keywords in blue
+        const phrases = [];
+        if (hits.includes('chiefComplaint') && caseObj.chiefComplaint) {
+          phrases.push(caseObj.chiefComplaint);
+        }
+        (caseObj.history || []).forEach((h) => {
+          if (hits.includes(h.key)) {
+            if (h.text) phrases.push(h.text);
+            (h.keywords || []).forEach((kw) => { if (kw && kw.length >= 2) phrases.push(kw); });
+          }
+        });
+
+        const parts = String(text).split(/([.!?]\s+)/);
+        let anyHighlighted = false;
+        const out = parts.map((seg) => {
+          if (!seg || /^[.!?]\s+$/.test(seg)) return escapeHtml(seg);
+          const low = seg.toLowerCase();
+          const matched = phrases.some((ph) => low.includes(String(ph).toLowerCase()));
+          if (matched) {
+            anyHighlighted = true;
+            return `<span class="chat-sig-blue">${escapeHtml(seg)}</span>`;
+          }
+          return escapeHtml(seg);
+        }).join('');
+
+        return anyHighlighted ? out : `<span class="chat-sig-blue">${safe}</span>`;
+      }
+
+      function appendBubble(sender, text, htmlOverride = null) {
         const row = document.createElement('div');
         row.className = `chat-row ${sender}`;
         const b = document.createElement('div');
         b.className = 'chat-bubble';
-        b.textContent = text;
+        if (htmlOverride != null) b.innerHTML = htmlOverride;
+        else b.textContent = text;
         row.appendChild(b);
         chatLogEl.appendChild(row);
         chatLogEl.scrollTop = chatLogEl.scrollHeight;
@@ -341,10 +421,11 @@
         }
 
         const cleanReply = reply.replace(/^\[ABORT\]\s*/i, '');
-        appendBubble('owner', cleanReply);
+        const hits = Data.detectDiscoveredKeys(currentCase, q, cleanReply);
+        const ownerHtml = formatOwnerChatHtml(cleanReply, currentCase, hits);
+        appendBubble('owner', cleanReply, ownerHtml);
         chatHistory.push({ sender: 'owner', text: cleanReply });
 
-        const hits = Data.detectDiscoveredKeys(currentCase, q, cleanReply);
         revealSignalmentKeys(hits);
 
         chatBusy = false;
@@ -363,6 +444,12 @@
         const abnRR = p.rr > 36;
         const abnCRT = p.crt > 2.0;
         const abnMMC = /yellow|pale|cyan|dark|muddy|dry/i.test(p.mmc);
+        const auscHeart = p.auscHeart || '심잡음 없음 (정상 심음)';
+        const auscLung = p.auscLung || '정상 폐포음';
+        const auscBowel = p.auscBowel || '정상 복명음';
+        const abnHeart = /Grade|분마음|부정맥|서맥|빈맥/i.test(auscHeart);
+        const abnLung = /수포음|천명음|거친|감약|Crackle/i.test(auscLung);
+        const abnBowel = /감소|소실|압통|팽만|항진/i.test(auscBowel);
         peBodyEl.innerHTML = `
           <div class="pe-grid">
             <div class="pe-cell"><span class="pe-k">BT</span><span class="pe-v ${abnBT ? 'is-abn' : ''}">${p.bt.toFixed(1)} °C</span></div>
@@ -371,6 +458,9 @@
             <div class="pe-cell"><span class="pe-k">RR</span><span class="pe-v ${abnRR ? 'is-abn' : ''}">${p.rr} /min</span></div>
             <div class="pe-cell"><span class="pe-k">CRT</span><span class="pe-v ${abnCRT ? 'is-abn' : ''}">${p.crt} s</span></div>
             <div class="pe-cell"><span class="pe-k">MMC</span><span class="pe-v ${abnMMC ? 'is-abn' : ''}">${p.mmc}</span></div>
+            <div class="pe-cell span-2"><span class="pe-k">청진 · 심잡음</span><span class="pe-v ${abnHeart ? 'is-abn' : ''}">${auscHeart}</span></div>
+            <div class="pe-cell span-2"><span class="pe-k">청진 · 폐음</span><span class="pe-v ${abnLung ? 'is-abn' : ''}">${auscLung}</span></div>
+            <div class="pe-cell span-2"><span class="pe-k">청진 · 복명음</span><span class="pe-v ${abnBowel ? 'is-abn' : ''}">${auscBowel}</span></div>
           </div>
         `;
       }
@@ -482,7 +572,7 @@
         imgBodyEl.innerHTML = `<div class="img-list">${rows.join('')}</div>`;
       }
 
-      /* Buffered Loading Bar (0% -> 100% with realistic intermittent pauses) + Slide-in '검사 결과 보기' */
+      /* Buffered Loading Bar (0% -> 100%) -> Big '검사 완료' -> Fade Out Left -> Same-Position Slide-In '검사 결과 보기' */
       function startExam(type) {
         if (!currentCase || examState[type] !== 'idle') return;
         examState[type] = 'loading';
@@ -493,21 +583,18 @@
         btn.disabled = true;
 
         slot.innerHTML = `
-          <div class="exam-done-caption hidden" data-done-cap="${type}">검사 완료</div>
-          <div class="exam-load-wrap">
+          <div class="exam-load-wrap" data-load-wrap="${type}">
             <div class="exam-load-head">
               <span data-load-lbl="${type}">검사중</span>
               <span data-load-pct="${type}">0%</span>
             </div>
             <div class="exam-bar-track"><div class="exam-bar-fill" data-load-bar="${type}"></div></div>
           </div>
-          <div data-view-slot="${type}"></div>
         `;
 
+        const wrapEl = slot.querySelector(`[data-load-wrap="${type}"]`);
         const pctEl = slot.querySelector(`[data-load-pct="${type}"]`);
         const barEl = slot.querySelector(`[data-load-bar="${type}"]`);
-        const capEl = slot.querySelector(`[data-done-cap="${type}"]`);
-        const viewSlot = slot.querySelector(`[data-view-slot="${type}"]`);
 
         // Realistic buffered checkpoints: [targetPct, delayMs]
         const steps = [
@@ -518,11 +605,18 @@
 
         function nextStep() {
           if (stepIdx >= steps.length) {
-            examState[type] = 'ready';
-            capEl.classList.remove('hidden');
             Settings.playTone(680, 0.07, 0.035);
-            viewSlot.innerHTML = `<button type="button" class="b-btn exam-view-btn" data-view-btn="${type}">검사 결과 보기</button>`;
-            viewSlot.querySelector(`[data-view-btn="${type}"]`).addEventListener('click', () => finishExam(type));
+            wrapEl.innerHTML = `<div class="exam-done-big" data-done-big="${type}">검사 완료</div>`;
+            const tFade = setTimeout(() => {
+              wrapEl.classList.add('fade-out-left');
+              const tSwap = setTimeout(() => {
+                examState[type] = 'ready';
+                slot.innerHTML = `<button type="button" class="b-btn exam-view-btn" data-view-btn="${type}">검사 결과 보기</button>`;
+                slot.querySelector(`[data-view-btn="${type}"]`).addEventListener('click', () => finishExam(type));
+              }, 340);
+              examTimers.push(tSwap);
+            }, 520);
+            examTimers.push(tFade);
             return;
           }
           const [pct, delay] = steps[stepIdx++];
@@ -541,18 +635,24 @@
         Settings.playTone(720, 0.06, 0.03);
 
         const btn = document.querySelector(`[data-exam-btn="${type}"]`);
-        const slot = document.querySelector(`[data-exam-slot="${type}"]`);
+        const viewBtn = document.querySelector(`[data-view-btn="${type}"]`);
         btn.classList.add('exam-done');
         btn.disabled = true;
-        slot.innerHTML = '';
+        if (viewBtn) {
+          viewBtn.classList.add('exam-done');
+          viewBtn.disabled = true;
+        }
 
         if (type === 'pe') {
+          setMonCollapsed('mon-sec-pe', false);
           renderPE(currentCase);
           document.getElementById('mon-sec-pe').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else if (type === 'lab') {
+          setMonCollapsed('mon-sec-lab', false);
           renderLab(currentCase);
           document.getElementById('mon-sec-lab').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else if (type === 'img') {
+          setMonCollapsed('mon-sec-img', false);
           renderImaging(currentCase);
           document.getElementById('mon-sec-img').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
