@@ -1373,7 +1373,7 @@ body.b11-immersive .app-shell {
   flex-shrink: 0;
 }
 
-/* Exam Buttons & Buffered Loading + Big '검사 완료' -> Fade-Out-Left -> Same-Position Slide-In Result Button */
+/* Exam Buttons — Integrated Percentage Gauge Loading -> '검사 완료' -> Fade Out -> Darkened Original Label */
 .exam-btn-list {
   display: flex;
   flex-direction: column;
@@ -1383,124 +1383,53 @@ body.b11-immersive .app-shell {
 .exam-item {
   display: flex;
   flex-direction: column;
-  gap: 7px;
 }
 
 .exam-main-btn {
   width: 100%;
-  height: 46px;
+  height: 48px;
   border-radius: 15px;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, opacity 0.25s ease;
 }
 
-.exam-main-btn.exam-done,
-.exam-view-btn.exam-done {
+.exam-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  background: rgba(74, 52, 35, 0.24);
+  pointer-events: none;
+  z-index: 1;
+  transition: width 0.16s ease-out, opacity 0.32s ease;
+}
+
+.exam-lbl {
+  position: relative;
+  z-index: 2;
+  transition: opacity 0.32s ease;
+}
+
+.exam-main-btn.exam-loading {
+  background: var(--ivory-deep);
+  color: var(--brown);
+  border-color: var(--brown);
+  pointer-events: none;
+}
+
+.exam-main-btn.exam-fading .exam-fill,
+.exam-main-btn.exam-fading .exam-lbl {
+  opacity: 0;
+}
+
+.exam-main-btn.exam-done {
   background: #cbbba4;
   color: #5d4736;
   border-color: #b4a188;
-  opacity: 0.68;
+  opacity: 0.72;
   pointer-events: none;
   cursor: default;
-}
-
-.exam-load-slot {
-  position: relative;
-  overflow: hidden;
-}
-
-.exam-load-wrap {
-  background: var(--ivory);
-  border: 1px solid var(--brown-border);
-  border-radius: 14px;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 7px;
-  min-height: 56px;
-}
-
-.exam-done-big {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--brown);
-  text-align: center;
-  letter-spacing: 0.04em;
-  padding: 4px 0;
-}
-
-@keyframes fadeOutLeft {
-  0% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-44px);
-  }
-}
-
-.exam-load-wrap.fade-out-left {
-  animation: fadeOutLeft 0.34s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.exam-load-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--brown);
-}
-
-.exam-bar-track {
-  width: 100%;
-  height: 9px;
-  border-radius: 999px;
-  background: var(--ivory-deep);
-  overflow: hidden;
-}
-
-.exam-bar-fill {
-  height: 100%;
-  width: 0%;
-  background: var(--brown);
-  border-radius: 999px;
-  transition: width 0.16s ease-out;
-}
-
-@keyframes slideInRight {
-  0% {
-    opacity: 0;
-    transform: translateX(52px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.exam-view-btn {
-  width: 100%;
-  height: 44px;
-  border-radius: 14px;
-  animation: slideInRight 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes fadeOutUp {
-  0% {
-    opacity: 0.72;
-    transform: translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-22px);
-  }
-}
-
-.exam-view-btn.fade-out-up {
-  animation: fadeOutUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* Evaluation Tab (ASA + Prognosis + 50% Opacity Red Rectangular Slam Stamp) */

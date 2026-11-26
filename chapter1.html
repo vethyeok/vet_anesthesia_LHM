@@ -99,16 +99,22 @@
             <div class="ch1-pane pane-hidden" data-content="exam">
               <div class="exam-btn-list" id="ch1-exam-list">
                 <div class="exam-item" data-exam="pe">
-                  <button type="button" class="b-btn exam-main-btn" data-exam-btn="pe">신체검사</button>
-                  <div class="exam-load-slot" data-exam-slot="pe"></div>
+                  <button type="button" class="b-btn exam-main-btn" data-exam-btn="pe" data-orig-label="신체검사">
+                    <span class="exam-fill"></span>
+                    <span class="exam-lbl">신체검사</span>
+                  </button>
                 </div>
                 <div class="exam-item" data-exam="lab">
-                  <button type="button" class="b-btn exam-main-btn" data-exam-btn="lab">혈액검사</button>
-                  <div class="exam-load-slot" data-exam-slot="lab"></div>
+                  <button type="button" class="b-btn exam-main-btn" data-exam-btn="lab" data-orig-label="혈액검사">
+                    <span class="exam-fill"></span>
+                    <span class="exam-lbl">혈액검사</span>
+                  </button>
                 </div>
                 <div class="exam-item" data-exam="img">
-                  <button type="button" class="b-btn exam-main-btn" data-exam-btn="img">영상검사</button>
-                  <div class="exam-load-slot" data-exam-slot="img"></div>
+                  <button type="button" class="b-btn exam-main-btn" data-exam-btn="img" data-orig-label="영상검사">
+                    <span class="exam-fill"></span>
+                    <span class="exam-lbl">영상검사</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -622,7 +628,7 @@
         imgBodyEl.innerHTML = `<div class="img-list">${rows.join('')}</div>`;
       }
 
-      /* Buffered Loading Bar (0% -> 100%) -> Big '검사 완료' -> Fade Out Left -> Same-Position Slide-In '검사 결과 보기' */
+      /* Button-Integrated Buffered Loading (PE 3s, Lab 2s, Img 2s) -> '검사 완료' + Monitor Render -> Fade Out -> Darkened Original Label */
       function startExam(type) {
         if (!currentCase || examState[type] !== 'idle') return;
         if (!chatHistory.some((m) => m.sender === 'vet')) {
@@ -631,90 +637,74 @@
         examState[type] = 'loading';
         Settings.playTone(540, 0.05, 0.03);
 
-        const slot = document.querySelector(`[data-exam-slot="${type}"]`);
         const btn = document.querySelector(`[data-exam-btn="${type}"]`);
+        const fillEl = btn.querySelector('.exam-fill');
+        const lblEl = btn.querySelector('.exam-lbl');
+        const origLabel = btn.dataset.origLabel || lblEl.textContent;
+
         btn.disabled = true;
+        btn.classList.add('exam-loading');
+        fillEl.style.width = '0%';
+        lblEl.textContent = '검사중 0%';
 
-        slot.innerHTML = `
-          <div class="exam-load-wrap" data-load-wrap="${type}">
-            <div class="exam-load-head">
-              <span data-load-lbl="${type}">검사중</span>
-              <span data-load-pct="${type}">0%</span>
-            </div>
-            <div class="exam-bar-track"><div class="exam-bar-fill" data-load-bar="${type}"></div></div>
-          </div>
-        `;
-
-        const wrapEl = slot.querySelector(`[data-load-wrap="${type}"]`);
-        const pctEl = slot.querySelector(`[data-load-pct="${type}"]`);
-        const barEl = slot.querySelector(`[data-load-bar="${type}"]`);
-
-        // Realistic buffered checkpoints: [targetPct, delayMs]
-        const steps = [
-          [14, 140], [27, 160], [29, 340], [48, 170], [63, 180],
-          [65, 420], [82, 160], [87, 360], [96, 150], [100, 180]
-        ];
+        // Exact buffered schedules: PE = 3000ms (3초), Lab & Img = 2000ms (2초)
+        const steps = type === 'pe'
+          ? [
+              [14, 240], [28, 260], [30, 520], [52, 280], [66, 260],
+              [68, 540], [84, 260], [88, 360], [100, 280]
+            ]
+          : [
+              [18, 160], [34, 180], [36, 360], [62, 200],
+              [65, 420], [86, 180], [90, 280], [100, 220]
+            ];
         let stepIdx = 0;
 
         function nextStep() {
           if (stepIdx >= steps.length) {
-            Settings.playTone(680, 0.07, 0.035);
-            wrapEl.innerHTML = `<div class="exam-done-big" data-done-big="${type}">검사 완료</div>`;
+            examState[type] = 'done';
+            lblEl.textContent = '검사 완료';
+            fillEl.style.width = '100%';
+            Settings.playTone(700, 0.07, 0.035);
+
+            // Display results immediately in Monitoring window
+            if (type === 'pe') {
+              setMonCollapsed('mon-sec-pe', false);
+              renderPE(currentCase);
+              document.getElementById('mon-sec-pe').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else if (type === 'lab') {
+              setMonCollapsed('mon-sec-lab', false);
+              renderLab(currentCase);
+              document.getElementById('mon-sec-lab').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else if (type === 'img') {
+              setMonCollapsed('mon-sec-img', false);
+              renderImaging(currentCase);
+              document.getElementById('mon-sec-img').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            // Fade out '검사 완료' & gauge, then settle into darkened disabled button with original label
             const tFade = setTimeout(() => {
-              wrapEl.classList.add('fade-out-left');
-              const tSwap = setTimeout(() => {
-                examState[type] = 'ready';
-                slot.innerHTML = `<button type="button" class="b-btn exam-view-btn" data-view-btn="${type}">검사 결과 보기</button>`;
-                slot.querySelector(`[data-view-btn="${type}"]`).addEventListener('click', () => finishExam(type));
+              btn.classList.add('exam-fading');
+              const tRestore = setTimeout(() => {
+                fillEl.style.width = '0%';
+                lblEl.textContent = origLabel;
+                btn.classList.remove('exam-loading', 'exam-fading');
+                btn.classList.add('exam-done');
+                btn.disabled = true;
               }, 340);
-              examTimers.push(tSwap);
-            }, 520);
+              examTimers.push(tRestore);
+            }, 550);
             examTimers.push(tFade);
             return;
           }
           const [pct, delay] = steps[stepIdx++];
-          pctEl.textContent = `${pct}%`;
-          barEl.style.width = `${pct}%`;
-          const t = setTimeout(nextStep, delay);
+          const t = setTimeout(() => {
+            lblEl.textContent = `검사중 ${pct}%`;
+            fillEl.style.width = `${pct}%`;
+            nextStep();
+          }, delay);
           examTimers.push(t);
         }
-        const t0 = setTimeout(nextStep, 120);
-        examTimers.push(t0);
-      }
-
-      function finishExam(type) {
-        if (!currentCase || examState[type] !== 'ready') return;
-        examState[type] = 'done';
-        Settings.playTone(720, 0.06, 0.03);
-
-        const btn = document.querySelector(`[data-exam-btn="${type}"]`);
-        const slot = document.querySelector(`[data-exam-slot="${type}"]`);
-        const viewBtn = document.querySelector(`[data-view-btn="${type}"]`);
-        btn.classList.add('exam-done');
-        btn.disabled = true;
-        if (viewBtn) {
-          viewBtn.classList.add('exam-done', 'fade-out-up');
-          viewBtn.disabled = true;
-        }
-
-        if (type === 'pe') {
-          setMonCollapsed('mon-sec-pe', false);
-          renderPE(currentCase);
-          document.getElementById('mon-sec-pe').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        } else if (type === 'lab') {
-          setMonCollapsed('mon-sec-lab', false);
-          renderLab(currentCase);
-          document.getElementById('mon-sec-lab').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        } else if (type === 'img') {
-          setMonCollapsed('mon-sec-img', false);
-          renderImaging(currentCase);
-          document.getElementById('mon-sec-img').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        const tHide = setTimeout(() => {
-          if (slot) slot.innerHTML = '';
-        }, 320);
-        examTimers.push(tHide);
+        nextStep();
       }
 
       document.querySelectorAll('[data-exam-btn]').forEach((btn) => {
@@ -1002,10 +992,13 @@
         evalSubmitBtn.disabled = false;
         document.querySelectorAll('[data-asa], [data-prog], #ch1-asa-e').forEach((el) => el.classList.remove('active'));
         document.querySelectorAll('[data-exam-btn]').forEach((b) => {
-          b.classList.remove('exam-done');
+          b.classList.remove('exam-done', 'exam-loading', 'exam-fading');
           b.disabled = false;
+          const f = b.querySelector('.exam-fill');
+          const l = b.querySelector('.exam-lbl');
+          if (f) f.style.width = '0%';
+          if (l && b.dataset.origLabel) l.textContent = b.dataset.origLabel;
         });
-        document.querySelectorAll('[data-exam-slot]').forEach((s) => { s.innerHTML = ''; });
         ['mon-sec-hx', 'mon-sec-pe', 'mon-sec-lab', 'mon-sec-img'].forEach((id) => setMonCollapsed(id, false));
         peBodyEl.innerHTML = '<div class="mon-empty">검사 전</div>';
         labBodyEl.innerHTML = '<div class="mon-empty">검사 전</div>';
