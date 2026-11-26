@@ -83,8 +83,8 @@
                   <button type="button" class="b-btn ch2-q-btn" data-cat-help="stab" aria-label="안정화 도움말">?</button>
                 </div>
                 <div class="prog-grid">
-                  <button type="button" class="b-btn prog-btn" data-single-cat="stab" data-val="수화">수화</button>
-                  <button type="button" class="b-btn prog-btn" data-single-cat="stab" data-val="산소화">산소화</button>
+                  <button type="button" class="b-btn prog-btn" data-multi-cat="stab" data-val="수화">수화</button>
+                  <button type="button" class="b-btn prog-btn" data-multi-cat="stab" data-val="산소화">산소화</button>
                 </div>
               </div>
 
@@ -169,9 +169,10 @@
                   <button type="button" class="b-btn ch2-q-btn" data-cat-help="fluid" aria-label="수액 도움말">?</button>
                 </div>
                 <div class="prog-grid">
-                  <button type="button" class="b-btn prog-btn" data-single-cat="fluid" data-val="0.9% NS">0.9% NS</button>
-                  <button type="button" class="b-btn prog-btn" data-single-cat="fluid" data-val="LRS(H/S)">LRS(H/S)</button>
-                  <button type="button" class="b-btn prog-btn span-2" data-single-cat="fluid" data-val="Plasmalyte">Plasmalyte</button>
+                  <button type="button" class="b-btn prog-btn" data-multi-cat="fluid" data-val="0.9% NS">0.9% NS</button>
+                  <button type="button" class="b-btn prog-btn" data-multi-cat="fluid" data-val="LRS(H/S)">LRS(H/S)</button>
+                  <button type="button" class="b-btn prog-btn" data-multi-cat="fluid" data-val="Plasmalyte">Plasmalyte</button>
+                  <button type="button" class="b-btn prog-btn" data-multi-cat="fluid" data-val="수혈">수혈</button>
                 </div>
               </div>
             </div>
@@ -370,7 +371,8 @@
           items: [
             { name: '0.9% NS (생리식염수)', desc: '칼륨과 완충제가 없는 수액으로 고칼륨혈증·고칼슘혈증·구토성 대사성 알칼리증에 유용하지만, 대량 투여 시 고염소성 대사성 산증을 유발할 수 있습니다.' },
             { name: 'LRS (H/S, 하트만액)', desc: '혈장과 유사한 전해질과 젖산 완충제를 갖춘 가장 보편적인 표준 수술 유지 정질액이지만, 칼슘을 포함해 수혈 라인 동시 주입을 피하고 중증 간부전에서는 주의합니다.' },
-            { name: 'Plasmalyte', desc: '칼슘이 없고 간 외 조직에서도 대사되는 아세테이트·글루코네이트 완충제를 사용해 수혈 동시 투여·중증 간질환·산증 환자에 가장 생리적이고 안전한 균형 정질액입니다.' }
+            { name: 'Plasmalyte', desc: '칼슘이 없고 간 외 조직에서도 대사되는 아세테이트·글루코네이트 완충제를 사용해 수혈 동시 투여·중증 간질환·산증 환자에 가장 생리적이고 안전한 균형 정질액입니다.' },
+            { name: '수혈', desc: '급성 실혈량·임상증상·고락테이트혈증·심폐 예비력을 종합 평가해 조직 산소 운반 능력을 회복시키는 처치입니다.' }
           ]
         }
       };
@@ -427,14 +429,14 @@
       let currentCase = null;
       let currentLabPanel = null;
       let planState = {
-        stab: null,
+        stab: new Set(),
         abx: new Set(),
         inj: new Set(),
         sed: new Set(),
         analg: new Set(),
         ind: null,
         maint: null,
-        fluid: null
+        fluid: new Set()
       };
       let revealedConsents = new Set();
       let chatHistory = [];
@@ -742,25 +744,25 @@
 
       /* Evaluate Plan (Hidden Clinical Scoring Rules) */
       function evaluatePlan(c) {
-        const stab = planState.stab;
+        const stab = Array.from(planState.stab);
         const abx = Array.from(planState.abx);
         const inj = Array.from(planState.inj);
         const sed = Array.from(planState.sed);
         const analg = Array.from(planState.analg);
         const ind = planState.ind;
         const maint = planState.maint;
-        const fluid = planState.fluid;
+        const fluid = Array.from(planState.fluid);
 
         const warnings = [];
         const synergies = [];
         let penalty = 0;
 
         // 필수 기본 항목
-        if (!stab) { warnings.push('대기 중 안정화(수화 또는 산소화)가 선택되지 않았습니다.'); penalty += 6; }
+        if (!stab.length) { warnings.push('대기 중 안정화(수화 또는 산소화)가 선택되지 않았습니다.'); penalty += 6; }
         if (!analg.length) { warnings.push('진통제/진통수액이 선택되지 않았습니다.'); penalty += 10; }
         if (!ind) { warnings.push('유도제가 선택되지 않았습니다.'); penalty += 18; }
         if (!maint) { warnings.push('유지제(Isoflurane 또는 Sevoflurane)가 선택되지 않았습니다.'); penalty += 15; }
-        if (!fluid) { warnings.push('수액 처치 계획이 선택되지 않았습니다.'); penalty += 8; }
+        if (!fluid.length) { warnings.push('수액 처치 계획이 선택되지 않았습니다.'); penalty += 8; }
 
         // 항생제 병용 규칙: Cefazolin+Metronidazole 허용 / Cefa+Ampi, Ampi+Metro 감점
         const hasCefa = abx.includes('Cefazolin');
@@ -826,15 +828,19 @@
         if (isCritical && (ind === 'Etomidate' || ind === 'Alfaxalone')) {
           synergies.push('혈역학적 안정 유도제 선택: 중증 환자에서 유도 시 혈압 저하를 최소화합니다.');
         }
-        if (currentLabPanel && currentLabPanel.vbgM && currentLabPanel.vbgM.K >= 5.5 && fluid && fluid !== '0.9% NS') {
+        if (currentLabPanel && currentLabPanel.vbgM && currentLabPanel.vbgM.K >= 5.5 && fluid.length && !fluid.includes('0.9% NS')) {
           warnings.push('고칼륨혈증 수액 주의: 고칼륨혈증 환자에서는 칼륨이 없는 0.9% NS가 우선 권장됩니다.');
           penalty += 8;
+        }
+        if (fluid.includes('LRS(H/S)') && fluid.includes('수혈')) {
+          warnings.push('수혈 라인 주의: LRS(H/S)는 칼슘을 포함하므로 수혈 라인과 동시 주입을 피해야 합니다(Plasmalyte 또는 0.9% NS 권장).');
+          penalty += 6;
         }
 
         return { stab, abx, inj, sed, analg, ind, maint, fluid, warnings, synergies, penalty };
       }
 
-      /* Render Box 2: 2. 마취 플랜 (5 consolidated rows) */
+      /* Render Box 2: 2. 처치 계획 (5 consolidated rows) */
       function renderPlanSummary() {
         if (!currentCase) return;
         const ev = evaluatePlan(currentCase);
@@ -842,11 +848,11 @@
         const allInjectables = [...ev.abx, ...ev.inj, ...ev.sed, ...ev.analg];
         planBodyEl.innerHTML = `
           <div class="sig-hx-list">
-            <div class="sig-hx-row"><span class="sig-hx-k">대기 중 안정화:</span><span>${ev.stab ? escapeHtml(ev.stab) : '<span class="muted">미선택</span>'}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">대기 중 안정화:</span><span>${fmt(ev.stab)}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">주사제:</span><span>${fmt(allInjectables)}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유도제:</span><span>${ev.ind ? escapeHtml(ev.ind) : '<span class="muted">미선택</span>'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유지제:</span><span>${ev.maint ? escapeHtml(ev.maint) : '<span class="muted">미선택</span>'}</span></div>
-            <div class="sig-hx-row"><span class="sig-hx-k">수액:</span><span>${ev.fluid ? escapeHtml(ev.fluid) : '<span class="muted">미선택</span>'}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">수액:</span><span>${fmt(ev.fluid)}</span></div>
           </div>
         `;
       }
@@ -928,10 +934,10 @@
               <strong style="font-family:var(--font-display); font-size:15px;">마취 계획 평가</strong>
               <strong style="font-family:var(--font-display); font-size:17px; color:#dc2626;">${rep.score}점 (${rep.grade})</strong>
             </div>
-            <div class="modal-row"><span class="muted">대기 중 안정화</span><strong>${ev.stab || '미선택'}</strong></div>
+            <div class="modal-row"><span class="muted">대기 중 안정화</span><strong>${ev.stab.join(', ') || '미선택'}</strong></div>
             <div class="modal-row"><span class="muted">주사제</span><strong>${[...ev.abx, ...ev.inj, ...ev.sed, ...ev.analg].join(', ') || '미선택'}</strong></div>
             <div class="modal-row"><span class="muted">유도제 / 유지제</span><strong>${ev.ind || '미선택'} / ${ev.maint || '미선택'}</strong></div>
-            <div class="modal-row"><span class="muted">수액</span><strong>${ev.fluid || '미선택'}</strong></div>
+            <div class="modal-row"><span class="muted">수액</span><strong>${ev.fluid.join(', ') || '미선택'}</strong></div>
             <div class="modal-row"><span class="muted">보호자 안내</span><strong>${revealedConsents.size} / ${CONSENT_ITEMS.length} 완료</strong></div>
             <div class="modal-row"><span class="muted">신뢰 붕괴</span><span>${trustText}</span></div>
           </div>
@@ -1056,7 +1062,7 @@
                 species: currentCase.species === 'cat' ? '고양이' : '개',
                 caseName: `${currentCase.name} (${currentCase.breed})`,
                 asa: `ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? '-E' : ''}`,
-                caseDesc: `${currentCase.chiefComplaint} | 마취 계획: 안정화(${planState.stab || '미선택'}), 항생제(${Array.from(planState.abx).join(',')}), 기타주사제(${Array.from(planState.inj).join(',')}), 진정제(${Array.from(planState.sed).join(',')}), 진통제(${Array.from(planState.analg).join(',')}), 유도제(${planState.ind || '미선택'}), 유지제(${planState.maint || '미선택'}), 수액(${planState.fluid || '미선택'})`,
+                caseDesc: `${currentCase.chiefComplaint} | 마취 계획: 안정화(${Array.from(planState.stab).join(',') || '미선택'}), 항생제(${Array.from(planState.abx).join(',')}), 기타주사제(${Array.from(planState.inj).join(',')}), 진정제(${Array.from(planState.sed).join(',')}), 진통제(${Array.from(planState.analg).join(',')}), 유도제(${planState.ind || '미선택'}), 유지제(${planState.maint || '미선택'}), 수액(${Array.from(planState.fluid).join(',') || '미선택'})`,
                 clue: currentCase.ownerClue || '',
                 ownerPersonality: currentCase.ownerPersonality || 'neutral',
                 knowledgeLevel: currentCase.ownerLevel || 2,
@@ -1132,7 +1138,7 @@
           species: c.species === 'cat' ? '고양이' : '개',
           scenario: `${c.name} (${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex}) - ${c.chiefComplaint}`,
           chatSummary: chatHistory.map((m) => `${m.sender === 'vet' ? '수의사' : '보호자'}: ${m.text}`).slice(-8).join(' | '),
-          examSummary: `안정화: ${ev.stab || '없음'} / 항생제: ${ev.abx.join(',') || '없음'} / 기타주사제: ${ev.inj.join(',') || '없음'} / 진정제: ${ev.sed.join(',') || '없음'} / 진통제: ${ev.analg.join(',') || '없음'} / 유도제: ${ev.ind || '없음'} / 유지제: ${ev.maint || '없음'} / 수액: ${ev.fluid || '없음'} / 신뢰 붕괴 감점: -${lastReport.trustPen || 0}점`,
+          examSummary: `안정화: ${ev.stab.join(',') || '없음'} / 항생제: ${ev.abx.join(',') || '없음'} / 기타주사제: ${ev.inj.join(',') || '없음'} / 진정제: ${ev.sed.join(',') || '없음'} / 진통제: ${ev.analg.join(',') || '없음'} / 유도제: ${ev.ind || '없음'} / 유지제: ${ev.maint || '없음'} / 수액: ${ev.fluid.join(',') || '없음'} / 신뢰 붕괴 감점: -${lastReport.trustPen || 0}점`,
           studentEval: `점수 ${lastReport.score}점 (${lastReport.grade}), 보호자 안내 ${revealedConsents.size}/${CONSENT_ITEMS.length}`,
           trueEval: `ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} (${c.truePrognosis}) 맞춤 안전 프로토콜`
         };
@@ -1148,7 +1154,7 @@
         if (!t) {
           const ev = lastReport.ev;
           const allInj = [...ev.abx, ...ev.inj, ...ev.sed, ...ev.analg];
-          t = `1) 선택한 마취 계획: 안정화(${ev.stab || '미선택'}), 주사제(${allInj.join(', ') || '미선택'}), 유도제(${ev.ind || '미선택'}), 유지제(${ev.maint || '미선택'}), 수액(${ev.fluid || '미선택'}).\n2) 주의·개선 포인트: ${ev.warnings.length ? ev.warnings.join(' / ') : '약물 중복·금기 없이 균형 잡힌 계획입니다.'}\n3) 보호자 안내: ${revealedConsents.size}/${CONSENT_ITEMS.length} 항목 완료.`;
+          t = `1) 선택한 마취 계획: 안정화(${ev.stab.join(', ') || '미선택'}), 주사제(${allInj.join(', ') || '미선택'}), 유도제(${ev.ind || '미선택'}), 유지제(${ev.maint || '미선택'}), 수액(${ev.fluid.join(', ') || '미선택'}).\n2) 주의·개선 포인트: ${ev.warnings.length ? ev.warnings.join(' / ') : '약물 중복·금기 없이 균형 잡힌 계획입니다.'}\n3) 보호자 안내: ${revealedConsents.size}/${CONSENT_ITEMS.length} 항목 완료.`;
         }
         aiText = t;
         rvAiEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(t)}</div>`;
@@ -1165,7 +1171,7 @@
           const c = lastReport.caseObj;
           const ev = lastReport.ev;
           const allInj = [...ev.abx, ...ev.inj, ...ev.sed, ...ev.analg];
-          t = `S: ${c.name} (${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex}) — ${c.chiefComplaint}\nO: ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} (${c.truePrognosis}), 청진 ${c.pe.auscHeart}\nA: 마취 전 위험 평가 및 맞춤 약물 계획 수립 (${lastReport.score}점, ${lastReport.grade})\nP: 안정화(${ev.stab || '-'}), 주사제(${allInj.join(', ') || '-'}), 유도(${ev.ind || '-'}), 유지(${ev.maint || '-'}), 수액(${ev.fluid || '-'})`;
+          t = `S: ${c.name} (${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex}) — ${c.chiefComplaint}\nO: ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} (${c.truePrognosis}), 청진 ${c.pe.auscHeart}\nA: 마취 전 위험 평가 및 맞춤 약물 계획 수립 (${lastReport.score}점, ${lastReport.grade})\nP: 안정화(${ev.stab.join(', ') || '-'}), 주사제(${allInj.join(', ') || '-'}), 유도(${ev.ind || '-'}), 유지(${ev.maint || '-'}), 수액(${ev.fluid.join(', ') || '-'})`;
         }
         soapText = t;
         rvSoapEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(t)}</div>`;
@@ -1219,14 +1225,14 @@
         const prevCase = currentCase;
         currentStageId = stageId;
         planState = {
-          stab: null,
+          stab: new Set(),
           abx: new Set(),
           inj: new Set(),
           sed: new Set(),
           analg: new Set(),
           ind: null,
           maint: null,
-          fluid: null
+          fluid: new Set()
         };
         revealedConsents = new Set();
         chatHistory = [];
