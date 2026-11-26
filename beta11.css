@@ -1533,6 +1533,64 @@ body.b11-immersive .app-shell {
   line-height: 1;
 }
 
+/* Chapter 2 Category Header & Small Help (?) Button */
+.ch2-cat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.ch2-cat-head .eval-sec-lbl {
+  margin-bottom: 0;
+}
+
+.ch2-q-btn {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  padding: 0;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ch2-help-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ch2-help-item {
+  background: var(--beige-soft);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: calc(12.5px * var(--text-scale, 1));
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.ch2-help-item strong {
+  display: block;
+  font-family: var(--font-display);
+  color: var(--brown);
+  margin-bottom: 3px;
+}
+
+.ch2-help-note {
+  margin-top: 5px;
+  font-size: calc(11.5px * var(--text-scale, 1));
+  color: var(--brown-soft);
+}
+
 
 
 
