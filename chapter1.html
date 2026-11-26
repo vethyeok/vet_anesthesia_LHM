@@ -155,6 +155,26 @@
     </main>
   </div>
 
+  <!-- 해설 보기 팝업 (오답노트 · AI 로그 분석 · SOAP 분석) -->
+  <div id="ch1-review-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch1-review-title" style="backdrop-filter:blur(6px);">
+    <div class="modal-card" style="max-width:420px; max-height:84dvh; display:flex; flex-direction:column;">
+      <h2 id="ch1-review-title" class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown); margin-bottom:10px;">해설 보기</h2>
+      <div class="step-tabs" id="ch1-review-tabs" role="tablist" style="margin-bottom:10px; flex-shrink:0;">
+        <button type="button" class="step-tab active" data-rv-tab="wrong">오답노트</button>
+        <button type="button" class="step-tab" data-rv-tab="ai">AI 로그 분석</button>
+        <button type="button" class="step-tab" data-rv-tab="soap">SOAP 분석</button>
+      </div>
+      <div id="ch1-review-body" style="flex:1 1 auto; overflow-y:auto; display:flex; flex-direction:column; gap:10px; min-height:180px; padding-right:2px;">
+        <div id="ch1-rv-wrong" data-rv-pane="wrong"></div>
+        <div id="ch1-rv-ai" data-rv-pane="ai" class="pane-hidden"></div>
+        <div id="ch1-rv-soap" data-rv-pane="soap" class="pane-hidden"></div>
+      </div>
+      <div class="modal-close-wrap" style="margin-top:12px; flex-shrink:0;">
+        <button id="ch1-review-close" type="button" class="b-btn modal-close-btn">닫기</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       const Data = window.Beta11Ch1Data;
@@ -705,38 +725,195 @@
         return 'F';
       }
 
+      const reviewModalEl = document.getElementById('ch1-review-modal');
+      const rvWrongEl = document.getElementById('ch1-rv-wrong');
+      const rvAiEl = document.getElementById('ch1-rv-ai');
+      const rvSoapEl = document.getElementById('ch1-rv-soap');
+      let lastEvalReport = null;
+      let aiAnalysisText = null;
+      let soapAnalysisText = null;
+
+      function setReviewTab(tabKey) {
+        document.querySelectorAll('[data-rv-tab]').forEach((b) => {
+          b.classList.toggle('active', b.dataset.rvTab === tabKey);
+        });
+        document.querySelectorAll('[data-rv-pane]').forEach((p) => {
+          p.classList.toggle('pane-hidden', p.dataset.rvPane !== tabKey);
+        });
+        if (tabKey === 'ai' && !aiAnalysisText) runAiLogAnalysis();
+        if (tabKey === 'soap' && !soapAnalysisText) runSoapAnalysis();
+      }
+
+      document.querySelectorAll('[data-rv-tab]').forEach((b) => {
+        b.addEventListener('click', () => {
+          Settings.playTone(520, 0.04, 0.025);
+          setReviewTab(b.dataset.rvTab);
+        });
+      });
+      document.getElementById('ch1-review-close').addEventListener('click', () => reviewModalEl.classList.add('hidden'));
+      reviewModalEl.addEventListener('click', (e) => { if (e.target === reviewModalEl) reviewModalEl.classList.add('hidden'); });
+
+      function buildOfflineWrongNoteHtml(rep) {
+        const c = rep.caseObj;
+        const trueAsaStr = `ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''}`;
+        const chosenAsaStr = `ASA ${rep.chosenAsa}${rep.chosenEmerg ? 'E' : ''}`;
+        const asaOk = rep.asaDiff === 0 && Boolean(rep.chosenEmerg) === Boolean(c.trueEmergency);
+        const progOk = rep.progDiff === 0;
+        const missedExams = [
+          examState.pe !== 'done' ? '신체검사' : null,
+          examState.lab !== 'done' ? '혈액검사' : null,
+          examState.img !== 'done' ? '영상검사' : null
+        ].filter(Boolean);
+        const missedHx = [];
+        if (!revealedKeys.has('chiefComplaint')) missedHx.push('주호소');
+        (c.history || []).forEach((h) => {
+          if (!revealedKeys.has(h.key)) missedHx.push(h.label);
+        });
+
+        return `
+          <div class="b-card-soft" style="padding:12px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-family:var(--font-display); font-size:15px;">최종 평가 결과</strong>
+              <strong style="font-family:var(--font-display); font-size:17px; color:#dc2626;">${rep.score}점 (${rep.grade})</strong>
+            </div>
+            <div class="modal-row"><span class="muted">ASA 판정</span><span>내 답안 <strong>${chosenAsaStr}</strong> / 정답 <strong>${trueAsaStr}</strong> ${asaOk ? '(정답)' : `(-${rep.asaPen}점)`}</span></div>
+            <div class="modal-row"><span class="muted">예후 판정</span><span>내 답안 <strong>${rep.chosenProg}</strong> / 정답 <strong>${c.truePrognosis}</strong> ${progOk ? '(정답)' : `(-${rep.progPen}점)`}</span></div>
+            <div class="modal-row"><span class="muted">미실시 검사</span><span>${missedExams.length ? `${missedExams.join(', ')} (-${rep.examPen}점)` : '없음 (모두 완료)'}</span></div>
+            <div class="modal-row"><span class="muted">미확인 문진</span><span>${missedHx.length ? `${missedHx.join(', ')} (-${rep.cluePen}점)` : '없음 (모두 확인)'}</span></div>
+          </div>
+          <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
+            <div class="b-label"><span>핵심 임상 해설 (오프라인)</span></div>
+            <p><strong>${c.name}</strong> (${c.breed}, ${c.age}, ${c.weight} kg) — ${c.chiefComplaint}</p>
+            <p style="margin-top:6px;">• 신체검사: BT ${c.pe.bt}°C, BP #${c.pe.cuff} ${c.pe.bpSys}/${c.pe.bpDia}(${c.pe.bpMap}), HR ${c.pe.hr}, RR ${c.pe.rr}, 심잡음(${c.pe.auscHeart || '정상'}), 폐음(${c.pe.auscLung || '정상'}), 복명음(${c.pe.auscBowel || '정상'})</p>
+            <p style="margin-top:4px;">• 권장 판정: <strong>${trueAsaStr} · ${c.truePrognosis}</strong></p>
+          </div>
+        `;
+      }
+
+      function buildChapter1AiPayload(task) {
+        const c = lastEvalReport.caseObj;
+        const spKr = c.species === 'cat' ? '고양이' : '개';
+        const doneExams = ['pe', 'lab', 'img'].filter((k) => examState[k] === 'done').map((k) => ({ pe: '신체검사', lab: '혈액검사', img: '영상검사' }[k]));
+        return {
+          task,
+          phase: 'chapter1',
+          species: spKr,
+          scenario: `${c.name} (${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex}) - ${c.chiefComplaint}`,
+          chatSummary: chatHistory.map((m) => `${m.sender === 'vet' ? '수의사' : '보호자'}: ${m.text}`).slice(-10).join(' | '),
+          examSummary: `실시 검사: ${doneExams.join(', ') || '없음'} / PE: BT ${c.pe.bt}, BP ${c.pe.bpSys}/${c.pe.bpDia}(${c.pe.bpMap}), HR ${c.pe.hr}, RR ${c.pe.rr}, CRT ${c.pe.crt}, MMC ${c.pe.mmc}, 심음 ${c.pe.auscHeart || '-'}, 폐음 ${c.pe.auscLung || '-'}, 복명음 ${c.pe.auscBowel || '-'} / 흉부 X-ray: VHS ${c.imaging && c.imaging.thoracic ? c.imaging.thoracic.vhs : '-'}`,
+          studentEval: `ASA ${lastEvalReport.chosenAsa}${lastEvalReport.chosenEmerg ? 'E' : ''} / ${lastEvalReport.chosenProg} (${lastEvalReport.score}점, ${lastEvalReport.grade})`,
+          trueEval: `ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} / ${c.truePrognosis}`
+        };
+      }
+
+      async function runAiLogAnalysis() {
+        if (!lastEvalReport) return;
+        rvAiEl.innerHTML = `<div class="b-card-soft" style="padding:14px; text-align:center;">AI 로그 분석 중...</div>`;
+        let text = '';
+        try {
+          const resp = await fetch('/api/ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify(buildChapter1AiPayload('debrief'))
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            text = (data && (data.analysis || data.text)) ? String(data.analysis || data.text).trim() : '';
+          }
+        } catch {}
+
+        if (!text) {
+          const c = lastEvalReport.caseObj;
+          text = `[오프라인 로그 분석]\n1) 문진 및 검사 수행: 총 ${chatHistory.filter((m) => m.sender === 'vet').length}회 문진, ${['pe', 'lab', 'img'].filter((k) => examState[k] === 'done').length}/3종 검사 완료.\n2) 판정 비교: 선택하신 ASA ${lastEvalReport.chosenAsa}${lastEvalReport.chosenEmerg ? 'E' : ''}·${lastEvalReport.chosenProg} 대비 기준은 ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''}·${c.truePrognosis}입니다.\n3) 보완 포인트: ${c.chiefComplaint} 환자의 청진(${c.pe.auscHeart || '정상'}) 및 주요 혈액·영상 이상 소견을 마취 전 처치 및 유도 계획에 반영하세요.`;
+        }
+        aiAnalysisText = text;
+        rvAiEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(text)}</div>`;
+      }
+
+      async function runSoapAnalysis() {
+        if (!lastEvalReport) return;
+        rvSoapEl.innerHTML = `<div class="b-card-soft" style="padding:14px; text-align:center;">AI SOAP 분석 생성 중...</div>`;
+        let text = '';
+        try {
+          const resp = await fetch('/api/ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify(buildChapter1AiPayload('soap_record'))
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            text = (data && (data.text || data.analysis)) ? String(data.text || data.analysis).trim() : '';
+          }
+        } catch {}
+
+        if (!text) {
+          const c = lastEvalReport.caseObj;
+          const spKr = c.species === 'cat' ? '고양이' : '개';
+          text = `S (Subjective)\n- ${c.name} (${spKr}, ${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex})\n- 주호소: ${c.chiefComplaint}\n- 병력: ${(c.history || []).map((h) => h.label + ' - ' + h.text).join(' / ')}\n\nO (Objective)\n- PE: BT ${c.pe.bt}°C, BP #${c.pe.cuff} ${c.pe.bpSys}/${c.pe.bpDia}(${c.pe.bpMap}) mmHg, HR ${c.pe.hr}/min, RR ${c.pe.rr}/min, CRT ${c.pe.crt}s, MMC ${c.pe.mmc}\n- 청진: 심음(${c.pe.auscHeart || '정상'}), 폐음(${c.pe.auscLung || '정상'}), 복명음(${c.pe.auscBowel || '정상'})\n- 영상: 흉부 X-ray VHS ${c.imaging && c.imaging.thoracic ? c.imaging.thoracic.vhs : '-'}, ${c.imaging && c.imaging.thoracic ? c.imaging.thoracic.lung : '-'}\n\nA (Assessment)\n- 마취 위험도: ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} / 예후: ${c.truePrognosis}\n\nP (Plan)\n- 확인된 기저 이상 교정 및 위험도에 맞춘 마취 전처치·유도·모니터링 플랜 수립 (Chapter 2 연계)`;
+        }
+        soapAnalysisText = text;
+        rvSoapEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(text)}</div>`;
+      }
+
       evalSubmitBtn.addEventListener('click', () => {
-        if (evaluated || !currentCase) return;
+        if (!currentCase) return;
+        if (evaluated) {
+          Settings.playTone(540, 0.05, 0.03);
+          setReviewTab('wrong');
+          reviewModalEl.classList.remove('hidden');
+          return;
+        }
         if (!selectedAsa || !selectedProg) {
           Settings.playTone(320, 0.08, 0.03);
           return;
         }
         evaluated = true;
-        evalSubmitBtn.disabled = true;
 
         let score = 100;
-        // Exam completeness check
         const examsDone = ['pe', 'lab', 'img'].filter((k) => examState[k] === 'done').length;
-        score -= (3 - examsDone) * 10;
+        const examPen = (3 - examsDone) * 10;
+        score -= examPen;
 
-        // Signalment discovery check
         const totalClues = 1 + (currentCase.history ? currentCase.history.length : 0);
         const missedClues = Math.max(0, totalClues - revealedKeys.size);
-        score -= Math.min(15, missedClues * 4);
+        const cluePen = Math.min(15, missedClues * 4);
+        score -= cluePen;
 
-        // ASA Grade distance penalty (-1 extra per step away from answer)
         const asaDiff = Math.abs(selectedAsa - Number(currentCase.trueAsa || 1));
-        score -= distancePenalty(asaDiff);
-        if (Boolean(selectedEmerg) !== Boolean(currentCase.trueEmergency)) score -= 5;
+        const emergPen = Boolean(selectedEmerg) !== Boolean(currentCase.trueEmergency) ? 5 : 0;
+        const asaPen = distancePenalty(asaDiff) + emergPen;
+        score -= asaPen;
 
-        // Prognosis distance penalty (-1 extra per step away from answer)
         const trueProgIdx = Math.max(0, PROG_ORDER.indexOf(currentCase.truePrognosis || 'Good'));
         const chosenProgIdx = Math.max(0, PROG_ORDER.indexOf(selectedProg));
         const progDiff = Math.abs(chosenProgIdx - trueProgIdx);
-        score -= distancePenalty(progDiff);
+        const progPen = distancePenalty(progDiff);
+        score -= progPen;
 
         score = Math.max(0, Math.min(100, Math.round(score)));
         const grade = scoreToGrade(score);
+
+        lastEvalReport = {
+          caseObj: currentCase,
+          chosenAsa: selectedAsa,
+          chosenEmerg: selectedEmerg,
+          chosenProg: selectedProg,
+          asaDiff,
+          progDiff,
+          asaPen,
+          progPen,
+          examPen,
+          cluePen,
+          score,
+          grade
+        };
+        aiAnalysisText = null;
+        soapAnalysisText = null;
+        rvWrongEl.innerHTML = buildOfflineWrongNoteHtml(lastEvalReport);
+
+        // Change '평가 확정' button -> '해설 보기'
+        evalSubmitBtn.textContent = '해설 보기';
+        evalSubmitBtn.disabled = false;
 
         // Slam 50%-opacity Red Rectangular Stamp inside Control Window
         stampAsaEl.textContent = `ASA ${selectedAsa}${selectedEmerg ? 'E' : ''}`;
@@ -763,9 +940,14 @@
         selectedEmerg = false;
         selectedProg = null;
         evaluated = false;
+        lastEvalReport = null;
+        aiAnalysisText = null;
+        soapAnalysisText = null;
 
         // Reset UI
+        reviewModalEl.classList.add('hidden');
         stampOverlayEl.classList.add('hidden');
+        evalSubmitBtn.textContent = '평가 확정';
         evalSubmitBtn.disabled = false;
         document.querySelectorAll('[data-asa], [data-prog], #ch1-asa-e').forEach((el) => el.classList.remove('active'));
         document.querySelectorAll('[data-exam-btn]').forEach((b) => {
@@ -773,6 +955,7 @@
           b.disabled = false;
         });
         document.querySelectorAll('[data-exam-slot]').forEach((s) => { s.innerHTML = ''; });
+        ['mon-sec-hx', 'mon-sec-pe', 'mon-sec-lab', 'mon-sec-img'].forEach((id) => setMonCollapsed(id, false));
         peBodyEl.innerHTML = '<div class="mon-empty">검사 전</div>';
         labBodyEl.innerHTML = '<div class="mon-empty">검사 전</div>';
         imgBodyEl.innerHTML = '<div class="mon-empty">검사 전</div>';
