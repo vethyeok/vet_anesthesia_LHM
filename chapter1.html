@@ -744,11 +744,9 @@
         });
       });
 
-      /* Progressive Distance Penalty: 1 step off = -5, 2 steps = -5-6 (-11), 3 steps = -5-6-7 (-18), 4 steps = -26 */
+      /* Distance Penalty: 1 step off = -5, 2 steps = -6, 3 steps = -7, 4 steps = -8 */
       function distancePenalty(diff) {
-        let p = 0;
-        for (let k = 1; k <= diff; k++) p += (4 + k);
-        return p;
+        return diff > 0 ? 4 + diff : 0;
       }
 
       function scoreToGrade(score) {
