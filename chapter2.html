@@ -757,8 +757,23 @@
         const synergies = [];
         let penalty = 0;
 
-        // 필수 기본 항목
-        if (!stab.length) { warnings.push('대기 중 안정화(수화 또는 산소화)가 선택되지 않았습니다.'); penalty += 6; }
+        const isCritical = c.trueAsa >= 4 || c.pe.bpMap < 70;
+        const heartSource = `${c.pe.auscHeart || ''} ${c.ownerClue || ''} ${c.chiefComplaint || ''} ${(c.imaging && c.imaging.thoracic && c.imaging.thoracic.extra) || ''}`;
+        const respSource = `${c.pe.auscLung || ''} ${c.chiefComplaint || ''} ${c.ownerClue || ''} ${(c.imaging && c.imaging.thoracic && c.imaging.thoracic.lung) || ''} ${(c.imaging && c.imaging.thoracic && c.imaging.thoracic.trachea) || ''}`;
+        const isHeart = /MMVD|HCM|심잡음|심비대|분마음|부정맥/i.test(heartSource);
+        const isResp = /개구호흡|폐수종|흉수|수포음|천명음|청색증|저산소|기관허탈|호흡곤란|BOAS|폐침윤/i.test(respSource) || (c.pe && c.pe.rr >= 45);
+
+        // 필수 기본 항목: 대기 중 안정화 (모두 누락 -6점 / 심장·호흡기=산소화 필수, 이외=수화 필수 누락 시 -3점)
+        if (!stab.length) {
+          warnings.push('대기 중 안정화(수화·산소화)가 모두 누락되었습니다. (-6점)');
+          penalty += 6;
+        } else if ((isHeart || isResp) && !stab.includes('산소화')) {
+          warnings.push('심장·호흡기 환자에서는 대기 중 산소화(필수 처치)가 필요합니다. (-3점)');
+          penalty += 3;
+        } else if (!(isHeart || isResp) && !stab.includes('수화')) {
+          warnings.push('대기 중 수화(필수 처치)가 누락되었습니다. (-3점)');
+          penalty += 3;
+        }
         if (!analg.length) { warnings.push('진통제/진통수액이 선택되지 않았습니다.'); penalty += 10; }
         if (!ind) { warnings.push('유도제가 선택되지 않았습니다.'); penalty += 18; }
         if (!maint) { warnings.push('유지제(Isoflurane 또는 Sevoflurane)가 선택되지 않았습니다.'); penalty += 15; }
@@ -811,8 +826,6 @@
         }
 
         // 환자 중증도·기저질환별 안전성
-        const isCritical = c.trueAsa >= 4 || c.pe.bpMap < 70;
-        const isHeart = /MMVD|HCM|심잡음|심비대/i.test((c.pe.auscHeart || '') + ' ' + (c.ownerClue || ''));
         if (isCritical && sed.includes('Acepromazine')) {
           warnings.push('중증·저혈압 금기: ASA IV~V 또는 저혈압 환자에서 Acepromazine은 역전 불가능한 저혈압을 악화시킵니다.');
           penalty += 15;
