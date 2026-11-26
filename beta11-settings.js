@@ -389,11 +389,18 @@
             <div id="ch-help-track" class="help-track">
               ${slides.map((s) => `
                 <div class="help-slide">
-                  <div class="help-img-slot">
-                    <span class="help-red-mark">${s.mark}</span>
-                    <strong style="color:var(--brown); font-family:var(--font-display);">${s.label}</strong>
-                    <span style="font-size:11px;">(빨간 마킹 예시 이미지 영역 · 좌우 드래그)</span>
-                  </div>
+                  ${s.img ? `
+                    <div class="help-img-slot has-img">
+                      <img src="${s.img}" alt="${s.label}" class="help-slide-img" draggable="false" />
+                    </div>
+                  ` : `
+                    <div class="help-img-slot">
+                      <span class="help-red-mark">${s.mark}</span>
+                      <strong style="color:var(--brown); font-family:var(--font-display);">${s.label}</strong>
+                      <span style="font-size:11px;">(빨간 마킹 예시 이미지 영역 · 좌우 드래그)</span>
+                    </div>
+                  `}
+                  <div style="font-family:var(--font-display); font-size:13.5px; font-weight:600; color:var(--brown);">${s.mark}. ${s.label}</div>
                   <p class="muted" style="line-height:1.55;">${s.desc}</p>
                 </div>
               `).join('')}
