@@ -623,13 +623,13 @@
     return pick;
   }
 
-  /* Detect Signalment items STRICTLY from what actually appeared in owner's chat reply (never from vetText alone) */
-  function extractTokens(str) {
+  /* Strict Signalment detection: ONLY reflect facts that genuinely appeared in the owner's actual chat reply */
+  function extractSpecificTokens(str) {
     return String(str || '')
       .toLowerCase()
       .replace(/[()[\],./·\-~?!:'"]/g, ' ')
       .split(/\s+/)
-      .filter((w) => w.length >= 2 && !/^(없음|있음|예정|내원|완료|관련|이상|특이|경도|중등도|이전|최근|상태|진단|의심|수술|검사|환자)$/.test(w));
+      .filter((w) => w.length >= 2 && !/^(없음|있음|예정|내원|완료|관련|이상|특이|특이사항|경도|중등도|이전|최근|상태|진단|의심|수술|마취|검사|환자|정상|활력|식욕|치료|관리|복용|약물|이력|경험|증상|병원|오늘|평소|어제|아침|저녁|시간|정도)$/.test(w));
   }
 
   function detectDiscoveredKeys(caseObj, ownerText = '') {
@@ -637,53 +637,82 @@
     if (!reply.trim() || !caseObj) return [];
     const hits = [];
 
-    const ccTokens = extractTokens(caseObj.chiefComplaint);
+    // 1. Chief complaint: must match specific clinical/procedure tokens from chiefComplaint
+    const ccTokens = extractSpecificTokens(caseObj.chiefComplaint);
     if (ccTokens.some((tok) => reply.includes(tok))) {
       hits.push('chiefComplaint');
     }
 
+    // 2. History items: strict category-aware matching so generic words never cause false positives
     (caseObj.history || []).forEach((h) => {
-      const kws = Array.isArray(h.keywords) ? h.keywords : [];
-      const textTokens = extractTokens(h.text);
-      const matchedKw = kws.some((kw) => kw && kw.length >= 2 && reply.includes(String(kw).toLowerCase()));
-      const matchedTok = textTokens.some((tok) => reply.includes(tok));
-      if (matchedKw || matchedTok) {
-        hits.push(h.key);
+      const k = String(h.key || '');
+      let matched = false;
+
+      if (k === 'hx_surg') {
+        matched = /(수술\s*(이력|경험|받은\s*적|한\s*적|했었|없)|마취\s*(이력|경험|받은\s*적|한\s*적|처음|첫)|이전\s*(마취|수술)|과거\s*(마취|수술)|첫\s*(전신)?마취|\d+세\s*(때\s*)?중성화|중성화\s*(외|이후|만)|위고정술|미중성화)/.test(reply);
+      } else if (k === 'hx_allergy') {
+        matched = /(알러지|알레르기|과민|약물\s*부작용|아토피|두드러기|닭고기)/.test(reply);
+      } else if (k === 'hx_fast') {
+        matched = /(금식|절식|공복|미금식|사료.*(치워|끊|안\s*먹|거부|전)|밥.*(안\s*먹|못\s*먹|거부|전)|습식\s*급여|식후\s*\d|\d+시간\s*(금식|절식|전)|어젯밤부터)/.test(reply);
+      } else {
+        const specTokens = extractSpecificTokens(h.text);
+        const hasMedPhrase = /(복용\s*(중|약|하고)|먹는\s*약|투약|기저질환|심장약|아포퀠|피모벤단|베트메딘|세민트라|이뇨제|기관지확장제|mmvd|hcm|ckd|gdv|flutd|담낭|무뇨|황달|허탈|개구호흡|후지\s*마비|유선종양|자궁축농증|선형\s*이물|비만|bcs)/.test(reply);
+        matched = hasMedPhrase || specTokens.filter((tok) => reply.includes(tok)).length >= 2;
       }
+
+      if (matched) hits.push(h.key);
     });
     return hits;
   }
 
-  /* Offline Owner Reply (respects hidden personality & knowledge level without exposing them) */
+  /* Offline Owner Reply: thoroughly answers EVERY part of long/multi-part questions and never volunteers unasked items */
   function buildOfflineOwnerReply(caseObj, question) {
     const q = String(question || '').trim().toLowerCase();
     const pers = caseObj.ownerPersonality || 'neutral';
     const lv = Number(caseObj.ownerLevel || 2);
 
-    const matchedHistory = (caseObj.history || []).filter((h) =>
-      (h.keywords || []).some((kw) => q.includes(String(kw).toLowerCase()))
-    );
+    const parts = [];
+    const askedCC = /주호소|어디가|어디\s*불편|왜\s*(오셨|내원)|무슨\s*(일|수술|시술|증상)|어떤\s*(일|수술|시술|증상)|내원\s*(이유|목적|하셨)|불편|아파|어떻게\s*오셨/.test(q);
+    if (askedCC && caseObj.chiefComplaint) {
+      parts.push(`${caseObj.chiefComplaint} 때문에 왔어요`);
+    }
+
+    (caseObj.history || []).forEach((h) => {
+      const k = String(h.key || '');
+      let asked = false;
+      if (k === 'hx_surg') {
+        asked = /수술\s*이력|마취\s*이력|이전\s*(수술|마취)|과거\s*(수술|마취)|수술.*적|마취.*적|경험|이력/.test(q);
+      } else if (k === 'hx_allergy') {
+        asked = /알러지|알레르기|과민|부작용/.test(q);
+      } else if (k === 'hx_fast') {
+        asked = /금식|절식|공복|밥|사료|먹|식사|음수|물/.test(q);
+      } else {
+        asked = (h.keywords || []).some((kw) => kw && kw.length >= 2 && q.includes(String(kw).toLowerCase()))
+          || /약|복용|기저|질환|병력|특이|증상/.test(q);
+      }
+      if (asked && h.text) {
+        parts.push(`${h.label}은(는) ${h.text}입니다`);
+      }
+    });
 
     let core = '';
-    if (matchedHistory.length) {
-      core = matchedHistory.map((h) => h.text).join('. ');
-    } else if (/어디|왜|무슨|오셨|내원|수술|증상|주호소/.test(q)) {
-      core = `${caseObj.chiefComplaint} 때문에 왔어요.`;
-    } else if (/안녕|반갑|어떻게/.test(q)) {
-      core = `${caseObj.chiefComplaint} 관련해서 검사 받으려고 왔습니다.`;
+    if (parts.length) {
+      core = parts.join('. ') + '.';
+    } else if (/안녕|반갑/.test(q)) {
+      core = `안녕하세요 선생님, ${caseObj.name} 진료 잘 부탁드립니다. 궁금하신 점을 여쭤봐 주세요.`;
     } else {
-      core = caseObj.ownerClue || `${caseObj.chiefComplaint} 외에 특별히 기억나는 건 잘 모르겠어요.`;
+      core = '정확히 어떤 부분을 여쭤보시는지 조금 더 구체적으로 말씀해 주시면 기억나는 대로 답해 드릴게요.';
     }
 
     if (lv <= 1) {
-      core = core.replace(/\b(MMVD|HCM|GDV|FLUTD|FORL|MPL|CKD|IRIS|OHE|BID)\b/gi, '병원에서 말한 증상');
+      core = core.replace(/\b(MMVD|HCM|GDV|FLUTD|FORL|MPL|CKD|IRIS|OHE|BID)\b/gi, '병원에서 들은 증상');
     }
 
-    if (pers === 'indifferent') return `${core} 바빠서 자세히는 못 봤는데 알아서 잘 봐주시겠죠.`;
+    if (pers === 'indifferent') return `${core} 바빠서 자세히는 못 챙겼는데 알아서 잘 봐주시겠죠.`;
     if (pers === 'optimistic') return `${core} 우리 ${caseObj.name} 원래 튼튼해서 잘 이겨낼 거예요!`;
     if (pers === 'anxious') return `${core} 혹시 마취 중에 큰 문제 생기는 건 아니겠죠? 너무 걱정돼요.`;
-    if (pers === 'urgent') return `${core} 선생님, 지금 상태 많이 안 좋은 건가요? 빨리 검사하고 조치해 주세요!`;
-    return `${core} 추가로 확인하실 부분이 있으면 말씀해 주세요.`;
+    if (pers === 'urgent') return `${core} 선생님, 지금 상태 괜찮은 건가요? 빨리 검사하고 조치해 주세요!`;
+    return `${core}`;
   }
 
   window.Beta11Ch1Data = {
