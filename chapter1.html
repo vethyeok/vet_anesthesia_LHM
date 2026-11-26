@@ -215,6 +215,7 @@
       let selectedProg = null;
       let evaluated = false;
       let postExamExplained = false;
+      let examBeforeChat = false;
       let recentPracticeNames = [];
 
       function clearAllTimers() {
@@ -624,6 +625,9 @@
       /* Buffered Loading Bar (0% -> 100%) -> Big '검사 완료' -> Fade Out Left -> Same-Position Slide-In '검사 결과 보기' */
       function startExam(type) {
         if (!currentCase || examState[type] !== 'idle') return;
+        if (!chatHistory.some((m) => m.sender === 'vet')) {
+          examBeforeChat = true;
+        }
         examState[type] = 'loading';
         Settings.playTone(540, 0.05, 0.03);
 
@@ -814,6 +818,7 @@
             <div class="modal-row"><span class="muted">미실시 검사</span><span>${missedExams.length ? `${missedExams.join(', ')} (-${rep.examPen}점)` : '없음 (모두 완료)'}</span></div>
             <div class="modal-row"><span class="muted">미확인 문진</span><span>${missedHx.length ? `${missedHx.join(', ')} (-${rep.cluePen}점)` : '없음 (모두 확인)'}</span></div>
             <div class="modal-row"><span class="muted">검사 후 상태 설명</span><span>${rep.postExamExplained ? '완료' : `미실시 (-${rep.explainPen}점)`}</span></div>
+            ${rep.examBeforeChat ? `<div class="modal-row"><span class="muted">진료 순서</span><span style="color:#b91c1c;">문진 전 검사 시행 (-${rep.orderPen}점)</span></div>` : ''}
           </div>
           <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
             <div class="b-label"><span>핵심 임상 해설</span></div>
@@ -916,6 +921,9 @@
         const explainPen = postExamExplained ? 0 : 10;
         score -= explainPen;
 
+        const orderPen = examBeforeChat ? 5 : 0;
+        score -= orderPen;
+
         const asaDiff = Math.abs(selectedAsa - Number(currentCase.trueAsa || 1));
         const emergPen = Boolean(selectedEmerg) !== Boolean(currentCase.trueEmergency) ? 5 : 0;
         const asaPen = distancePenalty(asaDiff) + emergPen;
@@ -943,6 +951,8 @@
           cluePen,
           explainPen,
           postExamExplained,
+          orderPen,
+          examBeforeChat,
           score,
           grade
         };
@@ -980,6 +990,7 @@
         selectedProg = null;
         evaluated = false;
         postExamExplained = false;
+        examBeforeChat = false;
         lastEvalReport = null;
         aiAnalysisText = null;
         soapAnalysisText = null;
