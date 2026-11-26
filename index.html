@@ -104,12 +104,32 @@
         <div class="setting-cell">
           <button id="btn-share" type="button" class="b-btn b-btn-sm" style="width:100%;">공유하기</button>
         </div>
+
+        <!-- 하단 전체: 초기화 -->
+        <div class="setting-cell" style="grid-column: 1 / -1;">
+          <button id="btn-reset-data" type="button" class="b-btn b-btn-sm" style="width:100%; color:#b91c1c;">초기화</button>
+        </div>
       </div>
 
       <div id="share-toast" class="share-toast" aria-live="polite"></div>
 
       <div class="modal-close-wrap">
         <button id="btn-settings-close" type="button" class="b-btn modal-close-btn">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 초기화 2단계 확인 팝업 -->
+  <div id="reset-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="reset-msg" style="backdrop-filter:blur(6px); z-index:120;">
+    <div class="modal-card" style="text-align:center;">
+      <p id="reset-msg" class="font-maru" style="font-size:17px; font-weight:600; color:var(--brown); line-height:1.55; margin-bottom:10px;">지금까지 저장된 내용을 초기화 합니다</p>
+      <p id="reset-warn" style="display:none; font-size:14.5px; font-weight:700; color:#dc2626; line-height:1.5; margin-bottom:14px;">경고, 정말로 초기화에 동의하십니까?</p>
+      <div id="reset-actions" style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
+        <button id="btn-reset-yes" type="button" class="b-btn b-btn-sm" style="flex:1; height:40px; border-radius:14px; color:#b91c1c;">예</button>
+        <button id="btn-reset-no" type="button" class="b-btn b-btn-sm" style="flex:1; height:40px; border-radius:14px;">아니오</button>
+      </div>
+      <div id="reset-done-wrap" class="modal-close-wrap" style="display:none; margin-top:14px;">
+        <button id="btn-reset-done" type="button" class="b-btn modal-close-btn">확인</button>
       </div>
     </div>
   </div>
@@ -207,6 +227,55 @@
     document.getElementById('btn-settings-close').addEventListener('click', () => settingsModal.classList.add('hidden'));
     settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
 
+    // 초기화 2단계 확인 팝업
+    const resetModal = document.getElementById('reset-modal');
+    const resetMsgEl = document.getElementById('reset-msg');
+    const resetWarnEl = document.getElementById('reset-warn');
+    const resetActionsEl = document.getElementById('reset-actions');
+    const resetDoneWrapEl = document.getElementById('reset-done-wrap');
+    let resetStep = 0;
+
+    function openResetModal() {
+      resetStep = 1;
+      resetMsgEl.textContent = '지금까지 저장된 내용을 초기화 합니다';
+      resetWarnEl.style.display = 'none';
+      resetActionsEl.style.display = 'flex';
+      resetDoneWrapEl.style.display = 'none';
+      resetModal.classList.remove('hidden');
+      Beta11Settings.playTone(460, 0.06, 0.03);
+    }
+
+    function returnToMainFromReset() {
+      resetModal.classList.add('hidden');
+      settingsModal.classList.add('hidden');
+      resetStep = 0;
+    }
+
+    document.getElementById('btn-reset-data').addEventListener('click', openResetModal);
+    document.getElementById('btn-reset-yes').addEventListener('click', () => {
+      if (resetStep === 1) {
+        resetStep = 2;
+        resetWarnEl.style.display = 'block';
+        Beta11Settings.playTone(340, 0.08, 0.035);
+      } else if (resetStep === 2) {
+        resetStep = 3;
+        Beta11Settings.resetProgress();
+        resetMsgEl.textContent = '초기화 되었습니다.';
+        resetWarnEl.style.display = 'none';
+        resetActionsEl.style.display = 'none';
+        resetDoneWrapEl.style.display = 'flex';
+        Beta11Settings.playTone(620, 0.08, 0.035);
+      }
+    });
+    document.getElementById('btn-reset-no').addEventListener('click', () => {
+      Beta11Settings.playTone(480, 0.05, 0.03);
+      returnToMainFromReset();
+    });
+    document.getElementById('btn-reset-done').addEventListener('click', () => {
+      Beta11Settings.playTone(520, 0.05, 0.03);
+      returnToMainFromReset();
+    });
+
     // 챕터 이동 버튼: 좌측 -> 우측 fade out 후 SPA 전환 (모바일 전체화면 유지!)
     document.querySelectorAll('a.menu-btn').forEach((link) => {
       link.addEventListener('click', (e) => {
@@ -235,6 +304,7 @@
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
+        resetModal.classList.add('hidden');
         settingsModal.classList.add('hidden');
         if (!creditsModal.classList.contains('hidden')) closeCredits();
       }

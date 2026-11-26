@@ -136,6 +136,10 @@
     });
   }
 
+  function resetProgress() {
+    try { localStorage.removeItem(KEY_PROG); } catch {}
+  }
+
   function triggerStageGlow() {
     const btn = document.getElementById('ch-btn-stage');
     if (btn) btn.classList.add('stage-glow');
@@ -839,9 +843,11 @@
     isFullscreenOn,
     getStageResult,
     isStageComplete,
+    isStagePassed,
     isStageUnlocked,
     saveStageResult,
     markStageComplete,
+    resetProgress,
     triggerStageGlow,
     clearStageGlow,
     playTone,
