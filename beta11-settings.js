@@ -168,6 +168,31 @@
     } catch {}
   }
 
+  let stampAudio = null;
+  function getStampAudio() {
+    if (!stampAudio && typeof Audio !== 'undefined') {
+      stampAudio = new Audio('assets/sound/stamp.mp3');
+      stampAudio.preload = 'auto';
+    }
+    return stampAudio;
+  }
+
+  function playStampSound() {
+    if (!isSoundOn()) return;
+    try {
+      const a = getStampAudio();
+      if (a) {
+        a.currentTime = 0;
+        const p = a.play();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => playTone(760, 0.12, 0.05));
+        }
+        return;
+      }
+    } catch {}
+    playTone(760, 0.12, 0.05);
+  }
+
   function getFontLevel() {
     try {
       const v = localStorage.getItem(KEY_FONT);
@@ -863,6 +888,7 @@
     triggerStageGlow,
     clearStageGlow,
     playTone,
+    playStampSound,
     toggleFullscreen,
     shareSimulator,
     navigateTo,

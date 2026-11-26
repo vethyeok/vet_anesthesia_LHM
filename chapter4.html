@@ -464,7 +464,7 @@
         document.getElementById('ch4-stamp-prog').textContent = 'MAINTAIN';
         document.getElementById('ch4-stamp-grade').textContent = currentStageId === 'tutorial' ? '완료' : grade;
         stampOverlayEl.classList.remove('hidden');
-        Settings.playTone(760, 0.12, 0.05);
+        Settings.playStampSound();
 
         Settings.saveStageResult(4, currentStageId, { grade, score });
         if (chapterCtrl) chapterCtrl.refreshStages();

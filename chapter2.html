@@ -1228,7 +1228,7 @@
         if (currentStageId !== 'tutorial' && grade === 'F') {
           openFailModal(score, grade);
         } else {
-          Settings.playTone(760, 0.12, 0.05);
+          Settings.playStampSound();
           Settings.triggerStageGlow();
         }
       });
