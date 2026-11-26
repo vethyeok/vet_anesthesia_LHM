@@ -925,7 +925,7 @@
         score -= orderPen;
 
         const asaDiff = Math.abs(selectedAsa - Number(currentCase.trueAsa || 1));
-        const emergPen = Boolean(selectedEmerg) !== Boolean(currentCase.trueEmergency) ? 5 : 0;
+        const emergPen = Boolean(selectedEmerg) !== Boolean(currentCase.trueEmergency) ? 10 : 0;
         const asaPen = distancePenalty(asaDiff) + emergPen;
         score -= asaPen;
 
