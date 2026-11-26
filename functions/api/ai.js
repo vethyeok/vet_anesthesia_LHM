@@ -165,17 +165,17 @@ ${realismRule}
 수의사의 설명을 실제로 듣고 이해(또는 지식 수준·성향에 따라 헷갈림/의구심/낙관/추가 확인)하며, 이미 안내받은 내용을 중복 질문하지 말고 현재 환자 상태에 맞는 자연스러운 반응이나 현실적인 후속 질문 1가지를 한국어로 작성하세요(지문·괄호 행동 묘사·이름 접두어 금지).`;
       }
     } else if (task === 'soap_record') {
-      if (body.phase === 'chapter1') {
-        prompt = `당신은 수의 마취과 전문의입니다. 아래 마취 전 평가(Chapter 1) 진료 데이터를 실제 동물병원 의무기록 SOAP 형식으로 한국어 12줄 이내로 명확히 작성하세요(마크다운 기호 최소화).
-환자: ${body.species} / ${body.scenario}, 문진 기록: ${body.chatSummary || '없음'}, 신체검사/혈검/영상 요약: ${body.examSummary || '없음'}, 학생 판정: ${body.studentEval || ''}, 정답 기준: ${body.trueEval || ''}`;
+      if (/^chapter[1-5]$/i.test(String(body.phase || ''))) {
+        prompt = `당신은 수의 마취과 전문의입니다. 아래 ${body.chapterLabel || body.phase} 시뮬레이션 기록을 실제 동물병원 의무기록 SOAP 형식으로 한국어 12줄 이내로 명확히 작성하세요(마크다운 기호 최소화).
+환자: ${body.species} / ${body.scenario}, 문진/대화: ${body.chatSummary || '없음'}, 검사/처치/바이탈 요약: ${body.examSummary || '없음'}, 학생 수행/판정: ${body.studentEval || ''}, 기준: ${body.trueEval || ''}`;
       } else {
         prompt = `아래 수의 마취 로그를 실제 동물병원 의무기록 SOAP 형식으로 한국어 10줄 이내로 간결히 정리하세요.
 환자: ${body.species} / ${body.scenario}, 경과: ${body.duration}, 상태: ${body.arrested ? '심정지 - ' + body.arrestReason : '유지'}, 지표: ${JSON.stringify(body.finalVitals || {})}, 로그: ${(body.recentLogs || []).join(' | ')}`;
       }
     } else {
-      if (body.phase === 'chapter1') {
-        prompt = `당신은 수의 마취과 교육자입니다. 아래 마취 전 검사(Chapter 1) 로그를 분석하여 1) 잘 파악한 임상 단서 2) 놓친 문진·검사 또는 ASA·예후 오차 원인 3) 다음 단계(마취 계획 수립) 전 핵심 보완 사항을 한국어 350자 내외로 간결히 피드백하세요.
-환자: ${body.species} / ${body.scenario}, 문진 기록: ${body.chatSummary || '없음'}, 실시 검사: ${body.examSummary || '없음'}, 학생 판정: ${body.studentEval || ''}, 정답 기준: ${body.trueEval || ''}`;
+      if (/^chapter[1-5]$/i.test(String(body.phase || ''))) {
+        prompt = `당신은 수의 마취과 교육자입니다. 아래 ${body.chapterLabel || body.phase} 시뮬레이션 로그를 분석하여 1) 잘 수행한 임상 판단 2) 놓친 부분 또는 오차 원인 3) 다음 단계 임상 보완 포인트를 한국어 350자 내외로 간결히 피드백하세요.
+환자: ${body.species} / ${body.scenario}, 대화/로그: ${body.chatSummary || '없음'}, 검사/처치 요약: ${body.examSummary || '없음'}, 학생 수행/판정: ${body.studentEval || ''}, 기준: ${body.trueEval || ''}`;
       } else {
         prompt = `당신은 수의 마취과 교육자입니다. 아래 로그를 보고 1) 핵심 악화 원인 2) 놓친 시점·아쉬운 처치 3) 권장 처치 순서를 한국어 350자 내외로 작성하세요.
 환자: ${body.species} / ${body.scenario}, 상태: ${body.arrestReason}, 지표: ${JSON.stringify(body.finalVitals || {})}, 로그: ${(body.recentLogs || []).join(' | ')}`;

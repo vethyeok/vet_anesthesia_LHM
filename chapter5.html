@@ -6,6 +6,7 @@
   <title>Chapter 5. 마취 회복 — 베타 1.1</title>
   <link rel="stylesheet" href="beta11.css" />
   <script src="beta11-settings.js"></script>
+  <script src="beta11-ch1-data.js"></script>
 </head>
 <body>
   <div class="app-shell chapter-shell">
@@ -16,86 +17,537 @@
       <div id="chapter-top-actions" class="top-actions"></div>
     </header>
 
-    <main class="page-body">
-      <div class="chapter-split">
-        <!-- 좌측(데스크탑): 회복기 모니터 -->
-        <div class="chapter-col">
-          <section class="monitor-mock" id="ch5-monitor">
-            <div style="display:flex; justify-content:space-between; font-size:10.5px; opacity:0.75;">
-              <span>회복기 모니터 (레이아웃)</span>
-              <span>연하반사 · EtIso</span>
-            </div>
-            <div class="monitor-row">
-              <div class="m-cell"><span class="mk">HR</span><span class="mv">--</span></div>
-              <div class="m-cell"><span class="mk">SpO₂</span><span class="mv">--%</span></div>
-              <div class="m-cell"><span class="mk">BT</span><span class="mv">--.-°</span></div>
-              <div class="m-cell"><span class="mk">EtIso</span><span class="mv">-.--</span></div>
-            </div>
-          </section>
-        </div>
-
-        <!-- 우측(데스크탑): 조작창 -->
-        <div class="chapter-col">
-          <div class="step-tabs" role="tablist">
-            <button type="button" class="step-tab active" data-pane="p1">1. 세척 · 발관</button>
-            <button type="button" class="step-tab" data-pane="p2">2. 회복 처치</button>
-            <button type="button" class="step-tab" data-pane="p3">3. 퇴원 · 리뷰</button>
+    <main class="ch1-page-body">
+      <div class="ch1-split" id="ch5-split">
+        <!-- 좌측(데스크탑) / 상단(모바일): 모니터링창 -->
+        <section class="ch1-monitor" id="ch5-monitor" aria-label="마취 회복 모니터링창">
+          <div class="ch1-sig-pinned">
+            <div class="ch1-sig-head" id="ch5-sig-head"></div>
+            <div class="ch1-cc-line" id="ch5-status-line"></div>
           </div>
 
-          <section class="b-card" data-content="p1">
-            <div class="b-label"><span>마취 가스 세척 &amp; 발관 결정</span></div>
-            <div class="wire-grid-2" style="margin-bottom:10px;">
-              <button type="button" class="b-btn b-btn-sm">기화기 OFF · O₂ 세척</button>
-              <button type="button" class="b-btn b-btn-sm">기관튜브 발관</button>
+          <div class="ch1-monitor-scroll">
+            <div class="mon-sec" id="ch5-sec-vitals">
+              <div class="mon-sec-title">
+                <span>1. 회복기 생체 모니터</span>
+                <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch5-sec-vitals">접기</button>
+              </div>
+              <div class="mon-sec-body">
+                <div class="monitor-mock" style="padding:10px;">
+                  <div class="monitor-row">
+                    <div class="m-cell"><span class="mk">HR</span><span class="mv" id="ch5-v-hr">--</span></div>
+                    <div class="m-cell"><span class="mk">SpO₂</span><span class="mv" id="ch5-v-spo2">--%</span></div>
+                    <div class="m-cell"><span class="mk">BT</span><span class="mv" id="ch5-v-bt">--.-°</span></div>
+                    <div class="m-cell"><span class="mk">EtIso</span><span class="mv" id="ch5-v-etiso">1.2%</span></div>
+                  </div>
+                  <div class="monitor-row" style="grid-template-columns:repeat(2,1fr);">
+                    <div class="m-cell"><span class="mk">연하반사</span><span class="mv" id="ch5-v-swallow" style="font-size:13px;">소실</span></div>
+                    <div class="m-cell"><span class="mk">회복 상태</span><span class="mv" id="ch5-v-behav" style="font-size:13px;">마취 중</span></div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="wire-box">
-              <span class="wire-tag">발관 준비도 확인 (연하반사·자발호흡·체온)</span>
-              <p class="muted">적정 발관 시점과 호흡·기도 상태를 확인하는 영역입니다.</p>
-            </div>
-          </section>
 
-          <section class="b-card pane-hidden" data-content="p2">
-            <div class="b-label"><span>필요 시 회복기 보조 처치 (선택적)</span></div>
-            <div class="wire-grid-2">
-              <button type="button" class="b-btn b-btn-sm">산소 공급</button>
-              <button type="button" class="b-btn b-btn-sm">능동 가온</button>
-              <button type="button" class="b-btn b-btn-sm">진통 · 진정</button>
-              <button type="button" class="b-btn b-btn-sm">필요 시 길항제</button>
+            <div class="mon-sec" id="ch5-sec-tx">
+              <div class="mon-sec-title">
+                <span>2. 회복 처치 기록</span>
+                <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch5-sec-tx">접기</button>
+              </div>
+              <div class="mon-sec-body">
+                <div class="sig-hx-list" id="ch5-tx-list"><div class="mon-empty">회복 대기 중</div></div>
+              </div>
             </div>
-          </section>
 
-          <section class="b-card pane-hidden" data-content="p3">
-            <div class="b-label"><span>보호자 퇴원 안내 &amp; 전주기 사후 피드백</span></div>
-            <div class="wire-box">
-              <span class="wire-tag">마취 종료 후 통합 리포트 영역</span>
-              <p class="muted">플레이 중 실시간 점수 부담 없이, 모든 챕터 종료 후 잘한 처치·보완점·약물 시너지 요약을 한 번에 복기하는 영역입니다.</p>
+            <div class="mon-sec" id="ch5-sec-home">
+              <div class="mon-sec-title">
+                <span>3. 보호자 퇴원 안내 확인</span>
+                <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch5-sec-home">접기</button>
+              </div>
+              <div class="mon-sec-body">
+                <div class="sig-hx-list" id="ch5-home-list"><div class="mon-empty">퇴원 안내 후 기록</div></div>
+              </div>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
+
+        <!-- 우측(데스크탑) / 하단(모바일): 조작창 -->
+        <section class="ch1-control" id="ch5-control" aria-label="마취 회복 조작창">
+          <div class="ch1-ctrl-handle" id="ch5-ctrl-handle" role="button" tabindex="0" aria-label="조작창 접기 및 펼치기">
+            <div class="ch1-ctrl-handle-bar"></div>
+          </div>
+
+          <div class="ch1-ctrl-tabs" role="tablist">
+            <button type="button" class="b-btn ch1-tab-btn active" data-pane="extub">세척 · 발관</button>
+            <button type="button" class="b-btn ch1-tab-btn" data-pane="care">회복 처치</button>
+            <button type="button" class="b-btn ch1-tab-btn" data-pane="discharge">퇴원 안내</button>
+          </div>
+
+          <div class="ch1-ctrl-body">
+            <!-- 1. 세척 · 발관 -->
+            <div class="ch1-pane" data-content="extub">
+              <div class="exam-btn-list">
+                <button type="button" class="b-btn exam-main-btn" id="ch5-btn-wash">기화기 OFF · 100% O₂ 세척</button>
+                <button type="button" class="b-btn exam-main-btn" id="ch5-btn-extub">기관튜브 커프 제거 및 발관</button>
+              </div>
+            </div>
+
+            <!-- 2. 회복 처치 -->
+            <div class="ch1-pane pane-hidden" data-content="care">
+              <div class="prog-grid">
+                <button type="button" class="b-btn prog-btn" data-care5="o2">Flow-by 산소 공급</button>
+                <button type="button" class="b-btn prog-btn" data-care5="warm">능동 가온 (저체온)</button>
+                <button type="button" class="b-btn prog-btn" data-care5="analg">진통제 추가 투여</button>
+                <button type="button" class="b-btn prog-btn" data-care5="sed">소량 진정 (불쾌감)</button>
+                <button type="button" class="b-btn prog-btn span-2" data-care5="rev">필요 시 길항제 투여 (Atipamezole / Flumazenil)</button>
+              </div>
+            </div>
+
+            <!-- 3. 퇴원 안내 & 회복 완료 -->
+            <div class="ch1-pane pane-hidden" data-content="discharge">
+              <div class="ch1-chat-log" id="ch5-chat-log"></div>
+              <form class="ch1-chat-form" id="ch5-chat-form" autocomplete="off">
+                <input id="ch5-chat-input" type="text" class="b-input" placeholder="식이 재개·투약·응급 재내원 주의사항 안내" />
+                <button id="ch5-chat-send" type="submit" class="b-btn b-btn-sm" style="flex-shrink:0;">안내</button>
+              </form>
+              <button type="button" class="b-btn" id="ch5-eval-submit" style="width:100%; height:42px; border-radius:14px; flex-shrink:0;">회복 완료</button>
+            </div>
+
+            <!-- 50% 투명도 빨간 사각형 도장 -->
+            <div id="ch5-stamp-overlay" class="ch1-stamp-overlay hidden" aria-live="polite">
+              <div class="ch1-stamp-asa" id="ch5-stamp-asa"></div>
+              <div class="ch1-stamp-prog" id="ch5-stamp-prog"></div>
+              <div class="ch1-stamp-grade" id="ch5-stamp-grade"></div>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   </div>
 
+  <!-- 해설 보기 팝업 -->
+  <div id="ch5-review-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" style="backdrop-filter:blur(6px);">
+    <div class="modal-card" style="max-width:420px; max-height:84dvh; display:flex; flex-direction:column;">
+      <h2 class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown); margin-bottom:10px;">해설 보기</h2>
+      <div class="step-tabs" role="tablist" style="margin-bottom:10px; flex-shrink:0;">
+        <button type="button" class="step-tab active" data-rv-tab="wrong">오답노트</button>
+        <button type="button" class="step-tab" data-rv-tab="ai">AI 로그 분석</button>
+        <button type="button" class="step-tab" data-rv-tab="soap">SOAP 분석</button>
+      </div>
+      <div style="flex:1 1 auto; overflow-y:auto; display:flex; flex-direction:column; gap:10px; min-height:180px;">
+        <div id="ch5-rv-wrong" data-rv-pane="wrong"></div>
+        <div id="ch5-rv-ai" data-rv-pane="ai" class="pane-hidden"></div>
+        <div id="ch5-rv-soap" data-rv-pane="soap" class="pane-hidden"></div>
+      </div>
+      <div class="modal-close-wrap" style="margin-top:12px; flex-shrink:0;">
+        <button id="ch5-review-close" type="button" class="b-btn modal-close-btn">닫기</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    Beta11Settings.initChapterCommon({
-      chapterNum: 5,
-      chapterTitle: '마취 회복',
-      helpSlides: [
-        { mark: '1', label: '마취 가스 세척 & 발관 타이밍', desc: '기화기 OFF 후 O₂ 세척과 연하반사·체온을 확인해 안전하게 발관합니다.' },
-        { mark: '2', label: '통증 vs 불쾌감 & 선택적 처치', desc: '필요한 경우에만 진통·진정·길항제·가온·산소를 선택해 투여합니다.' },
-        { mark: '3', label: '보호자 퇴원 안내 및 복기', desc: '퇴원 주의사항을 안내하고 전체 마취 경과 리포트를 확인합니다.' }
-      ],
-      tutorialSteps: [
-        { sel: '#ch5-monitor', text: '회복기 모니터에서 EtIso, 체온, 연하반사 추이를 확인합니다.' },
-        { sel: '.step-tabs', text: '세척·발관 → 회복 처치 → 퇴원·리뷰 순으로 마취를 안전하게 종료합니다.' }
-      ]
-    });
-    document.querySelectorAll('.step-tab').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.step-tab').forEach((t) => t.classList.toggle('active', t === tab));
-        document.querySelectorAll('[data-content]').forEach((p) => p.classList.toggle('pane-hidden', p.dataset.content !== tab.dataset.pane));
+    (function () {
+      const Data = window.Beta11Ch1Data;
+      const Settings = window.Beta11Settings;
+      if (!Data || !Settings) return;
+
+      const splitEl = document.getElementById('ch5-split');
+      const sigHeadEl = document.getElementById('ch5-sig-head');
+      const statusLineEl = document.getElementById('ch5-status-line');
+      const txListEl = document.getElementById('ch5-tx-list');
+      const homeListEl = document.getElementById('ch5-home-list');
+      const ctrlHandleEl = document.getElementById('ch5-ctrl-handle');
+      const btnWash = document.getElementById('ch5-btn-wash');
+      const btnExtub = document.getElementById('ch5-btn-extub');
+      const chatLogEl = document.getElementById('ch5-chat-log');
+      const chatFormEl = document.getElementById('ch5-chat-form');
+      const chatInputEl = document.getElementById('ch5-chat-input');
+      const chatSendBtn = document.getElementById('ch5-chat-send');
+      const evalSubmitBtn = document.getElementById('ch5-eval-submit');
+      const stampOverlayEl = document.getElementById('ch5-stamp-overlay');
+      const reviewModalEl = document.getElementById('ch5-review-modal');
+      const rvWrongEl = document.getElementById('ch5-rv-wrong');
+      const rvAiEl = document.getElementById('ch5-rv-ai');
+      const rvSoapEl = document.getElementById('ch5-rv-soap');
+
+      const HOME_ITEMS = [
+        { key: 'h_food', label: '식이 · 음수 재개', kws: ['밥', '사료', '물', '음수', '식이', '소량', '금식', '먹'] },
+        { key: 'h_med', label: '투약 · 안정 관리', kws: ['약', '진통', '항생제', '넥카라', '안정', '산책', '목욕', '보온', '체온'] },
+        { key: 'h_emerg', label: '응급 재내원 증상', kws: ['구토', '호흡', '출혈', '기력', '응급', '내원', '연락', '부종', '주의'] }
+      ];
+
+      let currentStageId = 'tutorial';
+      let currentCase = null;
+      let tickTimer = null;
+      let typingTimers = [];
+      let rec = null;
+      let txLogs = [];
+      let chatHistory = [];
+      let chatBusy = false;
+      let revealedHome = new Set();
+      let evaluated = false;
+      let lastReport = null;
+      let aiText = null;
+      let soapText = null;
+
+      function stopAll() {
+        if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+        typingTimers.forEach((t) => clearTimeout(t));
+        typingTimers = [];
+      }
+      window.__b11Cleanup = stopAll;
+
+      function escapeHtml(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+      const cl = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+      function setMonCollapsed(id, c) {
+        const sec = document.getElementById(id);
+        if (!sec) return;
+        sec.classList.toggle('is-collapsed', Boolean(c));
+        const b = sec.querySelector('.mon-toggle-btn');
+        if (b) b.textContent = c ? '열기' : '접기';
+      }
+      document.querySelectorAll('[data-mon-toggle]').forEach((b) => b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const sec = document.getElementById(b.dataset.monToggle);
+        if (!sec) return;
+        Settings.playTone(500, 0.04, 0.025);
+        setMonCollapsed(b.dataset.monToggle, !sec.classList.contains('is-collapsed'));
+      }));
+
+      function setCollapsed(c) {
+        if (window.innerWidth >= 960) { splitEl.classList.remove('ctrl-collapsed'); return; }
+        splitEl.classList.toggle('ctrl-collapsed', Boolean(c));
+      }
+      let hY = 0, hDrag = false, hMoved = false;
+      ctrlHandleEl.addEventListener('pointerdown', (e) => { if (window.innerWidth >= 960) return; hDrag = true; hMoved = false; hY = e.clientY; if (ctrlHandleEl.setPointerCapture) ctrlHandleEl.setPointerCapture(e.pointerId); });
+      ctrlHandleEl.addEventListener('pointermove', (e) => { if (!hDrag) return; const dy = e.clientY - hY; if (Math.abs(dy) > 20) { hMoved = true; setCollapsed(dy > 0); } });
+      const endH = () => { if (!hDrag) return; hDrag = false; if (!hMoved) setCollapsed(!splitEl.classList.contains('ctrl-collapsed')); };
+      ctrlHandleEl.addEventListener('pointerup', endH);
+      ctrlHandleEl.addEventListener('pointercancel', endH);
+      window.addEventListener('resize', () => { if (window.innerWidth >= 960) splitEl.classList.remove('ctrl-collapsed'); });
+
+      function activateTab(p) {
+        setCollapsed(false);
+        document.querySelectorAll('.ch1-tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.pane === p));
+        document.querySelectorAll('[data-content]').forEach((el) => el.classList.toggle('pane-hidden', el.dataset.content !== p));
+      }
+      document.querySelectorAll('.ch1-tab-btn').forEach((b) => b.addEventListener('click', () => { Settings.playTone(520, 0.04, 0.025); activateTab(b.dataset.pane); }));
+
+      function addTx(msg) {
+        txLogs.push(msg);
+        const empty = txListEl.querySelector('.mon-empty');
+        if (empty) empty.remove();
+        const row = document.createElement('div');
+        row.className = 'sig-hx-row';
+        row.textContent = `• ${msg}`;
+        txListEl.appendChild(row);
+      }
+
+      function renderMonitor() {
+        if (!rec) return;
+        document.getElementById('ch5-v-hr').textContent = Math.round(rec.hr);
+        document.getElementById('ch5-v-spo2').textContent = `${Math.round(rec.spo2)}%`;
+        document.getElementById('ch5-v-bt').textContent = `${rec.bt.toFixed(1)}°`;
+        document.getElementById('ch5-v-etiso').textContent = `${rec.etIso.toFixed(2)}%`;
+        document.getElementById('ch5-v-swallow').textContent = rec.swallow ? '회복 (2회+)' : '소실';
+        document.getElementById('ch5-v-behav').textContent = rec.extubated ? (rec.pain ? '통증 징후' : '안정 회복') : (rec.washed ? '가스 세척 중' : '마취 유지');
+
+        const st = rec.extubated ? '발관 완료 (퇴원 안내 단계)' : rec.swallow ? '연하반사 회복 — 발관 적정 시점' : rec.washed ? '100% O₂ 가스 세척 중' : '기화기 OFF 대기';
+        statusLineEl.innerHTML = `<strong>회복 단계:</strong> ${st}`;
+      }
+
+      function stepRec() {
+        if (!rec || evaluated) return;
+        if (rec.washed && rec.etIso > 0.08) {
+          rec.etIso = Math.max(0.05, rec.etIso - 0.14);
+          if (rec.etIso <= 0.35 && !rec.swallow) {
+            rec.swallow = true;
+            addTx('연하반사 2회 이상 확인 — 안전한 발관 시점 도달');
+          }
+        }
+        if (rec.warm) rec.bt = cl(rec.bt + 0.06, 35.0, 38.6);
+        if (rec.o2) rec.spo2 = cl(rec.spo2 + 0.6, 90, 100);
+        renderMonitor();
+      }
+
+      btnWash.addEventListener('click', () => {
+        if (!rec || rec.washed || evaluated) return;
+        rec.washed = true;
+        btnWash.classList.add('exam-done');
+        btnWash.disabled = true;
+        addTx('기화기 OFF 및 100% O₂ 가스 세척 시작');
+        Settings.playTone(620, 0.05, 0.03);
+        renderMonitor();
       });
-    });
+
+      btnExtub.addEventListener('click', () => {
+        if (!rec || rec.extubated || evaluated) return;
+        if (!rec.washed || !rec.swallow) {
+          rec.mistakes.push('연하반사 회복 전 조기 발관 시도 (기도 폐색·흡인 위험)');
+          addTx('경고: 연하반사 미회복 상태 조기 발관 시도');
+          Settings.playTone(320, 0.08, 0.03);
+          return;
+        }
+        rec.extubated = true;
+        btnExtub.classList.add('exam-done');
+        btnExtub.disabled = true;
+        addTx('커프 공기 제거 후 안전하게 기관튜브 발관 완료');
+        Settings.playTone(700, 0.07, 0.035);
+        renderMonitor();
+      });
+
+      document.querySelectorAll('[data-care5]').forEach((b) => b.addEventListener('click', () => {
+        if (!rec || evaluated) return;
+        const k = b.dataset.care5;
+        if (rec.cares.has(k)) return;
+        rec.cares.add(k);
+        b.classList.add('exam-done');
+        b.disabled = true;
+        if (k === 'o2') { rec.o2 = true; rec.spo2 = 99; addTx('Flow-by 산소 공급 실시'); }
+        else if (k === 'warm') { rec.warm = true; addTx('능동 가온(Warm air) 적용 — 체온 회복'); }
+        else if (k === 'analg') { rec.pain = false; rec.hr = Math.max(70, rec.hr - 18); addTx('회복기 추가 진통제 투여 — 통증 완화'); }
+        else if (k === 'sed') { addTx('소량 진정제 투여 — 각성 불쾌감 안정화'); }
+        else if (k === 'rev') { addTx('길항제 투여 — 각성 촉진'); }
+        Settings.playTone(600, 0.05, 0.03);
+        renderMonitor();
+      }));
+
+      function typeText(el, full) {
+        el.textContent = '';
+        let i = 0;
+        function step() {
+          if (i <= full.length) { el.textContent = full.slice(0, i++); typingTimers.push(setTimeout(step, 20)); }
+        }
+        step();
+      }
+
+      function revealHomeGuide(vetText) {
+        const low = String(vetText || '').toLowerCase();
+        const hits = [];
+        HOME_ITEMS.forEach((it) => {
+          if (!revealedHome.has(it.key) && it.kws.some((kw) => low.includes(kw))) {
+            revealedHome.add(it.key);
+            hits.push(it);
+          }
+        });
+        if (!hits.length) return [];
+        setMonCollapsed('ch5-sec-home', false);
+        const empty = homeListEl.querySelector('.mon-empty');
+        if (empty) empty.remove();
+        hits.forEach((it) => {
+          const row = document.createElement('div');
+          row.className = 'sig-hx-row';
+          row.innerHTML = `<span class="sig-hx-k">${it.label}:</span> <span class="sig-hx-v"></span>`;
+          homeListEl.appendChild(row);
+          typeText(row.querySelector('.sig-hx-v'), '안내 완료');
+        });
+        Settings.playTone(640, 0.05, 0.025);
+        return hits;
+      }
+
+      function appendBubble(sender, text, blueHighlight = false) {
+        const row = document.createElement('div');
+        row.className = `chat-row ${sender}`;
+        const b = document.createElement('div');
+        b.className = 'chat-bubble';
+        b.innerHTML = blueHighlight ? `<span class="chat-sig-blue">${escapeHtml(text)}</span>` : escapeHtml(text);
+        row.appendChild(b);
+        chatLogEl.appendChild(row);
+        chatLogEl.scrollTop = chatLogEl.scrollHeight;
+      }
+
+      chatFormEl.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (chatBusy || !currentCase) return;
+        const msg = chatInputEl.value.trim();
+        if (!msg) return;
+        chatInputEl.value = '';
+        const newHits = revealHomeGuide(msg);
+        appendBubble('vet', msg, newHits.length > 0);
+        chatHistory.push({ sender: 'vet', text: msg });
+        chatBusy = true;
+        chatSendBtn.disabled = true;
+
+        let reply = '';
+        try {
+          const r = await fetch('/api/ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify({
+              task: 'roleplay',
+              role: 'owner_recovery',
+              species: currentCase.species === 'cat' ? '고양이' : '개',
+              caseName: `${currentCase.name} (${currentCase.breed})`,
+              asa: `ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? '-E' : ''}`,
+              caseDesc: currentCase.chiefComplaint,
+              ownerPersonality: currentCase.ownerPersonality || 'neutral',
+              knowledgeLevel: currentCase.ownerLevel || 2,
+              chatHistory: chatHistory.slice(-10),
+              vetAdvice: msg
+            })
+          });
+          if (r.ok) { const d = await r.json(); if (d && d.text) reply = String(d.text).trim(); }
+        } catch {}
+
+        if (!reply) {
+          reply = revealedHome.size >= 3
+            ? '밥 먹이는 시간, 약 먹이는 방법, 응급 증상까지 꼼꼼히 알려주셔서 감사합니다! 집에 가서 잘 돌볼게요.'
+            : '알겠습니다 선생님. 혹시 집에서 밥·물 급여나 투약, 병원에 바로 와야 하는 응급 증상도 알려주실 수 있나요?';
+        }
+        const clean = reply.replace(/^\[ABORT\]\s*/i, '');
+        appendBubble('owner', clean, false);
+        chatHistory.push({ sender: 'owner', text: clean });
+        chatBusy = false;
+        chatSendBtn.disabled = false;
+      });
+
+      function setReviewTab(k) {
+        document.querySelectorAll('[data-rv-tab]').forEach((b) => b.classList.toggle('active', b.dataset.rvTab === k));
+        document.querySelectorAll('[data-rv-pane]').forEach((p) => p.classList.toggle('pane-hidden', p.dataset.rvPane !== k));
+        if (k === 'ai' && !aiText) runAiDebrief();
+        if (k === 'soap' && !soapText) runSoap();
+      }
+      document.querySelectorAll('[data-rv-tab]').forEach((b) => b.addEventListener('click', () => { Settings.playTone(520, 0.04, 0.025); setReviewTab(b.dataset.rvTab); }));
+      document.getElementById('ch5-review-close').addEventListener('click', () => reviewModalEl.classList.add('hidden'));
+      reviewModalEl.addEventListener('click', (e) => { if (e.target === reviewModalEl) reviewModalEl.classList.add('hidden'); });
+
+      function buildAiPayload(task) {
+        const c = lastReport.caseObj;
+        return {
+          task, phase: 'chapter5', chapterLabel: 'Chapter 5 마취 회복',
+          species: c.species === 'cat' ? '고양이' : '개',
+          scenario: `${c.name} (${c.breed}, ${c.weight}kg) - ${c.chiefComplaint}`,
+          chatSummary: chatHistory.map((m) => `${m.sender === 'vet' ? '수의사' : '보호자'}: ${m.text}`).slice(-8).join(' | '),
+          examSummary: `세척(${rec.washed ? '완료' : '미실시'}), 발관(${rec.extubated ? '완료' : '미실시'}), 처치(${Array.from(rec.cares).join(',') || '없음'}), 최종 BT ${rec.bt.toFixed(1)}°C`,
+          studentEval: `점수 ${lastReport.score}점 (${lastReport.grade}), 퇴원안내 ${revealedHome.size}/3`,
+          trueEval: '가스 세척 → 연하반사 확인 후 발관 → 저체온/통증 교정 → 보호자 퇴원 안내'
+        };
+      }
+      async function runAiDebrief() {
+        rvAiEl.innerHTML = '<div class="b-card-soft" style="padding:14px; text-align:center;">AI 로그 분석 중...</div>';
+        let t = '';
+        try { const r = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(buildAiPayload('debrief')) }); if (r.ok) { const d = await r.json(); t = (d.analysis || d.text || '').trim(); } } catch {}
+        if (!t) t = `[오프라인 회복 로그 분석]\n1) 발관 절차: 가스 세척(${rec.washed ? '완료' : '누락'}), 발관(${rec.extubated ? '완료' : '누락'}).\n2) 회복 처치: ${txLogs.length ? txLogs.join(' / ') : '없음'}.\n3) 퇴원 안내: ${revealedHome.size}/3 항목 전달 완료.`;
+        aiText = t;
+        rvAiEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(t)}</div>`;
+      }
+      async function runSoap() {
+        rvSoapEl.innerHTML = '<div class="b-card-soft" style="padding:14px; text-align:center;">AI SOAP 분석 생성 중...</div>';
+        let t = '';
+        try { const r = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(buildAiPayload('soap_record')) }); if (r.ok) { const d = await r.json(); t = (d.text || d.analysis || '').trim(); } } catch {}
+        if (!t) {
+          const c = lastReport.caseObj;
+          t = `S: ${c.name} (${c.breed}, ${c.weight}kg) 마취 종료 및 회복\nO: 최종 HR ${Math.round(rec.hr)}, SpO₂ ${Math.round(rec.spo2)}%, BT ${rec.bt.toFixed(1)}°C, EtIso ${rec.etIso.toFixed(2)}%, 발관 ${rec.extubated ? '완료' : '미완료'}\nA: 마취 회복 평가 ${lastReport.score}점 (${lastReport.grade})\nP: 퇴원 주의사항(식이·투약·응급 증상) 안내 완료 후 안정 귀가`;
+        }
+        soapText = t;
+        rvSoapEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(t)}</div>`;
+      }
+
+      evalSubmitBtn.addEventListener('click', () => {
+        if (!currentCase || !rec) return;
+        if (evaluated) { Settings.playTone(540, 0.05, 0.03); setReviewTab('wrong'); reviewModalEl.classList.remove('hidden'); return; }
+        evaluated = true;
+        stopAll();
+
+        let score = 100;
+        if (!rec.washed) score -= 20;
+        if (!rec.extubated) score -= 25;
+        if (rec.bt < 36.8 && !rec.warm) score -= 10;
+        score -= (3 - revealedHome.size) * 6;
+        score -= rec.mistakes.length * 8;
+        score = cl(Math.round(score), 0, 100);
+        const grade = score >= 95 ? 'S' : score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 50 ? 'D' : 'F';
+
+        lastReport = { caseObj: currentCase, score, grade };
+        aiText = null; soapText = null;
+        rvWrongEl.innerHTML = `
+          <div class="b-card-soft" style="padding:12px; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-family:var(--font-display); font-size:15px;">마취 회복 평가</strong>
+              <strong style="font-family:var(--font-display); font-size:17px; color:#dc2626;">${score}점 (${grade})</strong>
+            </div>
+            <div class="modal-row"><span class="muted">가스 세척 / 발관</span><strong>${rec.washed ? '완료' : '누락'} / ${rec.extubated ? '완료' : '누락'}</strong></div>
+            <div class="modal-row"><span class="muted">최종 체온 (BT)</span><strong>${rec.bt.toFixed(1)} °C</strong></div>
+            <div class="modal-row"><span class="muted">보호자 퇴원 안내</span><strong>${revealedHome.size} / 3</strong></div>
+          </div>
+          <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
+            <div class="b-label"><span>오답노트 (오프라인 분석)</span></div>
+            ${rec.mistakes.length ? rec.mistakes.map((m) => `<p style="color:#b91c1c;">• ${escapeHtml(m)}</p>`).join('') : '<p>• 안전한 가스 세척·발관 및 회복 관리를 완료했습니다.</p>'}
+          </div>
+        `;
+
+        evalSubmitBtn.textContent = '해설 보기';
+        document.getElementById('ch5-stamp-asa').textContent = rec.extubated ? 'EXTUBATED' : 'PENDING';
+        document.getElementById('ch5-stamp-prog').textContent = 'RECOVERY';
+        document.getElementById('ch5-stamp-grade').textContent = currentStageId === 'tutorial' ? '완료' : grade;
+        stampOverlayEl.classList.remove('hidden');
+        Settings.playTone(760, 0.12, 0.05);
+
+        Settings.saveStageResult(5, currentStageId, { grade, score });
+        if (chapterCtrl) chapterCtrl.refreshStages();
+        Settings.triggerStageGlow();
+      });
+
+      async function loadStage(stageId) {
+        stopAll();
+        currentStageId = stageId;
+        txLogs = [];
+        chatHistory = [];
+        chatBusy = false;
+        revealedHome = new Set();
+        evaluated = false;
+        lastReport = null;
+        aiText = null; soapText = null;
+
+        reviewModalEl.classList.add('hidden');
+        stampOverlayEl.classList.add('hidden');
+        evalSubmitBtn.textContent = '회복 완료';
+        document.querySelectorAll('.exam-main-btn, [data-care5]').forEach((b) => { b.classList.remove('exam-done'); b.disabled = false; });
+        ['ch5-sec-vitals', 'ch5-sec-tx', 'ch5-sec-home'].forEach((id) => setMonCollapsed(id, false));
+        txListEl.innerHTML = '<div class="mon-empty">회복 대기 중</div>';
+        homeListEl.innerHTML = '<div class="mon-empty">퇴원 안내 후 기록</div>';
+        chatLogEl.innerHTML = '';
+        activateTab('extub');
+
+        if (stageId === 'practice_dog' || stageId === 'practice_cat') {
+          sigHeadEl.innerHTML = '<span>환자 생성 중...</span>';
+          currentCase = await Data.generatePracticeCase(stageId === 'practice_cat' ? 'cat' : 'dog');
+        } else {
+          currentCase = Data.getFixedCase(stageId);
+        }
+
+        const spKr = currentCase.species === 'cat' ? '고양이' : '개';
+        sigHeadEl.innerHTML = `<span>${currentCase.name}</span><span class="ch1-sig-meta">${spKr} · ${currentCase.breed} · ${currentCase.age} · ${currentCase.weight} kg</span>`;
+        rec = {
+          hr: currentCase.pe.hr, spo2: 96, bt: Math.min(36.7, currentCase.pe.bt - 1.4), etIso: 1.2,
+          washed: false, swallow: false, extubated: false, o2: false, warm: false, pain: currentCase.trueAsa >= 3,
+          cares: new Set(), mistakes: []
+        };
+        const greet = `선생님, ${currentCase.name} 수술 잘 끝났나요? 집에 데려가서 주의해야 할 점 알려주세요!`;
+        appendBubble('owner', greet, false);
+        chatHistory.push({ sender: 'owner', text: greet });
+        renderMonitor();
+        tickTimer = setInterval(stepRec, 1000);
+      }
+
+      const chapterCtrl = Settings.initChapterCommon({
+        chapterNum: 5,
+        chapterTitle: '마취 회복',
+        initialStageId: 'tutorial',
+        helpSlides: [
+          { mark: '1', label: '마취 가스 세척 및 발관', desc: '기화기 OFF 후 100% O₂ 세척으로 EtIso를 낮추고 연하반사 회복 시 발관합니다.' },
+          { mark: '2', label: '회복기 보조 처치', desc: '저체온 가온, 산소 공급, 통증·불쾌감 관리를 환자 상태에 맞게 선택합니다.' },
+          { mark: '3', label: '보호자 퇴원 안내', desc: '식이 재개, 투약, 응급 재내원 증상을 설명하고 회복을 완료합니다.' }
+        ],
+        tutorialSteps: [
+          { sel: '#ch5-monitor', text: '회복기 모니터에서 EtIso, 체온, 연하반사 회복 상태를 확인합니다.' },
+          { sel: '.ch1-ctrl-tabs', text: '세척·발관 → 회복 처치 → 퇴원 안내 순으로 진행합니다.' }
+        ],
+        onSelectStage: (stageId) => loadStage(stageId)
+      });
+
+      loadStage('tutorial');
+    })();
   </script>
 </body>
 </html>

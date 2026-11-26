@@ -260,6 +260,11 @@
       const curShell = document.querySelector('.app-shell');
       if (!newShell || !curShell) throw new Error('Missing app-shell');
 
+      if (typeof window.__b11Cleanup === 'function') {
+        try { window.__b11Cleanup(); } catch {}
+        window.__b11Cleanup = null;
+      }
+
       document.querySelectorAll('.modal-backdrop, #ch-modal-host, .tut-backdrop, .tut-callout').forEach((el) => el.remove());
 
       document.title = doc.title || document.title;
