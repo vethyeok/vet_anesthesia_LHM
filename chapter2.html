@@ -634,18 +634,16 @@
         return { stab, abx, inj, analg, sed, ind, maint, fluid, warnings, synergies, penalty };
       }
 
-      /* Render Box 2: 2. 마취 플랜 (8 structured rows) */
+      /* Render Box 2: 2. 마취 플랜 (5 structured rows) */
       function renderPlanAndSynergy() {
         if (!currentCase) return;
         const ev = evaluatePlan(currentCase);
         const fmt = (arr) => (arr && arr.length ? escapeHtml(arr.join(', ')) : '<span class="muted">미선택</span>');
+        const allInjectables = [...ev.abx, ...ev.inj, ...ev.sed, ...ev.analg];
         planBodyEl.innerHTML = `
           <div class="sig-hx-list">
             <div class="sig-hx-row"><span class="sig-hx-k">대기 중 안정화:</span><span>${fmt(ev.stab)}</span></div>
-            <div class="sig-hx-row"><span class="sig-hx-k">항생제:</span><span>${fmt(ev.abx)}</span></div>
-            <div class="sig-hx-row"><span class="sig-hx-k">주사제:</span><span>${fmt(ev.inj)}</span></div>
-            <div class="sig-hx-row"><span class="sig-hx-k">진통제:</span><span>${fmt(ev.analg)}</span></div>
-            <div class="sig-hx-row"><span class="sig-hx-k">진정제:</span><span>${fmt(ev.sed)}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">주사제:</span><span>${fmt(allInjectables)}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유도제:</span><span>${ev.ind ? escapeHtml(ev.ind) : '<span class="muted">미선택</span>'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유지제:</span><span>${ev.maint ? escapeHtml(ev.maint) : '<span class="muted">미선택</span>'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">수액:</span><span>${fmt(ev.fluid)}</span></div>
@@ -875,8 +873,7 @@
               <strong style="font-family:var(--font-display); font-size:17px; color:#dc2626;">${score}점 (${grade})</strong>
             </div>
             <div class="modal-row"><span class="muted">대기 중 안정화</span><strong>${ev.stab.join(', ') || '미선택'}</strong></div>
-            <div class="modal-row"><span class="muted">항생제 / 주사제</span><strong>${[...ev.abx, ...ev.inj].join(', ') || '미선택'}</strong></div>
-            <div class="modal-row"><span class="muted">진통제 / 진정제</span><strong>${[...ev.analg, ...ev.sed].join(', ') || '미선택'}</strong></div>
+            <div class="modal-row"><span class="muted">주사제</span><strong>${[...ev.abx, ...ev.inj, ...ev.sed, ...ev.analg].join(', ') || '미선택'}</strong></div>
             <div class="modal-row"><span class="muted">유도제 / 유지제</span><strong>${ev.ind || '미선택'} / ${ev.maint || '미선택'}</strong></div>
             <div class="modal-row"><span class="muted">수액</span><strong>${ev.fluid.join(', ') || '미선택'}</strong></div>
             <div class="modal-row"><span class="muted">보호자 안내</span><strong>${revealedConsents.size} / ${CONSENT_ITEMS.length} 완료</strong></div>
