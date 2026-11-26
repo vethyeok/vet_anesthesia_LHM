@@ -142,6 +142,16 @@
                   <button type="button" class="b-btn prog-btn" data-maint="Sevoflurane">Sevoflurane</button>
                 </div>
               </div>
+
+              <div>
+                <div class="eval-sec-lbl">수액 (수액 처치 계획 · 복수 선택)</div>
+                <div class="prog-grid">
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="fluid" data-val="LRS">LRS</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="fluid" data-val="Plasma-Lyte">Plasma-Lyte</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="fluid" data-val="0.9% NaCl">0.9% NaCl</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="fluid" data-val="H/S + KCl">H/S + KCl</button>
+                </div>
+              </div>
             </div>
 
             <!-- 2. 약물 시너지 / 금기 미리보기 -->
@@ -291,7 +301,8 @@
         analg: new Set(),
         sed: new Set(),
         ind: null,
-        maint: null
+        maint: null,
+        fluid: new Set()
       };
       let revealedConsents = new Set();
       let chatHistory = [];
@@ -584,7 +595,7 @@
       }
       document.querySelectorAll('.ch1-tab-btn').forEach((b) => b.addEventListener('click', () => { Settings.playTone(520, 0.04, 0.025); activateTab(b.dataset.pane); }));
 
-      /* Evaluate 7-Category Plan & Synergies */
+      /* Evaluate 8-Category Plan & Synergies */
       function evaluatePlan(c) {
         const stab = Array.from(planState.stab);
         const abx = Array.from(planState.abx);
@@ -593,12 +604,14 @@
         const sed = Array.from(planState.sed);
         const ind = planState.ind;
         const maint = planState.maint;
+        const fluid = Array.from(planState.fluid);
 
         const warnings = [];
         const synergies = [];
         let penalty = 0;
 
-        if (!stab.some((s) => /수화/.test(s))) { warnings.push('대기 중 안정화(수화) 계획이 누락되었습니다.'); penalty += 8; }
+        if (!stab.some((s) => /수화/.test(s))) { warnings.push('대기 중 안정화(수화) 계획이 누락되었습니다.'); penalty += 6; }
+        if (!fluid.length) { warnings.push('수액 처치 계획이 선택되지 않았습니다.'); penalty += 8; }
         if (!analg.length) { warnings.push('진통제/진통수액이 선택되지 않았습니다.'); penalty += 10; }
         if (!ind) { warnings.push('유도제가 선택되지 않았습니다.'); penalty += 18; }
         if (!maint) { warnings.push('유지제(Isoflurane 또는 Sevoflurane)가 선택되지 않았습니다.'); penalty += 15; }
@@ -625,10 +638,10 @@
           synergies.push('혈역학적 안정 유도제 선택: 중증 환자에서 혈압 저하를 최소화합니다.');
         }
 
-        return { stab, abx, inj, analg, sed, ind, maint, warnings, synergies, penalty };
+        return { stab, abx, inj, analg, sed, ind, maint, fluid, warnings, synergies, penalty };
       }
 
-      /* Render Box 2: 2. 마취 플랜 (7 structured rows) */
+      /* Render Box 2: 2. 마취 플랜 (8 structured rows) */
       function renderPlanAndSynergy() {
         if (!currentCase) return;
         const ev = evaluatePlan(currentCase);
@@ -642,6 +655,7 @@
             <div class="sig-hx-row"><span class="sig-hx-k">진정제:</span><span>${fmt(ev.sed)}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유도제:</span><span>${ev.ind ? escapeHtml(ev.ind) : '<span class="muted">미선택</span>'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유지제:</span><span>${ev.maint ? escapeHtml(ev.maint) : '<span class="muted">미선택</span>'}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">수액:</span><span>${fmt(ev.fluid)}</span></div>
           </div>
         `;
 
@@ -801,7 +815,7 @@
           species: c.species === 'cat' ? '고양이' : '개',
           scenario: `${c.name} (${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex}) - ${c.chiefComplaint}`,
           chatSummary: chatHistory.map((m) => `${m.sender === 'vet' ? '수의사' : '보호자'}: ${m.text}`).slice(-8).join(' | '),
-          examSummary: `안정화: ${ev.stab.join(',') || '없음'} / 항생제: ${ev.abx.join(',') || '없음'} / 주사제: ${ev.inj.join(',') || '없음'} / 진통제: ${ev.analg.join(',') || '없음'} / 진정제: ${ev.sed.join(',') || '없음'} / 유도제: ${ev.ind || '없음'} / 유지제: ${ev.maint || '없음'}`,
+          examSummary: `안정화: ${ev.stab.join(',') || '없음'} / 항생제: ${ev.abx.join(',') || '없음'} / 주사제: ${ev.inj.join(',') || '없음'} / 진통제: ${ev.analg.join(',') || '없음'} / 진정제: ${ev.sed.join(',') || '없음'} / 유도제: ${ev.ind || '없음'} / 유지제: ${ev.maint || '없음'} / 수액: ${ev.fluid.join(',') || '없음'}`,
           studentEval: `점수 ${lastReport.score}점 (${lastReport.grade}), 보호자 안내 ${revealedConsents.size}/${CONSENT_ITEMS.length}`,
           trueEval: `ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} (${c.truePrognosis}) 맞춤 안전 프로토콜`
         };
@@ -816,7 +830,7 @@
         } catch {}
         if (!t) {
           const ev = lastReport.ev;
-          t = `1) 선택한 마취 플랜: 안정화(${ev.stab.join(', ') || '미선택'}), 항생제(${ev.abx.join(', ') || '미선택'}), 진통제(${ev.analg.join(', ') || '미선택'}), 진정제(${ev.sed.join(', ') || '미선택'}), 유도제(${ev.ind || '미선택'}), 유지제(${ev.maint || '미선택'}).\n2) 시너지·주의 사항: ${ev.warnings.length ? ev.warnings.join(' / ') : '치명적 약물 금기 없이 균형 잡힌 플랜입니다.'}\n3) 보호자 안내: ${revealedConsents.size}/${CONSENT_ITEMS.length} 항목 완료.`;
+          t = `1) 선택한 마취 플랜: 안정화(${ev.stab.join(', ') || '미선택'}), 항생제(${ev.abx.join(', ') || '미선택'}), 진통제(${ev.analg.join(', ') || '미선택'}), 진정제(${ev.sed.join(', ') || '미선택'}), 유도제(${ev.ind || '미선택'}), 유지제(${ev.maint || '미선택'}), 수액(${ev.fluid.join(', ') || '미선택'}).\n2) 시너지·주의 사항: ${ev.warnings.length ? ev.warnings.join(' / ') : '치명적 약물 금기 없이 균형 잡힌 플랜입니다.'}\n3) 보호자 안내: ${revealedConsents.size}/${CONSENT_ITEMS.length} 항목 완료.`;
         }
         aiText = t;
         rvAiEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(t)}</div>`;
@@ -832,7 +846,7 @@
         if (!t) {
           const c = lastReport.caseObj;
           const ev = lastReport.ev;
-          t = `S: ${c.name} (${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex}) — ${c.chiefComplaint}\nO: ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} (${c.truePrognosis}), 청진 ${c.pe.auscHeart}\nA: 마취 전 위험 평가 및 맞춤 약물 계획 수립 (${lastReport.score}점, ${lastReport.grade})\nP: 안정화(${ev.stab.join(', ') || '-'}), 항생제(${ev.abx.join(', ') || '-'}), 진통제(${ev.analg.join(', ') || '-'}), 진정제(${ev.sed.join(', ') || '-'}), 유도(${ev.ind || '-'}), 유지(${ev.maint || '-'})`;
+          t = `S: ${c.name} (${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex}) — ${c.chiefComplaint}\nO: ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} (${c.truePrognosis}), 청진 ${c.pe.auscHeart}\nA: 마취 전 위험 평가 및 맞춤 약물 계획 수립 (${lastReport.score}점, ${lastReport.grade})\nP: 안정화(${ev.stab.join(', ') || '-'}), 항생제(${ev.abx.join(', ') || '-'}), 진통제(${ev.analg.join(', ') || '-'}), 진정제(${ev.sed.join(', ') || '-'}), 유도(${ev.ind || '-'}), 유지(${ev.maint || '-'}), 수액(${ev.fluid.join(', ') || '-'})`;
         }
         soapText = t;
         rvSoapEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(t)}</div>`;
@@ -871,6 +885,7 @@
             <div class="modal-row"><span class="muted">항생제 / 주사제</span><strong>${[...ev.abx, ...ev.inj].join(', ') || '미선택'}</strong></div>
             <div class="modal-row"><span class="muted">진통제 / 진정제</span><strong>${[...ev.analg, ...ev.sed].join(', ') || '미선택'}</strong></div>
             <div class="modal-row"><span class="muted">유도제 / 유지제</span><strong>${ev.ind || '미선택'} / ${ev.maint || '미선택'}</strong></div>
+            <div class="modal-row"><span class="muted">수액</span><strong>${ev.fluid.join(', ') || '미선택'}</strong></div>
             <div class="modal-row"><span class="muted">보호자 안내</span><strong>${revealedConsents.size} / ${CONSENT_ITEMS.length} 완료</strong></div>
           </div>
           <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
@@ -902,7 +917,8 @@
           analg: new Set(),
           sed: new Set(),
           ind: null,
-          maint: null
+          maint: null,
+          fluid: new Set()
         };
         revealedConsents = new Set();
         chatHistory = [];
