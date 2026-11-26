@@ -414,7 +414,7 @@
                       <span style="font-size:11px;">(빨간 마킹 예시 이미지 영역 · 좌우 드래그)</span>
                     </div>
                   `}
-                  <div style="font-family:var(--font-display); font-size:13.5px; font-weight:600; color:var(--brown);">${s.mark}. ${s.label}</div>
+                  <div style="font-family:var(--font-display); font-size:13.5px; font-weight:600; color:var(--brown);">${s.mark ? `${s.mark}. ` : ''}${s.label || ''}</div>
                   <p class="muted" style="line-height:1.55;">${s.desc}</p>
                 </div>
               `).join('')}
