@@ -224,14 +224,19 @@
       }
 
       function setCollapsed(collapsed) {
+        if (window.innerWidth >= 960) {
+          splitEl.classList.remove('ctrl-collapsed');
+          return;
+        }
         splitEl.classList.toggle('ctrl-collapsed', Boolean(collapsed));
       }
 
-      /* Thin Gray Bar Drag Down -> Collapse Control Body / Drag Up -> Expand */
+      /* Thin Gray Bar Drag Down -> Collapse Control Body / Drag Up -> Expand (Mobile only) */
       let handleStartY = 0;
       let handleDragging = false;
       let handleMoved = false;
       ctrlHandleEl.addEventListener('pointerdown', (e) => {
+        if (window.innerWidth >= 960) return;
         handleDragging = true;
         handleMoved = false;
         handleStartY = e.clientY;
@@ -252,6 +257,9 @@
       };
       ctrlHandleEl.addEventListener('pointerup', endHandleDrag);
       ctrlHandleEl.addEventListener('pointercancel', endHandleDrag);
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 960) splitEl.classList.remove('ctrl-collapsed');
+      });
 
       /* Vertical pointer-drag scrolling on Monitoring Window for desktop mouse convenience */
       let monDrag = false;
@@ -441,7 +449,7 @@
         }
 
         const cleanReply = reply.replace(/^\[ABORT\]\s*/i, '');
-        const hits = Data.detectDiscoveredKeys(currentCase, q, cleanReply);
+        const hits = Data.detectDiscoveredKeys(currentCase, cleanReply);
         const ownerHtml = formatOwnerChatHtml(cleanReply, currentCase, hits);
         appendBubble('owner', cleanReply, ownerHtml);
         chatHistory.push({ sender: 'owner', text: cleanReply });
@@ -478,9 +486,14 @@
             <div class="pe-cell"><span class="pe-k">RR</span><span class="pe-v ${abnRR ? 'is-abn' : ''}">${p.rr} /min</span></div>
             <div class="pe-cell"><span class="pe-k">CRT</span><span class="pe-v ${abnCRT ? 'is-abn' : ''}">${p.crt} s</span></div>
             <div class="pe-cell"><span class="pe-k">MMC</span><span class="pe-v ${abnMMC ? 'is-abn' : ''}">${p.mmc}</span></div>
-            <div class="pe-cell span-2"><span class="pe-k">청진 · 심잡음</span><span class="pe-v ${abnHeart ? 'is-abn' : ''}">${auscHeart}</span></div>
-            <div class="pe-cell span-2"><span class="pe-k">청진 · 폐음</span><span class="pe-v ${abnLung ? 'is-abn' : ''}">${auscLung}</span></div>
-            <div class="pe-cell span-2"><span class="pe-k">청진 · 복명음</span><span class="pe-v ${abnBowel ? 'is-abn' : ''}">${auscBowel}</span></div>
+            <div class="pe-cell span-2">
+              <span class="pe-k">청진</span>
+              <div class="pe-ausc-lines">
+                <div class="pe-ausc-row"><span class="pe-ausc-k">심잡음:</span><span class="pe-v ${abnHeart ? 'is-abn' : ''}" style="font-size:inherit;">${auscHeart}</span></div>
+                <div class="pe-ausc-row"><span class="pe-ausc-k">폐음:</span><span class="pe-v ${abnLung ? 'is-abn' : ''}" style="font-size:inherit;">${auscLung}</span></div>
+                <div class="pe-ausc-row"><span class="pe-ausc-k">복명음:</span><span class="pe-v ${abnBowel ? 'is-abn' : ''}" style="font-size:inherit;">${auscBowel}</span></div>
+              </div>
+            </div>
           </div>
         `;
       }
@@ -655,6 +668,7 @@
         Settings.playTone(720, 0.06, 0.03);
 
         const btn = document.querySelector(`[data-exam-btn="${type}"]`);
+        const slot = document.querySelector(`[data-exam-slot="${type}"]`);
         const viewBtn = document.querySelector(`[data-view-btn="${type}"]`);
         btn.classList.add('exam-done');
         btn.disabled = true;
@@ -676,6 +690,11 @@
           renderImaging(currentCase);
           document.getElementById('mon-sec-img').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
+
+        const tHide = setTimeout(() => {
+          if (slot) slot.innerHTML = '';
+        }, 260);
+        examTimers.push(tHide);
       }
 
       document.querySelectorAll('[data-exam-btn]').forEach((btn) => {

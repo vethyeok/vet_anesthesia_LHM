@@ -623,17 +623,31 @@
     return pick;
   }
 
-  /* Detect which Signalment items (chiefComplaint + history[]) match the vet's question or owner reply */
-  function detectDiscoveredKeys(caseObj, vetText, ownerText = '') {
-    const combined = `${vetText || ''} ${ownerText || ''}`.toLowerCase();
+  /* Detect Signalment items STRICTLY from what actually appeared in owner's chat reply (never from vetText alone) */
+  function extractTokens(str) {
+    return String(str || '')
+      .toLowerCase()
+      .replace(/[()[\],./·\-~?!:'"]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length >= 2 && !/^(없음|있음|예정|내원|완료|관련|이상|특이|경도|중등도|이전|최근|상태|진단|의심|수술|검사|환자)$/.test(w));
+  }
+
+  function detectDiscoveredKeys(caseObj, ownerText = '') {
+    const reply = String(ownerText || '').toLowerCase();
+    if (!reply.trim() || !caseObj) return [];
     const hits = [];
 
-    if (/주호소|어디|왜|무슨|오셨|내원|수술|시술|증상|아파|불편|문제|안녕/.test(combined)) {
+    const ccTokens = extractTokens(caseObj.chiefComplaint);
+    if (ccTokens.some((tok) => reply.includes(tok))) {
       hits.push('chiefComplaint');
     }
+
     (caseObj.history || []).forEach((h) => {
       const kws = Array.isArray(h.keywords) ? h.keywords : [];
-      if (kws.some((kw) => combined.includes(String(kw).toLowerCase()))) {
+      const textTokens = extractTokens(h.text);
+      const matchedKw = kws.some((kw) => kw && kw.length >= 2 && reply.includes(String(kw).toLowerCase()));
+      const matchedTok = textTokens.some((tok) => reply.includes(tok));
+      if (matchedKw || matchedTok) {
         hits.push(h.key);
       }
     });
