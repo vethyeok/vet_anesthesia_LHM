@@ -6,6 +6,7 @@
   <title>Chapter 1. 마취 전 검사 — 베타 1.1</title>
   <link rel="stylesheet" href="beta11.css" />
   <script src="beta11-settings.js"></script>
+  <script src="beta11-ch1-data.js"></script>
 </head>
 <body>
   <div class="app-shell chapter-shell">
@@ -16,114 +17,713 @@
       <div id="chapter-top-actions" class="top-actions"></div>
     </header>
 
-    <main class="page-body">
-      <div class="chapter-split">
-        <!-- 좌측(데스크탑): 환자 정보 / 요약 모니터링 영역 -->
-        <div class="chapter-col">
-          <section class="b-card-soft" id="ch1-patient-card">
-            <div class="b-label">
-              <span>내원 환자 기본 정보</span>
-              <span>문진 전 블라인드 모드</span>
+    <main class="ch1-page-body">
+      <div class="ch1-split" id="ch1-split">
+        <!-- 좌측(데스크탑) / 상단(모바일): 모니터링창 -->
+        <section class="ch1-monitor" id="ch1-monitor" aria-label="환자 모니터링창">
+          <div class="ch1-sig-pinned" id="ch1-sig-pinned">
+            <div class="ch1-sig-head" id="ch1-sig-head"></div>
+            <div class="ch1-cc-line">
+              <strong>주호소:</strong> <span id="ch1-cc-val" class="mon-empty">문진 후 확인</span>
             </div>
-            <div style="font-size:15px; font-weight:800;">초코 · 개 · 8세 · 5.4 kg</div>
-            <p class="muted" style="margin-top:4px;">
-              주호소: 보호자 문진과 신체검사·술전검사를 통해 숨겨진 질환 단서를 파악하세요.
-            </p>
-          </section>
-        </div>
-
-        <!-- 우측(데스크탑): 조작 영역 -->
-        <div class="chapter-col">
-          <div class="step-tabs" role="tablist">
-            <button type="button" class="step-tab active" data-pane="p1">1. 보호자 문진</button>
-            <button type="button" class="step-tab" data-pane="p2">2. 마취 전 검사</button>
-            <button type="button" class="step-tab" data-pane="p3">3. ASA · 예후</button>
           </div>
 
-          <section class="b-card" data-content="p1">
-            <div class="b-label">
-              <span>AI 보호자 문진 영역</span>
-              <span>지식 Lv · 성향</span>
+          <div class="ch1-monitor-scroll" id="ch1-monitor-scroll">
+            <div class="mon-sec" id="mon-sec-hx">
+              <div class="mon-sec-title"><span>1. Signalment · 이전 병력</span></div>
+              <div class="sig-hx-list" id="ch1-hx-list">
+                <div class="mon-empty">문진 후 확인</div>
+              </div>
             </div>
-            <div class="wire-box" style="min-height:175px; justify-content:space-between;">
-              <div style="display:flex; flex-direction:column; gap:8px;">
-                <div class="b-card-soft" style="padding:10px 12px; font-size:12.5px;">
-                  <strong>보호자:</strong> 안녕하세요 선생님, 오늘 수술 전 상담하러 왔어요. 어떤 걸 여쭤보실 건가요?
+
+            <div class="mon-sec" id="mon-sec-pe">
+              <div class="mon-sec-title"><span>2. 신체검사</span></div>
+              <div id="ch1-pe-body"><div class="mon-empty">검사 전</div></div>
+            </div>
+
+            <div class="mon-sec" id="mon-sec-lab">
+              <div class="mon-sec-title"><span>3. 혈액검사</span></div>
+              <div id="ch1-lab-body"><div class="mon-empty">검사 전</div></div>
+            </div>
+
+            <div class="mon-sec" id="mon-sec-img">
+              <div class="mon-sec-title"><span>4. 영상검사</span></div>
+              <div id="ch1-img-body"><div class="mon-empty">검사 전</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 우측(데스크탑) / 하단(모바일): 조작창 -->
+        <section class="ch1-control" id="ch1-control" aria-label="조작창">
+          <div class="ch1-ctrl-handle" id="ch1-ctrl-handle" role="button" tabindex="0" aria-label="조작창 접기 및 펼치기">
+            <div class="ch1-ctrl-handle-bar"></div>
+          </div>
+
+          <div class="ch1-ctrl-tabs" role="tablist">
+            <button type="button" class="b-btn ch1-tab-btn active" data-pane="chat">보호자 문진</button>
+            <button type="button" class="b-btn ch1-tab-btn" data-pane="exam">마취 전 검사</button>
+            <button type="button" class="b-btn ch1-tab-btn" data-pane="eval">예후 평가</button>
+          </div>
+
+          <div class="ch1-ctrl-body" id="ch1-ctrl-body">
+            <!-- 1. 보호자 문진 -->
+            <div class="ch1-pane" data-content="chat">
+              <div class="ch1-chat-log" id="ch1-chat-log"></div>
+              <form class="ch1-chat-form" id="ch1-chat-form" autocomplete="off">
+                <input id="ch1-chat-input" type="text" class="b-input" placeholder="질문을 입력하세요" />
+                <button id="ch1-chat-send" type="submit" class="b-btn b-btn-sm" style="flex-shrink:0;">전송</button>
+              </form>
+            </div>
+
+            <!-- 2. 마취 전 검사 -->
+            <div class="ch1-pane pane-hidden" data-content="exam">
+              <div class="exam-btn-list" id="ch1-exam-list">
+                <div class="exam-item" data-exam="pe">
+                  <button type="button" class="b-btn exam-main-btn" data-exam-btn="pe">신체검사</button>
+                  <div class="exam-load-slot" data-exam-slot="pe"></div>
                 </div>
-                <div class="wire-tag">문진으로 획득한 단서 칩이 상단에 자동 정리될 영역</div>
-              </div>
-              <div style="display:flex; gap:6px;">
-                <input type="text" class="b-input" placeholder="금식, 복용약, 최근 증상 질문 입력 (레이아웃)" disabled />
-                <button type="button" class="b-btn b-btn-sm" style="flex-shrink:0;">전송</button>
+                <div class="exam-item" data-exam="lab">
+                  <button type="button" class="b-btn exam-main-btn" data-exam-btn="lab">혈액검사</button>
+                  <div class="exam-load-slot" data-exam-slot="lab"></div>
+                </div>
+                <div class="exam-item" data-exam="img">
+                  <button type="button" class="b-btn exam-main-btn" data-exam-btn="img">영상검사</button>
+                  <div class="exam-load-slot" data-exam-slot="img"></div>
+                </div>
               </div>
             </div>
-          </section>
 
-          <section class="b-card pane-hidden" data-content="p2">
-            <div class="b-label">
-              <span>마취 전 검사 항목 선택 및 결과</span>
-              <span>신체검사 · 혈검 · 영상</span>
-            </div>
-            <div class="wire-grid-2" style="margin-bottom:10px;">
-              <button type="button" class="b-btn b-btn-sm">신체검사</button>
-              <button type="button" class="b-btn b-btn-sm">CBC · 혈화학</button>
-              <button type="button" class="b-btn b-btn-sm">전해질 · VBG</button>
-              <button type="button" class="b-btn b-btn-sm">흉부 X-ray · 심초음파</button>
-            </div>
-            <div class="wire-box">
-              <span class="wire-tag">검사 결과 요약 카드 영역</span>
-              <p class="muted">선택한 검사 항목의 수치와 이상 플래그가 바로 펼쳐지는 영역입니다.</p>
-            </div>
-          </section>
+            <!-- 3. 예후 평가 -->
+            <div class="ch1-pane pane-hidden" data-content="eval">
+              <div>
+                <div class="eval-sec-lbl">ASA Grade</div>
+                <div class="asa-grid" id="ch1-asa-grid">
+                  <button type="button" class="b-btn asa-btn" data-asa="1">1</button>
+                  <button type="button" class="b-btn asa-btn" data-asa="2">2</button>
+                  <button type="button" class="b-btn asa-btn" data-asa="3">3</button>
+                  <button type="button" class="b-btn asa-btn" data-asa="4">4</button>
+                  <button type="button" class="b-btn asa-btn" data-asa="5">5</button>
+                  <button type="button" class="b-btn asa-btn" id="ch1-asa-e" data-asa-e="1">E</button>
+                </div>
+              </div>
 
-          <section class="b-card pane-hidden" data-content="p3">
-            <div class="b-label">
-              <span>ASA Grade 및 마취 위험도 · 예후 평가</span>
-            </div>
-            <div class="wire-grid-3" style="margin-bottom:10px;">
-              <button type="button" class="b-btn b-btn-sm">ASA I</button>
-              <button type="button" class="b-btn b-btn-sm">ASA II</button>
-              <button type="button" class="b-btn b-btn-sm">ASA III</button>
-              <button type="button" class="b-btn b-btn-sm">ASA IV</button>
-              <button type="button" class="b-btn b-btn-sm">ASA V</button>
-              <button type="button" class="b-btn b-btn-sm">+ 응급(-E)</button>
-            </div>
-            <div class="wire-box">
-              <span class="wire-tag">예후 및 핵심 위험 인자 선택 영역</span>
-              <div class="wire-grid-2">
-                <button type="button" class="b-btn b-btn-sm">양호 (Good)</button>
-                <button type="button" class="b-btn b-btn-sm">주의 (Guarded)</button>
-                <button type="button" class="b-btn b-btn-sm">불량 (Poor)</button>
-                <button type="button" class="b-btn b-btn-sm">위독 (Grave)</button>
+              <div>
+                <div class="eval-sec-lbl">예후 평가</div>
+                <div class="prog-grid" id="ch1-prog-grid">
+                  <button type="button" class="b-btn prog-btn" data-prog="Good">양호(Good)</button>
+                  <button type="button" class="b-btn prog-btn" data-prog="Fair">보통(Fair)</button>
+                  <button type="button" class="b-btn prog-btn" data-prog="Guarded">주의(Guarded)</button>
+                  <button type="button" class="b-btn prog-btn" data-prog="Poor">불량(Poor)</button>
+                  <button type="button" class="b-btn prog-btn span-2" data-prog="Grave">위독(Grave)</button>
+                </div>
+              </div>
+
+              <div style="margin-top:auto; padding-top:6px;">
+                <button type="button" class="b-btn" id="ch1-eval-submit" style="width:100%; height:44px; border-radius:14px;">평가 확정</button>
               </div>
             </div>
-          </section>
-        </div>
+
+            <!-- 평가 확정 시 50% 투명도 빨간 사각형 도장 애니메이션 -->
+            <div id="ch1-stamp-overlay" class="ch1-stamp-overlay hidden" aria-live="polite">
+              <div class="ch1-stamp-asa" id="ch1-stamp-asa"></div>
+              <div class="ch1-stamp-prog" id="ch1-stamp-prog"></div>
+              <div class="ch1-stamp-grade" id="ch1-stamp-grade"></div>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   </div>
 
   <script>
-    Beta11Settings.initChapterCommon({
-      chapterNum: 1,
-      chapterTitle: '마취 전 검사',
-      helpSlides: [
-        { mark: '1', label: '보호자 문진 예시 화면', desc: '금식, 복용약, 기저증상을 질문해 숨겨진 단서를 수집하는 화면입니다.' },
-        { mark: '2', label: '술전 검사 선택 및 판독', desc: '환자 상태에 맞는 신체검사·혈액검사·영상 항목을 선택해 결과를 확인합니다.' },
-        { mark: '3', label: 'ASA Grade 및 예후 평가', desc: '문진과 검사 결과를 종합해 ASA 등급과 마취 예후를 최종 판정합니다.' }
-      ],
-      tutorialSteps: [
-        { sel: '#ch1-patient-card', text: '먼저 내원 환자의 기본 정보를 확인합니다. 제목에 질환명이 미리 노출되지 않습니다.' },
-        { sel: '.step-tabs', text: '보호자 문진 → 마취 전 검사 → ASA·예후 순으로 단계를 진행합니다.' },
-        { sel: '.b-card:not(.pane-hidden)', text: '현재 강조된 영역에서 보호자 문진 및 술전 평가를 진행합니다.' }
-      ]
-    });
-    document.querySelectorAll('.step-tab').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.step-tab').forEach((t) => t.classList.toggle('active', t === tab));
-        document.querySelectorAll('[data-content]').forEach((p) => p.classList.toggle('pane-hidden', p.dataset.content !== tab.dataset.pane));
+    (function () {
+      const Data = window.Beta11Ch1Data;
+      const Settings = window.Beta11Settings;
+      if (!Data || !Settings) return;
+
+      const PROG_ORDER = ['Good', 'Fair', 'Guarded', 'Poor', 'Grave'];
+
+      const splitEl = document.getElementById('ch1-split');
+      const monitorScrollEl = document.getElementById('ch1-monitor-scroll');
+      const sigHeadEl = document.getElementById('ch1-sig-head');
+      const ccValEl = document.getElementById('ch1-cc-val');
+      const hxListEl = document.getElementById('ch1-hx-list');
+      const peBodyEl = document.getElementById('ch1-pe-body');
+      const labBodyEl = document.getElementById('ch1-lab-body');
+      const imgBodyEl = document.getElementById('ch1-img-body');
+      const ctrlHandleEl = document.getElementById('ch1-ctrl-handle');
+      const chatLogEl = document.getElementById('ch1-chat-log');
+      const chatFormEl = document.getElementById('ch1-chat-form');
+      const chatInputEl = document.getElementById('ch1-chat-input');
+      const chatSendBtn = document.getElementById('ch1-chat-send');
+      const stampOverlayEl = document.getElementById('ch1-stamp-overlay');
+      const stampAsaEl = document.getElementById('ch1-stamp-asa');
+      const stampProgEl = document.getElementById('ch1-stamp-prog');
+      const stampGradeEl = document.getElementById('ch1-stamp-grade');
+      const evalSubmitBtn = document.getElementById('ch1-eval-submit');
+
+      let currentStageId = 'tutorial';
+      let currentCase = null;
+      let chatHistory = [];
+      let chatBusy = false;
+      let revealedKeys = new Set();
+      let examState = { pe: 'idle', lab: 'idle', img: 'idle' }; // idle | loading | ready | done
+      let examTimers = [];
+      let typingTimers = [];
+      let selectedAsa = null;
+      let selectedEmerg = false;
+      let selectedProg = null;
+      let evaluated = false;
+      let recentPracticeNames = [];
+
+      function clearAllTimers() {
+        examTimers.forEach((id) => clearTimeout(id));
+        examTimers = [];
+        typingTimers.forEach((id) => clearTimeout(id));
+        typingTimers = [];
+      }
+
+      function setCollapsed(collapsed) {
+        splitEl.classList.toggle('ctrl-collapsed', Boolean(collapsed));
+      }
+
+      /* Thin Gray Bar Drag Down -> Collapse Control Body / Drag Up -> Expand */
+      let handleStartY = 0;
+      let handleDragging = false;
+      let handleMoved = false;
+      ctrlHandleEl.addEventListener('pointerdown', (e) => {
+        handleDragging = true;
+        handleMoved = false;
+        handleStartY = e.clientY;
+        if (ctrlHandleEl.setPointerCapture) ctrlHandleEl.setPointerCapture(e.pointerId);
       });
-    });
+      ctrlHandleEl.addEventListener('pointermove', (e) => {
+        if (!handleDragging) return;
+        const dy = e.clientY - handleStartY;
+        if (Math.abs(dy) > 20) {
+          handleMoved = true;
+          setCollapsed(dy > 0);
+        }
+      });
+      const endHandleDrag = () => {
+        if (!handleDragging) return;
+        handleDragging = false;
+        if (!handleMoved) setCollapsed(!splitEl.classList.contains('ctrl-collapsed'));
+      };
+      ctrlHandleEl.addEventListener('pointerup', endHandleDrag);
+      ctrlHandleEl.addEventListener('pointercancel', endHandleDrag);
+
+      /* Vertical pointer-drag scrolling on Monitoring Window for desktop mouse convenience */
+      let monDrag = false;
+      let monStartY = 0;
+      let monStartTop = 0;
+      monitorScrollEl.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'touch') return;
+        monDrag = true;
+        monStartY = e.clientY;
+        monStartTop = monitorScrollEl.scrollTop;
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!monDrag) return;
+        monitorScrollEl.scrollTop = monStartTop - (e.clientY - monStartY);
+      });
+      window.addEventListener('pointerup', () => { monDrag = false; });
+
+      /* Control Menu Tabs */
+      function activateTab(paneName) {
+        setCollapsed(false);
+        document.querySelectorAll('.ch1-tab-btn').forEach((b) => {
+          b.classList.toggle('active', b.dataset.pane === paneName);
+        });
+        document.querySelectorAll('[data-content]').forEach((p) => {
+          p.classList.toggle('pane-hidden', p.dataset.content !== paneName);
+        });
+      }
+      document.querySelectorAll('.ch1-tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          Settings.playTone(520, 0.04, 0.025);
+          activateTab(btn.dataset.pane);
+        });
+      });
+
+      /* Typing animation for newly discovered Signalment items in Blue font */
+      function typeIntoElement(el, fullText) {
+        el.textContent = '';
+        el.classList.add('sig-blue');
+        el.classList.remove('mon-empty');
+        let idx = 0;
+        function step() {
+          if (idx <= fullText.length) {
+            el.textContent = fullText.slice(0, idx);
+            idx += 1;
+            const t = setTimeout(step, 22);
+            typingTimers.push(t);
+          }
+        }
+        step();
+      }
+
+      function revealSignalmentKeys(keys) {
+        if (!currentCase || !keys.length) return;
+        let newlyAdded = false;
+        keys.forEach((k) => {
+          if (revealedKeys.has(k)) return;
+          revealedKeys.add(k);
+          newlyAdded = true;
+          if (k === 'chiefComplaint') {
+            typeIntoElement(ccValEl, currentCase.chiefComplaint);
+          } else {
+            const h = (currentCase.history || []).find((item) => item.key === k);
+            if (!h) return;
+            const emptyNode = hxListEl.querySelector('.mon-empty');
+            if (emptyNode) emptyNode.remove();
+            const row = document.createElement('div');
+            row.className = 'sig-hx-row';
+            row.innerHTML = `<span class="sig-hx-k">${h.label}:</span> <span class="sig-blue"></span>`;
+            hxListEl.appendChild(row);
+            typeIntoElement(row.querySelector('.sig-blue'), h.text);
+          }
+        });
+        if (newlyAdded) Settings.playTone(640, 0.05, 0.025);
+      }
+
+      /* Chat Helpers */
+      function appendBubble(sender, text) {
+        const row = document.createElement('div');
+        row.className = `chat-row ${sender}`;
+        const b = document.createElement('div');
+        b.className = 'chat-bubble';
+        b.textContent = text;
+        row.appendChild(b);
+        chatLogEl.appendChild(row);
+        chatLogEl.scrollTop = chatLogEl.scrollHeight;
+      }
+
+      async function handleChatSend(e) {
+        e.preventDefault();
+        if (chatBusy || !currentCase) return;
+        const q = chatInputEl.value.trim();
+        if (!q) return;
+
+        chatInputEl.value = '';
+        appendBubble('vet', q);
+        chatHistory.push({ sender: 'vet', text: q });
+        chatBusy = true;
+        chatSendBtn.disabled = true;
+
+        let reply = '';
+        try {
+          const resp = await fetch('/api/ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify({
+              task: 'roleplay',
+              role: 'owner_preop',
+              species: currentCase.species === 'cat' ? '고양이' : '개',
+              caseName: `${currentCase.name} (${currentCase.breed}, ${currentCase.age}, ${currentCase.weight}kg)`,
+              asa: `ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? '-E' : ''}`,
+              caseDesc: `${currentCase.chiefComplaint} / ${(currentCase.history || []).map((h) => h.label + ': ' + h.text).join(', ')}`,
+              clue: currentCase.ownerClue || '',
+              ownerPersonality: currentCase.ownerPersonality || 'neutral',
+              knowledgeLevel: currentCase.ownerLevel || 2,
+              chatHistory: chatHistory.slice(-12),
+              question: q
+            })
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data && data.text) reply = String(data.text).trim();
+          }
+        } catch {}
+
+        if (!reply) {
+          reply = Data.buildOfflineOwnerReply(currentCase, q);
+        }
+
+        const cleanReply = reply.replace(/^\[ABORT\]\s*/i, '');
+        appendBubble('owner', cleanReply);
+        chatHistory.push({ sender: 'owner', text: cleanReply });
+
+        const hits = Data.detectDiscoveredKeys(currentCase, q, cleanReply);
+        revealSignalmentKeys(hits);
+
+        chatBusy = false;
+        chatSendBtn.disabled = false;
+        chatInputEl.focus();
+      }
+      chatFormEl.addEventListener('submit', handleChatSend);
+
+      /* Render Exam Results into Monitoring Window */
+      function renderPE(c) {
+        const p = c.pe;
+        const isCat = c.species === 'cat';
+        const abnBT = p.bt < 37.5 || p.bt > 39.2;
+        const abnBP = p.bpMap < 65 || p.bpSys > 155 || p.bpSys < 95;
+        const abnHR = isCat ? (p.hr < 130 || p.hr > 210) : (p.hr < 65 || p.hr > 145);
+        const abnRR = p.rr > 36;
+        const abnCRT = p.crt > 2.0;
+        const abnMMC = /yellow|pale|cyan|dark|muddy|dry/i.test(p.mmc);
+        peBodyEl.innerHTML = `
+          <div class="pe-grid">
+            <div class="pe-cell"><span class="pe-k">BT</span><span class="pe-v ${abnBT ? 'is-abn' : ''}">${p.bt.toFixed(1)} °C</span></div>
+            <div class="pe-cell"><span class="pe-k">BP #${p.cuff}</span><span class="pe-v ${abnBP ? 'is-abn' : ''}">${p.bpSys}/${p.bpDia} (${p.bpMap}) mmHg</span></div>
+            <div class="pe-cell"><span class="pe-k">HR</span><span class="pe-v ${abnHR ? 'is-abn' : ''}">${p.hr} /min</span></div>
+            <div class="pe-cell"><span class="pe-k">RR</span><span class="pe-v ${abnRR ? 'is-abn' : ''}">${p.rr} /min</span></div>
+            <div class="pe-cell"><span class="pe-k">CRT</span><span class="pe-v ${abnCRT ? 'is-abn' : ''}">${p.crt} s</span></div>
+            <div class="pe-cell"><span class="pe-k">MMC</span><span class="pe-v ${abnMMC ? 'is-abn' : ''}">${p.mmc}</span></div>
+          </div>
+        `;
+      }
+
+      function renderLabTable(rows, panel) {
+        return `<table class="lab-tbl"><tbody>${rows.map(([label, key, val, unit]) => {
+          const fl = key ? panel.flagOf(key, Number(val)) : '';
+          const cls = fl === 'H' ? 'lab-high' : fl === 'L' ? 'lab-low' : '';
+          const r = key && panel.ref[key] ? `${panel.ref[key][0]}–${panel.ref[key][1]}` : '';
+          return `<tr><td>${label}</td><td class="lab-val ${cls}">${val}${unit ? ' ' + unit : ''}${fl ? ' ' + fl : ''}</td><td class="lab-ref">${r}</td></tr>`;
+        }).join('')}</tbody></table>`;
+      }
+
+      function renderLab(c) {
+        const P = Data.buildLabPanel(c);
+        const m = P.vbgM, vc = P.vbgC, cb = P.cbc, ch = P.chem;
+        const isCat = P.sp === 'cat';
+
+        const vbgMeasured = [
+          ['pH', 'pH', m.pH.toFixed(2), ''],
+          ['pCO₂', 'pCO2', m.pCO2, 'mmHg'],
+          ['pO₂ (정맥)', 'pO2', m.pO2, 'mmHg'],
+          ['Na⁺', 'Na', m.Na, 'mmol/L'],
+          ['K⁺', 'K', m.K.toFixed(1), 'mmol/L'],
+          ['Cl⁻', 'Cl', m.Cl, 'mmol/L'],
+          ['iCa', 'iCa', m.iCa.toFixed(2), 'mmol/L'],
+          ['Hct', 'Hct', m.Hct, '%']
+        ];
+        const vbgCalc = [
+          ['pH(T)', 'pHT', vc.pHT.toFixed(3), ''],
+          ['pCO₂(T)', 'pCO2T', vc.pCO2T, 'mmHg'],
+          ['pO₂(T)', 'pO2T', vc.pO2T, 'mmHg'],
+          ['ctCO₂ (tCO₂)', 'ctCO2', vc.ctCO2, 'mmol/L'],
+          ['cHCO₃⁻', 'cHCO3', vc.cHCO3, 'mmol/L'],
+          ['cHCO₃⁻(std)', 'cHCO3std', vc.cHCO3std, 'mmol/L'],
+          ['BE(ecf)', 'BEecf', vc.BEecf, 'mmol/L'],
+          ['BE(B)', 'BEB', vc.BEB, 'mmol/L'],
+          ['ctHb (tHb)', 'ctHb', vc.ctHb, 'g/dL'],
+          ['Ca²⁺(7.4)', 'iCa74', vc.iCa74.toFixed(2), 'mmol/L'],
+          ['pO₂(A-a)', 'pO2Aa', vc.pO2Aa, 'mmHg'],
+          ['sO₂', 'sO2', vc.sO2, '%'],
+          ['Anion gap(K)', 'AGK', vc.AGK, 'mmol/L']
+        ];
+        const cbcRows = [
+          ['RBC', 'RBC', cb.RBC, 'M/µL'],
+          ['HGB', 'HGB', cb.HGB, 'g/dL'],
+          ['HCT', 'HCT', cb.HCT, '%'],
+          ['MCV', 'MCV', cb.MCV, 'fL'],
+          ['MCH', 'MCH', cb.MCH, 'pg'],
+          ['MCHC', 'MCHC', cb.MCHC, 'g/dL'],
+          ['RDW', 'RDW', cb.RDW, '%'],
+          ['RETIC', 'RETIC', cb.RETIC, 'K/µL'],
+          ['Retic-HGB', 'ReticHGB', cb.ReticHGB, 'pg'],
+          ['WBC', 'WBC', cb.WBC, 'K/µL'],
+          ['Neu', 'Neu', `${cb.Neu} (${cb.neuP}%)`, ''],
+          ['Lym', 'Lym', `${cb.Lym} (${cb.lymP}%)`, ''],
+          ['Mono', 'Mono', `${cb.Mono} (${cb.monoP}%)`, ''],
+          ['Eos', 'Eos', `${cb.Eos} (${cb.eosP}%)`, ''],
+          ['Baso', 'Baso', `${cb.Baso} (${cb.basoP}%)`, ''],
+          ['PLT', 'PLT', cb.PLT, 'K/µL'],
+          ['MPV', 'MPV', cb.MPV, 'fL'],
+          ['PCT', 'PCT', cb.PCT, '%']
+        ];
+        const chemGeneral = [
+          ['ALP', 'ALP', ch.ALP, 'U/L'], ['ALT', 'ALT', ch.ALT, 'U/L'], ['AST', 'AST', ch.AST, 'U/L'],
+          ['GGT', 'GGT', ch.GGT, 'U/L'], ['BUN', 'BUN', ch.BUN, 'mg/dL'], ['Crea', 'Crea', ch.Crea, 'mg/dL'],
+          ['Phos', 'Phos', ch.Phos, 'mg/dL'], ['Ca', 'Ca', ch.Ca, 'mg/dL'], ['TG', 'TG', ch.TG, 'mg/dL'],
+          ['Tchol', 'Tchol', ch.Tchol, 'mg/dL'], ['Glu', 'Glu', ch.Glu, 'mg/dL'], ['TP', 'TP', ch.TP, 'g/dL'],
+          ['ALB', 'ALB', ch.ALB, 'g/dL'], ['Glob', 'Glob', ch.Glob, 'g/dL'], ['Mg', 'Mg', ch.Mg, 'mg/dL']
+        ];
+        const chemSpecial = isCat
+          ? [
+              ['SAA', 'SAA', ch.SAA, 'µg/mL'], ['fPL', 'fPL', ch.fPL, 'µg/L'],
+              ['proBNP', 'proBNP', ch.proBNP, 'pmol/L'], ['T4', 'T4', ch.T4, 'µg/dL'],
+              ['Cortisol', 'Cortisol', ch.Cortisol, 'µg/dL'], ['SDMA', 'SDMA', ch.SDMA, 'µg/dL']
+            ]
+          : [
+              ['CRP', 'CRP', ch.CRP, 'mg/L'], ['cPL', 'cPL', ch.cPL, 'µg/L'],
+              ['proBNP', 'proBNP', ch.proBNP, 'pmol/L'], ['T4', 'T4', ch.T4, 'µg/dL'],
+              ['Cortisol', 'Cortisol', ch.Cortisol, 'µg/dL'], ['SDMA', 'SDMA', ch.SDMA, 'µg/dL']
+            ];
+
+        labBodyEl.innerHTML = `
+          <div class="lab-group-lbl">정맥혈액가스 (VBG) — 측정 8종</div>
+          ${renderLabTable(vbgMeasured, P)}
+          <div class="lab-group-lbl">정맥혈액가스 (VBG) — 계산 13종</div>
+          ${renderLabTable(vbgCalc, P)}
+          <div class="lab-group-lbl">일반혈액검사 (CBC) — 18종</div>
+          ${renderLabTable(cbcRows, P)}
+          <div class="lab-group-lbl">혈액화학 (일반 15종)</div>
+          ${renderLabTable(chemGeneral, P)}
+          <div class="lab-group-lbl">혈액화학 (특수 6종)</div>
+          ${renderLabTable(chemSpecial, P)}
+        `;
+      }
+
+      function renderImaging(c) {
+        const im = c.imaging || {};
+        const th = im.thoracic || {};
+        const rows = [
+          `<div class="img-row"><strong>흉부 X-ray</strong><br/>VHS: ${th.vhs || '-'} · VLAS: ${th.vlas || '-'}<br/>기관직경: ${th.trachea || '-'}<br/>폐야: ${th.lung || '-'}${th.extra ? '<br/>추가 소견: ' + th.extra : ''}</div>`
+        ];
+        if (im.abdominal) {
+          rows.push(`<div class="img-row"><strong>복부 X-ray</strong><br/>${im.abdominal}</div>`);
+        }
+        if (im.ultrasound) {
+          rows.push(`<div class="img-row"><strong>초음파 검사</strong><br/>${im.ultrasound}</div>`);
+        }
+        imgBodyEl.innerHTML = `<div class="img-list">${rows.join('')}</div>`;
+      }
+
+      /* Buffered Loading Bar (0% -> 100% with realistic intermittent pauses) + Slide-in '검사 결과 보기' */
+      function startExam(type) {
+        if (!currentCase || examState[type] !== 'idle') return;
+        examState[type] = 'loading';
+        Settings.playTone(540, 0.05, 0.03);
+
+        const slot = document.querySelector(`[data-exam-slot="${type}"]`);
+        const btn = document.querySelector(`[data-exam-btn="${type}"]`);
+        btn.disabled = true;
+
+        slot.innerHTML = `
+          <div class="exam-done-caption hidden" data-done-cap="${type}">검사 완료</div>
+          <div class="exam-load-wrap">
+            <div class="exam-load-head">
+              <span data-load-lbl="${type}">검사중</span>
+              <span data-load-pct="${type}">0%</span>
+            </div>
+            <div class="exam-bar-track"><div class="exam-bar-fill" data-load-bar="${type}"></div></div>
+          </div>
+          <div data-view-slot="${type}"></div>
+        `;
+
+        const pctEl = slot.querySelector(`[data-load-pct="${type}"]`);
+        const barEl = slot.querySelector(`[data-load-bar="${type}"]`);
+        const capEl = slot.querySelector(`[data-done-cap="${type}"]`);
+        const viewSlot = slot.querySelector(`[data-view-slot="${type}"]`);
+
+        // Realistic buffered checkpoints: [targetPct, delayMs]
+        const steps = [
+          [14, 140], [27, 160], [29, 340], [48, 170], [63, 180],
+          [65, 420], [82, 160], [87, 360], [96, 150], [100, 180]
+        ];
+        let stepIdx = 0;
+
+        function nextStep() {
+          if (stepIdx >= steps.length) {
+            examState[type] = 'ready';
+            capEl.classList.remove('hidden');
+            Settings.playTone(680, 0.07, 0.035);
+            viewSlot.innerHTML = `<button type="button" class="b-btn exam-view-btn" data-view-btn="${type}">검사 결과 보기</button>`;
+            viewSlot.querySelector(`[data-view-btn="${type}"]`).addEventListener('click', () => finishExam(type));
+            return;
+          }
+          const [pct, delay] = steps[stepIdx++];
+          pctEl.textContent = `${pct}%`;
+          barEl.style.width = `${pct}%`;
+          const t = setTimeout(nextStep, delay);
+          examTimers.push(t);
+        }
+        const t0 = setTimeout(nextStep, 120);
+        examTimers.push(t0);
+      }
+
+      function finishExam(type) {
+        if (!currentCase || examState[type] !== 'ready') return;
+        examState[type] = 'done';
+        Settings.playTone(720, 0.06, 0.03);
+
+        const btn = document.querySelector(`[data-exam-btn="${type}"]`);
+        const slot = document.querySelector(`[data-exam-slot="${type}"]`);
+        btn.classList.add('exam-done');
+        btn.disabled = true;
+        slot.innerHTML = '';
+
+        if (type === 'pe') {
+          renderPE(currentCase);
+          document.getElementById('mon-sec-pe').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else if (type === 'lab') {
+          renderLab(currentCase);
+          document.getElementById('mon-sec-lab').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else if (type === 'img') {
+          renderImaging(currentCase);
+          document.getElementById('mon-sec-img').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+
+      document.querySelectorAll('[data-exam-btn]').forEach((btn) => {
+        btn.addEventListener('click', () => startExam(btn.dataset.examBtn));
+      });
+
+      /* Evaluation Selection (ASA 1~5 + E, Prognosis 5 choices) */
+      document.querySelectorAll('[data-asa]').forEach((b) => {
+        b.addEventListener('click', () => {
+          if (evaluated) return;
+          selectedAsa = Number(b.dataset.asa);
+          document.querySelectorAll('[data-asa]').forEach((el) => el.classList.toggle('active', el === b));
+          Settings.playTone(540, 0.04, 0.025);
+        });
+      });
+
+      const asaEBtn = document.getElementById('ch1-asa-e');
+      asaEBtn.addEventListener('click', () => {
+        if (evaluated) return;
+        selectedEmerg = !selectedEmerg;
+        asaEBtn.classList.toggle('active', selectedEmerg);
+        Settings.playTone(560, 0.04, 0.025);
+      });
+
+      document.querySelectorAll('[data-prog]').forEach((b) => {
+        b.addEventListener('click', () => {
+          if (evaluated) return;
+          selectedProg = b.dataset.prog;
+          document.querySelectorAll('[data-prog]').forEach((el) => el.classList.toggle('active', el === b));
+          Settings.playTone(540, 0.04, 0.025);
+        });
+      });
+
+      /* Progressive Distance Penalty: 1 step off = -5, 2 steps = -5-6 (-11), 3 steps = -5-6-7 (-18), 4 steps = -26 */
+      function distancePenalty(diff) {
+        let p = 0;
+        for (let k = 1; k <= diff; k++) p += (4 + k);
+        return p;
+      }
+
+      function scoreToGrade(score) {
+        if (score >= 95) return 'S';
+        if (score >= 90) return 'A';
+        if (score >= 80) return 'B';
+        if (score >= 70) return 'C';
+        if (score >= 50) return 'D';
+        return 'F';
+      }
+
+      evalSubmitBtn.addEventListener('click', () => {
+        if (evaluated || !currentCase) return;
+        if (!selectedAsa || !selectedProg) {
+          Settings.playTone(320, 0.08, 0.03);
+          return;
+        }
+        evaluated = true;
+        evalSubmitBtn.disabled = true;
+
+        let score = 100;
+        // Exam completeness check
+        const examsDone = ['pe', 'lab', 'img'].filter((k) => examState[k] === 'done').length;
+        score -= (3 - examsDone) * 10;
+
+        // Signalment discovery check
+        const totalClues = 1 + (currentCase.history ? currentCase.history.length : 0);
+        const missedClues = Math.max(0, totalClues - revealedKeys.size);
+        score -= Math.min(15, missedClues * 4);
+
+        // ASA Grade distance penalty (-1 extra per step away from answer)
+        const asaDiff = Math.abs(selectedAsa - Number(currentCase.trueAsa || 1));
+        score -= distancePenalty(asaDiff);
+        if (Boolean(selectedEmerg) !== Boolean(currentCase.trueEmergency)) score -= 5;
+
+        // Prognosis distance penalty (-1 extra per step away from answer)
+        const trueProgIdx = Math.max(0, PROG_ORDER.indexOf(currentCase.truePrognosis || 'Good'));
+        const chosenProgIdx = Math.max(0, PROG_ORDER.indexOf(selectedProg));
+        const progDiff = Math.abs(chosenProgIdx - trueProgIdx);
+        score -= distancePenalty(progDiff);
+
+        score = Math.max(0, Math.min(100, Math.round(score)));
+        const grade = scoreToGrade(score);
+
+        // Slam 50%-opacity Red Rectangular Stamp inside Control Window
+        stampAsaEl.textContent = `ASA ${selectedAsa}${selectedEmerg ? 'E' : ''}`;
+        stampProgEl.textContent = selectedProg;
+        stampGradeEl.textContent = currentStageId === 'tutorial' ? '완료' : grade;
+        stampOverlayEl.classList.remove('hidden');
+        Settings.playTone(760, 0.12, 0.05);
+
+        // Save progress & glow Stage button
+        Settings.saveStageResult(1, currentStageId, { grade, score });
+        if (chapterCtrl) chapterCtrl.refreshStages();
+        Settings.triggerStageGlow();
+      });
+
+      /* Load a Stage (Tutorial / 10 Fixed Cases / AI Practice Dog & Cat) */
+      async function loadStage(stageId) {
+        clearAllTimers();
+        currentStageId = stageId;
+        chatHistory = [];
+        chatBusy = false;
+        revealedKeys = new Set();
+        examState = { pe: 'idle', lab: 'idle', img: 'idle' };
+        selectedAsa = null;
+        selectedEmerg = false;
+        selectedProg = null;
+        evaluated = false;
+
+        // Reset UI
+        stampOverlayEl.classList.add('hidden');
+        evalSubmitBtn.disabled = false;
+        document.querySelectorAll('[data-asa], [data-prog], #ch1-asa-e').forEach((el) => el.classList.remove('active'));
+        document.querySelectorAll('[data-exam-btn]').forEach((b) => {
+          b.classList.remove('exam-done');
+          b.disabled = false;
+        });
+        document.querySelectorAll('[data-exam-slot]').forEach((s) => { s.innerHTML = ''; });
+        peBodyEl.innerHTML = '<div class="mon-empty">검사 전</div>';
+        labBodyEl.innerHTML = '<div class="mon-empty">검사 전</div>';
+        imgBodyEl.innerHTML = '<div class="mon-empty">검사 전</div>';
+        ccValEl.textContent = '문진 후 확인';
+        ccValEl.className = 'mon-empty';
+        hxListEl.innerHTML = '<div class="mon-empty">문진 후 확인</div>';
+        chatLogEl.innerHTML = '';
+        activateTab('chat');
+
+        if (stageId === 'practice_dog' || stageId === 'practice_cat') {
+          sigHeadEl.innerHTML = '<span>환자 생성 중...</span>';
+          const sp = stageId === 'practice_cat' ? 'cat' : 'dog';
+          currentCase = await Data.generatePracticeCase(sp, recentPracticeNames);
+          if (currentCase && currentCase.name) {
+            recentPracticeNames.push(`${currentCase.breed} ${currentCase.name}`);
+            if (recentPracticeNames.length > 8) recentPracticeNames.shift();
+          }
+        } else {
+          currentCase = Data.getFixedCase(stageId);
+        }
+
+        const spKr = currentCase.species === 'cat' ? '고양이' : '개';
+        sigHeadEl.innerHTML = `
+          <span>${currentCase.name}</span>
+          <span class="ch1-sig-meta">${spKr} · ${currentCase.breed} · ${currentCase.age} · ${currentCase.weight} kg · ${currentCase.sex}</span>
+        `;
+        appendBubble('owner', currentCase.ownerGreeting || `안녕하세요 선생님, ${currentCase.name} 검사 받으러 왔습니다.`);
+        chatHistory.push({ sender: 'owner', text: currentCase.ownerGreeting || '' });
+      }
+
+      const chapterCtrl = Settings.initChapterCommon({
+        chapterNum: 1,
+        chapterTitle: '마취 전 검사',
+        initialStageId: 'tutorial',
+        helpSlides: [
+          { mark: '1', label: '보호자 문진', desc: '보호자와 대화하여 주호소와 이전 병력을 확인하면 모니터링창에 파란 글씨로 기록됩니다.' },
+          { mark: '2', label: '마취 전 검사', desc: '신체검사·혈액검사·영상검사를 진행한 뒤 검사 결과 보기를 눌러 모니터링창에서 판독합니다.' },
+          { mark: '3', label: 'ASA Grade 및 예후 평가', desc: '모든 정보를 종합해 ASA 등급과 예후를 확정하면 도장이 찍히고 다음 단계가 해금됩니다.' }
+        ],
+        tutorialSteps: [
+          { sel: '#ch1-monitor', text: '상단(좌측) 모니터링창에서 환자의 Signalment와 검사 결과를 확인하며 위아래로 스크롤할 수 있습니다.' },
+          { sel: '.ch1-ctrl-tabs', text: '조작창 상단의 회색 바를 아래로 드래그해 접거나, 보호자 문진 → 마취 전 검사 → 예후 평가 순으로 진행합니다.' },
+          { sel: '#ch1-ctrl-body', text: '보호자 문진, 3종 검사 진행 후 예후 평가를 완료하면 튜토리얼이 완료되고 실전 단계가 열립니다.' }
+        ],
+        onSelectStage: (stageId) => {
+          loadStage(stageId);
+        }
+      });
+
+      loadStage('tutorial');
+    })();
   </script>
 </body>
 </html>

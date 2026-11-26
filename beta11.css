@@ -883,5 +883,597 @@ body.b11-immersive .app-shell {
   display: none;
 }
 
+/* Locked Stage Button & Completion Glow on Top-Right Stage Icon */
+.stage-btn.is-locked {
+  opacity: 0.42;
+  background: #E7DFD2;
+  color: var(--brown-soft);
+  border-style: dashed;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+@keyframes stageBtnGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(180, 83, 9, 0.55), 0 0 10px rgba(217, 119, 6, 0.45);
+    border-color: #b45309;
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(217, 119, 6, 0.16), 0 0 20px rgba(217, 119, 6, 0.85);
+    border-color: #d97706;
+    background: #fef3c7;
+    color: var(--brown);
+  }
+}
+
+#ch-btn-stage.stage-glow {
+  animation: stageBtnGlow 1.25s ease-in-out infinite;
+}
+
+/* ================= Chapter 1: 마취 전 검사 ================= */
+.ch1-page-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px 12px;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ch1-split {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  height: calc(100dvh - 76px);
+}
+
+@media (min-width: 960px) {
+  .ch1-split {
+    display: grid;
+    grid-template-columns: 1.08fr 0.92fr;
+    gap: 16px;
+    align-items: stretch;
+    height: min(760px, calc(100dvh - 104px));
+  }
+}
+
+/* Monitoring Window (모니터링창) */
+.ch1-monitor {
+  flex: 1 1 48%;
+  min-height: 180px;
+  background: var(--white);
+  border: 1.5px solid var(--brown-border);
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: flex 0.25s ease;
+}
+
+.ch1-split.ctrl-collapsed .ch1-monitor {
+  flex: 1 1 85%;
+}
+
+.ch1-sig-pinned {
+  background: var(--ivory-card);
+  border-bottom: 1px solid var(--brown-border);
+  padding: 11px 14px 10px;
+  flex-shrink: 0;
+}
+
+.ch1-sig-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: calc(14px * var(--text-scale, 1));
+  font-weight: 600;
+  color: var(--black);
+}
+
+.ch1-sig-meta {
+  font-family: var(--font-body);
+  font-size: calc(12px * var(--text-scale, 1));
+  font-weight: 500;
+  color: var(--brown-soft);
+}
+
+.ch1-cc-line {
+  margin-top: 5px;
+  font-size: calc(12.5px * var(--text-scale, 1));
+  color: var(--brown);
+  line-height: 1.45;
+}
+
+.ch1-monitor-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 12px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: grab;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ch1-monitor-scroll:active {
+  cursor: grabbing;
+}
+
+.mon-sec {
+  background: var(--ivory);
+  border: 1px solid var(--brown-border);
+  border-radius: var(--radius-lg);
+  padding: 11px 13px;
+}
+
+.mon-sec-title {
+  font-family: var(--font-display);
+  font-size: calc(12.5px * var(--text-scale, 1));
+  font-weight: 600;
+  color: var(--brown);
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mon-empty {
+  font-size: calc(12px * var(--text-scale, 1));
+  color: var(--brown-soft);
+}
+
+.sig-hx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: calc(12.5px * var(--text-scale, 1));
+}
+
+.sig-hx-row {
+  display: flex;
+  gap: 6px;
+  line-height: 1.45;
+}
+
+.sig-hx-k {
+  font-weight: 700;
+  color: var(--brown);
+  flex-shrink: 0;
+}
+
+.sig-blue {
+  color: #1d4ed8 !important;
+  font-weight: 600;
+}
+
+/* PE Grid */
+.pe-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.pe-cell {
+  background: var(--white);
+  border: 1px solid var(--brown-border);
+  border-radius: 11px;
+  padding: 6px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pe-k {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--brown-soft);
+}
+
+.pe-v {
+  font-size: calc(12.5px * var(--text-scale, 1));
+  font-weight: 700;
+  color: var(--black);
+}
+
+.pe-v.is-abn {
+  color: #b91c1c;
+}
+
+/* Bloodwork Compact Tables */
+.lab-group-lbl {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--brown);
+  margin: 8px 0 4px;
+  padding-bottom: 2px;
+  border-bottom: 1px dashed var(--brown-border);
+}
+
+.lab-group-lbl:first-child {
+  margin-top: 0;
+}
+
+.lab-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(11.2px * var(--text-scale, 1));
+}
+
+.lab-tbl td {
+  padding: 3px 4px;
+  border-bottom: 1px solid rgba(212, 195, 170, 0.45);
+}
+
+.lab-tbl tr:last-child td {
+  border-bottom: none;
+}
+
+.lab-val {
+  text-align: right;
+  font-weight: 700;
+  color: var(--black);
+  white-space: nowrap;
+}
+
+.lab-ref {
+  text-align: right;
+  color: var(--brown-soft);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.lab-high {
+  color: #b91c1c !important;
+}
+
+.lab-low {
+  color: #1d4ed8 !important;
+}
+
+/* Imaging List */
+.img-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: calc(12px * var(--text-scale, 1));
+}
+
+.img-row {
+  background: var(--white);
+  border: 1px solid var(--brown-border);
+  border-radius: 10px;
+  padding: 7px 10px;
+  line-height: 1.48;
+}
+
+.img-row strong {
+  color: var(--brown);
+}
+
+/* Control Window (조작창) + Thin Gray Drag Handle */
+.ch1-control {
+  flex: 1 1 52%;
+  min-height: 0;
+  background: var(--white);
+  border: 1.5px solid var(--brown-border);
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  transition: flex 0.25s ease;
+}
+
+.ch1-split.ctrl-collapsed .ch1-control {
+  flex: 0 0 auto;
+}
+
+.ch1-ctrl-handle {
+  width: 100%;
+  padding: 8px 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ns-resize;
+  touch-action: none;
+  flex-shrink: 0;
+  background: var(--ivory);
+}
+
+.ch1-ctrl-handle-bar {
+  width: 44px;
+  height: 4px;
+  border-radius: 999px;
+  background: #b8b2a7;
+}
+
+.ch1-ctrl-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 0 10px 9px;
+  background: var(--ivory);
+  border-bottom: 1px solid var(--brown-border);
+  flex-shrink: 0;
+}
+
+.ch1-tab-btn {
+  height: 38px;
+  padding: 0 6px;
+  border-radius: 12px;
+  font-size: calc(12.5px * var(--text-scale, 1));
+}
+
+.ch1-ctrl-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.ch1-split.ctrl-collapsed .ch1-ctrl-body {
+  display: none;
+}
+
+.ch1-pane {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+/* Chat UI (Owner Ivory Left / User White Right / Brown Text) */
+.ch1-chat-log {
+  flex: 1 1 auto;
+  min-height: 100px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 2px;
+}
+
+.chat-row {
+  display: flex;
+  width: 100%;
+}
+
+.chat-row.owner {
+  justify-content: flex-start;
+}
+
+.chat-row.vet {
+  justify-content: flex-end;
+}
+
+.chat-bubble {
+  max-width: 84%;
+  padding: 9px 12px;
+  border-radius: 16px;
+  font-size: calc(12.5px * var(--text-scale, 1));
+  line-height: 1.5;
+  color: var(--brown);
+  border: 1px solid var(--brown-border);
+  word-break: keep-all;
+}
+
+.chat-row.owner .chat-bubble {
+  background: var(--ivory-deep);
+  border-bottom-left-radius: 5px;
+}
+
+.chat-row.vet .chat-bubble {
+  background: var(--white);
+  border-bottom-right-radius: 5px;
+}
+
+.ch1-chat-form {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Exam Buttons & Buffered Loading + Fly-in Result Button */
+.exam-btn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exam-item {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.exam-main-btn {
+  width: 100%;
+  height: 46px;
+  border-radius: 15px;
+  justify-content: center;
+}
+
+.exam-main-btn.exam-done {
+  background: #cbbba4;
+  color: #5d4736;
+  border-color: #b4a188;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.exam-load-wrap {
+  background: var(--ivory);
+  border: 1px solid var(--brown-border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  overflow: hidden;
+}
+
+.exam-done-caption {
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--brown);
+  text-align: center;
+}
+
+.exam-load-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brown);
+}
+
+.exam-bar-track {
+  width: 100%;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--ivory-deep);
+  overflow: hidden;
+}
+
+.exam-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--brown);
+  border-radius: 999px;
+  transition: width 0.16s ease-out;
+}
+
+@keyframes slideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.exam-view-btn {
+  width: 100%;
+  height: 40px;
+  border-radius: 12px;
+  animation: slideInRight 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Evaluation Tab (ASA + Prognosis + 50% Opacity Red Rectangular Slam Stamp) */
+.eval-sec-lbl {
+  font-family: var(--font-display);
+  font-size: calc(13px * var(--text-scale, 1));
+  font-weight: 600;
+  color: var(--brown);
+  margin-bottom: 6px;
+}
+
+.asa-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.asa-btn {
+  height: 42px;
+  padding: 0;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.prog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+}
+
+.prog-btn {
+  height: 42px;
+  padding: 0 8px;
+  border-radius: 12px;
+  font-size: calc(12.5px * var(--text-scale, 1));
+}
+
+.prog-btn.span-2 {
+  grid-column: span 2;
+}
+
+@keyframes stampSlam {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.4) rotate(-14deg);
+  }
+  65% {
+    opacity: 0.58;
+    transform: translate(-50%, -50%) scale(0.94) rotate(-6deg);
+  }
+  100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1) rotate(-7deg);
+  }
+}
+
+.ch1-stamp-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-7deg);
+  z-index: 30;
+  pointer-events: none;
+  border: 5px solid #dc2626;
+  border-radius: 12px;
+  padding: 14px 24px;
+  background: rgba(254, 242, 242, 0.55);
+  color: #dc2626;
+  text-align: center;
+  min-width: 210px;
+  opacity: 0.5;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25) inset;
+  animation: stampSlam 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.05) forwards;
+}
+
+.ch1-stamp-overlay.hidden {
+  display: none;
+}
+
+.ch1-stamp-asa {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+.ch1-stamp-prog {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.ch1-stamp-grade {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  margin-top: 4px;
+  line-height: 1;
+}
+
+
 
 

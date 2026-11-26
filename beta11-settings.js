@@ -42,21 +42,99 @@
     }
   }
 
+  const GRADE_RANK = { F: 1, D: 2, C: 3, B: 4, A: 5, S: 6 };
+  const STAGE_PREREQ = {
+    tutorial: null,
+    asymp_dog: null,
+    mild_dog: 'asymp_dog',
+    geriatric_dog: 'mild_dog',
+    severe_dog: 'geriatric_dog',
+    emerg_dog: 'severe_dog',
+    asymp_cat: null,
+    mild_cat: 'asymp_cat',
+    geriatric_cat: 'mild_cat',
+    severe_cat: 'geriatric_cat',
+    emerg_cat: 'severe_cat',
+    practice_dog: 'tutorial',
+    practice_cat: 'tutorial'
+  };
+
   function getProgressMap() {
     try { return JSON.parse(localStorage.getItem(KEY_PROG) || '{}') || {}; } catch { return {}; }
   }
 
-  function isStageComplete(chNum, stageId) {
+  function getStageResult(chNum, stageId) {
     const map = getProgressMap();
-    return Boolean(map['ch' + chNum] && map['ch' + chNum][stageId]);
+    const raw = map['ch' + chNum] && map['ch' + chNum][stageId];
+    if (!raw) return null;
+    if (raw === true) {
+      return { done: true, stamp: stageId === 'tutorial' ? '완료' : 'A', score: 90 };
+    }
+    if (typeof raw === 'object') {
+      return {
+        done: Boolean(raw.done !== false),
+        stamp: String(raw.stamp || (stageId === 'tutorial' ? '완료' : '')),
+        score: Number(raw.score || 0)
+      };
+    }
+    return null;
   }
 
-  function markStageComplete(chNum, stageId) {
+  function isStageComplete(chNum, stageId) {
+    const res = getStageResult(chNum, stageId);
+    return Boolean(res && res.done);
+  }
+
+  function isStageUnlocked(chNum, stageId) {
+    if (!Object.prototype.hasOwnProperty.call(STAGE_PREREQ, stageId)) return true;
+    const req = STAGE_PREREQ[stageId];
+    if (!req) return true;
+    return isStageComplete(chNum, req);
+  }
+
+  function saveStageResult(chNum, stageId, payload = {}) {
     const map = getProgressMap();
     const k = 'ch' + chNum;
     map[k] = map[k] || {};
-    map[k][stageId] = true;
+    const prev = getStageResult(chNum, stageId);
+    const score = Math.max(0, Math.min(100, Math.round(Number(payload.score ?? 100))));
+    let next;
+
+    if (stageId === 'tutorial') {
+      next = { done: true, stamp: '완료', score: 100 };
+    } else if (stageId === 'practice_dog' || stageId === 'practice_cat') {
+      const bestScore = prev ? Math.max(prev.score || 0, score) : score;
+      next = { done: true, stamp: String(bestScore), score: bestScore };
+    } else {
+      const grade = String(payload.grade || payload.stamp || 'F').toUpperCase();
+      const prevRank = prev ? (GRADE_RANK[prev.stamp] || 0) : 0;
+      const curRank = GRADE_RANK[grade] || 0;
+      const bestGrade = curRank >= prevRank ? grade : prev.stamp;
+      const bestScore = prev ? Math.max(prev.score || 0, score) : score;
+      next = { done: true, stamp: bestGrade, score: bestScore };
+    }
+
+    map[k][stageId] = next;
     try { localStorage.setItem(KEY_PROG, JSON.stringify(map)); } catch {}
+    return next;
+  }
+
+  function markStageComplete(chNum, stageId) {
+    return saveStageResult(chNum, stageId, {
+      stamp: stageId === 'tutorial' ? '완료' : 'A',
+      grade: 'A',
+      score: stageId === 'tutorial' ? 100 : 90
+    });
+  }
+
+  function triggerStageGlow() {
+    const btn = document.getElementById('ch-btn-stage');
+    if (btn) btn.classList.add('stage-glow');
+  }
+
+  function clearStageGlow() {
+    const btn = document.getElementById('ch-btn-stage');
+    if (btn) btn.classList.remove('stage-glow');
   }
 
   function playTone(freq = 540, dur = 0.06, vol = 0.04) {
@@ -190,6 +268,22 @@
       doc.querySelectorAll('body > .modal-backdrop').forEach((m) => {
         document.body.appendChild(document.importNode(m, true));
       });
+
+      const extScripts = Array.from(doc.querySelectorAll('script[src]'));
+      for (const sc of extScripts) {
+        const src = sc.getAttribute('src');
+        if (!src || /beta11-settings\.js$/i.test(src)) continue;
+        const already = Array.from(document.querySelectorAll('script[src]')).some((el) => el.getAttribute('src') === src);
+        if (!already) {
+          await new Promise((resolve) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = resolve;
+            s.onerror = resolve;
+            document.head.appendChild(s);
+          });
+        }
+      }
 
       const scripts = Array.from(doc.querySelectorAll('body script:not([src])'));
       for (const sc of scripts) {
@@ -465,25 +559,30 @@
     tutNextBtn.addEventListener('click', () => {
       playTone(560, 0.05, 0.03);
       if (tutIdx >= tutSteps.length - 1) {
-        markStageComplete(chNum, 'tutorial');
+        saveStageResult(chNum, 'tutorial', { stamp: '완료', score: 100 });
         stopTutorial();
         renderStageList();
+        triggerStageGlow();
       } else {
         showTutStep(tutIdx + 1);
       }
     });
 
-    // Stage Modal (13 buttons: 튜토리얼 + 5종 개/고양이 + 실전 개/고양이, each with Red '완료' stamp)
+    // Stage Modal (13 buttons: 튜토리얼 + 5종 개/고양이 + 실전 개/고양이)
+    // Unlock rules: Cases unlock sequentially per species (무증상→경증→노령→중증→응급); 실전 unlocks after 튜토리얼.
+    // Red stamps: 튜토리얼 '완료', 케이스 등급(S~F), 실전 최고 점수 숫자
     const stageModal = document.getElementById('ch-stage-modal');
     const stageListEl = document.getElementById('ch-stage-list');
-    let activeStageId = stageRows[0][0].id;
+    let activeStageId = cfg.initialStageId || stageRows[0][0].id;
 
     function renderStageBtn(st) {
-      const done = isStageComplete(chNum, st.id);
+      const unlocked = isStageUnlocked(chNum, st.id);
+      const res = getStageResult(chNum, st.id);
+      const stampHtml = res && res.done && res.stamp ? `<span class="stamp-done">${res.stamp}</span>` : '';
       return `
-        <button type="button" class="b-btn stage-btn ${st.id === activeStageId ? 'active' : ''}" data-stage="${st.id}">
+        <button type="button" class="b-btn stage-btn ${st.id === activeStageId ? 'active' : ''} ${unlocked ? '' : 'is-locked'}" data-stage="${st.id}" ${unlocked ? '' : 'disabled aria-disabled="true"'}>
           <span>${st.name}</span>
-          ${done ? '<span class="stamp-done">완료</span>' : ''}
+          ${stampHtml}
         </button>
       `;
     }
@@ -493,13 +592,19 @@
         if (row.length === 1) return renderStageBtn(row[0]);
         return `<div class="stage-row-2">${row.map(renderStageBtn).join('')}</div>`;
       }).join('');
-      stageListEl.querySelectorAll('.stage-btn').forEach((b) => {
+      stageListEl.querySelectorAll('.stage-btn:not(.is-locked)').forEach((b) => {
         b.addEventListener('click', () => {
-          activeStageId = b.dataset.stage;
+          const stId = b.dataset.stage;
+          if (!isStageUnlocked(chNum, stId)) return;
+          activeStageId = stId;
           renderStageList();
           playTone(540, 0.05, 0.03);
-          if (activeStageId === 'tutorial') {
-            stageModal.classList.add('hidden');
+          stageModal.classList.add('hidden');
+          clearStageGlow();
+          if (typeof cfg.onSelectStage === 'function') {
+            cfg.onSelectStage(stId);
+          }
+          if (stId === 'tutorial' && !cfg.customTutorial) {
             showTutStep(0);
           }
         });
@@ -570,13 +675,25 @@
     document.getElementById('ch-help-close').addEventListener('click', () => helpModal.classList.add('hidden'));
     helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
 
-    document.getElementById('ch-btn-stage').addEventListener('click', () => { renderStageList(); playTone(500, 0.05, 0.03); stageModal.classList.remove('hidden'); });
+    document.getElementById('ch-btn-stage').addEventListener('click', () => {
+      clearStageGlow();
+      renderStageList();
+      playTone(500, 0.05, 0.03);
+      stageModal.classList.remove('hidden');
+    });
     document.getElementById('ch-stage-close').addEventListener('click', () => stageModal.classList.add('hidden'));
     stageModal.addEventListener('click', (e) => { if (e.target === stageModal) stageModal.classList.add('hidden'); });
 
     document.getElementById('ch-btn-settings').addEventListener('click', () => { syncChSettings(); toastEl.textContent = ''; playTone(500, 0.05, 0.03); settingsModal.classList.remove('hidden'); });
     document.getElementById('ch-settings-close').addEventListener('click', () => settingsModal.classList.add('hidden'));
     settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
+
+    return {
+      refreshStages: renderStageList,
+      setActiveStage: (id) => { activeStageId = id; renderStageList(); },
+      startTutorial: () => showTutStep(0),
+      openStageModal: () => { clearStageGlow(); renderStageList(); stageModal.classList.remove('hidden'); }
+    };
   }
 
   applyFontLevel(getFontLevel());
@@ -588,8 +705,13 @@
     isSoundOn,
     setSound,
     isFullscreenOn,
+    getStageResult,
     isStageComplete,
+    isStageUnlocked,
+    saveStageResult,
     markStageComplete,
+    triggerStageGlow,
+    clearStageGlow,
     playTone,
     toggleFullscreen,
     shareSimulator,

@@ -22,6 +22,21 @@ async function parseJsonBody(req) {
 }
 
 function buildGenerateCasePrompt(body) {
+  if (body.phase === 'chapter1') {
+    const sp = String(body.species || '').toLowerCase().includes('cat') ? 'cat' : 'dog';
+    const spKr = sp === 'cat' ? '고양이' : '개';
+    const recentList = Array.isArray(body.recentCases) && body.recentCases.length
+      ? body.recentCases.join(' / ')
+      : '없음';
+    return `당신은 수의 마취과 전문의입니다. 마취 전 검사 시뮬레이터(Chapter 1) 실전 단계용 ${spKr}(${sp}) 환자 케이스 1건을 JSON 객체로만 출력하세요(마크다운 백틱 금지).
+최근 출제되어 피해야 할 케이스: ${recentList}
+필수 규칙:
+1) species는 반드시 "${sp}"로 고정하고 축종·품종·연령에 맞는 의학적으로 현실적인 질환(무증상~응급 중 랜덤)을 설정하세요.
+2) history 배열에는 보호자 문진으로 확인할 3~4개 항목(수술 이력, 알러지, 복용약/기저질환, 금식/최근 증상 등)을 넣고 각 항목마다 keywords 배열(한국어 검색 키워드 3~5개)을 포함하세요.
+3) trueAsa는 1~5 정수, trueEmergency는 boolean, truePrognosis는 "Good"|"Fair"|"Guarded"|"Poor"|"Grave" 중 하나입니다.
+출력 JSON 스키마:
+{"species":"${sp}","name":"환자이름","breed":"품종","age":"예: 7세","weight":숫자,"sex":"예: 중성화 수컷 (CM)","chiefComplaint":"주호소 한 줄","history":[{"key":"hx_surg","label":"수술 이력","text":"내용","keywords":["수술","마취","이전"]},{"key":"hx_allergy","label":"알러지","text":"내용","keywords":["알러지","과민","부작용"]},{"key":"hx_med","label":"복용약/병력","text":"내용","keywords":["약","복용","질환","병력"]},{"key":"hx_fast","label":"금식/최근 증상","text":"내용","keywords":["금식","밥","구토","식욕","증상"]}],"ownerClue":"보호자가 알고 있는 핵심 단서 요약","pe":{"bt":숫자,"bpSys":숫자,"bpDia":숫자,"bpMap":숫자,"cuff":숫자,"hr":숫자,"rr":숫자,"crt":숫자,"mmc":"예: wet - pink"},"lab":{"pH":숫자,"pCO2":숫자,"pO2":숫자,"Na":숫자,"K":숫자,"Cl":숫자,"iCa":숫자,"Hct":숫자,"WBC":숫자,"PLT":숫자,"ALP":숫자,"ALT":숫자,"AST":숫자,"GGT":숫자,"BUN":숫자,"Crea":숫자,"Phos":숫자,"Ca":숫자,"TG":숫자,"Tchol":숫자,"Glu":숫자,"TP":숫자,"ALB":숫자,"Mg":숫자,"proBNP":숫자,"T4":숫자,"Cortisol":숫자,"SDMA":숫자,"CRP":숫자,"cPL":숫자,"SAA":숫자,"fPL":숫자},"imaging":{"thoracic":{"vhs":"예: 9.8v","vlas":"예: 2.1v (RLAD 1.6v)","trachea":"예: 정상 주행 및 내경 유지","lung":"예: 특이 침윤 없음 (정상 폐야)","extra":"추가 소견 또는 특이사항 없음"},"abdominal":null,"ultrasound":null},"trueAsa":숫자,"trueEmergency":false,"truePrognosis":"Good|Fair|Guarded|Poor|Grave"}`;
+  }
   const customBrief = body.customBrief ? String(body.customBrief).trim() : '';
   if (customBrief) {
     return `당신은 수의 마취과 전문의입니다. 사용자가 직접 입력한 아래 환자 브리핑을 충실히 반영하여 수의 마취 시뮬레이션용 환자 케이스 1건을 JSON 객체로만 출력하세요(마크다운 백틱 금지).
@@ -84,6 +99,7 @@ export async function onRequestPost(context) {
         optimistic: '낙관적: 긍정적이고 수의사를 신뢰하는 태도. 마취 위험을 들어도 "우리 애는 튼튼해서 잘 이겨낼 거예요!"처럼 밝고 협조적이지만, 주의사항을 가볍게 넘기려 할 수 있음.',
         neutral: '중립: 차분하고 객관적이며 사실 위주로 묻고 답하는 균형 잡힌 태도.',
         anxious: '걱정: 불안이 크고 혹시 모를 마취 합병증·후유증을 거듭 확인하며 안심을 구함. 실제 바이탈·혈검이 양호하고 수의사가 차분히 설명해 주면 마음이 놓임.',
+        urgent: '다급: 아이 상태가 걱정되어 마음이 매우 급하고 초조한 태도. 말이 빠르고 결론과 안전 여부를 재촉하며, 수의사가 핵심을 신속하고 분명하게 짚어 주기를 강하게 원함.',
         negative: '부정적: 회의적이고 방어적·비판적인 태도. 마취 부작용·수술 필요성·검사 결과에 의구심이 강해 "괜히 했다가 잘못되는 거 아니에요?", "확실한 거 맞나요?"처럼 날카롭게 반문함(수의사가 진지하고 객관적인 근거로 설명하면 점차 누그러짐).'
       };
       const persDesc = personalityMap[persRaw] || personalityMap.neutral;
