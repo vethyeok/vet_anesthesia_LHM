@@ -650,9 +650,11 @@
     const stageListEl = document.getElementById('ch-stage-list');
     let activeStageId = cfg.initialStageId || stageRows[0][0].id;
     let pendingStageId = null;
+    let initialStageSelectOpen = false;
 
     function applyStageSelection(stId) {
       activeStageId = stId;
+      initialStageSelectOpen = false;
       renderStageList();
       playTone(540, 0.05, 0.03);
       stageModal.classList.add('hidden');
@@ -686,12 +688,17 @@
         b.addEventListener('click', () => {
           const stId = b.dataset.stage;
           if (!isStageUnlocked(chNum, stId)) return;
+          if (initialStageSelectOpen) {
+            applyStageSelection(stId);
+            return;
+          }
           if (stId === activeStageId) {
+            if (stId === 'tutorial' && !cfg.customTutorial) {
+              applyStageSelection('tutorial');
+              return;
+            }
             playTone(520, 0.04, 0.025);
             stageModal.classList.add('hidden');
-            if (stId === 'tutorial' && !cfg.customTutorial) {
-              setTimeout(() => showTutStep(0), 60);
-            }
             return;
           }
           pendingStageId = stId;
@@ -781,20 +788,37 @@
     helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
 
     document.getElementById('ch-btn-stage').addEventListener('click', () => {
+      initialStageSelectOpen = false;
       clearStageGlow();
       renderStageList();
       playTone(500, 0.05, 0.03);
       stageModal.classList.remove('hidden');
     });
-    document.getElementById('ch-stage-close').addEventListener('click', () => stageModal.classList.add('hidden'));
-    stageModal.addEventListener('click', (e) => { if (e.target === stageModal) stageModal.classList.add('hidden'); });
+    document.getElementById('ch-stage-close').addEventListener('click', () => {
+      initialStageSelectOpen = false;
+      stageModal.classList.add('hidden');
+    });
+    stageModal.addEventListener('click', (e) => {
+      if (e.target === stageModal) {
+        initialStageSelectOpen = false;
+        stageModal.classList.add('hidden');
+      }
+    });
 
     document.getElementById('ch-btn-settings').addEventListener('click', () => { syncChSettings(); toastEl.textContent = ''; playTone(500, 0.05, 0.03); settingsModal.classList.remove('hidden'); });
     document.getElementById('ch-settings-close').addEventListener('click', () => settingsModal.classList.add('hidden'));
     settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
 
-    if (activeStageId === 'tutorial' && !cfg.customTutorial && !isStageComplete(chNum, 'tutorial')) {
-      setTimeout(() => showTutStep(0), 120);
+    if (!cfg.customTutorial) {
+      if (!isStageComplete(chNum, 'tutorial')) {
+        setTimeout(() => showTutStep(0), 120);
+      } else {
+        setTimeout(() => {
+          initialStageSelectOpen = true;
+          renderStageList();
+          stageModal.classList.remove('hidden');
+        }, 100);
+      }
     }
 
     return {
