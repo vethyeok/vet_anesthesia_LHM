@@ -164,8 +164,8 @@
   <!-- 실패 팝업 (F 등급 또는 보호자 신뢰 붕괴 시 — 배경 클릭/ESC로 닫히지 않음) -->
   <div id="ch1-fail-modal" class="modal-backdrop no-dismiss hidden" role="dialog" aria-modal="true" aria-labelledby="ch1-fail-title" style="backdrop-filter:blur(6px); z-index:105;">
     <div class="modal-card" style="text-align:center;">
-      <h2 id="ch1-fail-title" class="font-maru" style="font-size:20px; font-weight:700; color:#dc2626; margin-bottom:8px;">평가 실패</h2>
-      <p id="ch1-fail-desc" class="muted" style="line-height:1.55; margin-bottom:16px;"></p>
+      <h2 id="ch1-fail-title" class="font-maru" style="font-size:20px; font-weight:700; color:#dc2626; margin-bottom:8px;">진료 중단</h2>
+      <p id="ch1-fail-desc" class="muted" style="font-size:15px; font-weight:600; line-height:1.5; margin-bottom:16px;"></p>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <button id="ch1-fail-review" type="button" class="b-btn" style="width:100%; height:42px; border-radius:14px;">해설 보기</button>
         <button id="ch1-fail-restart" type="button" class="b-btn" style="width:100%; height:42px; border-radius:14px;">재시작</button>
@@ -829,9 +829,9 @@
       let aiAnalysisText = null;
       let soapAnalysisText = null;
 
-      function openFailModal(title, desc) {
-        failTitleEl.textContent = title || '평가 실패';
-        failDescEl.textContent = desc || '';
+      function openFailModal(score, grade) {
+        failTitleEl.textContent = '진료 중단';
+        failDescEl.textContent = `${score}점 · ${grade} 등급`;
         failModalEl.classList.remove('hidden');
         Settings.playTone(220, 0.16, 0.05);
       }
@@ -876,10 +876,7 @@
         }
         if (chapterCtrl) chapterCtrl.refreshStages();
 
-        openFailModal(
-          '진료 중단 (신뢰 붕괴)',
-          '보호자의 기분을 크게 해쳐 진료가 즉시 중단되었습니다. (신뢰 붕괴 -100점 · F 등급)'
-        );
+        openFailModal(0, 'F');
       }
 
       function setReviewTab(tabKey) {
@@ -1129,10 +1126,7 @@
         if (chapterCtrl) chapterCtrl.refreshStages();
 
         if (currentStageId !== 'tutorial' && grade === 'F') {
-          openFailModal(
-            '평가 실패 (F 등급)',
-            `최종 점수 ${score}점 (F 등급)으로 다음 단계에 진출할 수 없습니다. D 등급 이상을 받아야 다음 케이스가 해금됩니다.`
-          );
+          openFailModal(score, grade);
         } else {
           Settings.playTone(760, 0.12, 0.05);
           Settings.triggerStageGlow();
