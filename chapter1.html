@@ -430,9 +430,15 @@
         chatLogEl.scrollTop = chatLogEl.scrollHeight;
       }
 
+      function setChatLocked(locked) {
+        chatInputEl.disabled = Boolean(locked);
+        chatSendBtn.disabled = Boolean(locked);
+        chatInputEl.placeholder = locked ? '평가가 완료되어 문진이 종료되었습니다' : '질문을 입력하세요';
+      }
+
       async function handleChatSend(e) {
         e.preventDefault();
-        if (chatBusy || !currentCase) return;
+        if (evaluated || chatBusy || !currentCase) return;
         const q = chatInputEl.value.trim();
         if (!q) return;
 
@@ -523,13 +529,14 @@
         }
 
         chatBusy = false;
-        chatSendBtn.disabled = false;
-
         if (ownerAborted || ownerMood <= 0) {
           triggerImmediateTrustFailure();
           return;
         }
-        chatInputEl.focus();
+        if (!evaluated) {
+          chatSendBtn.disabled = false;
+          chatInputEl.focus();
+        }
       }
       chatFormEl.addEventListener('submit', handleChatSend);
 
@@ -832,6 +839,7 @@
       function triggerImmediateTrustFailure() {
         if (!currentCase || evaluated) return;
         evaluated = true;
+        setChatLocked(true);
         ownerAborted = true;
         ownerMood = 0;
 
@@ -1046,6 +1054,7 @@
           return;
         }
         evaluated = true;
+        setChatLocked(true);
 
         let score = 100;
         const examsDone = ['pe', 'lab', 'img'].filter((k) => examState[k] === 'done').length;
@@ -1151,6 +1160,7 @@
         soapAnalysisText = null;
 
         // Reset UI
+        setChatLocked(false);
         failModalEl.classList.add('hidden');
         reviewModalEl.classList.add('hidden');
         stampOverlayEl.classList.add('hidden');
