@@ -168,7 +168,7 @@ h1, h2, h3, .font-maru {
   font-size: 15px;
 }
 
-/* Chapter Menu Button (index2.html) — 70% width, fixed height, left soft-square / right pill, L->R fade-out */
+/* Chapter Menu Button (index.html) — 70% width, fixed height, left soft-square / right pill, L->R fade-out */
 .menu-list {
   display: flex;
   flex-direction: column;

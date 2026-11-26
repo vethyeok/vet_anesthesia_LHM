@@ -203,10 +203,10 @@
   document.addEventListener('fullscreenchange', onFsChange);
   document.addEventListener('webkitfullscreenchange', onFsChange);
 
-  /* Always share canonical main simulator link (index2.html) */
+  /* Always share canonical main simulator link (index.html) */
   async function shareSimulator() {
     let url = window.location.href.split('#')[0];
-    try { url = new URL('index2.html', window.location.href).href; } catch {}
+    try { url = new URL('index.html', window.location.href).href; } catch {}
     const title = '수의 마취 시뮬레이터 (Beta 1.1)';
     const text = '수의 마취 자기 주도적 학습 시뮬레이터';
     if (navigator.share) {
@@ -238,13 +238,14 @@
     }
   }
 
-  /* Seamless SPA navigation between index2.html and chapter1~5.html so mobile native Fullscreen NEVER exits */
-  const BETA11_PAGES = /^(index2|chapter[1-5])\.html$/i;
+  /* Seamless SPA navigation between index.html and chapter1~5.html so mobile native Fullscreen NEVER exits */
+  const BETA11_PAGES = /^(index|chapter[1-5])\.html$/i;
   let navBusy = false;
 
   async function navigateTo(url, opts = {}) {
     const push = opts.push !== false;
-    const cleanFile = String(url || '').split('?')[0].split('#')[0].split('/').pop();
+    const rawClean = String(url || '').split('?')[0].split('#')[0].split('/').pop();
+    const cleanFile = rawClean || 'index.html';
     if (!BETA11_PAGES.test(cleanFile) || window.location.protocol === 'file:') {
       window.location.href = url;
       return;
@@ -252,7 +253,7 @@
     if (navBusy) return;
     navBusy = true;
     try {
-      const res = await fetch(url, { cache: 'no-cache' });
+      const res = await fetch(cleanFile, { cache: 'no-cache' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const html = await res.text();
       const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -296,7 +297,7 @@
         if (code.trim()) new Function(code)();
       }
 
-      if (push) history.pushState({ beta11: true, url }, '', url);
+      if (push) history.pushState({ beta11: true, url: cleanFile }, '', cleanFile);
       window.scrollTo(0, 0);
       applyFontLevel(getFontLevel());
       if (isFullscreenOn()) document.body.classList.add('b11-immersive');
@@ -319,7 +320,7 @@
   });
 
   window.addEventListener('popstate', () => {
-    const file = window.location.pathname.split('/').pop() || 'index2.html';
+    const file = window.location.pathname.split('/').pop() || 'index.html';
     if (BETA11_PAGES.test(file)) navigateTo(file, { push: false });
   });
 
@@ -768,7 +769,7 @@
         return;
       }
       settingsModal.classList.add('hidden');
-      navigateTo('index2.html', { push: true });
+      navigateTo('index.html', { push: true });
     });
 
     // Open / Close Handlers

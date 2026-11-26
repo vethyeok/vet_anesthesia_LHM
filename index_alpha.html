@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>수의 마취 통합 시뮬레이터 — 도입 · 유지 · 회복</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #070b12; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; min-height: 100vh; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 28px 16px 24px; display: flex; flex-direction: column; gap: 18px; }
+    .hero { text-align: center; padding: 14px 10px; }
+    .logo { width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 16px; background: rgba(16,185,129,0.15); border: 2px solid rgba(16,185,129,0.4); color: #34d399; display: flex; align-items: center; justify-content: center; }
+    .eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; color: #34d399; }
+    h1 { font-size: 26px; font-weight: 800; color: #fff; margin-top: 6px; }
+    .notice { background: rgba(120,53,15,0.26); border: 1px solid rgba(245,158,11,0.4); border-radius: 12px; padding: 12px 14px; font-size: 11.5px; line-height: 1.6; color: #fef3c7; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    .phase-card { display: flex; flex-direction: column; justify-content: space-between; text-decoration: none; color: inherit; background: linear-gradient(180deg, #0f172a, #020617); border: 1px solid #1e293b; border-radius: 16px; padding: 18px; transition: 0.18s; }
+    .phase-card:hover { border-color: #38bdf8; transform: translateY(-2px); box-shadow: 0 14px 28px rgba(0,0,0,0.45); }
+    .badge { display: inline-block; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px; margin-bottom: 10px; }
+    .b1 { background: rgba(16,185,129,0.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.4); }
+    .b2 { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid rgba(245,158,11,0.4); }
+    .b3 { background: rgba(56,189,248,0.2); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.4); }
+    .phase-card h2 { font-size: 17px; font-weight: 800; color: #fff; }
+    .phase-card p { font-size: 12px; color: #94a3b8; line-height: 1.55; margin-top: 8px; }
+    .cta { margin-top: 16px; padding: 9px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 800; }
+    .c1 { background: #10b981; color: #020617; }
+    .c2 { background: #fbbf24; color: #020617; }
+    .c3 { background: #38bdf8; color: #020617; }
+    .footer-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid #1e293b; padding-top: 14px; font-size: 11px; color: #64748b; }
+    .btn-cred { padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #cbd5e1; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .overlay { position: fixed; inset: 0; z-index: 50; background: rgba(2,6,23,0.9); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .hidden { display: none !important; }
+    .modal { width: 100%; max-width: 320px; background: #0f172a; border: 2px solid rgba(56,189,248,0.45); border-radius: 16px; padding: 20px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="logo">
+        <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h3l2-7 4 14 3-9 2 2h4"/></svg>
+      </div>
+      <div class="eyebrow">VETERINARY ANESTHESIA TRAINING SUITE</div>
+      <h1>수의 마취 통합 시뮬레이터</h1>
+    </div>
+
+    <div class="notice">
+      <strong style="color:#fcd34d;">교육·훈련용 안내:</strong> 본 시뮬레이터는 수의학 마취 모니터링의 이해를 돕기 위해 제작된 <strong>교육·훈련용 프로그램</strong>입니다. 생리학적 반응과 약물 효과는 학습 목적에 맞춰 단순화되어 실제 환자의 임상 반응과 다를 수 있으며, 실제 진료·진단·처방의 근거로 사용할 수 없습니다.
+    </div>
+
+    <div class="grid">
+      <a class="phase-card" href="induction.html">
+        <div>
+          <span class="badge b1">PHASE 1 · 도입–전환</span>
+          <h2>마취 도입–전환 시뮬레이터</h2>
+        </div>
+        <div class="cta c1">▶ 도입 시뮬레이터 시작</div>
+      </a>
+
+      <a class="phase-card" href="maintenance.html">
+        <div>
+          <span class="badge b2">PHASE 2 · 유지 모니터링</span>
+          <h2>마취 유지 모니터링 시뮬레이터</h2>
+        </div>
+        <div class="cta c2">▶ 유지 시뮬레이터 시작</div>
+      </a>
+
+      <a class="phase-card" href="recovery.html">
+        <div>
+          <span class="badge b3">PHASE 3 · 종료–회복</span>
+          <h2>마취 종료·회복 시뮬레이터</h2>
+        </div>
+        <div class="cta c3">▶ 회복 시뮬레이터 시작</div>
+      </a>
+      <a class="phase-card" href="critical.html" style="border-color:rgba(251,113,133,0.55); background:linear-gradient(160deg,rgba(136,19,55,0.22),rgba(15,23,42,0.92));">
+        <div>
+          <span class="badge" style="background:rgba(244,63,94,0.2); color:#fda4af; border:1px solid rgba(251,113,133,0.45);">PRACTICE · 실전</span>
+          <h2>마취 실전 시뮬레이터</h2>
+        </div>
+        <div class="cta" style="background:#f43f5e; color:#fff;">▶ 실전 시뮬레이터 시작</div>
+      </a>
+    </div>
+
+    <div class="footer-bar">
+      <span><strong style="color:#94a3b8;">마취 시뮬레이터 · © 2026 DVM 이혁민.</strong> All rights reserved.</span>
+      <button id="btn-cred" class="btn-cred" type="button">크레딧</button>
+    </div>
+  </div>
+
+  <div id="cred-modal" class="overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div style="font-size:10px; font-weight:800; color:#7dd3fc; letter-spacing:0.1em;">CREDITS</div>
+      <h2 style="font-size:17px; font-weight:800; color:#fff; margin-top:4px;">제작 정보</h2>
+      <div style="margin-top:14px; background:#020617; border:1px solid #1e293b; border-radius:10px; padding:12px; font-size:12px;">
+        <div style="display:flex; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #1e293b;"><span style="color:#94a3b8;">제작</span><strong style="color:#fff;">DVM 이혁민</strong></div>
+        <div style="display:flex; justify-content:space-between; padding-top:8px;"><span style="color:#94a3b8;">제작 도구</span><strong style="color:#67e8f9;">Gemini</strong></div>
+      </div>
+      <button id="btn-cred-close" type="button" class="cta c1" style="width:100%; border:none; cursor:pointer;">닫기</button>
+    </div>
+  </div>
+  <a href="index.html" id="btn-beta-test" title="마취 시뮬레이터 베타 1.1 메인화면" style="position:fixed; right:14px; bottom:14px; z-index:40; display:inline-flex; align-items:center; gap:5px; padding:7px 13px; border-radius:999px; background:#eae0ce; color:#4a3423; border:1px solid #d4c3aa; font-size:12px; font-weight:800; text-decoration:none; box-shadow:0 8px 20px rgba(0,0,0,0.35); transition:all 0.18s;">Beta 1.1</a>
+  <script>
+    document.getElementById('btn-cred').addEventListener('click', () => document.getElementById('cred-modal').classList.remove('hidden'));
+    document.getElementById('btn-cred-close').addEventListener('click', () => document.getElementById('cred-modal').classList.add('hidden'));
+  </script>
+</body>
+</html>
