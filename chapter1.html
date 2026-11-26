@@ -673,7 +673,7 @@
         btn.classList.add('exam-done');
         btn.disabled = true;
         if (viewBtn) {
-          viewBtn.classList.add('exam-done');
+          viewBtn.classList.add('exam-done', 'fade-out-up');
           viewBtn.disabled = true;
         }
 
@@ -693,7 +693,7 @@
 
         const tHide = setTimeout(() => {
           if (slot) slot.innerHTML = '';
-        }, 260);
+        }, 320);
         examTimers.push(tHide);
       }
 

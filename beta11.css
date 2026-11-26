@@ -958,13 +958,14 @@ body.b11-immersive .app-shell {
     align-items: stretch;
   }
   .ch1-ctrl-handle {
-    display: none !important;
+    cursor: default;
+    pointer-events: none;
+  }
+  .ch1-ctrl-handle-bar {
+    visibility: hidden;
   }
   .ch1-split.ctrl-collapsed .ch1-ctrl-body {
     display: flex !important;
-  }
-  .ch1-ctrl-tabs {
-    padding-top: 10px;
   }
 }
 
@@ -1465,6 +1466,21 @@ body.b11-immersive .app-shell {
   height: 44px;
   border-radius: 14px;
   animation: slideInRight 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fadeOutUp {
+  0% {
+    opacity: 0.72;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-22px);
+  }
+}
+
+.exam-view-btn.fade-out-up {
+  animation: fadeOutUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* Evaluation Tab (ASA + Prognosis + 50% Opacity Red Rectangular Slam Stamp) */
