@@ -85,11 +85,20 @@
     return Boolean(res && res.done);
   }
 
+  function isStagePassed(chNum, stageId) {
+    const res = getStageResult(chNum, stageId);
+    if (!res || !res.done) return false;
+    if (stageId === 'tutorial' || stageId === 'practice_dog' || stageId === 'practice_cat') {
+      return res.stamp !== 'F';
+    }
+    return (GRADE_RANK[res.stamp] || 0) >= GRADE_RANK.D;
+  }
+
   function isStageUnlocked(chNum, stageId) {
     if (!Object.prototype.hasOwnProperty.call(STAGE_PREREQ, stageId)) return true;
     const req = STAGE_PREREQ[stageId];
     if (!req) return true;
-    return isStageComplete(chNum, req);
+    return isStagePassed(chNum, req);
   }
 
   function saveStageResult(chNum, stageId, payload = {}) {
@@ -326,7 +335,7 @@
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach((m) => m.classList.add('hidden'));
+      document.querySelectorAll('.modal-backdrop:not(.hidden):not(.no-dismiss)').forEach((m) => m.classList.add('hidden'));
       document.querySelectorAll('.menu-btn.fade-out-lr').forEach((b) => b.classList.remove('fade-out-lr'));
     }
   });

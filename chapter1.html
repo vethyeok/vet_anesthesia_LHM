@@ -161,8 +161,21 @@
     </main>
   </div>
 
+  <!-- 실패 팝업 (F 등급 또는 보호자 신뢰 붕괴 시 — 배경 클릭/ESC로 닫히지 않음) -->
+  <div id="ch1-fail-modal" class="modal-backdrop no-dismiss hidden" role="dialog" aria-modal="true" aria-labelledby="ch1-fail-title" style="backdrop-filter:blur(6px); z-index:105;">
+    <div class="modal-card" style="text-align:center;">
+      <h2 id="ch1-fail-title" class="font-maru" style="font-size:20px; font-weight:700; color:#dc2626; margin-bottom:8px;">평가 실패</h2>
+      <p id="ch1-fail-desc" class="muted" style="line-height:1.55; margin-bottom:16px;"></p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button id="ch1-fail-review" type="button" class="b-btn" style="width:100%; height:42px; border-radius:14px;">해설 보기</button>
+        <button id="ch1-fail-restart" type="button" class="b-btn" style="width:100%; height:42px; border-radius:14px;">재시작</button>
+        <button id="ch1-fail-main" type="button" class="b-btn" style="width:100%; height:42px; border-radius:14px;">메인화면</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 해설 보기 팝업 (오답노트 · AI 로그 분석 · SOAP 분석) -->
-  <div id="ch1-review-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch1-review-title" style="backdrop-filter:blur(6px);">
+  <div id="ch1-review-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch1-review-title" style="backdrop-filter:blur(6px); z-index:120;">
     <div class="modal-card" style="max-width:420px; max-height:84dvh; display:flex; flex-direction:column;">
       <h2 id="ch1-review-title" class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown); margin-bottom:10px;">해설 보기</h2>
       <div class="step-tabs" id="ch1-review-tabs" role="tablist" style="margin-bottom:10px; flex-shrink:0;">
@@ -222,6 +235,8 @@
       let evaluated = false;
       let postExamExplained = false;
       let examBeforeChat = false;
+      let ownerMood = 85;
+      let ownerAborted = false;
       let recentPracticeNames = [];
 
       function clearAllTimers() {
@@ -437,50 +452,83 @@
           ? `실시 완료 검사(${doneExamsCount}/3) — PE: BT ${currentCase.pe.bt}, BP ${currentCase.pe.bpSys}/${currentCase.pe.bpDia}(${currentCase.pe.bpMap}), HR ${currentCase.pe.hr}, 청진(${currentCase.pe.auscHeart || '정상'}) / 흉부 VHS ${currentCase.imaging && currentCase.imaging.thoracic ? currentCase.imaging.thoracic.vhs : '-'}`
           : '';
 
-        let reply = '';
-        try {
-          const resp = await fetch('/api/ai', {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-            body: JSON.stringify({
-              task: 'roleplay',
-              role: 'owner_preop',
-              species: currentCase.species === 'cat' ? '고양이' : '개',
-              caseName: `${currentCase.name} (${currentCase.breed}, ${currentCase.age}, ${currentCase.weight}kg)`,
-              asa: `ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? '-E' : ''}`,
-              caseDesc: `${currentCase.chiefComplaint} / ${(currentCase.history || []).map((h) => h.label + ': ' + h.text).join(', ')}`,
-              clue: currentCase.ownerClue || '',
-              labSummary: labSummaryStr,
-              ownerPersonality: currentCase.ownerPersonality || 'neutral',
-              knowledgeLevel: currentCase.ownerLevel || 2,
-              chatHistory: chatHistory.slice(-12),
-              question: q
-            })
-          });
-          if (resp.ok) {
-            const data = await resp.json();
-            if (data && data.text) reply = String(data.text).trim();
-          }
-        } catch {}
+        const isProfane = /씨발|시발|병신|미친|개새|지랄|꺼져|닥쳐|죽어|좆|fuck|shit|bitch|새끼|멍청이|쓰레기|무식|짜증나게/i.test(q);
+        const isRudeOrDismissive = /^(네|응|음|ㅋㅋ+|ㅎㅎ+|몰라|몰라요|알아서|귀찮|시끄|대충|아몰랑|글쎄|뭐래)[\s.?!]*$/i.test(q) || /귀찮|대충|알아서\s*하|상관없|됐어요|그만\s*물어|입\s*닫/.test(q);
+        const prevVetMsgs = chatHistory.filter((m) => m.sender === 'vet').slice(0, -1).map((m) => m.text.trim());
+        const isRepeated = prevVetMsgs.includes(q);
 
-        if (!reply) {
-          if (isStatusExplain) {
-            reply = `검사 결과와 ${currentCase.name} 현재 상태 자세히 설명해 주셔서 감사합니다 선생님. 평가 마무리 부탁드립니다.`;
-          } else {
-            reply = Data.buildOfflineOwnerReply(currentCase, q);
+        let reply = '';
+        let aiAborted = false;
+        if (isProfane) {
+          aiAborted = true;
+          reply = '지금 보호자한테 무슨 말씀을 그렇게 하시는 거예요?! 이런 곳에는 절대 우리 아이 못 맡깁니다. 진료 취소하고 나가겠습니다!';
+        } else {
+          try {
+            const resp = await fetch('/api/ai', {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+              body: JSON.stringify({
+                task: 'roleplay',
+                role: 'owner_preop',
+                species: currentCase.species === 'cat' ? '고양이' : '개',
+                caseName: `${currentCase.name} (${currentCase.breed}, ${currentCase.age}, ${currentCase.weight}kg)`,
+                asa: `ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? '-E' : ''}`,
+                caseDesc: `${currentCase.chiefComplaint} / ${(currentCase.history || []).map((h) => h.label + ': ' + h.text).join(', ')}`,
+                clue: currentCase.ownerClue || '',
+                labSummary: labSummaryStr,
+                ownerPersonality: currentCase.ownerPersonality || 'neutral',
+                knowledgeLevel: currentCase.ownerLevel || 2,
+                chatHistory: chatHistory.slice(-12),
+                question: q
+              })
+            });
+            if (resp.ok) {
+              const data = await resp.json();
+              if (data && data.text) reply = String(data.text).trim();
+            }
+          } catch {}
+
+          if (!reply) {
+            if (isRudeOrDismissive) {
+              reply = '선생님, 지금 너무 성의 없게 말씀하시는 거 아니에요? 아이 맡기기 불안해지네요.';
+            } else if (isStatusExplain) {
+              reply = `검사 결과와 ${currentCase.name} 현재 상태 자세히 설명해 주셔서 감사합니다 선생님. 평가 마무리 부탁드립니다.`;
+            } else {
+              reply = Data.buildOfflineOwnerReply(currentCase, q);
+            }
+          }
+          if (/^\[ABORT\]/i.test(reply)) {
+            aiAborted = true;
           }
         }
 
         const cleanReply = reply.replace(/^\[ABORT\]\s*/i, '');
-        const hits = Data.detectDiscoveredKeys(currentCase, cleanReply);
+        const hits = aiAborted ? [] : Data.detectDiscoveredKeys(currentCase, cleanReply);
         const ownerHtml = formatOwnerChatHtml(cleanReply, currentCase, hits);
         appendBubble('owner', cleanReply, ownerHtml);
         chatHistory.push({ sender: 'owner', text: cleanReply });
 
         revealSignalmentKeys(hits);
 
+        // Update hidden owner mood gauge (never displayed in UI)
+        if (aiAborted) {
+          ownerAborted = true;
+          ownerMood = 0;
+        } else {
+          if (isRudeOrDismissive) ownerMood -= 22;
+          else if (isRepeated) ownerMood -= 12;
+          else if (/짜증|불안해지|불신|성의\s*없|무례|답답|기분\s*나쁘|못\s*믿|나가겠/i.test(cleanReply)) ownerMood -= 15;
+          else if (hits.length > 0 || isStatusExplain) ownerMood += 4;
+          ownerMood = Math.max(0, Math.min(100, ownerMood));
+        }
+
         chatBusy = false;
         chatSendBtn.disabled = false;
+
+        if (ownerAborted || ownerMood <= 0) {
+          triggerImmediateTrustFailure();
+          return;
+        }
         chatInputEl.focus();
       }
       chatFormEl.addEventListener('submit', handleChatSend);
@@ -752,6 +800,20 @@
         return 'F';
       }
 
+      /* 신뢰 붕괴 감점: 70% 이상 0점, 60~69% -5점, 50~59% -7점, 40~49% -9점, 30~39% -11점, 29% 미만 -15점, 욕설/폭언/진료 중단 -100점 */
+      function moodPenalty(mood, aborted) {
+        if (aborted || mood <= 0) return 100;
+        if (mood >= 70) return 0;
+        if (mood >= 60) return 5;
+        if (mood >= 50) return 7;
+        if (mood >= 40) return 9;
+        if (mood >= 30) return 11;
+        return 15;
+      }
+
+      const failModalEl = document.getElementById('ch1-fail-modal');
+      const failTitleEl = document.getElementById('ch1-fail-title');
+      const failDescEl = document.getElementById('ch1-fail-desc');
       const reviewModalEl = document.getElementById('ch1-review-modal');
       const rvWrongEl = document.getElementById('ch1-rv-wrong');
       const rvAiEl = document.getElementById('ch1-rv-ai');
@@ -759,6 +821,58 @@
       let lastEvalReport = null;
       let aiAnalysisText = null;
       let soapAnalysisText = null;
+
+      function openFailModal(title, desc) {
+        failTitleEl.textContent = title || '평가 실패';
+        failDescEl.textContent = desc || '';
+        failModalEl.classList.remove('hidden');
+        Settings.playTone(220, 0.16, 0.05);
+      }
+
+      function triggerImmediateTrustFailure() {
+        if (!currentCase || evaluated) return;
+        evaluated = true;
+        ownerAborted = true;
+        ownerMood = 0;
+
+        lastEvalReport = {
+          caseObj: currentCase,
+          chosenAsa: selectedAsa,
+          chosenEmerg: selectedEmerg,
+          chosenProg: selectedProg,
+          asaDiff: 0,
+          progDiff: 0,
+          asaPen: 0,
+          progPen: 0,
+          examPen: 0,
+          cluePen: 0,
+          explainPen: 0,
+          postExamExplained,
+          orderPen: 0,
+          examBeforeChat,
+          trustPen: 100,
+          ownerMood: 0,
+          ownerAborted: true,
+          score: 0,
+          grade: 'F'
+        };
+        aiAnalysisText = null;
+        soapAnalysisText = null;
+        rvWrongEl.innerHTML = buildOfflineWrongNoteHtml(lastEvalReport);
+
+        evalSubmitBtn.textContent = '해설 보기';
+        evalSubmitBtn.disabled = false;
+
+        if (currentStageId !== 'tutorial') {
+          Settings.saveStageResult(1, currentStageId, { grade: 'F', score: 0 });
+        }
+        if (chapterCtrl) chapterCtrl.refreshStages();
+
+        openFailModal(
+          '진료 중단 (신뢰 붕괴)',
+          '보호자의 기분을 크게 해쳐 진료가 즉시 중단되었습니다. (신뢰 붕괴 -100점 · F 등급)'
+        );
+      }
 
       function setReviewTab(tabKey) {
         document.querySelectorAll('[data-rv-tab]').forEach((b) => {
@@ -780,12 +894,32 @@
       document.getElementById('ch1-review-close').addEventListener('click', () => reviewModalEl.classList.add('hidden'));
       reviewModalEl.addEventListener('click', (e) => { if (e.target === reviewModalEl) reviewModalEl.classList.add('hidden'); });
 
+      // 실패 팝업 버튼 (배경 클릭/ESC로 닫히지 않음; 해설 보기 닫기 시에도 실패 팝업 유지)
+      document.getElementById('ch1-fail-review').addEventListener('click', () => {
+        Settings.playTone(540, 0.05, 0.03);
+        setReviewTab('wrong');
+        reviewModalEl.classList.remove('hidden');
+      });
+      document.getElementById('ch1-fail-restart').addEventListener('click', () => {
+        Settings.playTone(520, 0.05, 0.03);
+        reviewModalEl.classList.add('hidden');
+        failModalEl.classList.add('hidden');
+        loadStage(currentStageId);
+      });
+      document.getElementById('ch1-fail-main').addEventListener('click', () => {
+        Settings.playTone(480, 0.05, 0.03);
+        reviewModalEl.classList.add('hidden');
+        failModalEl.classList.add('hidden');
+        Settings.navigateTo('index.html', { push: true });
+      });
+
       function buildOfflineWrongNoteHtml(rep) {
         const c = rep.caseObj;
         const trueAsaStr = `ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''}`;
-        const chosenAsaStr = `ASA ${rep.chosenAsa}${rep.chosenEmerg ? 'E' : ''}`;
-        const asaOk = rep.asaDiff === 0 && Boolean(rep.chosenEmerg) === Boolean(c.trueEmergency);
-        const progOk = rep.progDiff === 0;
+        const chosenAsaStr = rep.chosenAsa ? `ASA ${rep.chosenAsa}${rep.chosenEmerg ? 'E' : ''}` : '미평가';
+        const chosenProgStr = rep.chosenProg || '미평가';
+        const asaOk = rep.chosenAsa && rep.asaDiff === 0 && Boolean(rep.chosenEmerg) === Boolean(c.trueEmergency);
+        const progOk = rep.chosenProg && rep.progDiff === 0;
         const missedExams = [
           examState.pe !== 'done' ? '신체검사' : null,
           examState.lab !== 'done' ? '혈액검사' : null,
@@ -796,6 +930,12 @@
         (c.history || []).forEach((h) => {
           if (!revealedKeys.has(h.key)) missedHx.push(h.label);
         });
+        const trustPen = Number(rep.trustPen || 0);
+        const trustText = rep.ownerAborted
+          ? `<span style="color:#b91c1c; font-weight:600;">보호자 진료 중단 (-100점)</span>`
+          : trustPen > 0
+            ? `<span style="color:#b91c1c; font-weight:600;">보호자 기분 악화 (-${trustPen}점)</span>`
+            : '없음 (양호)';
 
         return `
           <div class="b-card-soft" style="padding:12px; display:flex; flex-direction:column; gap:8px;">
@@ -803,12 +943,13 @@
               <strong style="font-family:var(--font-display); font-size:15px;">최종 평가 결과</strong>
               <strong style="font-family:var(--font-display); font-size:17px; color:#dc2626;">${rep.score}점 (${rep.grade})</strong>
             </div>
-            <div class="modal-row"><span class="muted">ASA 판정</span><span>내 답안 <strong>${chosenAsaStr}</strong> / 정답 <strong>${trueAsaStr}</strong> ${asaOk ? '(정답)' : `(-${rep.asaPen}점)`}</span></div>
-            <div class="modal-row"><span class="muted">예후 판정</span><span>내 답안 <strong>${rep.chosenProg}</strong> / 정답 <strong>${c.truePrognosis}</strong> ${progOk ? '(정답)' : `(-${rep.progPen}점)`}</span></div>
-            <div class="modal-row"><span class="muted">미실시 검사</span><span>${missedExams.length ? `${missedExams.join(', ')} (-${rep.examPen}점)` : '없음 (모두 완료)'}</span></div>
-            <div class="modal-row"><span class="muted">미확인 문진</span><span>${missedHx.length ? `${missedHx.join(', ')} (-${rep.cluePen}점)` : '없음 (모두 확인)'}</span></div>
-            <div class="modal-row"><span class="muted">검사 후 상태 설명</span><span>${rep.postExamExplained ? '완료' : `미실시 (-${rep.explainPen}점)`}</span></div>
-            ${rep.examBeforeChat ? `<div class="modal-row"><span class="muted">진료 순서</span><span style="color:#b91c1c;">문진 전 검사 시행 (-${rep.orderPen}점)</span></div>` : ''}
+            <div class="modal-row"><span class="muted">ASA 판정</span><span>내 답안 <strong>${chosenAsaStr}</strong> / 정답 <strong>${trueAsaStr}</strong> ${rep.ownerAborted ? '(중단)' : (asaOk ? '(정답)' : `(-${rep.asaPen}점)`)}</span></div>
+            <div class="modal-row"><span class="muted">예후 판정</span><span>내 답안 <strong>${chosenProgStr}</strong> / 정답 <strong>${c.truePrognosis}</strong> ${rep.ownerAborted ? '(중단)' : (progOk ? '(정답)' : `(-${rep.progPen}점)`)}</span></div>
+            <div class="modal-row"><span class="muted">미실시 검사</span><span>${missedExams.length ? `${missedExams.join(', ')}${rep.ownerAborted ? '' : ` (-${rep.examPen}점)`}` : '없음 (모두 완료)'}</span></div>
+            <div class="modal-row"><span class="muted">미확인 문진</span><span>${missedHx.length ? `${missedHx.join(', ')}${rep.ownerAborted ? '' : ` (-${rep.cluePen}점)`}` : '없음 (모두 확인)'}</span></div>
+            <div class="modal-row"><span class="muted">검사 후 상태 설명</span><span>${rep.postExamExplained ? '완료' : `미실시${rep.ownerAborted ? '' : ` (-${rep.explainPen}점)`}`}</span></div>
+            <div class="modal-row"><span class="muted">신뢰 붕괴</span><span>${trustText}</span></div>
+            ${rep.examBeforeChat ? `<div class="modal-row"><span class="muted">진료 순서</span><span style="color:#b91c1c;">문진 전 검사 시행${rep.ownerAborted ? '' : ` (-${rep.orderPen}점)`}</span></div>` : ''}
           </div>
           <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
             <div class="b-label"><span>핵심 임상 해설</span></div>
@@ -823,14 +964,16 @@
         const c = lastEvalReport.caseObj;
         const spKr = c.species === 'cat' ? '고양이' : '개';
         const doneExams = ['pe', 'lab', 'img'].filter((k) => examState[k] === 'done').map((k) => ({ pe: '신체검사', lab: '혈액검사', img: '영상검사' }[k]));
+        const studentAsaStr = lastEvalReport.chosenAsa ? `ASA ${lastEvalReport.chosenAsa}${lastEvalReport.chosenEmerg ? 'E' : ''}` : '미평가';
+        const studentProgStr = lastEvalReport.chosenProg || '미평가';
         return {
           task,
           phase: 'chapter1',
           species: spKr,
           scenario: `${c.name} (${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex}) - ${c.chiefComplaint}`,
           chatSummary: chatHistory.map((m) => `${m.sender === 'vet' ? '수의사' : '보호자'}: ${m.text}`).slice(-10).join(' | '),
-          examSummary: `실시 검사: ${doneExams.join(', ') || '없음'} / 검사 후 상태 설명: ${lastEvalReport.postExamExplained ? '완료' : '미실시'} / PE: BT ${c.pe.bt}, BP ${c.pe.bpSys}/${c.pe.bpDia}(${c.pe.bpMap}), HR ${c.pe.hr}, RR ${c.pe.rr}, CRT ${c.pe.crt}, MMC ${c.pe.mmc}, 심음 ${c.pe.auscHeart || '-'}, 폐음 ${c.pe.auscLung || '-'}, 복명음 ${c.pe.auscBowel || '-'} / 흉부 X-ray: VHS ${c.imaging && c.imaging.thoracic ? c.imaging.thoracic.vhs : '-'}`,
-          studentEval: `ASA ${lastEvalReport.chosenAsa}${lastEvalReport.chosenEmerg ? 'E' : ''} / ${lastEvalReport.chosenProg} (${lastEvalReport.score}점, ${lastEvalReport.grade})`,
+          examSummary: `실시 검사: ${doneExams.join(', ') || '없음'} / 검사 후 상태 설명: ${lastEvalReport.postExamExplained ? '완료' : '미실시'} / 신뢰 붕괴 감점: -${lastEvalReport.trustPen || 0}점${lastEvalReport.ownerAborted ? ' (보호자 진료 중단)' : ''} / PE: BT ${c.pe.bt}, BP ${c.pe.bpSys}/${c.pe.bpDia}(${c.pe.bpMap}), HR ${c.pe.hr}, RR ${c.pe.rr}, CRT ${c.pe.crt}, MMC ${c.pe.mmc}, 심음 ${c.pe.auscHeart || '-'}, 폐음 ${c.pe.auscLung || '-'}, 복명음 ${c.pe.auscBowel || '-'} / 흉부 X-ray: VHS ${c.imaging && c.imaging.thoracic ? c.imaging.thoracic.vhs : '-'}`,
+          studentEval: `${studentAsaStr} / ${studentProgStr} (${lastEvalReport.score}점, ${lastEvalReport.grade})`,
           trueEval: `ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} / ${c.truePrognosis}`
         };
       }
@@ -853,7 +996,13 @@
 
         if (!text) {
           const c = lastEvalReport.caseObj;
-          text = `1) 문진 및 검사 수행: 총 ${chatHistory.filter((m) => m.sender === 'vet').length}회 문진, ${['pe', 'lab', 'img'].filter((k) => examState[k] === 'done').length}/3종 검사 완료, 검사 후 보호자 상태 설명 ${lastEvalReport.postExamExplained ? '완료' : '미실시'}.\n2) 판정 비교: 선택하신 ASA ${lastEvalReport.chosenAsa}${lastEvalReport.chosenEmerg ? 'E' : ''}·${lastEvalReport.chosenProg} 대비 기준은 ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''}·${c.truePrognosis}입니다.\n3) 보완 포인트: ${c.chiefComplaint} 환자의 청진(${c.pe.auscHeart || '정상'}) 및 주요 혈액·영상 이상 소견을 보호자에게 설명하고 마취 계획에 반영하세요.`;
+          const chosenSummary = lastEvalReport.chosenAsa
+            ? `ASA ${lastEvalReport.chosenAsa}${lastEvalReport.chosenEmerg ? 'E' : ''}·${lastEvalReport.chosenProg}`
+            : '미평가 (진료 중단)';
+          const trustNote = lastEvalReport.ownerAborted
+            ? '보호자와의 신뢰가 붕괴되어 진료가 중단되었습니다. 공감적이고 전문적인 문진 태도가 필수입니다.'
+            : (lastEvalReport.trustPen > 0 ? `보호자 기분 악화로 신뢰 붕괴 감점(-${lastEvalReport.trustPen}점)이 발생했습니다.` : '보호자와의 라포 형성은 양호했습니다.');
+          text = `1) 문진 및 검사 수행: 총 ${chatHistory.filter((m) => m.sender === 'vet').length}회 문진, ${['pe', 'lab', 'img'].filter((k) => examState[k] === 'done').length}/3종 검사 완료, 검사 후 보호자 상태 설명 ${lastEvalReport.postExamExplained ? '완료' : '미실시'}.\n2) 보호자 신뢰도: ${trustNote}\n3) 판정 비교: ${chosenSummary} 대비 기준은 ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''}·${c.truePrognosis}입니다.\n4) 보완 포인트: ${c.chiefComplaint} 환자의 청진(${c.pe.auscHeart || '정상'}) 및 주요 혈액·영상 이상 소견을 보호자에게 설명하고 마취 계획에 반영하세요.`;
         }
         aiAnalysisText = text;
         rvAiEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(text)}</div>`;
@@ -925,6 +1074,9 @@
         const progPen = distancePenalty(progDiff);
         score -= progPen;
 
+        const trustPen = moodPenalty(ownerMood, ownerAborted);
+        score -= trustPen;
+
         score = Math.max(0, Math.min(100, Math.round(score)));
         const grade = scoreToGrade(score);
 
@@ -943,6 +1095,9 @@
           postExamExplained,
           orderPen,
           examBeforeChat,
+          trustPen,
+          ownerMood,
+          ownerAborted,
           score,
           grade
         };
@@ -959,12 +1114,20 @@
         stampProgEl.textContent = selectedProg;
         stampGradeEl.textContent = currentStageId === 'tutorial' ? '완료' : grade;
         stampOverlayEl.classList.remove('hidden');
-        Settings.playTone(760, 0.12, 0.05);
 
-        // Save progress & glow Stage button
+        // Save progress (D+ unlocks next stage; F triggers failure modal)
         Settings.saveStageResult(1, currentStageId, { grade, score });
         if (chapterCtrl) chapterCtrl.refreshStages();
-        Settings.triggerStageGlow();
+
+        if (currentStageId !== 'tutorial' && grade === 'F') {
+          openFailModal(
+            '평가 실패 (F 등급)',
+            `최종 점수 ${score}점 (F 등급)으로 다음 단계에 진출할 수 없습니다. D 등급 이상을 받아야 다음 케이스가 해금됩니다.`
+          );
+        } else {
+          Settings.playTone(760, 0.12, 0.05);
+          Settings.triggerStageGlow();
+        }
       });
 
       /* Load a Stage (Tutorial / 10 Fixed Cases / AI Practice Dog & Cat) */
@@ -981,11 +1144,14 @@
         evaluated = false;
         postExamExplained = false;
         examBeforeChat = false;
+        ownerMood = 85;
+        ownerAborted = false;
         lastEvalReport = null;
         aiAnalysisText = null;
         soapAnalysisText = null;
 
         // Reset UI
+        failModalEl.classList.add('hidden');
         reviewModalEl.classList.add('hidden');
         stampOverlayEl.classList.add('hidden');
         evalSubmitBtn.textContent = '평가 확정';
