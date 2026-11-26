@@ -1591,6 +1591,20 @@ body.b11-immersive .app-shell {
   color: var(--brown-soft);
 }
 
+/* Disabled Button & Input Visual State */
+.b-btn:disabled:not(.exam-done):not(.stage-btn.is-locked) {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(0.2);
+}
+
+.b-input:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+  background: var(--beige-soft);
+}
+
 
 
 

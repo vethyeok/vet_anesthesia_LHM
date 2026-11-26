@@ -356,9 +356,15 @@
         chatLogEl.scrollTop = chatLogEl.scrollHeight;
       }
 
+      function setChatLocked(locked) {
+        chatInputEl.disabled = Boolean(locked);
+        chatSendBtn.disabled = Boolean(locked);
+        chatInputEl.placeholder = locked ? '평가가 완료되어 안내가 종료되었습니다' : '식이·투약·응급 재내원 안내 입력';
+      }
+
       chatFormEl.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (chatBusy || !currentCase) return;
+        if (evaluated || chatBusy || !currentCase) return;
         const msg = chatInputEl.value.trim();
         if (!msg) return;
         chatInputEl.value = '';
@@ -398,7 +404,7 @@
         appendBubble('owner', clean, false);
         chatHistory.push({ sender: 'owner', text: clean });
         chatBusy = false;
-        chatSendBtn.disabled = false;
+        if (!evaluated) chatSendBtn.disabled = false;
       });
 
       function setReviewTab(k) {
@@ -447,6 +453,7 @@
         if (!currentCase || !rec) return;
         if (evaluated) { Settings.playTone(540, 0.05, 0.03); setReviewTab('wrong'); reviewModalEl.classList.remove('hidden'); return; }
         evaluated = true;
+        setChatLocked(true);
         stopAll();
 
         let score = 100;
@@ -500,6 +507,7 @@
         lastReport = null;
         aiText = null; soapText = null;
 
+        setChatLocked(false);
         reviewModalEl.classList.add('hidden');
         stampOverlayEl.classList.add('hidden');
         evalSubmitBtn.textContent = '회복 완료';
