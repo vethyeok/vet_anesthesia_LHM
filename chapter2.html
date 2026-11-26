@@ -20,40 +20,43 @@
     <main class="ch1-page-body">
       <div class="ch1-split" id="ch2-split">
         <!-- 좌측(데스크탑) / 상단(모바일): 모니터링창 -->
-        <section class="ch1-monitor" id="ch2-monitor" aria-label="술전 검사 요약 및 플랜 모니터링창">
+        <section class="ch1-monitor" id="ch2-monitor" aria-label="마취 플랜 모니터링창">
+          <!-- 고정 영역: 이름, 품종, 나이, 체중, 성별(중성화 유무), ASA grade (예후) / 주호소 -->
           <div class="ch1-sig-pinned">
             <div class="ch1-sig-head" id="ch2-sig-head"></div>
             <div class="ch1-cc-line" id="ch2-cc-line"></div>
           </div>
 
-          <div class="ch1-monitor-scroll" id="ch2-monitor-scroll">
+          <div class="ch1-monitor-scroll" id="ch2-monitor-scroll" style="cursor:grab;">
+            <!-- 1. 마취 전 검사 결과 -->
             <div class="mon-sec" id="ch2-sec-preop">
               <div class="mon-sec-title">
-                <span>1. 술전 검사 핵심 요약</span>
-                <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch2-sec-preop">접기</button>
+                <span>1. 마취 전 검사 결과</span>
+                <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+                  <button type="button" class="b-btn mon-toggle-btn" id="ch2-preop-detail-btn">상세</button>
+                  <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch2-sec-preop">접기</button>
+                </div>
               </div>
               <div class="mon-sec-body" id="ch2-preop-body"></div>
             </div>
 
+            <!-- 2. 마취 플랜 -->
             <div class="mon-sec" id="ch2-sec-plan">
               <div class="mon-sec-title">
-                <span>2. 수립된 마취 플랜</span>
+                <span>2. 마취 플랜</span>
                 <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch2-sec-plan">접기</button>
               </div>
-              <div class="mon-sec-body" id="ch2-plan-body">
-                <div class="mon-empty">약물 및 수액 계획을 선택하세요</div>
-              </div>
+              <div class="mon-sec-body" id="ch2-plan-body"></div>
             </div>
 
+            <!-- 3. 보호자 안내 -->
             <div class="mon-sec" id="ch2-sec-consent">
               <div class="mon-sec-title">
-                <span>3. 보호자 통보 확인</span>
+                <span>3. 보호자 안내</span>
                 <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch2-sec-consent">접기</button>
               </div>
               <div class="mon-sec-body">
-                <div class="sig-hx-list" id="ch2-consent-list">
-                  <div class="mon-empty">보호자 통보 후 기록</div>
-                </div>
+                <div class="sig-hx-list" id="ch2-consent-list"></div>
               </div>
             </div>
           </div>
@@ -66,29 +69,65 @@
           </div>
 
           <div class="ch1-ctrl-tabs" role="tablist">
-            <button type="button" class="b-btn ch1-tab-btn active" data-pane="plan">마취 계획</button>
+            <button type="button" class="b-btn ch1-tab-btn active" data-pane="plan">마취 플랜</button>
             <button type="button" class="b-btn ch1-tab-btn" data-pane="synergy">약물 시너지</button>
-            <button type="button" class="b-btn ch1-tab-btn" data-pane="notify">보호자 통보</button>
+            <button type="button" class="b-btn ch1-tab-btn" data-pane="notify">보호자 안내</button>
           </div>
 
           <div class="ch1-ctrl-body" id="ch2-ctrl-body">
-            <!-- 1. 마취 계획 -->
+            <!-- 1. 마취 플랜 -->
             <div class="ch1-pane" data-content="plan">
               <div>
-                <div class="eval-sec-lbl">전처치 (복수 선택)</div>
-                <div class="prog-grid" id="ch2-premed-grid">
-                  <button type="button" class="b-btn prog-btn" data-premed="Acepromazine">Acepromazine</button>
-                  <button type="button" class="b-btn prog-btn" data-premed="Dexmedetomidine">Dexmedetomidine</button>
-                  <button type="button" class="b-btn prog-btn" data-premed="Midazolam">Midazolam</button>
-                  <button type="button" class="b-btn prog-btn" data-premed="Butorphanol">Butorphanol</button>
-                  <button type="button" class="b-btn prog-btn" data-premed="Methadone">Methadone</button>
-                  <button type="button" class="b-btn prog-btn" data-premed="Fentanyl">Fentanyl</button>
+                <div class="eval-sec-lbl">대기 중 안정화 (복수 선택)</div>
+                <div class="prog-grid">
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="stab" data-val="수화 (LRS/Plasma-Lyte)">수화 (LRS/Plasma-Lyte)</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="stab" data-val="산소화 (Pre-O₂)">산소화 (Pre-O₂)</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="eval-sec-lbl">항생제 (복수 선택)</div>
+                <div class="prog-grid">
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="abx" data-val="Cefazolin">Cefazolin</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="abx" data-val="Ampicillin-Sulbactam">Ampicillin-Sulbactam</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="abx" data-val="Metronidazole">Metronidazole</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="abx" data-val="Enrofloxacin">Enrofloxacin</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="eval-sec-lbl">주사제 · 기타 (복수 선택)</div>
+                <div class="prog-grid">
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="inj" data-val="Maropitant">Maropitant (항구토)</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="inj" data-val="Famotidine">Famotidine (위장보호)</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="inj" data-val="Atropine">Atropine</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="inj" data-val="Glycopyrrolate">Glycopyrrolate</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="eval-sec-lbl">진통제 / 진통수액 (복수 선택)</div>
+                <div class="prog-grid">
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="analg" data-val="Butorphanol">Butorphanol</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="analg" data-val="Methadone">Methadone</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="analg" data-val="Fentanyl">Fentanyl</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="analg" data-val="Fentanyl CRI">Fentanyl CRI</button>
+                  <button type="button" class="b-btn prog-btn span-2" data-plan-cat="analg" data-val="MLK CRI">MLK / FLK 진통수액 CRI</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="eval-sec-lbl">진정제 (복수 선택)</div>
+                <div class="prog-grid">
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="sed" data-val="Acepromazine">Acepromazine</button>
+                  <button type="button" class="b-btn prog-btn" data-plan-cat="sed" data-val="Dexmedetomidine">Dexmedetomidine</button>
+                  <button type="button" class="b-btn prog-btn span-2" data-plan-cat="sed" data-val="Midazolam">Midazolam</button>
                 </div>
               </div>
 
               <div>
                 <div class="eval-sec-lbl">유도제 (단일 선택)</div>
-                <div class="prog-grid" id="ch2-ind-grid">
+                <div class="prog-grid">
                   <button type="button" class="b-btn prog-btn" data-ind="Propofol">Propofol</button>
                   <button type="button" class="b-btn prog-btn" data-ind="Alfaxalone">Alfaxalone</button>
                   <button type="button" class="b-btn prog-btn" data-ind="Ketamine+Midazolam">Ketamine+Midazolam</button>
@@ -97,13 +136,10 @@
               </div>
 
               <div>
-                <div class="eval-sec-lbl">유지 · 수액 · 보조 (복수 선택)</div>
-                <div class="prog-grid" id="ch2-maint-grid">
+                <div class="eval-sec-lbl">유지제 (단일 선택)</div>
+                <div class="prog-grid">
                   <button type="button" class="b-btn prog-btn" data-maint="Isoflurane">Isoflurane</button>
                   <button type="button" class="b-btn prog-btn" data-maint="Sevoflurane">Sevoflurane</button>
-                  <button type="button" class="b-btn prog-btn" data-maint="LRS/Plasma-Lyte">LRS / Plasma-Lyte</button>
-                  <button type="button" class="b-btn prog-btn" data-maint="Cefazolin">예방적 항생제</button>
-                  <button type="button" class="b-btn prog-btn span-2" data-maint="진통 CRI">진통 CRI (Fentanyl / MLK)</button>
                 </div>
               </div>
             </div>
@@ -113,12 +149,12 @@
               <div id="ch2-synergy-box" class="img-list"></div>
             </div>
 
-            <!-- 3. 보호자 통보 & 플랜 확정 -->
+            <!-- 3. 보호자 안내 & 플랜 확정 -->
             <div class="ch1-pane pane-hidden" data-content="notify">
               <div class="ch1-chat-log" id="ch2-chat-log"></div>
               <form class="ch1-chat-form" id="ch2-chat-form" autocomplete="off">
-                <input id="ch2-chat-input" type="text" class="b-input" placeholder="검사 결과·마취 계획·위험성 설명 입력" />
-                <button id="ch2-chat-send" type="submit" class="b-btn b-btn-sm" style="flex-shrink:0;">통보</button>
+                <input id="ch2-chat-input" type="text" class="b-input" placeholder="마취 계획·수술 시간·연락·입원 안내 입력" />
+                <button id="ch2-chat-send" type="submit" class="b-btn b-btn-sm" style="flex-shrink:0;">전송</button>
               </form>
               <button type="button" class="b-btn" id="ch2-eval-submit" style="width:100%; height:42px; border-radius:14px; flex-shrink:0;">플랜 확정</button>
             </div>
@@ -135,8 +171,28 @@
     </main>
   </div>
 
+  <!-- Chapter 1 마취 전 검사 결과 상세 팝업 -->
+  <div id="ch2-preop-detail-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch2-detail-title" style="backdrop-filter:blur(6px); z-index:115;">
+    <div class="modal-card" style="max-width:460px; max-height:85dvh; display:flex; flex-direction:column;">
+      <h2 id="ch2-detail-title" class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown); margin-bottom:10px;">마취 전 검사 상세 결과</h2>
+      <div class="step-tabs" role="tablist" style="margin-bottom:10px; flex-shrink:0;">
+        <button type="button" class="step-tab active" data-dt-tab="pe">신체검사</button>
+        <button type="button" class="step-tab" data-dt-tab="lab">혈액검사</button>
+        <button type="button" class="step-tab" data-dt-tab="img">영상검사</button>
+      </div>
+      <div style="flex:1 1 auto; overflow-y:auto; display:flex; flex-direction:column; gap:10px; min-height:200px; padding-right:2px;">
+        <div id="ch2-dt-pe" data-dt-pane="pe"></div>
+        <div id="ch2-dt-lab" data-dt-pane="lab" class="pane-hidden"></div>
+        <div id="ch2-dt-img" data-dt-pane="img" class="pane-hidden"></div>
+      </div>
+      <div class="modal-close-wrap" style="margin-top:12px; flex-shrink:0;">
+        <button id="ch2-detail-close" type="button" class="b-btn modal-close-btn">닫기</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 해설 보기 팝업 -->
-  <div id="ch2-review-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch2-review-title" style="backdrop-filter:blur(6px);">
+  <div id="ch2-review-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch2-review-title" style="backdrop-filter:blur(6px); z-index:120;">
     <div class="modal-card" style="max-width:420px; max-height:84dvh; display:flex; flex-direction:column;">
       <h2 id="ch2-review-title" class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown); margin-bottom:10px;">해설 보기</h2>
       <div class="step-tabs" role="tablist" style="margin-bottom:10px; flex-shrink:0;">
@@ -162,6 +218,7 @@
       if (!Data || !Settings) return;
 
       const splitEl = document.getElementById('ch2-split');
+      const monitorScrollEl = document.getElementById('ch2-monitor-scroll');
       const sigHeadEl = document.getElementById('ch2-sig-head');
       const ccLineEl = document.getElementById('ch2-cc-line');
       const preopBodyEl = document.getElementById('ch2-preop-body');
@@ -178,22 +235,64 @@
       const stampAsaEl = document.getElementById('ch2-stamp-asa');
       const stampProgEl = document.getElementById('ch2-stamp-prog');
       const stampGradeEl = document.getElementById('ch2-stamp-grade');
+
+      const detailModalEl = document.getElementById('ch2-preop-detail-modal');
+      const dtPeEl = document.getElementById('ch2-dt-pe');
+      const dtLabEl = document.getElementById('ch2-dt-lab');
+      const dtImgEl = document.getElementById('ch2-dt-img');
+
       const reviewModalEl = document.getElementById('ch2-review-modal');
       const rvWrongEl = document.getElementById('ch2-rv-wrong');
       const rvAiEl = document.getElementById('ch2-rv-ai');
       const rvSoapEl = document.getElementById('ch2-rv-soap');
 
+      // 3. 보호자 안내 5개 항목
       const CONSENT_ITEMS = [
-        { key: 'c_lab', label: '검사 결과 설명', kws: ['검사', '혈액', '신체', '방사선', '엑스레이', '초음파', '수치', '정상', '이상', '심장', '신장', '담낭', '소견'] },
-        { key: 'c_plan', label: '마취 계획 안내', kws: ['계획', '프로토콜', '약', '전처치', '유도', '유지', '가스', '수액', '진통', '항생제', '모니터링'] },
-        { key: 'c_risk', label: '위험성 및 동의 확인', kws: ['위험', '합병증', '저혈압', '서맥', '호흡', '응급', '주의', '동의', 'ASA', '예후', '안전'] }
+        {
+          key: 'c_plan',
+          label: '마취 계획',
+          note: '마취 약물·진행 계획 안내',
+          test: (low) => /계획|프로토콜|약물|전처치|진정|진통|유도|유지|호흡마취|가스|항생제|수액|안정화|산소|마취\s*방식/.test(low)
+        },
+        {
+          key: 'c_sched',
+          label: '수술 예정 시간',
+          note: '최소 3~4시간 수화 후 진행',
+          test: (low) => /(예정|시작|시\s*쯤|오후|오전|몇\s*시|시간\s*뒤|시간\s*후|대기)/.test(low) && /(수화|수액|안정화|3\s*시간|4\s*시간|3~4|3-4|세\s*시간|네\s*시간|전처치|수술)/.test(low)
+            || /(3\s*~\s*4|3\s*-\s*4|3시간|4시간|세\s*시간|네\s*시간).*(수화|수액|안정화|대기|수술)/.test(low)
+        },
+        {
+          key: 'c_dur',
+          label: '수술 소요 시간',
+          note: '대략적인 소요 시간 안내',
+          test: (low) => /(소요|걸릴|걸리|시간\s*정도|분\s*정도|시간\s*가량|분\s*가량|예상\s*시간|수술\s*시간)/.test(low)
+        },
+        {
+          key: 'c_contact',
+          label: '수술 전후 연락 계획 안내',
+          note: '수술 전·후 연락 예정 안내',
+          test: (low) => /(연락|전화|문자|카톡|알려|공유|안내\s*드리|소식)/.test(low) && /(수술|전|후|끝나|마치|깨어나|회복|들어가|직전|직후|진행)/.test(low)
+            || /(수술\s*전후|전·후|전후로).*(연락|전화|문자)/.test(low)
+        },
+        {
+          key: 'c_hosp',
+          label: '입원 안내',
+          note: '입원 여부 및 대략적 기간 안내',
+          test: (low) => /(입원|퇴원|통원|당일|하루|이틀|사흘|\d+\s*일|\d+\s*박|며칠|경과\s*관찰)/.test(low)
+        }
       ];
 
       let currentStageId = 'tutorial';
       let currentCase = null;
-      let selectedPremeds = new Set();
-      let selectedInd = null;
-      let selectedMaints = new Set();
+      let planState = {
+        stab: new Set(),
+        abx: new Set(),
+        inj: new Set(),
+        analg: new Set(),
+        sed: new Set(),
+        ind: null,
+        maint: null
+      };
       let revealedConsents = new Set();
       let chatHistory = [];
       let chatBusy = false;
@@ -213,11 +312,36 @@
         return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }
 
+      /* Monitoring Window Drag-to-Scroll (Desktop Mouse & Touch) */
+      let monDrag = false, monStartY = 0, monStartScroll = 0;
+      monitorScrollEl.addEventListener('pointerdown', (e) => {
+        if (e.pointerType !== 'mouse') return; // Touch uses native inertial scroll
+        if (e.target.closest('button, a, input, select, textarea')) return;
+        monDrag = true;
+        monStartY = e.clientY;
+        monStartScroll = monitorScrollEl.scrollTop;
+        monitorScrollEl.style.cursor = 'grabbing';
+        monitorScrollEl.style.userSelect = 'none';
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!monDrag) return;
+        monitorScrollEl.scrollTop = monStartScroll - (e.clientY - monStartY);
+      });
+      const endMonDrag = () => {
+        if (!monDrag) return;
+        monDrag = false;
+        monitorScrollEl.style.cursor = 'grab';
+        monitorScrollEl.style.userSelect = '';
+      };
+      window.addEventListener('pointerup', endMonDrag);
+      window.addEventListener('pointercancel', endMonDrag);
+
+      /* Box Collapse / Expand */
       function setMonCollapsed(secId, collapsed) {
         const sec = document.getElementById(secId);
         if (!sec) return;
         sec.classList.toggle('is-collapsed', Boolean(collapsed));
-        const btn = sec.querySelector('.mon-toggle-btn');
+        const btn = sec.querySelector('[data-mon-toggle]');
         if (btn) btn.textContent = collapsed ? '열기' : '접기';
       }
       document.querySelectorAll('[data-mon-toggle]').forEach((btn) => {
@@ -231,6 +355,208 @@
         });
       });
 
+      /* Chapter 1 Full Pre-op Exam Detail Popup ('상세') */
+      function setDetailTab(k) {
+        document.querySelectorAll('[data-dt-tab]').forEach((b) => b.classList.toggle('active', b.dataset.dtTab === k));
+        document.querySelectorAll('[data-dt-pane]').forEach((p) => p.classList.toggle('pane-hidden', p.dataset.dtPane !== k));
+      }
+      document.querySelectorAll('[data-dt-tab]').forEach((b) => {
+        b.addEventListener('click', () => {
+          Settings.playTone(520, 0.04, 0.025);
+          setDetailTab(b.dataset.dtTab);
+        });
+      });
+      document.getElementById('ch2-preop-detail-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!currentCase) return;
+        Settings.playTone(540, 0.05, 0.03);
+        setDetailTab('pe');
+        detailModalEl.classList.remove('hidden');
+      });
+      document.getElementById('ch2-detail-close').addEventListener('click', () => detailModalEl.classList.add('hidden'));
+      detailModalEl.addEventListener('click', (e) => { if (e.target === detailModalEl) detailModalEl.classList.add('hidden'); });
+
+      /* Render Chapter 1 Full Detail Tables inside #ch2-preop-detail-modal */
+      function renderLabTable(rows, panel) {
+        return `<table class="lab-tbl"><tbody>${rows.map(([label, key, val, unit]) => {
+          const fl = key ? panel.flagOf(key, Number(val)) : '';
+          const cls = fl === 'H' ? 'lab-high' : fl === 'L' ? 'lab-low' : '';
+          const r = key && panel.ref[key] ? `${panel.ref[key][0]}–${panel.ref[key][1]}` : '';
+          return `<tr><td>${label}</td><td class="lab-val ${cls}">${val}${unit ? ' ' + unit : ''}${fl ? ' ' + fl : ''}</td><td class="lab-ref">${r}</td></tr>`;
+        }).join('')}</tbody></table>`;
+      }
+
+      function renderFullPreopDetail(c, P) {
+        const p = c.pe;
+        const isCat = c.species === 'cat';
+        const abnBT = p.bt < 37.5 || p.bt > 39.2;
+        const abnBP = p.bpMap < 65 || p.bpSys > 155 || p.bpSys < 95;
+        const abnHR = isCat ? (p.hr < 130 || p.hr > 210) : (p.hr < 65 || p.hr > 145);
+        const abnRR = p.rr > 36;
+        const abnCRT = p.crt > 2.0;
+        const abnMMC = /yellow|pale|cyan|dark|muddy|dry/i.test(p.mmc);
+        const auscHeart = p.auscHeart || '심잡음 없음 (정상 심음)';
+        const auscLung = p.auscLung || '정상 폐포음';
+        const auscBowel = p.auscBowel || '정상 복명음';
+        const abnHeart = /Grade|분마음|부정맥|서맥|빈맥/i.test(auscHeart);
+        const abnLung = /수포음|천명음|거친|감약|Crackle/i.test(auscLung);
+        const abnBowel = /감소|소실|압통|팽만|항진/i.test(auscBowel);
+
+        dtPeEl.innerHTML = `
+          <div class="pe-grid">
+            <div class="pe-cell"><span class="pe-k">BT</span><span class="pe-v ${abnBT ? 'is-abn' : ''}">${p.bt.toFixed(1)} °C</span></div>
+            <div class="pe-cell"><span class="pe-k">BP #${p.cuff}</span><span class="pe-v ${abnBP ? 'is-abn' : ''}">${p.bpSys}/${p.bpDia} (${p.bpMap}) mmHg</span></div>
+            <div class="pe-cell"><span class="pe-k">HR</span><span class="pe-v ${abnHR ? 'is-abn' : ''}">${p.hr} /min</span></div>
+            <div class="pe-cell"><span class="pe-k">RR</span><span class="pe-v ${abnRR ? 'is-abn' : ''}">${p.rr} /min</span></div>
+            <div class="pe-cell"><span class="pe-k">CRT</span><span class="pe-v ${abnCRT ? 'is-abn' : ''}">${p.crt} s</span></div>
+            <div class="pe-cell"><span class="pe-k">MMC</span><span class="pe-v ${abnMMC ? 'is-abn' : ''}">${p.mmc}</span></div>
+            <div class="pe-cell span-2">
+              <span class="pe-k">청진</span>
+              <div class="pe-ausc-list">
+                <div><span class="pe-ausc-sub">심잡음</span><span class="pe-v ${abnHeart ? 'is-abn' : ''}">${escapeHtml(auscHeart)}</span></div>
+                <div><span class="pe-ausc-sub">폐음</span><span class="pe-v ${abnLung ? 'is-abn' : ''}">${escapeHtml(auscLung)}</span></div>
+                <div><span class="pe-ausc-sub">복명음</span><span class="pe-v ${abnBowel ? 'is-abn' : ''}">${escapeHtml(auscBowel)}</span></div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const m = P.vbgM, vc = P.vbgC, cb = P.cbc, ch = P.chem;
+        const vbgMeasured = [
+          ['pH', 'pH', m.pH.toFixed(2), ''], ['pCO₂', 'pCO2', m.pCO2, 'mmHg'], ['pO₂ (정맥)', 'pO2', m.pO2, 'mmHg'],
+          ['Na⁺', 'Na', m.Na, 'mmol/L'], ['K⁺', 'K', m.K.toFixed(1), 'mmol/L'], ['Cl⁻', 'Cl', m.Cl, 'mmol/L'],
+          ['iCa', 'iCa', m.iCa.toFixed(2), 'mmol/L'], ['Hct', 'Hct', m.Hct, '%']
+        ];
+        const vbgCalc = [
+          ['pH(T)', 'pHT', vc.pHT.toFixed(3), ''], ['pCO₂(T)', 'pCO2T', vc.pCO2T, 'mmHg'], ['pO₂(T)', 'pO2T', vc.pO2T, 'mmHg'],
+          ['ctCO₂ (tCO₂)', 'ctCO2', vc.ctCO2, 'mmol/L'], ['cHCO₃⁻', 'cHCO3', vc.cHCO3, 'mmol/L'], ['cHCO₃⁻(std)', 'cHCO3std', vc.cHCO3std, 'mmol/L'],
+          ['BE(ecf)', 'BEecf', vc.BEecf, 'mmol/L'], ['BE(B)', 'BEB', vc.BEB, 'mmol/L'], ['ctHb (tHb)', 'ctHb', vc.ctHb, 'g/dL'],
+          ['Ca²⁺(7.4)', 'iCa74', vc.iCa74.toFixed(2), 'mmol/L'], ['pO₂(A-a)', 'pO2Aa', vc.pO2Aa, 'mmHg'],
+          ['sO₂', 'sO2', vc.sO2, '%'], ['Anion gap(K)', 'AGK', vc.AGK, 'mmol/L']
+        ];
+        const cbcRows = [
+          ['RBC', 'RBC', cb.RBC, 'M/µL'], ['HGB', 'HGB', cb.HGB, 'g/dL'], ['HCT', 'HCT', cb.HCT, '%'],
+          ['MCV', 'MCV', cb.MCV, 'fL'], ['MCH', 'MCH', cb.MCH, 'pg'], ['MCHC', 'MCHC', cb.MCHC, 'g/dL'],
+          ['RDW', 'RDW', cb.RDW, '%'], ['RETIC', 'RETIC', cb.RETIC, 'K/µL'], ['Retic-HGB', 'ReticHGB', cb.ReticHGB, 'pg'],
+          ['WBC', 'WBC', cb.WBC, 'K/µL'], ['Neu', 'Neu', `${cb.Neu} (${cb.neuP}%)`, ''], ['Lym', 'Lym', `${cb.Lym} (${cb.lymP}%)`, ''],
+          ['Mono', 'Mono', `${cb.Mono} (${cb.monoP}%)`, ''], ['Eos', 'Eos', `${cb.Eos} (${cb.eosP}%)`, ''],
+          ['Baso', 'Baso', `${cb.Baso} (${cb.basoP}%)`, ''], ['PLT', 'PLT', cb.PLT, 'K/µL'],
+          ['MPV', 'MPV', cb.MPV, 'fL'], ['PCT', 'PCT', cb.PCT, '%']
+        ];
+        const chemGeneral = [
+          ['ALP', 'ALP', ch.ALP, 'U/L'], ['ALT', 'ALT', ch.ALT, 'U/L'], ['AST', 'AST', ch.AST, 'U/L'],
+          ['GGT', 'GGT', ch.GGT, 'U/L'], ['BUN', 'BUN', ch.BUN, 'mg/dL'], ['Crea', 'Crea', ch.Crea, 'mg/dL'],
+          ['Phos', 'Phos', ch.Phos, 'mg/dL'], ['Ca', 'Ca', ch.Ca, 'mg/dL'], ['TG', 'TG', ch.TG, 'mg/dL'],
+          ['Tchol', 'Tchol', ch.Tchol, 'mg/dL'], ['Glu', 'Glu', ch.Glu, 'mg/dL'], ['TP', 'TP', ch.TP, 'g/dL'],
+          ['ALB', 'ALB', ch.ALB, 'g/dL'], ['Glob', 'Glob', ch.Glob, 'g/dL'], ['Mg', 'Mg', ch.Mg, 'mg/dL']
+        ];
+        const chemSpecial = isCat
+          ? [['SAA', 'SAA', ch.SAA, 'µg/mL'], ['fPL', 'fPL', ch.fPL, 'µg/L'], ['proBNP', 'proBNP', ch.proBNP, 'pmol/L'], ['T4', 'T4', ch.T4, 'µg/dL'], ['Cortisol', 'Cortisol', ch.Cortisol, 'µg/dL'], ['SDMA', 'SDMA', ch.SDMA, 'µg/dL']]
+          : [['CRP', 'CRP', ch.CRP, 'mg/L'], ['cPL', 'cPL', ch.cPL, 'µg/L'], ['proBNP', 'proBNP', ch.proBNP, 'pmol/L'], ['T4', 'T4', ch.T4, 'µg/dL'], ['Cortisol', 'Cortisol', ch.Cortisol, 'µg/dL'], ['SDMA', 'SDMA', ch.SDMA, 'µg/dL']];
+
+        dtLabEl.innerHTML = `
+          <div class="lab-group-lbl">정맥혈액가스 (VBG) — 측정 8종</div>
+          ${renderLabTable(vbgMeasured, P)}
+          <div class="lab-group-lbl">정맥혈액가스 (VBG) — 계산 13종</div>
+          ${renderLabTable(vbgCalc, P)}
+          <div class="lab-group-lbl">일반혈액검사 (CBC) — 18종</div>
+          ${renderLabTable(cbcRows, P)}
+          <div class="lab-group-lbl">혈액화학 (일반 15종)</div>
+          ${renderLabTable(chemGeneral, P)}
+          <div class="lab-group-lbl">혈액화학 (특수 6종)</div>
+          ${renderLabTable(chemSpecial, P)}
+        `;
+
+        const im = c.imaging || {};
+        const th = im.thoracic || {};
+        const rows = [
+          `<div class="img-row"><strong>흉부 X-ray</strong><br/>VHS: ${escapeHtml(th.vhs || '-')} · VLAS: ${escapeHtml(th.vlas || '-')}<br/>기관직경: ${escapeHtml(th.trachea || '-')}<br/>폐야: ${escapeHtml(th.lung || '-')}${th.extra ? '<br/>추가 소견: ' + escapeHtml(th.extra) : ''}</div>`
+        ];
+        if (im.abdominal) rows.push(`<div class="img-row"><strong>복부 X-ray</strong><br/>${escapeHtml(im.abdominal)}</div>`);
+        if (im.ultrasound) rows.push(`<div class="img-row"><strong>초음파 검사</strong><br/>${escapeHtml(im.ultrasound)}</div>`);
+        dtImgEl.innerHTML = `<div class="img-list">${rows.join('')}</div>`;
+      }
+
+      /* Render Box 1 Summary: PE (all), Lab (abnormal only), Imaging (VHS, Trachea, Lung / abnormal findings only) */
+      function renderPreopSummary(c, P) {
+        const p = c.pe;
+        const isCat = c.species === 'cat';
+        const abnBT = p.bt < 37.5 || p.bt > 39.2;
+        const abnBP = p.bpMap < 65 || p.bpSys > 155 || p.bpSys < 95;
+        const abnHR = isCat ? (p.hr < 130 || p.hr > 210) : (p.hr < 65 || p.hr > 145);
+        const abnRR = p.rr > 36;
+        const abnCRT = p.crt > 2.0;
+        const abnMMC = /yellow|pale|cyan|dark|muddy|dry/i.test(p.mmc);
+        const auscHeart = p.auscHeart || '심잡음 없음 (정상 심음)';
+        const auscLung = p.auscLung || '정상 폐포음';
+        const auscBowel = p.auscBowel || '정상 복명음';
+        const abnHeart = /Grade|분마음|부정맥|서맥|빈맥/i.test(auscHeart);
+        const abnLung = /수포음|천명음|거친|감약|Crackle/i.test(auscLung);
+        const abnBowel = /감소|소실|압통|팽만|항진/i.test(auscBowel);
+
+        // Collect ALL abnormal lab values across VBG, CBC, Chem
+        const abnLabs = [];
+        const addIfAbn = (label, key, val, unit = '') => {
+          const num = Number(val);
+          if (!Number.isFinite(num)) return;
+          const fl = P.flagOf(key, num);
+          if (!fl) return;
+          const cls = fl === 'H' ? 'lab-high' : 'lab-low';
+          abnLabs.push(`<span class="${cls}" style="font-weight:600;">${escapeHtml(label)} ${val}${unit ? ' ' + unit : ''}(${fl})</span>`);
+        };
+        const m = P.vbgM, vc = P.vbgC, cb = P.cbc, ch = P.chem;
+        [['pH', 'pH', m.pH.toFixed(2), ''], ['pCO₂', 'pCO2', m.pCO2, 'mmHg'], ['Na⁺', 'Na', m.Na, ''], ['K⁺', 'K', m.K.toFixed(1), ''], ['Cl⁻', 'Cl', m.Cl, ''], ['iCa', 'iCa', m.iCa.toFixed(2), ''], ['Hct', 'Hct', m.Hct, '%']].forEach((r) => addIfAbn(...r));
+        [['cHCO₃⁻', 'cHCO3', vc.cHCO3, ''], ['BE(ecf)', 'BEecf', vc.BEecf, ''], ['AG(K)', 'AGK', vc.AGK, '']].forEach((r) => addIfAbn(...r));
+        [['RBC', 'RBC', cb.RBC, ''], ['HGB', 'HGB', cb.HGB, ''], ['HCT', 'HCT', cb.HCT, '%'], ['WBC', 'WBC', cb.WBC, ''], ['Neu', 'Neu', cb.Neu, ''], ['Lym', 'Lym', cb.Lym, ''], ['PLT', 'PLT', cb.PLT, '']].forEach((r) => addIfAbn(...r));
+        const chemKeys = ['ALP', 'ALT', 'AST', 'GGT', 'BUN', 'Crea', 'Phos', 'Ca', 'TG', 'Tchol', 'Glu', 'TP', 'ALB', 'Glob', 'Mg', ...(isCat ? ['SAA', 'fPL'] : ['CRP', 'cPL']), 'proBNP', 'T4', 'Cortisol', 'SDMA'];
+        chemKeys.forEach((k) => { if (ch[k] !== undefined) addIfAbn(k, k, ch[k], ''); });
+
+        // Imaging: VHS, 기관직경, 폐야 / 특이소견만 표기
+        const im = c.imaging || {};
+        const th = im.thoracic || {};
+        const isNormalText = (txt) => !txt || /^(정상|특이\s*소견\s*없음|이상\s*소견\s*없음|특이사항\s*없음)[\s.]*$/i.test(String(txt).trim());
+        const specialFindings = [];
+        if (th.extra && !isNormalText(th.extra)) specialFindings.push(th.extra);
+        if (im.abdominal && !isNormalText(im.abdominal)) specialFindings.push(`복부 X-ray: ${im.abdominal}`);
+        if (im.ultrasound && !isNormalText(im.ultrasound)) specialFindings.push(`초음파: ${im.ultrasound}`);
+
+        preopBodyEl.innerHTML = `
+          <div class="sig-hx-list" style="gap:8px;">
+            <div>
+              <div style="font-weight:700; color:var(--brown); margin-bottom:4px;">• 신체검사</div>
+              <div class="pe-grid">
+                <div class="pe-cell"><span class="pe-k">BT</span><span class="pe-v ${abnBT ? 'is-abn' : ''}">${p.bt.toFixed(1)} °C</span></div>
+                <div class="pe-cell"><span class="pe-k">BP #${p.cuff}</span><span class="pe-v ${abnBP ? 'is-abn' : ''}">${p.bpSys}/${p.bpDia} (${p.bpMap}) mmHg</span></div>
+                <div class="pe-cell"><span class="pe-k">HR</span><span class="pe-v ${abnHR ? 'is-abn' : ''}">${p.hr} /min</span></div>
+                <div class="pe-cell"><span class="pe-k">RR</span><span class="pe-v ${abnRR ? 'is-abn' : ''}">${p.rr} /min</span></div>
+                <div class="pe-cell"><span class="pe-k">CRT</span><span class="pe-v ${abnCRT ? 'is-abn' : ''}">${p.crt} s</span></div>
+                <div class="pe-cell"><span class="pe-k">MMC</span><span class="pe-v ${abnMMC ? 'is-abn' : ''}">${escapeHtml(p.mmc)}</span></div>
+                <div class="pe-cell span-2">
+                  <span class="pe-k">청진</span>
+                  <div class="pe-ausc-list">
+                    <div><span class="pe-ausc-sub">심음</span><span class="pe-v ${abnHeart ? 'is-abn' : ''}">${escapeHtml(auscHeart)}</span></div>
+                    <div><span class="pe-ausc-sub">폐음</span><span class="pe-v ${abnLung ? 'is-abn' : ''}">${escapeHtml(auscLung)}</span></div>
+                    <div><span class="pe-ausc-sub">복명음</span><span class="pe-v ${abnBowel ? 'is-abn' : ''}">${escapeHtml(auscBowel)}</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style="font-weight:700; color:var(--brown); margin-bottom:3px;">• 혈액검사 (이상 수치)</div>
+              <div style="line-height:1.55;">${abnLabs.length ? abnLabs.join(', ') : '<span class="muted">이상 수치 없음</span>'}</div>
+            </div>
+            <div>
+              <div style="font-weight:700; color:var(--brown); margin-bottom:3px;">• 영상검사</div>
+              <div style="line-height:1.55;">
+                VHS: <strong>${escapeHtml(th.vhs || '-')}</strong> · 기관직경: ${escapeHtml(th.trachea || '-')} · 폐야: ${escapeHtml(th.lung || '-')}
+                ${specialFindings.length ? `<div style="margin-top:3px; color:#b91c1c;">특이소견: ${specialFindings.map(escapeHtml).join(' / ')}</div>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      /* Mobile Control Drawer Drag */
       function setCollapsed(c) {
         if (window.innerWidth >= 960) { splitEl.classList.remove('ctrl-collapsed'); return; }
         splitEl.classList.toggle('ctrl-collapsed', Boolean(c));
@@ -258,68 +584,66 @@
       }
       document.querySelectorAll('.ch1-tab-btn').forEach((b) => b.addEventListener('click', () => { Settings.playTone(520, 0.04, 0.025); activateTab(b.dataset.pane); }));
 
-      /* Analyze Drug Synergy & Contraindications */
+      /* Evaluate 7-Category Plan & Synergies */
       function evaluatePlan(c) {
-        const premeds = Array.from(selectedPremeds);
-        const maints = Array.from(selectedMaints);
+        const stab = Array.from(planState.stab);
+        const abx = Array.from(planState.abx);
+        const inj = Array.from(planState.inj);
+        const analg = Array.from(planState.analg);
+        const sed = Array.from(planState.sed);
+        const ind = planState.ind;
+        const maint = planState.maint;
+
         const warnings = [];
         const synergies = [];
         let penalty = 0;
 
-        if (!premeds.length) { warnings.push('전처치 약물이 선택되지 않았습니다.'); penalty += 15; }
-        if (!selectedInd) { warnings.push('유도제가 선택되지 않았습니다.'); penalty += 20; }
-        if (!maints.includes('Isoflurane') && !maints.includes('Sevoflurane')) {
-          warnings.push('유지 마취 가스(Isoflurane 또는 Sevoflurane)가 선택되지 않았습니다.');
-          penalty += 15;
-        }
-        if (!maints.includes('LRS/Plasma-Lyte')) {
-          warnings.push('수액(LRS/Plasma-Lyte) 계획이 누락되었습니다.');
-          penalty += 8;
-        }
+        if (!stab.some((s) => /수화/.test(s))) { warnings.push('대기 중 안정화(수화) 계획이 누락되었습니다.'); penalty += 8; }
+        if (!analg.length) { warnings.push('진통제/진통수액이 선택되지 않았습니다.'); penalty += 10; }
+        if (!ind) { warnings.push('유도제가 선택되지 않았습니다.'); penalty += 18; }
+        if (!maint) { warnings.push('유지제(Isoflurane 또는 Sevoflurane)가 선택되지 않았습니다.'); penalty += 15; }
 
-        const hasOpioid = premeds.some((d) => ['Butorphanol', 'Methadone', 'Fentanyl'].includes(d));
-        const hasSed = premeds.some((d) => ['Acepromazine', 'Dexmedetomidine', 'Midazolam'].includes(d));
-        if (hasOpioid && hasSed) synergies.push('진정제 + 아편유사제 병용: 균형 마취 및 흡입마취제 MAC 25~40% 절감 시너지');
-        if (maints.includes('진통 CRI')) synergies.push('진통 CRI 추가: 수술 중 통증성 빈맥·고혈압 억제 및 Iso 농도 최소화');
+        if (analg.length && sed.length) synergies.push('진정제 + 진통제 병용: 균형 마취 및 흡입마취제 MAC 25~40% 절감 시너지');
+        if (analg.some((d) => /CRI/.test(d))) synergies.push('진통수액 CRI 추가: 수술 중 통증성 빈맥·고혈압 억제 및 유지 가스 농도 최소화');
+        if (stab.some((s) => /산소화/.test(s))) synergies.push('유도 전 산소화(Pre-O₂): 기관 삽관 시 저산소혈증 예방');
 
         const isCritical = c.trueAsa >= 4 || c.pe.bpMap < 70;
         const isHeart = /MMVD|HCM|심잡음|심비대/i.test((c.pe.auscHeart || '') + ' ' + (c.ownerClue || ''));
-        if (isCritical && premeds.includes('Acepromazine')) {
+        if (isCritical && sed.includes('Acepromazine')) {
           warnings.push('금기 경고: 저혈압·쇼크·ASA IV~V 환자에서 Acepromazine은 α1 차단으로 심각한 저혈압을 악화시킵니다.');
           penalty += 15;
         }
-        if (isCritical && premeds.includes('Dexmedetomidine')) {
+        if (isCritical && sed.includes('Dexmedetomidine')) {
           warnings.push('주의 경고: 중증·응급 환자에서 Dexmedetomidine은 심박출량 급감 위험이 높습니다. Opioid + Midazolam을 권장합니다.');
           penalty += 12;
         }
-        if (isHeart && selectedInd === 'Ketamine+Midazolam') {
+        if (isHeart && ind === 'Ketamine+Midazolam') {
           warnings.push('심장병 주의: Ketamine은 교감신경 항진·심근 산소요구량 증가로 MMVD/HCM 환자에서 부담이 큽니다.');
           penalty += 12;
         }
-        if (isCritical && (selectedInd === 'Etomidate' || selectedInd === 'Alfaxalone')) {
+        if (isCritical && (ind === 'Etomidate' || ind === 'Alfaxalone')) {
           synergies.push('혈역학적 안정 유도제 선택: 중증 환자에서 혈압 저하를 최소화합니다.');
         }
-        if (!hasOpioid && c.trueAsa >= 2) {
-          warnings.push('진통제(Methadone/Fentanyl/Butorphanol)가 누락되어 수술 중 통증 반응 위험이 높습니다.');
-          penalty += 8;
-        }
-        return { premeds, maints, warnings, synergies, penalty };
+
+        return { stab, abx, inj, analg, sed, ind, maint, warnings, synergies, penalty };
       }
 
+      /* Render Box 2: 2. 마취 플랜 (7 structured rows) */
       function renderPlanAndSynergy() {
         if (!currentCase) return;
         const ev = evaluatePlan(currentCase);
-        if (!ev.premeds.length && !selectedInd && !ev.maints.length) {
-          planBodyEl.innerHTML = '<div class="mon-empty">약물 및 수액 계획을 선택하세요</div>';
-        } else {
-          planBodyEl.innerHTML = `
-            <div class="sig-hx-list">
-              <div class="sig-hx-row"><span class="sig-hx-k">전처치:</span><span>${ev.premeds.join(', ') || '미선택'}</span></div>
-              <div class="sig-hx-row"><span class="sig-hx-k">유도제:</span><span>${selectedInd || '미선택'}</span></div>
-              <div class="sig-hx-row"><span class="sig-hx-k">유지·보조:</span><span>${ev.maints.join(', ') || '미선택'}</span></div>
-            </div>
-          `;
-        }
+        const fmt = (arr) => (arr && arr.length ? escapeHtml(arr.join(', ')) : '<span class="muted">미선택</span>');
+        planBodyEl.innerHTML = `
+          <div class="sig-hx-list">
+            <div class="sig-hx-row"><span class="sig-hx-k">대기 중 안정화:</span><span>${fmt(ev.stab)}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">항생제:</span><span>${fmt(ev.abx)}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">주사제:</span><span>${fmt(ev.inj)}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">진통제:</span><span>${fmt(ev.analg)}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">진정제:</span><span>${fmt(ev.sed)}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">유도제:</span><span>${ev.ind ? escapeHtml(ev.ind) : '<span class="muted">미선택</span>'}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">유지제:</span><span>${ev.maint ? escapeHtml(ev.maint) : '<span class="muted">미선택</span>'}</span></div>
+          </div>
+        `;
 
         const synRows = [];
         ev.synergies.forEach((s) => synRows.push(`<div class="img-row"><strong>시너지</strong><br/>${escapeHtml(s)}</div>`));
@@ -328,12 +652,15 @@
         synergyBoxEl.innerHTML = synRows.join('');
       }
 
-      document.querySelectorAll('[data-premed]').forEach((b) => {
+      document.querySelectorAll('[data-plan-cat]').forEach((b) => {
         b.addEventListener('click', () => {
           if (evaluated) return;
-          const k = b.dataset.premed;
-          if (selectedPremeds.has(k)) selectedPremeds.delete(k); else selectedPremeds.add(k);
-          b.classList.toggle('active', selectedPremeds.has(k));
+          const cat = b.dataset.planCat;
+          const val = b.dataset.val;
+          const set = planState[cat];
+          if (!set) return;
+          if (set.has(val)) set.delete(val); else set.add(val);
+          b.classList.toggle('active', set.has(val));
           Settings.playTone(540, 0.04, 0.025);
           renderPlanAndSynergy();
         });
@@ -341,8 +668,8 @@
       document.querySelectorAll('[data-ind]').forEach((b) => {
         b.addEventListener('click', () => {
           if (evaluated) return;
-          selectedInd = b.dataset.ind;
-          document.querySelectorAll('[data-ind]').forEach((el) => el.classList.toggle('active', el === b));
+          planState.ind = planState.ind === b.dataset.ind ? null : b.dataset.ind;
+          document.querySelectorAll('[data-ind]').forEach((el) => el.classList.toggle('active', el.dataset.ind === planState.ind));
           Settings.playTone(540, 0.04, 0.025);
           renderPlanAndSynergy();
         });
@@ -350,47 +677,39 @@
       document.querySelectorAll('[data-maint]').forEach((b) => {
         b.addEventListener('click', () => {
           if (evaluated) return;
-          const k = b.dataset.maint;
-          if (selectedMaints.has(k)) selectedMaints.delete(k); else selectedMaints.add(k);
-          b.classList.toggle('active', selectedMaints.has(k));
+          planState.maint = planState.maint === b.dataset.maint ? null : b.dataset.maint;
+          document.querySelectorAll('[data-maint]').forEach((el) => el.classList.toggle('active', el.dataset.maint === planState.maint));
           Settings.playTone(540, 0.04, 0.025);
           renderPlanAndSynergy();
         });
       });
 
-      /* Owner Notification Chat */
-      function typeText(el, full) {
-        el.textContent = '';
-        let i = 0;
-        function step() {
-          if (i <= full.length) {
-            el.textContent = full.slice(0, i++);
-            typingTimers.push(setTimeout(step, 20));
-          }
-        }
-        step();
+      /* Render Box 3: 3. 보호자 안내 (5 structured items) */
+      function renderConsentList() {
+        consentListEl.innerHTML = CONSENT_ITEMS.map((item) => {
+          const done = revealedConsents.has(item.key);
+          return `<div class="sig-hx-row"><span class="sig-hx-k">${item.label}:</span><span class="sig-hx-v" style="${done ? 'font-weight:600;' : 'color:var(--muted);'}">${done ? '안내 완료' : '미안내'}</span></div>`;
+        }).join('');
+      }
+
+      function setChatLocked(locked) {
+        chatInputEl.disabled = Boolean(locked);
+        chatSendBtn.disabled = Boolean(locked);
+        chatInputEl.placeholder = locked ? '평가가 완료되어 안내가 종료되었습니다' : '마취 계획·수술 시간·연락·입원 안내 입력';
       }
 
       function revealConsents(vetText) {
         const low = String(vetText || '').toLowerCase();
         const hits = [];
         CONSENT_ITEMS.forEach((item) => {
-          if (!revealedConsents.has(item.key) && item.kws.some((kw) => low.includes(kw.toLowerCase()))) {
+          if (!revealedConsents.has(item.key) && item.test(low)) {
             revealedConsents.add(item.key);
             hits.push(item);
           }
         });
         if (!hits.length) return [];
         setMonCollapsed('ch2-sec-consent', false);
-        const empty = consentListEl.querySelector('.mon-empty');
-        if (empty) empty.remove();
-        hits.forEach((item) => {
-          const row = document.createElement('div');
-          row.className = 'sig-hx-row';
-          row.innerHTML = `<span class="sig-hx-k">${item.label}:</span> <span class="sig-hx-v"></span>`;
-          consentListEl.appendChild(row);
-          typeText(row.querySelector('.sig-hx-v'), '보호자 설명 완료');
-        });
+        renderConsentList();
         Settings.playTone(640, 0.05, 0.025);
         return hits;
       }
@@ -408,7 +727,7 @@
 
       chatFormEl.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (chatBusy || !currentCase) return;
+        if (evaluated || chatBusy || !currentCase) return;
         const msg = chatInputEl.value.trim();
         if (!msg) return;
         chatInputEl.value = '';
@@ -429,7 +748,7 @@
               species: currentCase.species === 'cat' ? '고양이' : '개',
               caseName: `${currentCase.name} (${currentCase.breed})`,
               asa: `ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? '-E' : ''}`,
-              caseDesc: `${currentCase.chiefComplaint} | 선택한 플랜: 전처치(${Array.from(selectedPremeds).join(',')}), 유도(${selectedInd || '미선택'})`,
+              caseDesc: `${currentCase.chiefComplaint} | 마취 플랜: 안정화(${Array.from(planState.stab).join(',')}), 항생제(${Array.from(planState.abx).join(',')}), 진통(${Array.from(planState.analg).join(',')}), 진정(${Array.from(planState.sed).join(',')}), 유도(${planState.ind || '미선택'}), 유지(${planState.maint || '미선택'})`,
               clue: currentCase.ownerClue || '',
               ownerPersonality: currentCase.ownerPersonality || 'neutral',
               knowledgeLevel: currentCase.ownerLevel || 2,
@@ -444,20 +763,21 @@
         } catch {}
 
         if (!reply) {
-          const p = currentCase.ownerPersonality;
-          if (revealedConsents.size >= 3) {
-            reply = '검사 결과랑 마취 계획, 위험성까지 자세히 설명해 주셔서 감사합니다. 마취 동의하겠습니다. 잘 부탁드려요.';
-          } else if (p === 'anxious' || p === 'urgent') {
-            reply = '알겠습니다 선생님. 혹시 마취 중에 생길 수 있는 위험이나 주의해야 할 점도 조금 더 설명해 주실 수 있을까요?';
+          const missing = CONSENT_ITEMS.filter((it) => !revealedConsents.has(it.key));
+          if (!missing.length) {
+            reply = '마취 계획부터 수술 시간, 연락, 입원 안내까지 꼼꼼하게 설명해 주셔서 감사합니다 선생님. 동의하겠습니다. 잘 부탁드려요.';
           } else {
-            reply = '네 설명 잘 들었습니다. 마취 계획과 위험성 부분도 안내해 주시면 동의하겠습니다.';
+            reply = `네 선생님, 설명 감사합니다. 혹시 ${missing[0].label} 부분도 안내해 주실 수 있을까요?`;
           }
         }
         const clean = reply.replace(/^\[ABORT\]\s*/i, '');
         appendBubble('owner', clean, false);
         chatHistory.push({ sender: 'owner', text: clean });
         chatBusy = false;
-        chatSendBtn.disabled = false;
+        if (!evaluated) {
+          chatSendBtn.disabled = false;
+          chatInputEl.focus();
+        }
       });
 
       /* Review Modal (오답노트 / AI 로그 분석 / SOAP 분석) */
@@ -473,15 +793,16 @@
 
       function buildAiPayload(task) {
         const c = lastReport.caseObj;
+        const ev = lastReport.ev;
         return {
           task,
           phase: 'chapter2',
           chapterLabel: 'Chapter 2 마취 플랜',
           species: c.species === 'cat' ? '고양이' : '개',
-          scenario: `${c.name} (${c.breed}, ${c.age}, ${c.weight}kg) - ${c.chiefComplaint}`,
+          scenario: `${c.name} (${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex}) - ${c.chiefComplaint}`,
           chatSummary: chatHistory.map((m) => `${m.sender === 'vet' ? '수의사' : '보호자'}: ${m.text}`).slice(-8).join(' | '),
-          examSummary: `전처치: ${lastReport.ev.premeds.join(',') || '없음'} / 유도: ${selectedInd || '없음'} / 유지: ${lastReport.ev.maints.join(',') || '없음'}`,
-          studentEval: `점수 ${lastReport.score}점 (${lastReport.grade}), 보호자 통보 ${revealedConsents.size}/3`,
+          examSummary: `안정화: ${ev.stab.join(',') || '없음'} / 항생제: ${ev.abx.join(',') || '없음'} / 주사제: ${ev.inj.join(',') || '없음'} / 진통제: ${ev.analg.join(',') || '없음'} / 진정제: ${ev.sed.join(',') || '없음'} / 유도제: ${ev.ind || '없음'} / 유지제: ${ev.maint || '없음'}`,
+          studentEval: `점수 ${lastReport.score}점 (${lastReport.grade}), 보호자 안내 ${revealedConsents.size}/${CONSENT_ITEMS.length}`,
           trueEval: `ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} (${c.truePrognosis}) 맞춤 안전 프로토콜`
         };
       }
@@ -494,7 +815,8 @@
           if (r.ok) { const d = await r.json(); t = (d.analysis || d.text || '').trim(); }
         } catch {}
         if (!t) {
-          t = `[오프라인 플랜 분석]\n1) 선택한 마취 플랜: 전처치(${lastReport.ev.premeds.join(', ') || '미선택'}), 유도(${selectedInd || '미선택'}), 유지(${lastReport.ev.maints.join(', ') || '미선택'}).\n2) 시너지·주의 사항: ${lastReport.ev.warnings.length ? lastReport.ev.warnings.join(' / ') : '치명적 약물 금기 없이 균형 잡힌 플랜입니다.'}\n3) 보호자 통보: ${revealedConsents.size}/3 항목 완료.`;
+          const ev = lastReport.ev;
+          t = `1) 선택한 마취 플랜: 안정화(${ev.stab.join(', ') || '미선택'}), 항생제(${ev.abx.join(', ') || '미선택'}), 진통제(${ev.analg.join(', ') || '미선택'}), 진정제(${ev.sed.join(', ') || '미선택'}), 유도제(${ev.ind || '미선택'}), 유지제(${ev.maint || '미선택'}).\n2) 시너지·주의 사항: ${ev.warnings.length ? ev.warnings.join(' / ') : '치명적 약물 금기 없이 균형 잡힌 플랜입니다.'}\n3) 보호자 안내: ${revealedConsents.size}/${CONSENT_ITEMS.length} 항목 완료.`;
         }
         aiText = t;
         rvAiEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(t)}</div>`;
@@ -509,7 +831,8 @@
         } catch {}
         if (!t) {
           const c = lastReport.caseObj;
-          t = `S: ${c.name} (${c.breed}, ${c.age}, ${c.weight}kg) — ${c.chiefComplaint}\nO: ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} (${c.truePrognosis}), 청진 ${c.pe.auscHeart}\nA: 마취 전 위험 평가 완료 및 맞춤 약물 계획 수립 (${lastReport.score}점, ${lastReport.grade})\nP: 전처치(${lastReport.ev.premeds.join(', ') || '-'}), 유도(${selectedInd || '-'}), 유지(${lastReport.ev.maints.join(', ') || '-'}), 보호자 동의 확인 후 Chapter 3 도입 진행`;
+          const ev = lastReport.ev;
+          t = `S: ${c.name} (${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex}) — ${c.chiefComplaint}\nO: ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} (${c.truePrognosis}), 청진 ${c.pe.auscHeart}\nA: 마취 전 위험 평가 및 맞춤 약물 계획 수립 (${lastReport.score}점, ${lastReport.grade})\nP: 안정화(${ev.stab.join(', ') || '-'}), 항생제(${ev.abx.join(', ') || '-'}), 진통제(${ev.analg.join(', ') || '-'}), 진정제(${ev.sed.join(', ') || '-'}), 유도(${ev.ind || '-'}), 유지(${ev.maint || '-'})`;
         }
         soapText = t;
         rvSoapEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(t)}</div>`;
@@ -528,9 +851,10 @@
           return;
         }
         evaluated = true;
+        setChatLocked(true);
         const ev = evaluatePlan(currentCase);
-        const missedConsents = 3 - revealedConsents.size;
-        const score = Math.max(0, Math.min(100, 100 - ev.penalty - missedConsents * 6));
+        const missedConsents = CONSENT_ITEMS.length - revealedConsents.size;
+        const score = Math.max(0, Math.min(100, 100 - ev.penalty - missedConsents * 4));
         const grade = scoreToGrade(score);
 
         lastReport = { caseObj: currentCase, ev, score, grade, missedConsents };
@@ -543,10 +867,11 @@
               <strong style="font-family:var(--font-display); font-size:15px;">마취 플랜 평가</strong>
               <strong style="font-family:var(--font-display); font-size:17px; color:#dc2626;">${score}점 (${grade})</strong>
             </div>
-            <div class="modal-row"><span class="muted">전처치</span><strong>${ev.premeds.join(', ') || '미선택'}</strong></div>
-            <div class="modal-row"><span class="muted">유도제</span><strong>${selectedInd || '미선택'}</strong></div>
-            <div class="modal-row"><span class="muted">유지·보조</span><strong>${ev.maints.join(', ') || '미선택'}</strong></div>
-            <div class="modal-row"><span class="muted">보호자 통보</span><strong>${revealedConsents.size} / 3 완료</strong></div>
+            <div class="modal-row"><span class="muted">대기 중 안정화</span><strong>${ev.stab.join(', ') || '미선택'}</strong></div>
+            <div class="modal-row"><span class="muted">항생제 / 주사제</span><strong>${[...ev.abx, ...ev.inj].join(', ') || '미선택'}</strong></div>
+            <div class="modal-row"><span class="muted">진통제 / 진정제</span><strong>${[...ev.analg, ...ev.sed].join(', ') || '미선택'}</strong></div>
+            <div class="modal-row"><span class="muted">유도제 / 유지제</span><strong>${ev.ind || '미선택'} / ${ev.maint || '미선택'}</strong></div>
+            <div class="modal-row"><span class="muted">보호자 안내</span><strong>${revealedConsents.size} / ${CONSENT_ITEMS.length} 완료</strong></div>
           </div>
           <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
             <div class="b-label"><span>오답노트</span></div>
@@ -570,9 +895,15 @@
       async function loadStage(stageId) {
         clearTimers();
         currentStageId = stageId;
-        selectedPremeds = new Set();
-        selectedInd = null;
-        selectedMaints = new Set();
+        planState = {
+          stab: new Set(),
+          abx: new Set(),
+          inj: new Set(),
+          analg: new Set(),
+          sed: new Set(),
+          ind: null,
+          maint: null
+        };
         revealedConsents = new Set();
         chatHistory = [];
         chatBusy = false;
@@ -581,47 +912,35 @@
         aiText = null;
         soapText = null;
 
+        setChatLocked(false);
+        detailModalEl.classList.add('hidden');
         reviewModalEl.classList.add('hidden');
         stampOverlayEl.classList.add('hidden');
         evalSubmitBtn.textContent = '플랜 확정';
-        document.querySelectorAll('[data-premed], [data-ind], [data-maint]').forEach((b) => b.classList.remove('active'));
+        document.querySelectorAll('[data-plan-cat], [data-ind], [data-maint]').forEach((b) => b.classList.remove('active'));
         ['ch2-sec-preop', 'ch2-sec-plan', 'ch2-sec-consent'].forEach((id) => setMonCollapsed(id, false));
-        consentListEl.innerHTML = '<div class="mon-empty">보호자 통보 후 기록</div>';
+        renderConsentList();
         chatLogEl.innerHTML = '';
         activateTab('plan');
 
         if (stageId === 'practice_dog' || stageId === 'practice_cat') {
           sigHeadEl.innerHTML = '<span>환자 생성 중...</span>';
+          ccLineEl.innerHTML = '';
           currentCase = await Data.generatePracticeCase(stageId === 'practice_cat' ? 'cat' : 'dog');
         } else {
           currentCase = Data.getFixedCase(stageId);
         }
 
-        const spKr = currentCase.species === 'cat' ? '고양이' : '개';
-        sigHeadEl.innerHTML = `<span>${currentCase.name}</span><span class="ch1-sig-meta">${spKr} · ${currentCase.breed} · ${currentCase.age} · ${currentCase.weight} kg · ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? 'E' : ''} (${currentCase.truePrognosis})</span>`;
+        // 고정 헤더: 이름, 품종, 나이, 체중, 성별(중성화 유무), ASA grade (예후) / 주호소
+        sigHeadEl.innerHTML = `<span>${escapeHtml(currentCase.name)}</span><span class="ch1-sig-meta">${escapeHtml(currentCase.breed)} · ${escapeHtml(currentCase.age)} · ${currentCase.weight} kg · ${escapeHtml(currentCase.sex)} · ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? 'E' : ''} (${escapeHtml(currentCase.truePrognosis)})</span>`;
         ccLineEl.innerHTML = `<strong>주호소:</strong> ${escapeHtml(currentCase.chiefComplaint)}`;
 
         const P = Data.buildLabPanel(currentCase);
-        const abnLabs = [];
-        Object.keys(P.chem).forEach((k) => {
-          const fl = P.flagOf(k, P.chem[k]);
-          if (fl) abnLabs.push(`${k} ${P.chem[k]}(${fl})`);
-        });
-        ['pH', 'K', 'Hct'].forEach((k) => {
-          const fl = P.flagOf(k, P.vbgM[k]);
-          if (fl) abnLabs.unshift(`${k} ${P.vbgM[k]}(${fl})`);
-        });
-
-        preopBodyEl.innerHTML = `
-          <div class="sig-hx-list">
-            <div class="sig-hx-row"><span class="sig-hx-k">신체검사:</span><span>BT ${currentCase.pe.bt}°C · BP ${currentCase.pe.bpSys}/${currentCase.pe.bpDia}(${currentCase.pe.bpMap}) · HR ${currentCase.pe.hr} · RR ${currentCase.pe.rr}</span></div>
-            <div class="sig-hx-row"><span class="sig-hx-k">청진:</span><span>${escapeHtml(currentCase.pe.auscHeart || '정상')} / ${escapeHtml(currentCase.pe.auscLung || '정상')}</span></div>
-            <div class="sig-hx-row"><span class="sig-hx-k">혈검 이상:</span><span>${abnLabs.length ? escapeHtml(abnLabs.slice(0, 8).join(', ')) : '주요 이상 소견 없음'}</span></div>
-            <div class="sig-hx-row"><span class="sig-hx-k">영상:</span><span>VHS ${escapeHtml(currentCase.imaging.thoracic.vhs)} · ${escapeHtml(currentCase.imaging.thoracic.lung)}</span></div>
-          </div>
-        `;
+        renderPreopSummary(currentCase, P);
+        renderFullPreopDetail(currentCase, P);
         renderPlanAndSynergy();
-        const greet = `선생님, ${currentCase.name} 검사 결과는 어떻게 나왔나요? 마취 계획이랑 주의할 점 설명 부탁드려요.`;
+
+        const greet = `선생님, ${currentCase.name} 마취 계획이랑 수술 예정·소요 시간, 연락 및 입원 안내 부탁드려요.`;
         appendBubble('owner', greet, false);
         chatHistory.push({ sender: 'owner', text: greet });
       }
@@ -631,15 +950,15 @@
         chapterTitle: '마취 플랜',
         initialStageId: 'tutorial',
         helpSlides: [
-          { mark: '1', label: '술전 검사 요약 확인', desc: '좌측 모니터링창에서 환자의 ASA 등급·청진·혈액·영상 이상 소견을 확인합니다.' },
-          { mark: '2', label: '마취 계획 & 약물 시너지', desc: '전처치·유도·유지·수액 조합을 선택하고 금기 및 시너지를 점검합니다.' },
-          { mark: '3', label: '보호자 통보 및 플랜 확정', desc: '보호자에게 검사 결과·계획·위험성을 설명한 뒤 플랜을 확정합니다.' }
+          { mark: '1', label: '마취 전 검사 결과 확인', desc: '좌측 모니터링창에서 신체검사·혈액 이상 수치·영상 핵심 소견을 확인하고, 상세 버튼으로 전체 검사 결과를 열람합니다.' },
+          { mark: '2', label: '마취 플랜 수립', desc: '대기 중 안정화·항생제·주사제·진통제·진정제·유도제·유지제 조합을 구성하고 약물 시너지를 점검합니다.' },
+          { mark: '3', label: '보호자 안내 및 플랜 확정', desc: '마취 계획, 수술 예정·소요 시간, 수술 전후 연락, 입원 여부를 안내한 뒤 플랜을 확정합니다.' }
         ],
         tutorialSteps: [
-          { title: '1. 술전 검사 요약', sel: '#ch2-monitor', onEnter: () => activateTab('plan'), text: '환자의 술전 검사 이상 소견과 ASA 등급, 수립된 마취 플랜 및 보호자 통보 현황을 확인합니다.' },
-          { title: '2. 마취 계획', sel: '#ch2-control', onEnter: () => activateTab('plan'), text: '환자 상태에 맞는 전처치·유도제·유지 마취 및 수액·항생제 조합을 선택합니다.' },
+          { title: '1. 마취 전 검사 결과', sel: '#ch2-monitor', onEnter: () => activateTab('plan'), text: '고정 헤더와 마취 전 검사 결과 요약(상세 팝업 포함), 수립된 마취 플랜 및 보호자 안내 현황을 확인합니다.' },
+          { title: '2. 마취 플랜 구성', sel: '#ch2-control', onEnter: () => activateTab('plan'), text: '대기 중 안정화부터 항생제·주사제·진통제·진정제·유도제·유지제까지 환자 맞춤 플랜을 선택합니다.' },
           { title: '3. 약물 시너지', sel: '#ch2-control', onEnter: () => activateTab('synergy'), text: '선택한 약물 조합의 MAC 절감 시너지와 환자별 금기 경고를 미리 점검합니다.' },
-          { title: '4. 보호자 통보 및 시작', sel: '#ch2-control', onEnter: () => activateTab('notify'), text: '보호자에게 검사 결과·계획·위험성을 설명한 뒤 플랜을 확정합니다. 이제 튜토리얼 케이스를 시작합니다.' }
+          { title: '4. 보호자 안내 및 확정', sel: '#ch2-control', onEnter: () => activateTab('notify'), text: '보호자에게 마취 계획·수술 시간·연락·입원 안내를 마친 뒤 플랜을 확정합니다.' }
         ],
         onTutorialFinish: () => activateTab('plan'),
         onSelectStage: (stageId) => loadStage(stageId)
