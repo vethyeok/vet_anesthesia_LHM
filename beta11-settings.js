@@ -468,7 +468,8 @@
               <button id="ch-btn-share" type="button" class="b-btn b-btn-sm" style="width:100%;">공유하기</button>
             </div>
           </div>
-          <div style="margin-bottom:10px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+            <button id="ch-btn-restart" type="button" class="b-btn b-btn-sm" style="width:100%;">다시하기</button>
             <button id="ch-btn-main-warn" type="button" class="b-btn b-btn-sm" style="width:100%;">메인화면</button>
           </div>
           <div id="ch-share-toast" class="share-toast" aria-live="polite"></div>
@@ -755,6 +756,17 @@
       } else if (res.method === 'native' && res.ok) {
         toastEl.textContent = '공유 창이 열렸습니다.';
         setTimeout(() => { toastEl.textContent = ''; }, 2000);
+      }
+    });
+
+    document.getElementById('ch-btn-restart').addEventListener('click', () => {
+      playTone(520, 0.05, 0.03);
+      settingsModal.classList.add('hidden');
+      clearStageGlow();
+      if (typeof cfg.onRestartStage === 'function') {
+        cfg.onRestartStage(activeStageId);
+      } else if (typeof cfg.onSelectStage === 'function') {
+        cfg.onSelectStage(activeStageId, { preserveCase: true });
       }
     });
 

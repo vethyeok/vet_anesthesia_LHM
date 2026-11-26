@@ -488,8 +488,9 @@
         Settings.triggerStageGlow();
       });
 
-      async function loadStage(stageId) {
+      async function loadStage(stageId, opts = {}) {
         stopAll();
+        const prevCase = currentCase;
         currentStageId = stageId;
         txLogs = [];
         chatHistory = [];
@@ -510,8 +511,12 @@
         activateTab('extub');
 
         if (stageId === 'practice_dog' || stageId === 'practice_cat') {
-          sigHeadEl.innerHTML = '<span>환자 생성 중...</span>';
-          currentCase = await Data.generatePracticeCase(stageId === 'practice_cat' ? 'cat' : 'dog');
+          if (opts && opts.preserveCase && prevCase) {
+            currentCase = prevCase;
+          } else {
+            sigHeadEl.innerHTML = '<span>환자 생성 중...</span>';
+            currentCase = await Data.generatePracticeCase(stageId === 'practice_cat' ? 'cat' : 'dog');
+          }
         } else {
           currentCase = Data.getFixedCase(stageId);
         }
@@ -546,7 +551,7 @@
           { title: '4. 퇴원 안내 및 시작', sel: '#ch5-control', onEnter: () => activateTab('discharge'), text: '보호자에게 식이·투약·응급 재내원 증상을 안내한 뒤 회복 완료를 누릅니다. 이제 튜토리얼 케이스를 시작합니다.' }
         ],
         onTutorialFinish: () => activateTab('extub'),
-        onSelectStage: (stageId) => loadStage(stageId)
+        onSelectStage: (stageId, opts) => loadStage(stageId, opts)
       });
 
       loadStage('tutorial');

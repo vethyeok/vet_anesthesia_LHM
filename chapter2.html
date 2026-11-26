@@ -986,7 +986,7 @@
         Settings.playTone(520, 0.05, 0.03);
         reviewModalEl.classList.add('hidden');
         failModalEl.classList.add('hidden');
-        loadStage(currentStageId);
+        loadStage(currentStageId, { preserveCase: true });
       });
       document.getElementById('ch2-fail-main').addEventListener('click', () => {
         Settings.playTone(480, 0.05, 0.03);
@@ -1214,8 +1214,9 @@
         }
       });
 
-      async function loadStage(stageId) {
+      async function loadStage(stageId, opts = {}) {
         clearTimers();
+        const prevCase = currentCase;
         currentStageId = stageId;
         planState = {
           stab: null,
@@ -1251,9 +1252,13 @@
         activateTab('premed');
 
         if (stageId === 'practice_dog' || stageId === 'practice_cat') {
-          sigHeadEl.innerHTML = '<span>환자 생성 중...</span>';
-          ccLineEl.innerHTML = '';
-          currentCase = await Data.generatePracticeCase(stageId === 'practice_cat' ? 'cat' : 'dog');
+          if (opts && opts.preserveCase && prevCase) {
+            currentCase = prevCase;
+          } else {
+            sigHeadEl.innerHTML = '<span>환자 생성 중...</span>';
+            ccLineEl.innerHTML = '';
+            currentCase = await Data.generatePracticeCase(stageId === 'practice_cat' ? 'cat' : 'dog');
+          }
         } else {
           currentCase = Data.getFixedCase(stageId);
         }
@@ -1287,7 +1292,7 @@
           { title: '4. 보호자 안내 및 확정', sel: '#ch2-control', onEnter: () => activateTab('notify'), text: '보호자에게 마취 계획·수술 시간·연락·입원 안내를 마친 뒤 계획을 확정합니다.' }
         ],
         onTutorialFinish: () => activateTab('premed'),
-        onSelectStage: (stageId) => loadStage(stageId)
+        onSelectStage: (stageId, opts) => loadStage(stageId, opts)
       });
 
       loadStage('tutorial');

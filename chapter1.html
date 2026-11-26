@@ -909,7 +909,7 @@
         Settings.playTone(520, 0.05, 0.03);
         reviewModalEl.classList.add('hidden');
         failModalEl.classList.add('hidden');
-        loadStage(currentStageId);
+        loadStage(currentStageId, { preserveCase: true });
       });
       document.getElementById('ch1-fail-main').addEventListener('click', () => {
         Settings.playTone(480, 0.05, 0.03);
@@ -1134,8 +1134,9 @@
       });
 
       /* Load a Stage (Tutorial / 10 Fixed Cases / AI Practice Dog & Cat) */
-      async function loadStage(stageId) {
+      async function loadStage(stageId, opts = {}) {
         clearAllTimers();
+        const prevCase = currentCase;
         currentStageId = stageId;
         chatHistory = [];
         chatBusy = false;
@@ -1180,12 +1181,16 @@
         activateTab('chat');
 
         if (stageId === 'practice_dog' || stageId === 'practice_cat') {
-          sigHeadEl.innerHTML = '<span>환자 생성 중...</span>';
-          const sp = stageId === 'practice_cat' ? 'cat' : 'dog';
-          currentCase = await Data.generatePracticeCase(sp, recentPracticeNames);
-          if (currentCase && currentCase.name) {
-            recentPracticeNames.push(`${currentCase.breed} ${currentCase.name}`);
-            if (recentPracticeNames.length > 8) recentPracticeNames.shift();
+          if (opts && opts.preserveCase && prevCase) {
+            currentCase = prevCase;
+          } else {
+            sigHeadEl.innerHTML = '<span>환자 생성 중...</span>';
+            const sp = stageId === 'practice_cat' ? 'cat' : 'dog';
+            currentCase = await Data.generatePracticeCase(sp, recentPracticeNames);
+            if (currentCase && currentCase.name) {
+              recentPracticeNames.push(`${currentCase.breed} ${currentCase.name}`);
+              if (recentPracticeNames.length > 8) recentPracticeNames.shift();
+            }
           }
         } else {
           currentCase = Data.getFixedCase(stageId);
@@ -1218,8 +1223,8 @@
         onTutorialFinish: () => {
           activateTab('chat');
         },
-        onSelectStage: (stageId) => {
-          loadStage(stageId);
+        onSelectStage: (stageId, opts) => {
+          loadStage(stageId, opts);
         }
       });
 
