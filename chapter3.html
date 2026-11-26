@@ -515,9 +515,12 @@
           { mark: '3', label: '유지 전환 체크', desc: 'O₂, 기화기, APL 밸브 개방, 모니터 부착 완료 후 도입을 마칩니다.' }
         ],
         tutorialSteps: [
-          { sel: '#ch3-monitor', text: '실시간 생체 모니터와 도입 체크리스트를 확인합니다.' },
-          { sel: '.ch1-ctrl-tabs', text: '전처치 → 도입·삽관 → 유지 전환 순으로 진행합니다.' }
+          { title: '1. 도입 모니터링창', sel: '#ch3-monitor', onEnter: () => activateTab('premed'), text: '실시간 생체 모니터(HR·SpO₂·MAP·RR·ETCO₂)와 도입 체크리스트·처치 로그를 확인합니다.' },
+          { title: '2. 전처치 · 전산소화', sel: '#ch3-control', onEnter: () => activateTab('premed'), text: '전처치 약물을 선택해 일괄 투여하고, 전산소화(Pre-O₂)로 산소 예비량을 확보합니다.' },
+          { title: '3. 도입 · 기관삽관', sel: '#ch3-control', onEnter: () => activateTab('induct'), text: '유도제를 1/4씩 적정 투여한 뒤 체중에 맞는 ETT 규격을 선택해 삽관합니다.' },
+          { title: '4. 유지 전환 및 시작', sel: '#ch3-control', onEnter: () => activateTab('trans'), text: 'O₂·기화기·APL 밸브 개방·모니터 부착을 완료하고 도입 완료를 누릅니다. 이제 튜토리얼 케이스를 시작합니다.' }
         ],
+        onTutorialFinish: () => activateTab('premed'),
         onSelectStage: (stageId) => loadStage(stageId)
       });
 

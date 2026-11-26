@@ -540,9 +540,12 @@
           { mark: '3', label: '보호자 퇴원 안내', desc: '식이 재개, 투약, 응급 재내원 증상을 설명하고 회복을 완료합니다.' }
         ],
         tutorialSteps: [
-          { sel: '#ch5-monitor', text: '회복기 모니터에서 EtIso, 체온, 연하반사 회복 상태를 확인합니다.' },
-          { sel: '.ch1-ctrl-tabs', text: '세척·발관 → 회복 처치 → 퇴원 안내 순으로 진행합니다.' }
+          { title: '1. 회복기 모니터', sel: '#ch5-monitor', onEnter: () => activateTab('extub'), text: '회복기 생체 수치(HR·SpO₂·BT·EtIso)와 연하반사 회복 여부, 처치·퇴원 안내 기록을 확인합니다.' },
+          { title: '2. 가스 세척 · 발관', sel: '#ch5-control', onEnter: () => activateTab('extub'), text: '기화기 OFF 후 100% O₂ 세척으로 EtIso를 낮추고, 연하반사 회복 시 안전하게 발관합니다.' },
+          { title: '3. 회복기 보조 처치', sel: '#ch5-control', onEnter: () => activateTab('care'), text: '필요에 따라 산소 공급, 능동 가온, 진통·진정, 길항제를 선택적으로 투여합니다.' },
+          { title: '4. 퇴원 안내 및 시작', sel: '#ch5-control', onEnter: () => activateTab('discharge'), text: '보호자에게 식이·투약·응급 재내원 증상을 안내한 뒤 회복 완료를 누릅니다. 이제 튜토리얼 케이스를 시작합니다.' }
         ],
+        onTutorialFinish: () => activateTab('extub'),
         onSelectStage: (stageId) => loadStage(stageId)
       });
 

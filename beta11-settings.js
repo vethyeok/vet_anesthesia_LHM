@@ -265,7 +265,7 @@
         window.__b11Cleanup = null;
       }
 
-      document.querySelectorAll('.modal-backdrop, #ch-modal-host, .tut-backdrop, .tut-callout').forEach((el) => el.remove());
+      document.querySelectorAll('.modal-backdrop, #ch-modal-host, .tut-layer, .tut-backdrop, .tut-callout').forEach((el) => el.remove());
 
       document.title = doc.title || document.title;
       curShell.replaceWith(document.importNode(newShell, true));
@@ -470,8 +470,14 @@
         </div>
       </div>
 
-      <!-- 튜토리얼 블러 스포트라이트 + 안내문 -->
-      <div id="ch-tut-backdrop" class="tut-backdrop hidden"></div>
+      <!-- 튜토리얼 4분할 실제 블러 스포트라이트 + 남는 공간 안내문 -->
+      <div id="ch-tut-layer" class="tut-layer hidden">
+        <div id="ch-tut-top" class="tut-blur-pane"></div>
+        <div id="ch-tut-bottom" class="tut-blur-pane"></div>
+        <div id="ch-tut-left" class="tut-blur-pane"></div>
+        <div id="ch-tut-right" class="tut-blur-pane"></div>
+        <div id="ch-tut-ring" class="tut-ring"></div>
+      </div>
       <div id="ch-tut-callout" class="tut-callout hidden" role="dialog" aria-live="polite">
         <div class="b-label" style="margin:0;">
           <span id="ch-tut-step-lbl">튜토리얼</span>
@@ -479,7 +485,7 @@
         </div>
         <p id="ch-tut-text" style="font-size:calc(13px * var(--text-scale, 1)); color:var(--brown); line-height:1.55;"></p>
         <div style="display:flex; justify-content:flex-end; gap:8px;">
-          <button id="ch-tut-exit" type="button" class="b-btn b-btn-sm">종료</button>
+          <button id="ch-tut-exit" type="button" class="b-btn b-btn-sm">건너뛰기</button>
           <button id="ch-tut-next" type="button" class="b-btn b-btn-sm">다음</button>
         </div>
       </div>
@@ -524,50 +530,114 @@
     helpViewport.addEventListener('pointerup', finishDrag);
     helpViewport.addEventListener('pointercancel', finishDrag);
 
-    // Tutorial Spotlight Controller
-    const tutBackdrop = document.getElementById('ch-tut-backdrop');
+    // Tutorial 4-Pane True-Cutout Blur Spotlight Controller
+    const tutLayer = document.getElementById('ch-tut-layer');
+    const tutTop = document.getElementById('ch-tut-top');
+    const tutBottom = document.getElementById('ch-tut-bottom');
+    const tutLeft = document.getElementById('ch-tut-left');
+    const tutRight = document.getElementById('ch-tut-right');
+    const tutRing = document.getElementById('ch-tut-ring');
     const tutCallout = document.getElementById('ch-tut-callout');
+    const tutStepLbl = document.getElementById('ch-tut-step-lbl');
     const tutCounter = document.getElementById('ch-tut-counter');
     const tutText = document.getElementById('ch-tut-text');
     const tutNextBtn = document.getElementById('ch-tut-next');
     let tutIdx = 0;
-    let tutFocusedEl = null;
+    let tutActive = false;
 
-    function clearTutFocus() {
-      if (tutFocusedEl) {
-        tutFocusedEl.classList.remove('tut-focus');
-        tutFocusedEl = null;
+    function layoutTutCutout(target) {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const pad = 4;
+      let r = target ? target.getBoundingClientRect() : null;
+      if (!r || (r.width === 0 && r.height === 0)) {
+        r = { top: vh * 0.45, left: vw * 0.5, right: vw * 0.5, bottom: vh * 0.45, width: 0, height: 0 };
+      }
+      const t = Math.max(0, Math.round(r.top - pad));
+      const l = Math.max(0, Math.round(r.left - pad));
+      const b = Math.min(vh, Math.round(r.bottom + pad));
+      const ri = Math.min(vw, Math.round(r.right + pad));
+      const w = Math.max(0, ri - l);
+      const h = Math.max(0, b - t);
+
+      tutTop.style.cssText = `top:0px; left:0px; width:${vw}px; height:${t}px;`;
+      tutBottom.style.cssText = `top:${b}px; left:0px; width:${vw}px; height:${Math.max(0, vh - b)}px;`;
+      tutLeft.style.cssText = `top:${t}px; left:0px; width:${l}px; height:${h}px;`;
+      tutRight.style.cssText = `top:${t}px; left:${ri}px; width:${Math.max(0, vw - ri)}px; height:${h}px;`;
+      tutRing.style.cssText = w > 0 && h > 0
+        ? `top:${t}px; left:${l}px; width:${w}px; height:${h}px; display:block;`
+        : 'display:none;';
+
+      // Place callout in the largest remaining blurred space so it never covers the highlighted target
+      const cw = Math.min(350, vw - 28);
+      const ch = tutCallout.offsetHeight || 132;
+      const spaceTop = t;
+      const spaceBottom = vh - b;
+      const spaceLeft = l;
+      const spaceRight = vw - ri;
+
+      let cLeft = Math.round((vw - cw) / 2);
+      let cTop = Math.round((vh - ch) / 2);
+
+      if (vw >= 960 && Math.max(spaceLeft, spaceRight) >= cw + 24) {
+        if (spaceRight >= spaceLeft) {
+          cLeft = Math.round(ri + (spaceRight - cw) / 2);
+        } else {
+          cLeft = Math.round((spaceLeft - cw) / 2);
+        }
+        cTop = Math.max(16, Math.min(vh - ch - 16, Math.round(t + (h - ch) / 2)));
+      } else if (spaceBottom >= spaceTop) {
+        cTop = Math.max(14, Math.min(vh - ch - 14, Math.round(b + Math.max(12, (spaceBottom - ch) / 2))));
+      } else {
+        cTop = Math.max(14, Math.min(t - ch - 12, Math.round((spaceTop - ch) / 2)));
+      }
+      tutCallout.style.left = `${cLeft}px`;
+      tutCallout.style.top = `${cTop}px`;
+    }
+
+    function stopTutorial(runFinishCb = false) {
+      tutActive = false;
+      tutLayer.classList.add('hidden');
+      tutCallout.classList.add('hidden');
+      if (runFinishCb && typeof cfg.onTutorialFinish === 'function') {
+        cfg.onTutorialFinish();
       }
     }
-    function stopTutorial() {
-      clearTutFocus();
-      tutBackdrop.classList.add('hidden');
-      tutCallout.classList.add('hidden');
-    }
+
     function showTutStep(i) {
-      clearTutFocus();
       tutIdx = i;
       const step = tutSteps[tutIdx];
-      if (!step) { stopTutorial(); return; }
-      const target = document.querySelector(step.sel);
-      if (target) {
-        tutFocusedEl = target;
-        tutFocusedEl.classList.add('tut-focus');
+      if (!step) { stopTutorial(true); return; }
+      tutActive = true;
+      if (typeof step.onEnter === 'function') {
+        try { step.onEnter(); } catch {}
       }
+      tutStepLbl.textContent = step.title || '튜토리얼';
       tutCounter.textContent = `${tutIdx + 1} / ${tutSteps.length}`;
       tutText.textContent = step.text;
-      tutNextBtn.textContent = tutIdx === tutSteps.length - 1 ? '완료' : '다음';
-      tutBackdrop.classList.remove('hidden');
+      tutNextBtn.textContent = tutIdx === tutSteps.length - 1 ? '시작하기' : '다음';
+      tutLayer.classList.remove('hidden');
       tutCallout.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        const target = document.querySelector(step.sel);
+        layoutTutCutout(target);
+      });
     }
-    document.getElementById('ch-tut-exit').addEventListener('click', stopTutorial);
+
+    window.addEventListener('resize', () => {
+      if (!tutActive) return;
+      const step = tutSteps[tutIdx];
+      if (step) layoutTutCutout(document.querySelector(step.sel));
+    });
+
+    document.getElementById('ch-tut-exit').addEventListener('click', () => {
+      playTone(480, 0.05, 0.03);
+      stopTutorial(true);
+    });
     tutNextBtn.addEventListener('click', () => {
       playTone(560, 0.05, 0.03);
       if (tutIdx >= tutSteps.length - 1) {
-        saveStageResult(chNum, 'tutorial', { stamp: '완료', score: 100 });
-        stopTutorial();
-        renderStageList();
-        triggerStageGlow();
+        stopTutorial(true);
       } else {
         showTutStep(tutIdx + 1);
       }
@@ -591,7 +661,7 @@
         cfg.onSelectStage(stId);
       }
       if (stId === 'tutorial' && !cfg.customTutorial) {
-        showTutStep(0);
+        setTimeout(() => showTutStep(0), 60);
       }
     }
 
@@ -619,6 +689,9 @@
           if (stId === activeStageId) {
             playTone(520, 0.04, 0.025);
             stageModal.classList.add('hidden');
+            if (stId === 'tutorial' && !cfg.customTutorial) {
+              setTimeout(() => showTutStep(0), 60);
+            }
             return;
           }
           pendingStageId = stId;
@@ -719,6 +792,10 @@
     document.getElementById('ch-btn-settings').addEventListener('click', () => { syncChSettings(); toastEl.textContent = ''; playTone(500, 0.05, 0.03); settingsModal.classList.remove('hidden'); });
     document.getElementById('ch-settings-close').addEventListener('click', () => settingsModal.classList.add('hidden'));
     settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
+
+    if (activeStageId === 'tutorial' && !cfg.customTutorial && !isStageComplete(chNum, 'tutorial')) {
+      setTimeout(() => showTutStep(0), 120);
+    }
 
     return {
       refreshStages: renderStageList,

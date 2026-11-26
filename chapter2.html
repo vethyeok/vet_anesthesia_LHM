@@ -636,9 +636,12 @@
           { mark: '3', label: '보호자 통보 및 플랜 확정', desc: '보호자에게 검사 결과·계획·위험성을 설명한 뒤 플랜을 확정합니다.' }
         ],
         tutorialSteps: [
-          { sel: '#ch2-monitor', text: '술전 검사 요약과 선택한 마취 플랜, 보호자 통보 현황을 확인합니다.' },
-          { sel: '.ch1-ctrl-tabs', text: '마취 계획 → 약물 시너지 → 보호자 통보 순으로 진행합니다.' }
+          { title: '1. 술전 검사 요약', sel: '#ch2-monitor', onEnter: () => activateTab('plan'), text: '환자의 술전 검사 이상 소견과 ASA 등급, 수립된 마취 플랜 및 보호자 통보 현황을 확인합니다.' },
+          { title: '2. 마취 계획', sel: '#ch2-control', onEnter: () => activateTab('plan'), text: '환자 상태에 맞는 전처치·유도제·유지 마취 및 수액·항생제 조합을 선택합니다.' },
+          { title: '3. 약물 시너지', sel: '#ch2-control', onEnter: () => activateTab('synergy'), text: '선택한 약물 조합의 MAC 절감 시너지와 환자별 금기 경고를 미리 점검합니다.' },
+          { title: '4. 보호자 통보 및 시작', sel: '#ch2-control', onEnter: () => activateTab('notify'), text: '보호자에게 검사 결과·계획·위험성을 설명한 뒤 플랜을 확정합니다. 이제 튜토리얼 케이스를 시작합니다.' }
         ],
+        onTutorialFinish: () => activateTab('plan'),
         onSelectStage: (stageId) => loadStage(stageId)
       });
 
