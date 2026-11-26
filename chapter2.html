@@ -279,7 +279,7 @@
         },
         {
           key: 'c_contact',
-          label: '수술 전후 연락 계획 안내',
+          label: '수술 전후 연락',
           note: '수술 전·후 연락 예정 안내',
           test: (low) => /(연락|전화|문자|카톡|알려|공유|안내\s*드리|소식)/.test(low) && /(수술|전|후|끝나|마치|깨어나|회복|들어가|직전|직후|진행)/.test(low)
             || /(수술\s*전후|전·후|전후로).*(연락|전화|문자)/.test(low)
@@ -423,10 +423,10 @@
             <div class="pe-cell"><span class="pe-k">MMC</span><span class="pe-v ${abnMMC ? 'is-abn' : ''}">${p.mmc}</span></div>
             <div class="pe-cell span-2">
               <span class="pe-k">청진</span>
-              <div class="pe-ausc-list">
-                <div><span class="pe-ausc-sub">심잡음</span><span class="pe-v ${abnHeart ? 'is-abn' : ''}">${escapeHtml(auscHeart)}</span></div>
-                <div><span class="pe-ausc-sub">폐음</span><span class="pe-v ${abnLung ? 'is-abn' : ''}">${escapeHtml(auscLung)}</span></div>
-                <div><span class="pe-ausc-sub">복명음</span><span class="pe-v ${abnBowel ? 'is-abn' : ''}">${escapeHtml(auscBowel)}</span></div>
+              <div class="pe-ausc-lines">
+                <div class="pe-ausc-row"><span class="pe-ausc-k">심잡음:</span><span class="pe-v ${abnHeart ? 'is-abn' : ''}" style="font-size:inherit;">${escapeHtml(auscHeart)}</span></div>
+                <div class="pe-ausc-row"><span class="pe-ausc-k">폐음:</span><span class="pe-v ${abnLung ? 'is-abn' : ''}" style="font-size:inherit;">${escapeHtml(auscLung)}</span></div>
+                <div class="pe-ausc-row"><span class="pe-ausc-k">복명음:</span><span class="pe-v ${abnBowel ? 'is-abn' : ''}" style="font-size:inherit;">${escapeHtml(auscBowel)}</span></div>
               </div>
             </div>
           </div>
@@ -488,7 +488,7 @@
         dtImgEl.innerHTML = `<div class="img-list">${rows.join('')}</div>`;
       }
 
-      /* Render Box 1 Summary: PE (all), Lab (abnormal only), Imaging (VHS, Trachea, Lung / abnormal findings only) */
+      /* Render Box 1 Summary: PE (inline prose), Lab (abnormal only), Imaging (VHS, Trachea, Lung / abnormal findings only) */
       function renderPreopSummary(c, P) {
         const p = c.pe;
         const isCat = c.species === 'cat';
@@ -504,6 +504,7 @@
         const abnHeart = /Grade|분마음|부정맥|서맥|빈맥/i.test(auscHeart);
         const abnLung = /수포음|천명음|거친|감약|Crackle/i.test(auscLung);
         const abnBowel = /감소|소실|압통|팽만|항진/i.test(auscBowel);
+        const peSpan = (txt, abn) => abn ? `<span style="color:#b91c1c; font-weight:700;">${escapeHtml(txt)}</span>` : `<span>${escapeHtml(txt)}</span>`;
 
         // Collect ALL abnormal lab values across VBG, CBC, Chem
         const abnLabs = [];
@@ -525,7 +526,11 @@
         // Imaging: VHS, 기관직경, 폐야 / 특이소견만 표기
         const im = c.imaging || {};
         const th = im.thoracic || {};
-        const isNormalText = (txt) => !txt || /^(정상|특이\s*소견\s*없음|이상\s*소견\s*없음|특이사항\s*없음)[\s.]*$/i.test(String(txt).trim());
+        const isNormalText = (txt) => {
+          const s = String(txt || '').trim();
+          if (!s) return true;
+          return /^(?:(?:흉강|복강|복부|흉부|초음파)\s*내?\s*)?(?:특이\s*소견|이상\s*소견|특이사항|이상)\s*없음[\s.]*$|^정상(?:\s*소견)?[\s.]*$/i.test(s);
+        };
         const specialFindings = [];
         if (th.extra && !isNormalText(th.extra)) specialFindings.push(th.extra);
         if (im.abdominal && !isNormalText(im.abdominal)) specialFindings.push(`복부 X-ray: ${im.abdominal}`);
@@ -534,22 +539,10 @@
         preopBodyEl.innerHTML = `
           <div class="sig-hx-list" style="gap:8px;">
             <div>
-              <div style="font-weight:700; color:var(--brown); margin-bottom:4px;">• 신체검사</div>
-              <div class="pe-grid">
-                <div class="pe-cell"><span class="pe-k">BT</span><span class="pe-v ${abnBT ? 'is-abn' : ''}">${p.bt.toFixed(1)} °C</span></div>
-                <div class="pe-cell"><span class="pe-k">BP #${p.cuff}</span><span class="pe-v ${abnBP ? 'is-abn' : ''}">${p.bpSys}/${p.bpDia} (${p.bpMap}) mmHg</span></div>
-                <div class="pe-cell"><span class="pe-k">HR</span><span class="pe-v ${abnHR ? 'is-abn' : ''}">${p.hr} /min</span></div>
-                <div class="pe-cell"><span class="pe-k">RR</span><span class="pe-v ${abnRR ? 'is-abn' : ''}">${p.rr} /min</span></div>
-                <div class="pe-cell"><span class="pe-k">CRT</span><span class="pe-v ${abnCRT ? 'is-abn' : ''}">${p.crt} s</span></div>
-                <div class="pe-cell"><span class="pe-k">MMC</span><span class="pe-v ${abnMMC ? 'is-abn' : ''}">${escapeHtml(p.mmc)}</span></div>
-                <div class="pe-cell span-2">
-                  <span class="pe-k">청진</span>
-                  <div class="pe-ausc-list">
-                    <div><span class="pe-ausc-sub">심음</span><span class="pe-v ${abnHeart ? 'is-abn' : ''}">${escapeHtml(auscHeart)}</span></div>
-                    <div><span class="pe-ausc-sub">폐음</span><span class="pe-v ${abnLung ? 'is-abn' : ''}">${escapeHtml(auscLung)}</span></div>
-                    <div><span class="pe-ausc-sub">복명음</span><span class="pe-v ${abnBowel ? 'is-abn' : ''}">${escapeHtml(auscBowel)}</span></div>
-                  </div>
-                </div>
+              <div style="font-weight:700; color:var(--brown); margin-bottom:3px;">• 신체검사</div>
+              <div style="line-height:1.6;">
+                BT ${peSpan(p.bt.toFixed(1) + ' °C', abnBT)} · BP #${p.cuff} ${peSpan(`${p.bpSys}/${p.bpDia}(${p.bpMap}) mmHg`, abnBP)} · HR ${peSpan(p.hr + ' /min', abnHR)} · RR ${peSpan(p.rr + ' /min', abnRR)} · CRT ${peSpan(p.crt + ' s', abnCRT)} · MMC ${peSpan(p.mmc, abnMMC)}
+                <div style="margin-top:2px;">청진: 심잡음(${peSpan(auscHeart, abnHeart)}) · 폐음(${peSpan(auscLung, abnLung)}) · 복명음(${peSpan(auscBowel, abnBowel)})</div>
               </div>
             </div>
             <div>
