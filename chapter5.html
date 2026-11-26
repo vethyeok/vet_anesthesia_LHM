@@ -471,7 +471,7 @@
             <div class="modal-row"><span class="muted">보호자 퇴원 안내</span><strong>${revealedHome.size} / 3</strong></div>
           </div>
           <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
-            <div class="b-label"><span>오답노트 (오프라인 분석)</span></div>
+            <div class="b-label"><span>오답노트</span></div>
             ${rec.mistakes.length ? rec.mistakes.map((m) => `<p style="color:#b91c1c;">• ${escapeHtml(m)}</p>`).join('') : '<p>• 안전한 가스 세척·발관 및 회복 관리를 완료했습니다.</p>'}
           </div>
         `;

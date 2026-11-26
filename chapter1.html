@@ -214,6 +214,7 @@
       let selectedEmerg = false;
       let selectedProg = null;
       let evaluated = false;
+      let postExamExplained = false;
       let recentPracticeNames = [];
 
       function clearAllTimers() {
@@ -419,6 +420,16 @@
         chatBusy = true;
         chatSendBtn.disabled = true;
 
+        const doneExamsCount = ['pe', 'lab', 'img'].filter((k) => examState[k] === 'done').length;
+        const isStatusExplain = doneExamsCount > 0 && !evaluated && /검사|결과|상태|수치|정상|이상|신체|혈액|영상|방사선|초음파|청진|심장|신장|담낭|폐|위험|마취|예후|ASA|안정|응급|좋|나쁘|괜찮|설명|소견/i.test(q);
+        if (isStatusExplain) {
+          postExamExplained = true;
+        }
+
+        const labSummaryStr = doneExamsCount > 0
+          ? `실시 완료 검사(${doneExamsCount}/3) — PE: BT ${currentCase.pe.bt}, BP ${currentCase.pe.bpSys}/${currentCase.pe.bpDia}(${currentCase.pe.bpMap}), HR ${currentCase.pe.hr}, 청진(${currentCase.pe.auscHeart || '정상'}) / 흉부 VHS ${currentCase.imaging && currentCase.imaging.thoracic ? currentCase.imaging.thoracic.vhs : '-'}`
+          : '';
+
         let reply = '';
         try {
           const resp = await fetch('/api/ai', {
@@ -432,6 +443,7 @@
               asa: `ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? '-E' : ''}`,
               caseDesc: `${currentCase.chiefComplaint} / ${(currentCase.history || []).map((h) => h.label + ': ' + h.text).join(', ')}`,
               clue: currentCase.ownerClue || '',
+              labSummary: labSummaryStr,
               ownerPersonality: currentCase.ownerPersonality || 'neutral',
               knowledgeLevel: currentCase.ownerLevel || 2,
               chatHistory: chatHistory.slice(-12),
@@ -445,7 +457,11 @@
         } catch {}
 
         if (!reply) {
-          reply = Data.buildOfflineOwnerReply(currentCase, q);
+          if (isStatusExplain) {
+            reply = `검사 결과와 ${currentCase.name} 현재 상태 자세히 설명해 주셔서 감사합니다 선생님. 평가 마무리 부탁드립니다.`;
+          } else {
+            reply = Data.buildOfflineOwnerReply(currentCase, q);
+          }
         }
 
         const cleanReply = reply.replace(/^\[ABORT\]\s*/i, '');
@@ -799,9 +815,10 @@
             <div class="modal-row"><span class="muted">예후 판정</span><span>내 답안 <strong>${rep.chosenProg}</strong> / 정답 <strong>${c.truePrognosis}</strong> ${progOk ? '(정답)' : `(-${rep.progPen}점)`}</span></div>
             <div class="modal-row"><span class="muted">미실시 검사</span><span>${missedExams.length ? `${missedExams.join(', ')} (-${rep.examPen}점)` : '없음 (모두 완료)'}</span></div>
             <div class="modal-row"><span class="muted">미확인 문진</span><span>${missedHx.length ? `${missedHx.join(', ')} (-${rep.cluePen}점)` : '없음 (모두 확인)'}</span></div>
+            <div class="modal-row"><span class="muted">검사 후 상태 설명</span><span>${rep.postExamExplained ? '완료' : `미실시 (-${rep.explainPen}점)`}</span></div>
           </div>
           <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
-            <div class="b-label"><span>핵심 임상 해설 (오프라인)</span></div>
+            <div class="b-label"><span>핵심 임상 해설</span></div>
             <p><strong>${c.name}</strong> (${c.breed}, ${c.age}, ${c.weight} kg) — ${c.chiefComplaint}</p>
             <p style="margin-top:6px;">• 신체검사: BT ${c.pe.bt}°C, BP #${c.pe.cuff} ${c.pe.bpSys}/${c.pe.bpDia}(${c.pe.bpMap}), HR ${c.pe.hr}, RR ${c.pe.rr}, 심잡음(${c.pe.auscHeart || '정상'}), 폐음(${c.pe.auscLung || '정상'}), 복명음(${c.pe.auscBowel || '정상'})</p>
             <p style="margin-top:4px;">• 권장 판정: <strong>${trueAsaStr} · ${c.truePrognosis}</strong></p>
@@ -819,7 +836,7 @@
           species: spKr,
           scenario: `${c.name} (${c.breed}, ${c.age}, ${c.weight}kg, ${c.sex}) - ${c.chiefComplaint}`,
           chatSummary: chatHistory.map((m) => `${m.sender === 'vet' ? '수의사' : '보호자'}: ${m.text}`).slice(-10).join(' | '),
-          examSummary: `실시 검사: ${doneExams.join(', ') || '없음'} / PE: BT ${c.pe.bt}, BP ${c.pe.bpSys}/${c.pe.bpDia}(${c.pe.bpMap}), HR ${c.pe.hr}, RR ${c.pe.rr}, CRT ${c.pe.crt}, MMC ${c.pe.mmc}, 심음 ${c.pe.auscHeart || '-'}, 폐음 ${c.pe.auscLung || '-'}, 복명음 ${c.pe.auscBowel || '-'} / 흉부 X-ray: VHS ${c.imaging && c.imaging.thoracic ? c.imaging.thoracic.vhs : '-'}`,
+          examSummary: `실시 검사: ${doneExams.join(', ') || '없음'} / 검사 후 상태 설명: ${lastEvalReport.postExamExplained ? '완료' : '미실시'} / PE: BT ${c.pe.bt}, BP ${c.pe.bpSys}/${c.pe.bpDia}(${c.pe.bpMap}), HR ${c.pe.hr}, RR ${c.pe.rr}, CRT ${c.pe.crt}, MMC ${c.pe.mmc}, 심음 ${c.pe.auscHeart || '-'}, 폐음 ${c.pe.auscLung || '-'}, 복명음 ${c.pe.auscBowel || '-'} / 흉부 X-ray: VHS ${c.imaging && c.imaging.thoracic ? c.imaging.thoracic.vhs : '-'}`,
           studentEval: `ASA ${lastEvalReport.chosenAsa}${lastEvalReport.chosenEmerg ? 'E' : ''} / ${lastEvalReport.chosenProg} (${lastEvalReport.score}점, ${lastEvalReport.grade})`,
           trueEval: `ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''} / ${c.truePrognosis}`
         };
@@ -843,7 +860,7 @@
 
         if (!text) {
           const c = lastEvalReport.caseObj;
-          text = `[오프라인 로그 분석]\n1) 문진 및 검사 수행: 총 ${chatHistory.filter((m) => m.sender === 'vet').length}회 문진, ${['pe', 'lab', 'img'].filter((k) => examState[k] === 'done').length}/3종 검사 완료.\n2) 판정 비교: 선택하신 ASA ${lastEvalReport.chosenAsa}${lastEvalReport.chosenEmerg ? 'E' : ''}·${lastEvalReport.chosenProg} 대비 기준은 ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''}·${c.truePrognosis}입니다.\n3) 보완 포인트: ${c.chiefComplaint} 환자의 청진(${c.pe.auscHeart || '정상'}) 및 주요 혈액·영상 이상 소견을 마취 전 처치 및 유도 계획에 반영하세요.`;
+          text = `1) 문진 및 검사 수행: 총 ${chatHistory.filter((m) => m.sender === 'vet').length}회 문진, ${['pe', 'lab', 'img'].filter((k) => examState[k] === 'done').length}/3종 검사 완료, 검사 후 보호자 상태 설명 ${lastEvalReport.postExamExplained ? '완료' : '미실시'}.\n2) 판정 비교: 선택하신 ASA ${lastEvalReport.chosenAsa}${lastEvalReport.chosenEmerg ? 'E' : ''}·${lastEvalReport.chosenProg} 대비 기준은 ASA ${c.trueAsa}${c.trueEmergency ? 'E' : ''}·${c.truePrognosis}입니다.\n3) 보완 포인트: ${c.chiefComplaint} 환자의 청진(${c.pe.auscHeart || '정상'}) 및 주요 혈액·영상 이상 소견을 보호자에게 설명하고 마취 계획에 반영하세요.`;
         }
         aiAnalysisText = text;
         rvAiEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(text)}</div>`;
@@ -898,6 +915,9 @@
         const cluePen = Math.min(15, missedClues * 4);
         score -= cluePen;
 
+        const explainPen = postExamExplained ? 0 : 10;
+        score -= explainPen;
+
         const asaDiff = Math.abs(selectedAsa - Number(currentCase.trueAsa || 1));
         const emergPen = Boolean(selectedEmerg) !== Boolean(currentCase.trueEmergency) ? 5 : 0;
         const asaPen = distancePenalty(asaDiff) + emergPen;
@@ -923,6 +943,8 @@
           progPen,
           examPen,
           cluePen,
+          explainPen,
+          postExamExplained,
           score,
           grade
         };
@@ -959,6 +981,7 @@
         selectedEmerg = false;
         selectedProg = null;
         evaluated = false;
+        postExamExplained = false;
         lastEvalReport = null;
         aiAnalysisText = null;
         soapAnalysisText = null;

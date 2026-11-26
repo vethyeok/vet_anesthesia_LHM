@@ -454,7 +454,7 @@
             <div class="modal-row"><span class="muted">유지 전환 체크</span><strong>${state.trans.size} / 4</strong></div>
           </div>
           <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
-            <div class="b-label"><span>오답노트 (오프라인 분석)</span></div>
+            <div class="b-label"><span>오답노트</span></div>
             ${state.mistakes.length ? state.mistakes.map((m) => `<p style="color:#b91c1c;">• ${escapeHtml(m)}</p>`).join('') : '<p>• 감점 사항 없이 안전하게 마취 도입과 유지 전환을 완료했습니다.</p>'}
           </div>
         `;

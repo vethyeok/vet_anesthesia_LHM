@@ -549,7 +549,7 @@
             <div class="modal-row"><span class="muted">보호자 통보</span><strong>${revealedConsents.size} / 3 완료</strong></div>
           </div>
           <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
-            <div class="b-label"><span>오답노트 (오프라인 분석)</span></div>
+            <div class="b-label"><span>오답노트</span></div>
             ${ev.warnings.length ? ev.warnings.map((w) => `<p style="color:#b91c1c;">• ${escapeHtml(w)}</p>`).join('') : '<p>• 약물 금기 및 누락 없이 안전한 마취 플랜을 구성했습니다.</p>'}
             ${ev.synergies.map((s) => `<p style="margin-top:4px;">• ${escapeHtml(s)}</p>`).join('')}
           </div>

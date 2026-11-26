@@ -453,7 +453,7 @@
             <div class="modal-row"><span class="muted">최종 MAP / ETCO₂ / BT</span><strong>${Math.round(sim.map)} / ${Math.round(sim.etco2)} / ${sim.bt.toFixed(1)}°C</strong></div>
           </div>
           <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
-            <div class="b-label"><span>오답노트 (오프라인 분석)</span></div>
+            <div class="b-label"><span>오답노트</span></div>
             <p>• ${sim.map < 65 ? '종료 시 저혈압(MAP < 65)이 남아 있었습니다. Iso 감량 및 승압/수액 보강이 필요합니다.' : '혈압(MAP)을 안정 범위로 유지했습니다.'}</p>
             <p style="margin-top:4px;">• ${sim.etco2 > 50 ? '고탄산혈증(ETCO₂ > 50)이 관찰되었습니다. IPPV 기계환기 전환을 권장합니다.' : '환기 및 ETCO₂가 안정적으로 관리되었습니다.'}</p>
           </div>
