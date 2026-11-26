@@ -1039,9 +1039,9 @@
         ],
         tutorialSteps: [
           { title: '1. 모니터링창', sel: '#ch1-monitor', onEnter: () => activateTab('chat'), text: '환자의 Signalment와 검사 결과가 표시됩니다. 각 박스 우측의 접기/열기 버튼으로 정리하며 위아래로 스크롤할 수 있습니다.' },
-          { title: '2. 보호자 문진', sel: '#ch1-control', onEnter: () => activateTab('chat'), text: '보호자와 대화하여 주호소와 이전 병력을 확인합니다. 대화창에 파란 글씨로 뜬 핵심 정보는 모니터링창에 자동 기록됩니다.' },
+          { title: '2. 보호자 문진', sel: '#ch1-control', onEnter: () => activateTab('chat'), text: '보호자와 대화하여 주호소와 환자의 특이사항을 확인합니다. 핵심 내용은 대화창에 파란 글씨로 나타나게 됩니다.' },
           { title: '3. 마취 전 검사', sel: '#ch1-control', onEnter: () => activateTab('exam'), text: '신체검사·혈액검사·영상검사를 진행한 뒤 검사 결과 보기를 눌러 모니터링창에서 판독합니다.' },
-          { title: '4. 예후 평가 및 시작', sel: '#ch1-control', onEnter: () => activateTab('eval'), text: '검사 완료 후 보호자에게 상태를 설명하고, ASA Grade와 예후를 확정하면 완료됩니다. 이제 튜토리얼 케이스를 시작합니다.' }
+          { title: '4. 예후 평가 및 시작', sel: '#ch1-control', onEnter: () => activateTab('eval'), text: '검사 완료 후 다시 보호자에게 상태를 설명하고, ASA Grade와 예후를 확정하면 완료됩니다. 이제 튜토리얼 케이스를 시작합니다.' }
         ],
         onTutorialFinish: () => {
           activateTab('chat');
