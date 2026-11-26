@@ -164,7 +164,7 @@
       pe: { bt: 38.4, bpSys: 122, bpDia: 76, bpMap: 91, cuff: 2, hr: 112, rr: 24, crt: 1.5, mmc: 'wet - pink', auscHeart: '심잡음 없음 (정상 심음)', auscLung: '정상 폐포음', auscBowel: '정상 복명음' },
       lab: { pH: 7.40, pCO2: 39, pO2: 43, Na: 146, K: 4.3, Cl: 113, iCa: 1.26, Hct: 44, WBC: 9.2, PLT: 310, ALP: 58, ALT: 36, BUN: 14, Crea: 0.8, Glu: 98, TP: 6.4, ALB: 3.4 },
       imaging: {
-        thoracic: { vhs: '9.6v', vlas: '1.9v (RLAD 1.4v)', trachea: '정상 주행 및 내경 유지', lung: '정상 폐야 (특이 침윤 없음)', extra: '흉강 내 특이 소견 없음' },
+        thoracic: { vhs: '9.6v', vlas: '1.9v (RLAD 1.4v)', trachea: '5.8 mm (정상 주행 및 내경 유지)', lung: '정상 폐야 (특이 침윤 없음)', extra: '흉강 내 특이 소견 없음' },
         abdominal: null,
         ultrasound: null
       },
@@ -194,7 +194,7 @@
       pe: { bt: 38.5, bpSys: 126, bpDia: 78, bpMap: 94, cuff: 2, hr: 108, rr: 22, crt: 1.5, mmc: 'wet - pink', auscHeart: '심잡음 없음 (정상 심음)', auscLung: '정상 폐포음', auscBowel: '정상 복명음' },
       lab: { pH: 7.41, pCO2: 38, pO2: 44, Na: 147, K: 4.4, Cl: 112, iCa: 1.27, Hct: 46, WBC: 8.9, PLT: 295, ALP: 64, ALT: 34, BUN: 15, Crea: 0.9, Glu: 101, TP: 6.5, ALB: 3.5 },
       imaging: {
-        thoracic: { vhs: '9.8v', vlas: '2.0v (RLAD 1.5v)', trachea: '정상 주행 및 내경 유지', lung: '정상 폐야 (침윤 및 종괴 없음)', extra: '특이사항 없음' },
+        thoracic: { vhs: '9.8v', vlas: '2.0v (RLAD 1.5v)', trachea: '6.4 mm (정상 주행 및 내경 유지)', lung: '정상 폐야 (침윤 및 종괴 없음)', extra: '특이사항 없음' },
         abdominal: null,
         ultrasound: null
       },
@@ -224,7 +224,7 @@
       pe: { bt: 38.6, bpSys: 132, bpDia: 82, bpMap: 99, cuff: 2, hr: 168, rr: 28, crt: 1.5, mmc: 'wet - pink', auscHeart: '심잡음 없음 (정상 심음)', auscLung: '정상 폐포음', auscBowel: '정상 복명음' },
       lab: { pH: 7.37, pCO2: 36, pO2: 43, Na: 151, K: 4.1, Cl: 120, iCa: 1.23, Hct: 39, WBC: 9.6, PLT: 320, ALP: 42, ALT: 40, BUN: 21, Crea: 1.1, Glu: 118, TP: 6.8, ALB: 3.3, proBNP: 38, SAA: 1.2 },
       imaging: {
-        thoracic: { vhs: '7.4v', vlas: '1.6v (RLAD 1.2v)', trachea: '정상 주행 및 내경 유지', lung: '정상 폐야 (폐수종·흉수 없음)', extra: '심장 음영 정상' },
+        thoracic: { vhs: '7.4v', vlas: '1.6v (RLAD 1.2v)', trachea: '5.6 mm (정상 주행 및 내경 유지)', lung: '정상 폐야 (폐수종·흉수 없음)', extra: '심장 음영 정상' },
         abdominal: null,
         ultrasound: null
       },
@@ -254,7 +254,7 @@
       pe: { bt: 38.6, bpSys: 134, bpDia: 84, bpMap: 101, cuff: 3, hr: 116, rr: 26, crt: 1.5, mmc: 'wet - pink', auscHeart: '심잡음 없음 (정상 심음)', auscLung: '정상 폐포음', auscBowel: '정상 복명음' },
       lab: { pH: 7.39, pCO2: 39, pO2: 42, Na: 146, K: 4.3, Cl: 113, iCa: 1.25, Hct: 45, WBC: 10.6, PLT: 315, ALP: 162, ALT: 68, BUN: 17, Crea: 1.0, Glu: 104, TP: 6.8, ALB: 3.3, CRP: 6.5 },
       imaging: {
-        thoracic: { vhs: '10.1v', vlas: '2.1v (RLAD 1.6v)', trachea: '정상 주행 및 내경 유지', lung: '정상 폐야 (경미한 기관지 패턴)', extra: '심폐 특이 이상 없음' },
+        thoracic: { vhs: '10.1v', vlas: '2.1v (RLAD 1.6v)', trachea: '7.8 mm (정상 주행 및 내경 유지)', lung: '정상 폐야 (경미한 기관지 패턴)', extra: '심폐 특이 이상 없음' },
         abdominal: '간 크기 정상, 위장 내 가스 소량, 신장 크기 정상, 좌측 슬개골 내측 변위 소견',
         ultrasound: null
       },
@@ -284,7 +284,7 @@
       pe: { bt: 38.7, bpSys: 148, bpDia: 92, bpMap: 111, cuff: 2, hr: 186, rr: 34, crt: 1.5, mmc: 'wet - pink', auscHeart: '심잡음 없음 (스트레스성 빈맥)', auscLung: '정상 폐포음 (경도 빠른 호흡)', auscBowel: '정상 복명음' },
       lab: { pH: 7.36, pCO2: 35, pO2: 43, Na: 152, K: 4.2, Cl: 120, iCa: 1.24, Hct: 40, WBC: 12.1, PLT: 305, ALP: 52, ALT: 54, BUN: 24, Crea: 1.4, Glu: 178, TP: 7.3, ALB: 3.4, proBNP: 58, SAA: 4.2 },
       imaging: {
-        thoracic: { vhs: '7.6v', vlas: '1.7v (RLAD 1.3v)', trachea: '정상 주행 및 내경 유지', lung: '정상 폐야 (흉벽 지방 침착 경도)', extra: '심비대 소견 없음' },
+        thoracic: { vhs: '7.6v', vlas: '1.7v (RLAD 1.3v)', trachea: '6.2 mm (정상 주행 및 내경 유지)', lung: '정상 폐야 (흉벽 지방 침착 경도)', extra: '심비대 소견 없음' },
         abdominal: null,
         ultrasound: '심장 초음파: LA/Ao 1.25, IVSd 4.8 mm, LVPWd 4.6 mm (비대성 심근병증 소견 없음)'
       },
@@ -315,7 +315,7 @@
       pe: { bt: 38.2, bpSys: 138, bpDia: 84, bpMap: 102, cuff: 2, hr: 134, rr: 32, crt: 2.0, mmc: 'wet - pink', auscHeart: '좌측 심첨부 수축기 심잡음 Grade 3/6', auscLung: '전반적 거친 폐음 (수포음 없음)', auscBowel: '정상 복명음' },
       lab: { pH: 7.38, pCO2: 38, pO2: 41, Na: 145, K: 4.5, Cl: 112, iCa: 1.24, Hct: 41, WBC: 11.4, PLT: 340, ALP: 196, ALT: 88, BUN: 29, Crea: 1.3, Glu: 102, TP: 6.9, ALB: 3.1, proBNP: 1420, SDMA: 13, CRP: 8.5 },
       imaging: {
-        thoracic: { vhs: '11.3v (경도~중등도 심비대)', vlas: '2.6v (RLAD 2.0v · 좌심방 확장)', trachea: '기관 원위부 경도 등쪽 변위', lung: '폐정맥 경도 확장, 명확한 폐수종 침윤 없음', extra: 'MMVD Stage B2 부합' },
+        thoracic: { vhs: '11.3v (경도~중등도 심비대)', vlas: '2.6v (RLAD 2.0v · 좌심방 확장)', trachea: '6.2 mm (기관 원위부 경도 등쪽 변위)', lung: '폐정맥 경도 확장, 명확한 폐수종 침윤 없음', extra: 'MMVD Stage B2 부합' },
         abdominal: '간 실질 경도 종대, 신장 크기 정상 범위',
         ultrasound: '심장 초음파: LA/Ao 1.72, LVIDDn 1.78, 승모판 역류(MR) 중등도, 폐고혈압 소견 없음'
       },
@@ -346,7 +346,7 @@
       pe: { bt: 37.9, bpSys: 162, bpDia: 96, bpMap: 118, cuff: 2, hr: 196, rr: 32, crt: 2.0, mmc: 'slightly dry - pale pink', auscHeart: '흉골연 수축기 심잡음 Grade 2/6', auscLung: '정상 폐포음 (경도 거친 호흡음)', auscBowel: '경도 감소된 복명음' },
       lab: { pH: 7.30, pCO2: 34, pO2: 41, Na: 153, K: 3.4, Cl: 121, iCa: 1.21, Hct: 28, WBC: 12.8, PLT: 260, ALP: 74, ALT: 98, BUN: 48, Crea: 2.6, Phos: 6.4, Glu: 132, TP: 7.8, ALB: 3.1, proBNP: 135, T4: 5.4, SDMA: 19, SAA: 6.4 },
       imaging: {
-        thoracic: { vhs: '7.9v (경계성 심비대)', vlas: '1.8v (RLAD 1.4v)', trachea: '정상 주행', lung: '노령성 경도 기관지 패턴, 폐수종 없음', extra: '경계성 좌심실 비대 의심' },
+        thoracic: { vhs: '7.9v (경계성 심비대)', vlas: '1.8v (RLAD 1.4v)', trachea: '5.4 mm (정상 주행 및 내경 유지)', lung: '노령성 경도 기관지 패턴, 폐수종 없음', extra: '경계성 좌심실 비대 의심' },
         abdominal: '양측 신장 크기 경도 감소 및 변연 불규칙(만성신장병 변화)',
         ultrasound: '복부 초음파: 양측 신피질 에코 증가, 피수질 경계 불명확 / 심초음파: IVSd 5.8mm 경도 비대'
       },
@@ -377,7 +377,7 @@
       pe: { bt: 39.4, bpSys: 92, bpDia: 54, bpMap: 67, cuff: 3, hr: 152, rr: 38, crt: 2.5, mmc: 'dry - yellow (icteric)', auscHeart: '심잡음 없음 (빈맥 · 약한 맥박)', auscLung: '얕고 빠른 호흡음 (수포음 없음)', auscBowel: '복명음 현저히 감소 (전복부 압통)' },
       lab: { pH: 7.26, pCO2: 33, pO2: 38, Na: 139, K: 3.5, Cl: 103, iCa: 1.11, Hct: 34, WBC: 26.4, neuP: 84, lymP: 7, PLT: 168, ALP: 1840, ALT: 620, AST: 215, GGT: 64, BUN: 34, Crea: 1.5, Tchol: 388, Glu: 78, TP: 5.4, ALB: 2.1, CRP: 118, cPL: 480 },
       imaging: {
-        thoracic: { vhs: '10.0v', vlas: '2.0v (RLAD 1.5v)', trachea: '정상', lung: '특이 폐침윤 없음', extra: '횡격막 전방 특이 소견 없음' },
+        thoracic: { vhs: '10.0v', vlas: '2.0v (RLAD 1.5v)', trachea: '7.9 mm (정상 주행 및 내경 유지)', lung: '특이 폐침윤 없음', extra: '횡격막 전방 특이 소견 없음' },
         abdominal: '전복부 장막 디테일 감소(복수/복막염 의심), 간 종대, 담낭 영역 연부조직 음영 증가',
         ultrasound: '복부 초음파: 담낭 내 전형적 키위 패턴(담낭점액종), 담낭벽 비후 및 연속성 소실 의심, 담낭 주위 고에코 지방 및 소량 복수(담즙성 복막염 의심)'
       },
@@ -408,7 +408,7 @@
       pe: { bt: 36.6, bpSys: 88, bpDia: 52, bpMap: 64, cuff: 2, hr: 118, rr: 36, crt: 2.8, mmc: 'dry - pale pink', auscHeart: '서맥 및 부정맥 의심 (심잡음 없음)', auscLung: '정상 폐포음 (빠른 얕은 호흡)', auscBowel: '복명음 감소 (하복부 방광 극심 팽만·경직)' },
       lab: { pH: 7.18, pCO2: 31, pO2: 36, Na: 144, K: 7.4, Cl: 114, iCa: 0.96, Hct: 47, WBC: 16.2, PLT: 245, ALP: 46, ALT: 62, BUN: 112, Crea: 7.8, Phos: 9.8, Glu: 164, TP: 8.2, ALB: 3.6, SDMA: 42, SAA: 18 },
       imaging: {
-        thoracic: { vhs: '7.5v', vlas: '1.6v (RLAD 1.2v)', trachea: '정상', lung: '정상 폐야', extra: 'ECG: 서맥 및 Tenting T파, P파 소실 의심(고칼륨혈증)' },
+        thoracic: { vhs: '7.5v', vlas: '1.6v (RLAD 1.2v)', trachea: '6.0 mm (정상 주행 및 내경 유지)', lung: '정상 폐야', extra: 'ECG: 서맥 및 Tenting T파, P파 소실 의심(고칼륨혈증)' },
         abdominal: '방광 극심 팽만, 음경 요도 부위 방사선 비투과성 미세 결석/슬러지 의심',
         ultrasound: '복부 초음파: 방광 내 다량 에코성 침전물, 양측 신우 경도 확장(수신증 초기)'
       },
@@ -439,7 +439,7 @@
       pe: { bt: 37.1, bpSys: 72, bpDia: 40, bpMap: 51, cuff: 5, hr: 184, rr: 48, crt: 3.5, mmc: 'dry - pale / muddy', auscHeart: '심한 빈맥 및 부정맥(맥박 결손 동반)', auscLung: '얕고 매우 빠른 호흡음', auscBowel: '복명음 소실 (위 고창 · 타진 시 고음)' },
       lab: { pH: 7.14, pCO2: 29, pO2: 33, Na: 141, K: 3.3, Cl: 102, iCa: 1.04, Hct: 56, WBC: 21.8, neuP: 86, lymP: 5, PLT: 118, ALP: 185, ALT: 142, BUN: 44, Crea: 2.3, Glu: 66, TP: 5.8, ALB: 2.4, CRP: 94 },
       imaging: {
-        thoracic: { vhs: '8.9v (소심증 · 저혈량 쇼크)', vlas: '1.7v', trachea: '정상', lung: '저관류 폐야, 후대정맥(CVC) 직경 현저히 감소', extra: 'ECG: 다발성 심실조기수축(VPCs) 관찰' },
+        thoracic: { vhs: '8.9v (소심증 · 저혈량 쇼크)', vlas: '1.7v', trachea: '18.5 mm (정상 주행 및 내경 유지)', lung: '저관류 폐야, 후대정맥(CVC) 직경 현저히 감소', extra: 'ECG: 다발성 심실조기수축(VPCs) 관찰' },
         abdominal: '우측 횡와위 X-ray: 전형적 Double Bubble (Popeye arm / Smurf hat) 징후 — 위확장염전(GDV) 확진, 비장 종대·변위',
         ultrasound: '응급 FAST: 비장 울혈, 위벽 부종 및 소량 복강 내 유리액'
       },
@@ -470,7 +470,7 @@
       pe: { bt: 35.8, bpSys: 78, bpDia: 46, bpMap: 57, cuff: 2, hr: 228, rr: 68, crt: 3.5, mmc: 'dry - cyanotic / pale', auscHeart: '분마음(Gallop) 및 수축기 심잡음 Grade 3/6', auscLung: '양측 전폐야 습성 수포음(Crackles) 및 호흡음 감약', auscBowel: '복명음 감소 (양측 대퇴동맥 맥박 소실)' },
       lab: { pH: 7.16, pCO2: 49, pO2: 29, Na: 150, K: 5.9, Cl: 117, iCa: 1.08, Hct: 44, WBC: 18.4, PLT: 142, ALP: 58, ALT: 196, AST: 340, BUN: 52, Crea: 2.9, Glu: 248, TP: 7.1, ALB: 3.2, proBNP: 980, SAA: 24 },
       imaging: {
-        thoracic: { vhs: '9.1v (심한 심비대 · Valentine heart)', vlas: '2.5v', trachea: '기관 등쪽 거상', lung: '미만성 폐포성·간질성 침윤(급성 심인성 폐수종) 및 중등도 흉수', extra: '산소화 극심 저하' },
+        thoracic: { vhs: '9.1v (심한 심비대 · Valentine heart)', vlas: '2.5v', trachea: '5.8 mm (심비대로 인한 기관 등쪽 거상)', lung: '미만성 폐포성·간질성 침윤(급성 심인성 폐수종) 및 중등도 흉수', extra: '산소화 극심 저하' },
         abdominal: '특이 복강 종괴 없음',
         ultrasound: '응급 TFAST / 심초음파: LA/Ao 2.45 (중증 좌심방 확장), 좌심방 내 자발 에코 대조(Smoke) 및 혈전 관찰, B-lines 다발성'
       },
@@ -496,7 +496,7 @@
         pe: { bt: 38.3, bpSys: 132, bpDia: 82, bpMap: 99, cuff: 2, hr: 128, rr: 30, crt: 1.8, mmc: 'wet - pink', auscHeart: '좌측 심첨부 수축기 심잡음 Grade 1/6', auscLung: '기관 부위 거친 흡기음 (수포음 없음)', auscBowel: '정상 복명음' },
         lab: { pH: 7.38, pCO2: 41, pO2: 40, Na: 146, K: 4.4, Cl: 113, iCa: 1.24, Hct: 42, WBC: 11.2, PLT: 330, ALP: 175, ALT: 72, BUN: 22, Crea: 1.1, Glu: 99, TP: 6.8, ALB: 3.2, proBNP: 620, CRP: 12 },
         imaging: {
-          thoracic: { vhs: '10.4v', vlas: '2.1v (RLAD 1.6v)', trachea: '흉강 입구부 기관 내경 45% 협착(기관허탈 2기)', lung: '폐 전이 결절 없음, 경도 기관지 패턴', extra: '삽관 시 기관 자극 최소화 필요' },
+          thoracic: { vhs: '10.4v', vlas: '2.1v (RLAD 1.6v)', trachea: '5.4 mm → 협착부 3.0 mm (흉강 입구부 45% 협착 · 기관허탈 2기)', lung: '폐 전이 결절 없음, 경도 기관지 패턴', extra: '삽관 시 기관 자극 최소화 필요' },
           abdominal: '간·비장 특이 전이 소견 없음', ultrasound: null
         },
         trueAsa: 3, trueEmergency: false, truePrognosis: 'Fair'
@@ -514,7 +514,7 @@
         pe: { bt: 39.6, bpSys: 96, bpDia: 58, bpMap: 71, cuff: 4, hr: 148, rr: 36, crt: 2.5, mmc: 'dry - dark red (injected)', auscHeart: '빈맥 (심잡음 없음)', auscLung: '빠른 폐포음 (수포음 없음)', auscBowel: '복명음 감소 (중후복부 팽만)' },
         lab: { pH: 7.28, pCO2: 33, pO2: 39, Na: 140, K: 3.7, Cl: 106, iCa: 1.15, Hct: 35, WBC: 31.4, neuP: 86, lymP: 6, PLT: 192, ALP: 265, ALT: 74, BUN: 38, Crea: 1.9, Glu: 82, TP: 7.6, ALB: 2.4, CRP: 145 },
         imaging: {
-          thoracic: { vhs: '10.1v', vlas: '2.0v (RLAD 1.5v)', trachea: '정상', lung: '특이 폐침윤 없음', extra: '특이사항 없음' },
+          thoracic: { vhs: '10.1v', vlas: '2.0v (RLAD 1.5v)', trachea: '10.8 mm (정상 주행 및 내경 유지)', lung: '특이 폐침윤 없음', extra: '특이사항 없음' },
           abdominal: '중후복부 관상 연부조직 음영 현저히 확장(자궁 확장), 장관 등쪽 변위',
           ultrasound: '복부 초음파: 액체 저류로 팽만된 자궁각(직경 3.4cm), 자궁축농증 확진'
         },
@@ -535,7 +535,7 @@
         pe: { bt: 38.1, bpSys: 104, bpDia: 64, bpMap: 77, cuff: 2, hr: 194, rr: 34, crt: 2.3, mmc: 'dry - pink', auscHeart: '빈맥 (심잡음 없음)', auscLung: '정상 폐포음', auscBowel: '복명음 항진 후 감소 (복부 촉진 시 통증)' },
         lab: { pH: 7.46, pCO2: 43, pO2: 41, Na: 145, K: 3.1, Cl: 104, iCa: 1.18, Hct: 46, WBC: 15.8, PLT: 280, ALP: 52, ALT: 68, BUN: 42, Crea: 1.9, Glu: 156, TP: 8.1, ALB: 3.7, SAA: 22 },
         imaging: {
-          thoracic: { vhs: '7.5v', vlas: '1.6v (RLAD 1.2v)', trachea: '정상', lung: '정상 폐야', extra: '특이사항 없음' },
+          thoracic: { vhs: '7.5v', vlas: '1.6v (RLAD 1.2v)', trachea: '5.9 mm (정상 주행 및 내경 유지)', lung: '정상 폐야', extra: '특이사항 없음' },
           abdominal: '소장 주름짐(Plication) 및 쉼표 모양 가스 음영(선형 이물 강력 의심)',
           ultrasound: '복부 초음파: 소장 내 고에코 선형 구조물 및 장관 주름짐, 소량 복수'
         },
@@ -554,7 +554,7 @@
         pe: { bt: 38.4, bpSys: 142, bpDia: 88, bpMap: 106, cuff: 2, hr: 192, rr: 30, crt: 1.5, mmc: 'wet - pink', auscHeart: '흉골연 수축기 심잡음 Grade 2/6', auscLung: '정상 폐포음', auscBowel: '정상 복명음' },
         lab: { pH: 7.36, pCO2: 36, pO2: 42, Na: 151, K: 4.3, Cl: 120, iCa: 1.23, Hct: 38, WBC: 10.2, PLT: 270, ALP: 44, ALT: 52, BUN: 25, Crea: 1.5, Glu: 142, TP: 7.0, ALB: 3.3, proBNP: 285, SAA: 2.1 },
         imaging: {
-          thoracic: { vhs: '8.1v (경도 심비대)', vlas: '1.9v (RLAD 1.4v)', trachea: '정상', lung: '폐수종·흉수 없음', extra: '무증상 HCM B1 의심' },
+          thoracic: { vhs: '8.1v (경도 심비대)', vlas: '1.9v (RLAD 1.4v)', trachea: '6.1 mm (정상 주행 및 내경 유지)', lung: '폐수종·흉수 없음', extra: '무증상 HCM B1 의심' },
           abdominal: null,
           ultrasound: '심장 초음파: IVSd 6.3 mm, LVPWd 6.1 mm, LA/Ao 1.38 (무증상 HCM Stage B1 확진)'
         },
