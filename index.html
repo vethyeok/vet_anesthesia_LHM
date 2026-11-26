@@ -128,9 +128,6 @@
         <button id="btn-reset-yes" type="button" class="b-btn b-btn-sm" style="flex:1; height:40px; border-radius:14px; color:#b91c1c;">예</button>
         <button id="btn-reset-no" type="button" class="b-btn b-btn-sm" style="flex:1; height:40px; border-radius:14px;">아니오</button>
       </div>
-      <div id="reset-done-wrap" class="modal-close-wrap" style="display:none; margin-top:14px;">
-        <button id="btn-reset-done" type="button" class="b-btn modal-close-btn">확인</button>
-      </div>
     </div>
   </div>
 
@@ -232,23 +229,42 @@
     const resetMsgEl = document.getElementById('reset-msg');
     const resetWarnEl = document.getElementById('reset-warn');
     const resetActionsEl = document.getElementById('reset-actions');
-    const resetDoneWrapEl = document.getElementById('reset-done-wrap');
     let resetStep = 0;
+    let resetReturnTimer = null;
+
+    function clearResetTimer() {
+      if (resetReturnTimer) {
+        clearTimeout(resetReturnTimer);
+        resetReturnTimer = null;
+      }
+    }
 
     function openResetModal() {
+      clearResetTimer();
       resetStep = 1;
       resetMsgEl.textContent = '지금까지 저장된 내용을 초기화 합니다';
       resetWarnEl.style.display = 'none';
       resetActionsEl.style.display = 'flex';
-      resetDoneWrapEl.style.display = 'none';
       resetModal.classList.remove('hidden');
       Beta11Settings.playTone(460, 0.06, 0.03);
     }
 
     function returnToMainFromReset() {
+      clearResetTimer();
       resetModal.classList.add('hidden');
       settingsModal.classList.add('hidden');
       resetStep = 0;
+    }
+
+    function performProgressReset() {
+      try {
+        if (window.Beta11Settings && typeof Beta11Settings.resetProgress === 'function') {
+          Beta11Settings.resetProgress();
+        }
+      } catch {}
+      try {
+        localStorage.removeItem('vet_b11_progress');
+      } catch {}
     }
 
     document.getElementById('btn-reset-data').addEventListener('click', openResetModal);
@@ -259,21 +275,21 @@
         Beta11Settings.playTone(340, 0.08, 0.035);
       } else if (resetStep === 2) {
         resetStep = 3;
-        Beta11Settings.resetProgress();
+        performProgressReset();
         resetMsgEl.textContent = '초기화 되었습니다.';
         resetWarnEl.style.display = 'none';
         resetActionsEl.style.display = 'none';
-        resetDoneWrapEl.style.display = 'flex';
         Beta11Settings.playTone(620, 0.08, 0.035);
+        clearResetTimer();
+        resetReturnTimer = setTimeout(returnToMainFromReset, 1100);
       }
     });
     document.getElementById('btn-reset-no').addEventListener('click', () => {
       Beta11Settings.playTone(480, 0.05, 0.03);
       returnToMainFromReset();
     });
-    document.getElementById('btn-reset-done').addEventListener('click', () => {
-      Beta11Settings.playTone(520, 0.05, 0.03);
-      returnToMainFromReset();
+    resetModal.addEventListener('click', (e) => {
+      if (resetStep === 3 && e.target === resetModal) returnToMainFromReset();
     });
 
     // 챕터 이동 버튼: 좌측 -> 우측 fade out 후 SPA 전환 (모바일 전체화면 유지!)
