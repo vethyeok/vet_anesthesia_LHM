@@ -859,7 +859,7 @@ body.b11-immersive .app-shell {
 .tut-focus {
   position: relative !important;
   z-index: 90 !important;
-  box-shadow: 0 0 0 3px var(--ivory), 0 12px 32px rgba(28, 25, 23, 0.35) !important;
+  box-shadow: 0 0 24px 6px rgba(250, 246, 238, 0.55), 0 8px 24px rgba(28, 25, 23, 0.26) !important;
 }
 
 .tut-callout {
