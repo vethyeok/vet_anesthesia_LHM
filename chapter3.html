@@ -23,26 +23,37 @@
         <section class="ch1-monitor" id="ch3-monitor" aria-label="도입 모니터링창">
           <div class="ch1-sig-pinned">
             <div class="ch1-sig-head" id="ch3-sig-head"></div>
-            <div class="ch1-cc-line" id="ch3-status-line"></div>
+            <div class="ch1-cc-line" id="ch3-cc-line"></div>
+            <div class="ch1-cc-line" id="ch3-status-line" style="margin-top:2px;"></div>
           </div>
 
           <div class="ch1-monitor-scroll" id="ch3-monitor-scroll" style="cursor:grab;">
             <div class="mon-sec" id="ch3-sec-vitals">
               <div class="mon-sec-title">
-                <span>1. 생체 모니터링</span>
-                <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch3-sec-vitals">접기</button>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span>1. 생체 모니터링</span>
+                  <span id="ch3-timer" style="font-family:var(--font-mono, monospace); font-size:12px; font-weight:700; color:var(--brown-soft); background:var(--beige-soft); border:1px solid var(--border); padding:1px 7px; border-radius:8px;">00:00</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+                  <button type="button" class="b-btn mon-toggle-btn" id="ch3-preop-detail-btn">상세</button>
+                  <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch3-sec-vitals">접기</button>
+                </div>
               </div>
               <div class="mon-sec-body">
                 <div class="monitor-mock" style="padding:10px;">
                   <div class="monitor-row" style="grid-template-columns:repeat(3,1fr);">
                     <div class="m-cell"><span class="mk">HR</span><span class="mv" id="ch3-v-hr">--</span></div>
-                    <div class="m-cell"><span class="mk">RR</span><span class="mv" id="ch3-v-rr">--</span></div>
+                    <div class="m-cell">
+                      <span class="mk">RR</span>
+                      <span class="mv" id="ch3-v-rr">--</span>
+                      <span id="ch3-v-rr-mode" style="font-size:10.5px; color:#cbd5e1; margin-top:2px;">자발 호흡</span>
+                    </div>
                     <div class="m-cell"><span class="mk">SpO₂</span><span class="mv" id="ch3-v-spo2">--%</span></div>
                   </div>
                   <div class="monitor-row" style="grid-template-columns:repeat(3,1fr);">
                     <div class="m-cell"><span class="mk">SBP/MAP/DBP</span><span class="mv" id="ch3-v-bp" style="font-size:12.5px;">--/--/--</span></div>
                     <div class="m-cell">
-                      <span class="mk">ETCO₂</span>
+                      <span class="mk">ETCO₂ (mmHg)</span>
                       <span class="mv" id="ch3-v-etco2" style="font-size:13px;">--</span>
                       <span id="ch3-v-etco2-wave" style="font-size:10.5px; color:#cbd5e1; margin-top:2px;">파형 없음</span>
                     </div>
@@ -152,8 +163,30 @@
     </main>
   </div>
 
+  <!-- Chapter 1 마취 전 검사 및 특이사항 상세 팝업 -->
+  <div id="ch3-preop-detail-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch3-detail-title" style="backdrop-filter:blur(6px); z-index:115;">
+    <div class="modal-card" style="max-width:460px; max-height:85dvh; display:flex; flex-direction:column;">
+      <h2 id="ch3-detail-title" class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown); margin-bottom:10px;">마취 전 검사 및 특이사항</h2>
+      <div class="step-tabs" role="tablist" style="margin-bottom:10px; flex-shrink:0;">
+        <button type="button" class="step-tab active" data-dt3-tab="hx">특이사항</button>
+        <button type="button" class="step-tab" data-dt3-tab="pe">신체검사</button>
+        <button type="button" class="step-tab" data-dt3-tab="lab">혈액검사</button>
+        <button type="button" class="step-tab" data-dt3-tab="img">영상검사</button>
+      </div>
+      <div style="flex:1 1 auto; overflow-y:auto; display:flex; flex-direction:column; gap:10px; min-height:200px; padding-right:2px;">
+        <div id="ch3-dt-hx" data-dt3-pane="hx"></div>
+        <div id="ch3-dt-pe" data-dt3-pane="pe" class="pane-hidden"></div>
+        <div id="ch3-dt-lab" data-dt3-pane="lab" class="pane-hidden"></div>
+        <div id="ch3-dt-img" data-dt3-pane="img" class="pane-hidden"></div>
+      </div>
+      <div class="modal-close-wrap" style="margin-top:12px; flex-shrink:0;">
+        <button id="ch3-detail-close" type="button" class="b-btn modal-close-btn">닫기</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 해설 보기 팝업 -->
-  <div id="ch3-review-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" style="backdrop-filter:blur(6px);">
+  <div id="ch3-review-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" style="backdrop-filter:blur(6px); z-index:120;">
     <div class="modal-card" style="max-width:420px; max-height:84dvh; display:flex; flex-direction:column;">
       <h2 class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown); margin-bottom:10px;">해설 보기</h2>
       <div class="step-tabs" role="tablist" style="margin-bottom:10px; flex-shrink:0;">
@@ -180,7 +213,9 @@
 
       const splitEl = document.getElementById('ch3-split');
       const sigHeadEl = document.getElementById('ch3-sig-head');
+      const ccLineEl = document.getElementById('ch3-cc-line');
       const statusLineEl = document.getElementById('ch3-status-line');
+      const timerEl = document.getElementById('ch3-timer');
       const chkBodyEl = document.getElementById('ch3-chk-body');
       const logListEl = document.getElementById('ch3-log-list');
       const ctrlHandleEl = document.getElementById('ch3-ctrl-handle');
@@ -190,6 +225,11 @@
       const btnIntubate = document.getElementById('ch3-btn-intubate');
       const evalSubmitBtn = document.getElementById('ch3-eval-submit');
       const stampOverlayEl = document.getElementById('ch3-stamp-overlay');
+      const detailModalEl = document.getElementById('ch3-preop-detail-modal');
+      const dtHxEl = document.getElementById('ch3-dt-hx');
+      const dtPeEl = document.getElementById('ch3-dt-pe');
+      const dtLabEl = document.getElementById('ch3-dt-lab');
+      const dtImgEl = document.getElementById('ch3-dt-img');
       const reviewModalEl = document.getElementById('ch3-review-modal');
       const rvWrongEl = document.getElementById('ch3-rv-wrong');
       const rvAiEl = document.getElementById('ch3-rv-ai');
@@ -197,7 +237,7 @@
 
       let currentStageId = 'tutorial';
       let currentCase = null;
-      let vitals = { hr: 110, rr: 24, spo2: 96, sbp: 122, map: 91, dbp: 76, etco2: null, etco2Wave: '파형 없음', depth: '각성' };
+      let vitals = { hr: 110, rr: 24, rrMode: '자발 호흡', spo2: 96, sbp: 122, map: 91, dbp: 76, etco2: null, etco2Wave: '파형 없음', depth: '각성' };
       let premedPicks = new Set();
       let indPick = null;
       let ettPick = null;
@@ -207,8 +247,29 @@
       let lastReport = null;
       let aiText = null;
       let soapText = null;
+      let elapsedSec = 0;
+      let timerId = null;
 
-      window.__b11Cleanup = null;
+      function formatElapsed(s) {
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
+      }
+      function stopTimer() {
+        if (timerId) { clearInterval(timerId); timerId = null; }
+      }
+      function startTimer() {
+        stopTimer();
+        elapsedSec = 0;
+        if (timerEl) timerEl.textContent = '00:00';
+        timerId = setInterval(() => {
+          if (evaluated) { stopTimer(); return; }
+          elapsedSec += 1;
+          if (timerEl) timerEl.textContent = formatElapsed(elapsedSec);
+        }, 1000);
+      }
+
+      window.__b11Cleanup = stopTimer;
       function escapeHtml(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
       /* Monitoring Window Drag-to-Scroll */
@@ -240,7 +301,7 @@
         const sec = document.getElementById(id);
         if (!sec) return;
         sec.classList.toggle('is-collapsed', Boolean(c));
-        const b = sec.querySelector('.mon-toggle-btn');
+        const b = sec.querySelector('[data-mon-toggle]');
         if (b) b.textContent = c ? '열기' : '접기';
       }
       document.querySelectorAll('[data-mon-toggle]').forEach((b) => b.addEventListener('click', (e) => {
@@ -250,6 +311,88 @@
         Settings.playTone(500, 0.04, 0.025);
         setMonCollapsed(b.dataset.monToggle, !sec.classList.contains('is-collapsed'));
       }));
+
+      /* Chapter 1 Pre-op Detail & Special History Popup ('상세') */
+      function setDetailTab(k) {
+        document.querySelectorAll('[data-dt3-tab]').forEach((b) => b.classList.toggle('active', b.dataset.dt3Tab === k));
+        document.querySelectorAll('[data-dt3-pane]').forEach((p) => p.classList.toggle('pane-hidden', p.dataset.dt3Pane !== k));
+      }
+      document.querySelectorAll('[data-dt3-tab]').forEach((b) => b.addEventListener('click', () => { Settings.playTone(520, 0.04, 0.025); setDetailTab(b.dataset.dt3Tab); }));
+      document.getElementById('ch3-preop-detail-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!currentCase) return;
+        Settings.playTone(540, 0.05, 0.03);
+        setDetailTab('hx');
+        detailModalEl.classList.remove('hidden');
+      });
+      document.getElementById('ch3-detail-close').addEventListener('click', () => detailModalEl.classList.add('hidden'));
+      detailModalEl.addEventListener('click', (e) => { if (e.target === detailModalEl) detailModalEl.classList.add('hidden'); });
+
+      function renderLabTable(rows, panel) {
+        return `<table class="lab-tbl"><tbody>${rows.map(([label, key, val, unit]) => {
+          const fl = key ? panel.flagOf(key, Number(val)) : '';
+          const cls = fl === 'H' ? 'lab-high' : fl === 'L' ? 'lab-low' : '';
+          const r = key && panel.ref[key] ? `${panel.ref[key][0]}–${panel.ref[key][1]}` : '';
+          return `<tr><td>${label}</td><td class="lab-val ${cls}">${val}${unit ? ' ' + unit : ''}${fl ? ' ' + fl : ''}</td><td class="lab-ref">${r}</td></tr>`;
+        }).join('')}</tbody></table>`;
+      }
+
+      function renderFullPreopDetail(c) {
+        const P = Data.buildLabPanel(c);
+        const hxRows = (c.history || []).map((h) => `<div class="img-row"><strong>${escapeHtml(h.label)}</strong><br/>${escapeHtml(h.text)}</div>`);
+        dtHxEl.innerHTML = `<div class="img-list"><div class="img-row"><strong>주호소</strong><br/>${escapeHtml(c.chiefComplaint)}</div>${hxRows.join('')}</div>`;
+
+        const p = c.pe;
+        const isCat = c.species === 'cat';
+        const abnBT = p.bt < 37.5 || p.bt > 39.2;
+        const abnBP = p.bpMap < 65 || p.bpSys > 155 || p.bpSys < 95;
+        const abnHR = isCat ? (p.hr < 130 || p.hr > 210) : (p.hr < 65 || p.hr > 145);
+        const abnRR = p.rr > 36;
+        const abnCRT = p.crt > 2.0;
+        const abnMMC = /yellow|pale|cyan|dark|muddy|dry/i.test(p.mmc);
+        const auscHeart = p.auscHeart || '심잡음 없음 (정상 심음)';
+        const auscLung = p.auscLung || '정상 폐포음';
+        const auscBowel = p.auscBowel || '정상 복명음';
+        const abnHeart = /Grade|분마음|부정맥|서맥|빈맥/i.test(auscHeart);
+        const abnLung = /수포음|천명음|거친|감약|Crackle/i.test(auscLung);
+        const abnBowel = /감소|소실|압통|팽만|항진/i.test(auscBowel);
+
+        dtPeEl.innerHTML = `
+          <div class="pe-grid">
+            <div class="pe-cell"><span class="pe-k">BT</span><span class="pe-v ${abnBT ? 'is-abn' : ''}">${p.bt.toFixed(1)} °C</span></div>
+            <div class="pe-cell"><span class="pe-k">BP #${p.cuff}</span><span class="pe-v ${abnBP ? 'is-abn' : ''}">${p.bpSys}/${p.bpDia} (${p.bpMap}) mmHg</span></div>
+            <div class="pe-cell"><span class="pe-k">HR</span><span class="pe-v ${abnHR ? 'is-abn' : ''}">${p.hr} /min</span></div>
+            <div class="pe-cell"><span class="pe-k">RR</span><span class="pe-v ${abnRR ? 'is-abn' : ''}">${p.rr} /min</span></div>
+            <div class="pe-cell"><span class="pe-k">CRT</span><span class="pe-v ${abnCRT ? 'is-abn' : ''}">${p.crt} s</span></div>
+            <div class="pe-cell"><span class="pe-k">MMC</span><span class="pe-v ${abnMMC ? 'is-abn' : ''}">${escapeHtml(p.mmc)}</span></div>
+            <div class="pe-cell span-2">
+              <span class="pe-k">청진</span>
+              <div class="pe-ausc-lines">
+                <div class="pe-ausc-row"><span class="pe-ausc-k">심잡음:</span><span class="pe-v ${abnHeart ? 'is-abn' : ''}" style="font-size:inherit;">${escapeHtml(auscHeart)}</span></div>
+                <div class="pe-ausc-row"><span class="pe-ausc-k">폐음:</span><span class="pe-v ${abnLung ? 'is-abn' : ''}" style="font-size:inherit;">${escapeHtml(auscLung)}</span></div>
+                <div class="pe-ausc-row"><span class="pe-ausc-k">복명음:</span><span class="pe-v ${abnBowel ? 'is-abn' : ''}" style="font-size:inherit;">${escapeHtml(auscBowel)}</span></div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const m = P.vbgM, vc = P.vbgC, cb = P.cbc, ch = P.chem;
+        const vbgMeasured = [['pH','pH',m.pH.toFixed(2),''],['pCO₂','pCO2',m.pCO2,'mmHg'],['pO₂ (정맥)','pO2',m.pO2,'mmHg'],['Na⁺','Na',m.Na,'mmol/L'],['K⁺','K',m.K.toFixed(1),'mmol/L'],['Cl⁻','Cl',m.Cl,'mmol/L'],['iCa','iCa',m.iCa.toFixed(2),'mmol/L'],['Hct','Hct',m.Hct,'%']];
+        const vbgCalc = [['pH(T)','pHT',vc.pHT.toFixed(3),''],['pCO₂(T)','pCO2T',vc.pCO2T,'mmHg'],['pO₂(T)','pO2T',vc.pO2T,'mmHg'],['ctCO₂','ctCO2',vc.ctCO2,'mmol/L'],['cHCO₃⁻','cHCO3',vc.cHCO3,'mmol/L'],['cHCO₃⁻(std)','cHCO3std',vc.cHCO3std,'mmol/L'],['BE(ecf)','BEecf',vc.BEecf,'mmol/L'],['BE(B)','BEB',vc.BEB,'mmol/L'],['ctHb','ctHb',vc.ctHb,'g/dL'],['Ca²⁺(7.4)','iCa74',vc.iCa74.toFixed(2),'mmol/L'],['pO₂(A-a)','pO2Aa',vc.pO2Aa,'mmHg'],['sO₂','sO2',vc.sO2,'%'],['AG(K)','AGK',vc.AGK,'mmol/L']];
+        const cbcRows = [['RBC','RBC',cb.RBC,'M/µL'],['HGB','HGB',cb.HGB,'g/dL'],['HCT','HCT',cb.HCT,'%'],['MCV','MCV',cb.MCV,'fL'],['MCH','MCH',cb.MCH,'pg'],['MCHC','MCHC',cb.MCHC,'g/dL'],['RDW','RDW',cb.RDW,'%'],['RETIC','RETIC',cb.RETIC,'K/µL'],['Retic-HGB','ReticHGB',cb.ReticHGB,'pg'],['WBC','WBC',cb.WBC,'K/µL'],['Neu','Neu',`${cb.Neu} (${cb.neuP}%)`,''],['Lym','Lym',`${cb.Lym} (${cb.lymP}%)`,''],['Mono','Mono',`${cb.Mono} (${cb.monoP}%)`,''],['Eos','Eos',`${cb.Eos} (${cb.eosP}%)`,''],['Baso','Baso',`${cb.Baso} (${cb.basoP}%)`,''],['PLT','PLT',cb.PLT,'K/µL'],['MPV','MPV',cb.MPV,'fL'],['PCT','PCT',cb.PCT,'%']];
+        const chemGeneral = [['ALP','ALP',ch.ALP,'U/L'],['ALT','ALT',ch.ALT,'U/L'],['AST','AST',ch.AST,'U/L'],['GGT','GGT',ch.GGT,'U/L'],['BUN','BUN',ch.BUN,'mg/dL'],['Crea','Crea',ch.Crea,'mg/dL'],['Phos','Phos',ch.Phos,'mg/dL'],['Ca','Ca',ch.Ca,'mg/dL'],['TG','TG',ch.TG,'mg/dL'],['Tchol','Tchol',ch.Tchol,'mg/dL'],['Glu','Glu',ch.Glu,'mg/dL'],['TP','TP',ch.TP,'g/dL'],['ALB','ALB',ch.ALB,'g/dL'],['Glob','Glob',ch.Glob,'g/dL'],['Mg','Mg',ch.Mg,'mg/dL']];
+        const chemSpecial = isCat
+          ? [['SAA','SAA',ch.SAA,'µg/mL'],['fPL','fPL',ch.fPL,'µg/L'],['proBNP','proBNP',ch.proBNP,'pmol/L'],['T4','T4',ch.T4,'µg/dL'],['Cortisol','Cortisol',ch.Cortisol,'µg/dL'],['SDMA','SDMA',ch.SDMA,'µg/dL']]
+          : [['CRP','CRP',ch.CRP,'mg/L'],['cPL','cPL',ch.cPL,'µg/L'],['proBNP','proBNP',ch.proBNP,'pmol/L'],['T4','T4',ch.T4,'µg/dL'],['Cortisol','Cortisol',ch.Cortisol,'µg/dL'],['SDMA','SDMA',ch.SDMA,'µg/dL']];
+        dtLabEl.innerHTML = `<div class="lab-group-lbl">정맥혈액가스 (VBG) — 측정 8종</div>${renderLabTable(vbgMeasured, P)}<div class="lab-group-lbl">정맥혈액가스 (VBG) — 계산 13종</div>${renderLabTable(vbgCalc, P)}<div class="lab-group-lbl">일반혈액검사 (CBC) — 18종</div>${renderLabTable(cbcRows, P)}<div class="lab-group-lbl">혈액화학 (일반 15종)</div>${renderLabTable(chemGeneral, P)}<div class="lab-group-lbl">혈액화학 (특수 6종)</div>${renderLabTable(chemSpecial, P)}`;
+
+        const im = c.imaging || {};
+        const th = im.thoracic || {};
+        const rows = [`<div class="img-row"><strong>흉부 X-ray</strong><br/>VHS: ${escapeHtml(th.vhs || '-')} · VLAS: ${escapeHtml(th.vlas || '-')}<br/>기관직경: ${escapeHtml(th.trachea || '-')}<br/>폐야: ${escapeHtml(th.lung || '-')}${th.extra ? '<br/>추가 소견: ' + escapeHtml(th.extra) : ''}</div>`];
+        if (im.abdominal) rows.push(`<div class="img-row"><strong>복부 X-ray</strong><br/>${escapeHtml(im.abdominal)}</div>`);
+        if (im.ultrasound) rows.push(`<div class="img-row"><strong>초음파 검사</strong><br/>${escapeHtml(im.ultrasound)}</div>`);
+        dtImgEl.innerHTML = `<div class="img-list">${rows.join('')}</div>`;
+      }
 
       function setCollapsed(c) {
         if (window.innerWidth >= 960) { splitEl.classList.remove('ctrl-collapsed'); return; }
@@ -270,14 +413,16 @@
       }
       document.querySelectorAll('.ch1-tab-btn').forEach((b) => b.addEventListener('click', () => { Settings.playTone(520, 0.04, 0.025); activateTab(b.dataset.pane); }));
 
+      /* 3. 처치 로그: 가장 최신 기록이 시간 순으로 상단에 표시 */
       function addLog(msg) {
-        logs.push(msg);
+        const stamped = `[${formatElapsed(elapsedSec)}] ${msg}`;
+        logs.unshift(stamped);
         const empty = logListEl.querySelector('.mon-empty');
         if (empty) empty.remove();
         const row = document.createElement('div');
         row.className = 'sig-hx-row';
-        row.textContent = `• ${msg}`;
-        logListEl.appendChild(row);
+        row.textContent = `• ${stamped}`;
+        logListEl.prepend(row);
       }
 
       function expectedEtt(c) {
@@ -291,9 +436,14 @@
       function renderMonitor() {
         document.getElementById('ch3-v-hr').textContent = Math.round(vitals.hr);
         document.getElementById('ch3-v-rr').textContent = Math.round(vitals.rr);
+        const rrModeEl = document.getElementById('ch3-v-rr-mode');
+        if (rrModeEl) {
+          rrModeEl.textContent = vitals.rrMode || '자발 호흡';
+          rrModeEl.style.color = vitals.rrMode === '무호흡' ? '#fca5a5' : vitals.rrMode === '기계 환기' ? '#93c5fd' : '#86efac';
+        }
         document.getElementById('ch3-v-spo2').textContent = `${Math.round(vitals.spo2)}%`;
         document.getElementById('ch3-v-bp').textContent = `${Math.round(vitals.sbp)}/${Math.round(vitals.map)}/${Math.round(vitals.dbp)}`;
-        document.getElementById('ch3-v-etco2').textContent = vitals.etco2 != null ? `${vitals.etco2} mmHg` : '--';
+        document.getElementById('ch3-v-etco2').textContent = vitals.etco2 != null ? String(vitals.etco2) : '--';
         const waveEl = document.getElementById('ch3-v-etco2-wave');
         if (waveEl) {
           waveEl.textContent = vitals.etco2Wave || '파형 없음';
@@ -301,15 +451,23 @@
         }
         document.getElementById('ch3-v-depth').textContent = vitals.depth;
 
-        const stText = state.trans.size >= 4 ? '유지 전환 완료' : state.intubated ? '삽관 완료 (유지 전환 대기)' : state.premedDone ? '전처치 완료 (도입 대기)' : '전처치 대기';
+        const stText = state.trans.size >= 4
+          ? '유지 전환 완료'
+          : state.intubated
+            ? '삽관 완료'
+            : state.titrateCount > 0
+              ? '도입 실시'
+              : state.premedDone
+                ? '전처치 완료'
+                : '전처치 대기';
         statusLineEl.innerHTML = `<strong>진행 상태:</strong> ${stText}`;
 
         chkBodyEl.innerHTML = `
           <div class="sig-hx-list">
-            <div class="sig-hx-row"><span class="sig-hx-k">전처치:</span><span>${state.premedDone ? Array.from(premedPicks).join(', ') : '미실시'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">전산소화:</span><span>${state.preO2Done ? '완료 (SpO₂ 99%)' : '미실시'}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">전처치:</span><span>${state.premedDone ? Array.from(premedPicks).join(', ') : '미실시'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유도 적정:</span><span>${indPick ? `${indPick} (${state.titrateCount}/4)` : '미실시'}</span></div>
-            <div class="sig-hx-row"><span class="sig-hx-k">기관삽관:</span><span>${state.intubated ? `ETT #${ettPick} 삽관 · ${vitals.etco2Wave}` : '미실시'}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">기관삽관:</span><span>${state.intubated ? `ETT #${ettPick} 삽관 · ETCO₂ ${vitals.etco2} (${vitals.etco2Wave})` : '미실시'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유지 전환:</span><span>${state.trans.size} / 4 항목 완료</span></div>
           </div>
         `;
@@ -330,6 +488,7 @@
         btnPremed.disabled = true;
         vitals.hr = Math.max(55, vitals.hr - (premedPicks.has('Dexmedetomidine') ? 26 : 12));
         vitals.rr = Math.max(12, vitals.rr - 6);
+        vitals.rrMode = '자발 호흡';
         vitals.depth = '경도 진정';
         if (currentCase.trueAsa >= 4 && premedPicks.has('Dexmedetomidine')) {
           state.mistakes.push('중증/응급 환자에서 Dexmedetomidine 전처치로 혈역학 부담 증가');
@@ -368,11 +527,13 @@
         vitals.rr = Math.max(6, vitals.rr - 4);
         vitals.depth = state.titrateCount >= 3 ? '삽관 가능' : '중등도 진정';
         if (state.titrateCount === 4) {
-          vitals.rr = 4;
+          vitals.rr = 0;
+          vitals.rrMode = '무호흡';
           if (!state.preO2Done) vitals.spo2 = Math.max(88, vitals.spo2 - 7);
           state.mistakes.push('유도제 과다 적정(4/4)으로 일시적 무호흡·저혈압 유발');
-          addLog(`${indPick} 4/4 과투여 — 일시적 무호흡 주의`);
+          addLog(`${indPick} 4/4 과투여 — 무호흡 주의`);
         } else {
+          vitals.rrMode = '자발 호흡';
           addLog(`${indPick} ${state.titrateCount}/4 적정 투여 (${vitals.depth})`);
         }
         Settings.playTone(580, 0.05, 0.03);
@@ -405,7 +566,7 @@
           state.mistakes.push(`ETT 규격 오차 (선택 #${ettPick} / 권장 #${recEtt})`);
           vitals.etco2 = 48;
           vitals.etco2Wave = '이상 파형';
-        } else if (vitals.rr <= 4) {
+        } else if (vitals.rrMode === '무호흡' || vitals.rr <= 4) {
           vitals.etco2 = 52;
           vitals.etco2Wave = '이상 파형';
         } else {
@@ -425,6 +586,12 @@
         state.trans.add(k);
         b.classList.add('exam-done');
         b.disabled = true;
+        if (k === 'o2' && state.intubated && vitals.rrMode === '무호흡') {
+          vitals.rr = 12;
+          vitals.rrMode = '기계 환기';
+          vitals.etco2 = 40;
+          vitals.etco2Wave = '정상 파형';
+        }
         addLog(`유지 전환 체크: ${b.textContent.trim()}`);
         Settings.playTone(620, 0.05, 0.03);
         renderMonitor();
@@ -476,6 +643,7 @@
         if (!currentCase) return;
         if (evaluated) { Settings.playTone(540, 0.05, 0.03); setReviewTab('wrong'); reviewModalEl.classList.remove('hidden'); return; }
         evaluated = true;
+        stopTimer();
 
         let score = 100;
         if (!state.premedDone) score -= 15;
@@ -528,6 +696,7 @@
         lastReport = null;
         aiText = null; soapText = null;
 
+        detailModalEl.classList.add('hidden');
         reviewModalEl.classList.add('hidden');
         stampOverlayEl.classList.add('hidden');
         evalSubmitBtn.textContent = '도입 완료';
@@ -543,6 +712,7 @@
             currentCase = prevCase;
           } else {
             sigHeadEl.innerHTML = '<span>환자 생성 중...</span>';
+            ccLineEl.innerHTML = '';
             currentCase = await Data.generatePracticeCase(stageId === 'practice_cat' ? 'cat' : 'dog');
           }
         } else {
@@ -552,6 +722,7 @@
         vitals = {
           hr: currentCase.pe.hr,
           rr: currentCase.pe.rr,
+          rrMode: '자발 호흡',
           spo2: currentCase.trueAsa >= 5 ? 92 : 97,
           sbp: currentCase.pe.bpSys,
           map: currentCase.pe.bpMap,
@@ -560,9 +731,11 @@
           etco2Wave: '파형 없음',
           depth: '각성'
         };
-        const spKr = currentCase.species === 'cat' ? '고양이' : '개';
-        sigHeadEl.innerHTML = `<span>${currentCase.name}</span><span class="ch1-sig-meta">${spKr} · ${currentCase.breed} · ${currentCase.age} · ${currentCase.weight} kg</span>`;
+        sigHeadEl.innerHTML = `<span>${escapeHtml(currentCase.name)}</span><span class="ch1-sig-meta">${escapeHtml(currentCase.breed)} · ${escapeHtml(currentCase.age)} · ${currentCase.weight} kg · ${escapeHtml(currentCase.sex)} · ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? 'E' : ''} (${escapeHtml(currentCase.truePrognosis)})</span>`;
+        ccLineEl.innerHTML = `<strong>주호소:</strong> ${escapeHtml(currentCase.chiefComplaint)}`;
+        renderFullPreopDetail(currentCase);
         renderMonitor();
+        startTimer();
       }
 
       const chapterCtrl = Settings.initChapterCommon({
