@@ -1071,7 +1071,7 @@
               headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
               body: JSON.stringify({
                 task: 'roleplay',
-                role: 'owner_preop',
+                role: 'owner_plan',
                 species: currentCase.species === 'cat' ? '고양이' : '개',
                 caseName: `${currentCase.name} (${currentCase.breed})`,
                 asa: `ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? '-E' : ''}`,
@@ -1092,13 +1092,10 @@
           if (!reply) {
             if (isRudeOrDismissive) {
               reply = '선생님, 지금 너무 성의 없게 설명하시는 거 아니에요? 아이 맡기기 불안해지네요.';
+            } else if (revealedConsents.size >= CONSENT_ITEMS.length) {
+              reply = '자세히 설명해 주셔서 감사합니다 선생님. 이제 어떻게 진행되는지 이해했어요. 잘 부탁드립니다.';
             } else {
-              const missing = CONSENT_ITEMS.filter((it) => !revealedConsents.has(it.key));
-              if (!missing.length) {
-                reply = '마취 계획부터 수술 시간, 연락, 입원 안내까지 꼼꼼하게 설명해 주셔서 감사합니다 선생님. 동의하겠습니다. 잘 부탁드려요.';
-              } else {
-                reply = `네 선생님, 설명 감사합니다. 혹시 ${missing[0].label} 부분도 안내해 주실 수 있을까요?`;
-              }
+              reply = '네 선생님, 알겠습니다. 혹시 그 외에 이제 어떻게 진행되는지 제가 더 알고 있어야 할 부분이 있을까요?';
             }
           }
           if (/^\[ABORT\]/i.test(reply)) aiAborted = true;
@@ -1290,7 +1287,7 @@
         renderFullPreopDetail(currentCase, currentLabPanel);
         renderPlanSummary();
 
-        const greet = `선생님, ${currentCase.name} 마취 계획이랑 수술 예정·소요 시간, 연락 및 입원 안내 부탁드려요.`;
+        const greet = `선생님, 이제 ${currentCase.name} 어떻게 진행되나요?`;
         appendBubble('owner', greet, false);
         chatHistory.push({ sender: 'owner', text: greet });
       }
