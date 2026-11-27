@@ -1646,6 +1646,26 @@ body.b11-immersive .app-shell {
   font-size: 14px;
 }
 
+@media (max-width: 480px) {
+  .ch3-drug-row {
+    gap: 6px;
+  }
+  .ch3-drug-group {
+    gap: 4px;
+  }
+  .ch3-drug-group .prog-btn {
+    padding: 6px 2px;
+    min-height: 36px;
+    font-size: calc(10.5px * var(--text-scale, 1));
+    letter-spacing: -0.02em;
+  }
+  .ch3-antag-btn {
+    flex: 0 0 42px;
+    padding: 0 4px;
+    font-size: calc(11px * var(--text-scale, 1));
+  }
+}
+
 .ch3-lbl-row {
   display: flex;
   align-items: center;
