@@ -892,7 +892,8 @@
         ? Math.min(96, Math.max(58, Math.round(pinnedEl.getBoundingClientRect().height + 6)))
         : 64;
       const maxH = Math.max(minH + 80, Math.round(splitH - monMin - 8));
-      return { splitH, minH, maxH };
+      const defaultH = Math.round((splitH - 8) * (1.08 / 2.08));
+      return { splitH, minH, maxH, defaultH };
     }
 
     function setCollapsed(c) {
@@ -1006,6 +1007,10 @@
         // 상단 끝 근처 -> 완전 최대화 스냅
         splitEl.classList.remove('ctrl-collapsed');
         ctrlEl.style.flex = `0 0 ${bounds.maxH}px`;
+      } else if (Math.abs(lastCtrlH - bounds.defaultH) <= 28) {
+        // 기본 펼침 범위 근처 -> 기본 비율로 자석 스냅
+        splitEl.classList.remove('ctrl-collapsed');
+        ctrlEl.style.flex = '';
       } else {
         // 중간 임의 높이 유지 (모니터링창과 조작창 실시간 비율 유지)
         splitEl.classList.remove('ctrl-collapsed');
