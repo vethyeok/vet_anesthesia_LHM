@@ -177,6 +177,18 @@
 
               <div class="ch4-sec-grp">
                 <div class="ch3-lbl-row">
+                  <div class="eval-sec-lbl">육안검사</div>
+                  <button type="button" class="b-btn ch3-help-q-btn" data-cat-help="visual" aria-label="육안검사 도움말">?</button>
+                </div>
+                <div class="prog-grid" style="grid-template-columns:repeat(3,1fr);">
+                  <button type="button" class="b-btn prog-btn" id="ch4-vis-pulse">Pulse 강도</button>
+                  <button type="button" class="b-btn prog-btn" id="ch4-vis-mmc">MMC (점막색)</button>
+                  <button type="button" class="b-btn prog-btn" id="ch4-vis-crt">CRT</button>
+                </div>
+              </div>
+
+              <div class="ch4-sec-grp">
+                <div class="ch3-lbl-row">
                   <div class="eval-sec-lbl">모니터 · 마취기 회로 점검</div>
                   <button type="button" class="b-btn ch3-help-q-btn" data-cat-help="circuit" aria-label="장치 점검 도움말">?</button>
                 </div>
@@ -351,6 +363,14 @@
           title: '마취 심도 평가',
           items: [
             { name: '안검반사 · 안구위치 · 턱긴장도', desc: '적정 수술 마취 심도에서는 안구가 복내측으로 회전하고 안검반사가 소실되며 턱긴장도가 이완됩니다. 얕은 마취에서는 안검반사·턱긴장도가 회복되고, 과도하게 깊은 마취에서는 안구가 중앙 고정되며 혈압이 크게 떨어집니다.' }
+          ]
+        },
+        visual: {
+          title: '육안검사 (관류 · 산소화)',
+          items: [
+            { name: 'Pulse 강도', desc: '대퇴·설하동맥 맥박 강도로 실제 박출압과 관류를 확인합니다. 저혈압 시 약하고 가늘어지며(Weak/Thready), 통증·교감신경 항진 시 강해집니다.' },
+            { name: 'MMC (점막색)', desc: '잇몸·혀 점막색으로 실제 산소화와 관류를 평가합니다. SpO₂ 수치가 급락해도 점막이 선홍색(Pink)이면 센서 탈락 아티팩트를 의심할 수 있습니다.' },
+            { name: 'CRT (모세혈관 재충만 시간)', desc: '정상 1~2초이며, 저혈압·저관류 시 2.5~3초 이상 지연되고 고탄산혈증·혈관확장 시 1초 미만으로 단축됩니다.' }
           ]
         },
         circuit: {
@@ -707,12 +727,19 @@
             ? `CO₂ 기저선 상승 (FiCO₂ ${Math.round(sim.fiCO2)} mmHg)`
             : '정상';
 
+        const visParts = [];
+        if (sim.lastVisual && sim.lastVisual.pulse) visParts.push(`Pulse: ${sim.lastVisual.pulse}`);
+        if (sim.lastVisual && sim.lastVisual.mmc) visParts.push(`MMC: ${sim.lastVisual.mmc}`);
+        if (sim.lastVisual && sim.lastVisual.crt) visParts.push(`CRT: ${sim.lastVisual.crt}`);
+        const visTxt = visParts.length ? visParts.join(' · ') : '미실시';
+
         stateBodyEl.innerHTML = `
           <div class="sig-hx-list">
             <div class="sig-hx-row"><span class="sig-hx-k">기화기 / 환기:</span><span>Iso ${sim.iso.toFixed(1)}% · ${sim.ippv ? 'IPPV 기계환기' : '자발 호흡'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">능동 가온 / 볼루스:</span><span>${sim.warm ? 'ON' : 'OFF'} · 수액 볼루스 ${sim.bolusCount}회</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">활성 CRI:</span><span>${sim.norepi ? 'Norepinephrine CRI 가동 중' : '없음'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">최근 심도 평가:</span><span>${escapeHtml(sim.lastDepthCheck || '미평가')}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">최근 육안검사:</span><span>${escapeHtml(visTxt)}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">모니터 · 회로:</span><span>${escapeHtml(artTxt)}</span></div>
           </div>
         `;
@@ -1026,6 +1053,60 @@
         renderUI();
       });
 
+      document.getElementById('ch4-vis-pulse').addEventListener('click', () => {
+        if (!sim || evaluated) return;
+        sim.actions += 1;
+        const res = sim.arrested
+          ? '맥박 소실 (촉지 불가)'
+          : sim.map < 55
+            ? '매우 약함 (Weak/Thready)'
+            : sim.map < 68
+              ? '약함 (Hypokinetic)'
+              : sim.map > 110
+                ? '강함 (Bounding)'
+                : '정상 (Strong & Regular)';
+        sim.lastVisual.pulse = res;
+        addLog(`육안검사 [Pulse 강도]: ${res}`);
+        Settings.playTone(580, 0.05, 0.03);
+        renderUI();
+      });
+
+      document.getElementById('ch4-vis-mmc').addEventListener('click', () => {
+        if (!sim || evaluated) return;
+        sim.actions += 1;
+        const res = sim.arrested
+          ? '창백·청색증 (Pale/Cyanotic)'
+          : sim.spo2 < 90
+            ? '청색증 (Cyanotic)'
+            : sim.map < 58
+              ? '창백 (Pale)'
+              : sim.etco2 > 58
+                ? '충혈 (Brick red)'
+                : '선홍색 (Pink & Moist)';
+        sim.lastVisual.mmc = res;
+        addLog(`육안검사 [MMC 점막색]: ${res}`);
+        Settings.playTone(580, 0.05, 0.03);
+        renderUI();
+      });
+
+      document.getElementById('ch4-vis-crt').addEventListener('click', () => {
+        if (!sim || evaluated) return;
+        sim.actions += 1;
+        const res = sim.arrested
+          ? '측정 불가 (> 4초)'
+          : sim.map < 55
+            ? '지연 (> 3.0초)'
+            : sim.map < 68
+              ? '경도 지연 (2.5초)'
+              : sim.etco2 > 58
+                ? '단축 (< 1.0초)'
+                : '정상 (1.5초)';
+        sim.lastVisual.crt = res;
+        addLog(`육안검사 [CRT]: ${res}`);
+        Settings.playTone(580, 0.05, 0.03);
+        renderUI();
+      });
+
       document.getElementById('ch4-chk-sensor').addEventListener('click', () => {
         if (!sim || evaluated) return;
         sim.actions += 1;
@@ -1171,7 +1252,7 @@
           map: Math.max(66, currentCase.pe.bpMap - 6), bt: currentCase.pe.bt,
           iso: 1.5, ippv: false, warm: false, norepi: false,
           bolusCount: 0, bolusBoost: 0,
-          artifact: null, painActive: false, lastDepthCheck: null,
+          artifact: null, painActive: false, lastDepthCheck: null, lastVisual: {},
           events: 0, actions: 0, stableTicks: 0, totalTicks: 0,
           lowMapSec: 0, lowSpo2Sec: 0, highEtco2Sec: 0, criticalSec: 0,
           drugMistakes: [],
