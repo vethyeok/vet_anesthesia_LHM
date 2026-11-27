@@ -874,18 +874,50 @@
   function bindCtrlHandle(handleEl, splitEl, onInteract) {
     if (!handleEl || !splitEl) return () => {};
     const ctrlEl = handleEl.closest('.ch1-control') || splitEl.querySelector('.ch1-control');
+    const monEl = splitEl.querySelector('.ch1-monitor');
+    const tabsEl = ctrlEl ? ctrlEl.querySelector('.ch1-ctrl-tabs') : null;
+
+    function getHeaderHeight() {
+      const hh = handleEl ? handleEl.getBoundingClientRect().height : 27;
+      const th = tabsEl ? tabsEl.getBoundingClientRect().height : 47;
+      return Math.max(66, Math.round(hh + th + 4));
+    }
+
+    function getBounds() {
+      const splitRect = splitEl.getBoundingClientRect();
+      const splitH = Math.max(300, splitRect.height || window.innerHeight - 80);
+      const minH = getHeaderHeight();
+      const pinnedEl = monEl ? monEl.querySelector('.ch1-sig-pinned') : null;
+      const monMin = pinnedEl
+        ? Math.min(96, Math.max(58, Math.round(pinnedEl.getBoundingClientRect().height + 6)))
+        : 64;
+      const maxH = Math.max(minH + 80, Math.round(splitH - monMin - 8));
+      return { splitH, minH, maxH };
+    }
 
     function setCollapsed(c) {
       if (window.innerWidth >= 960) {
+        if (ctrlEl) ctrlEl.style.flex = '';
         splitEl.classList.remove('ctrl-collapsed');
         return;
       }
-      splitEl.classList.toggle('ctrl-collapsed', Boolean(c));
+      if (c) {
+        if (ctrlEl) ctrlEl.style.flex = '';
+        splitEl.classList.add('ctrl-collapsed');
+      } else {
+        splitEl.classList.remove('ctrl-collapsed');
+        // 최소화 상태였거나 지나치게 작으면 기본 비율로 복귀
+        if (ctrlEl && ctrlEl.style.flex) {
+          const curH = ctrlEl.getBoundingClientRect().height;
+          if (curH < getHeaderHeight() + 40) ctrlEl.style.flex = '';
+        }
+      }
     }
 
     let dragging = false;
     let startY = 0;
-    let lastDy = 0;
+    let startCtrlH = 0;
+    let lastCtrlH = 0;
     let moved = false;
     let mode = null; // 'touch' | 'mouse'
 
@@ -895,33 +927,32 @@
       return e.clientY;
     }
 
-    function applyDragVisual(dy) {
+    function applyHeight(nextH, bounds) {
       if (!ctrlEl) return;
-      const collapsed = splitEl.classList.contains('ctrl-collapsed');
-      const clamped = collapsed
-        ? Math.max(-72, Math.min(18, dy))
-        : Math.max(-18, Math.min(96, dy));
-      ctrlEl.style.transition = 'none';
-      ctrlEl.style.transform = `translateY(${Math.round(clamped)}px)`;
-    }
-
-    function clearDragVisual() {
-      if (!ctrlEl) return;
-      ctrlEl.style.transition = '';
-      ctrlEl.style.transform = '';
+      const clamped = Math.max(bounds.minH, Math.min(bounds.maxH, Math.round(nextH)));
+      lastCtrlH = clamped;
+      if (clamped <= bounds.minH + 6) {
+        splitEl.classList.add('ctrl-collapsed');
+        ctrlEl.style.flex = `0 0 ${bounds.minH}px`;
+      } else {
+        splitEl.classList.remove('ctrl-collapsed');
+        ctrlEl.style.flex = `0 0 ${clamped}px`;
+      }
     }
 
     function startDrag(e, nextMode) {
       if (window.innerWidth >= 960) return;
-      if (dragging) return;
+      if (dragging || !ctrlEl) return;
       if (e.cancelable) e.preventDefault();
       e.stopPropagation();
       if (typeof onInteract === 'function') onInteract();
       mode = nextMode;
       dragging = true;
       startY = getClientY(e);
-      lastDy = 0;
+      startCtrlH = ctrlEl.getBoundingClientRect().height;
+      lastCtrlH = startCtrlH;
       moved = false;
+      splitEl.classList.add('is-dragging');
       if (mode === 'touch') {
         window.addEventListener('touchmove', onMove, { passive: false });
         window.addEventListener('touchend', onEnd, { passive: false });
@@ -935,15 +966,18 @@
     function onMove(e) {
       if (!dragging) return;
       if (e.cancelable) e.preventDefault();
-      lastDy = getClientY(e) - startY;
-      if (Math.abs(lastDy) > 8) moved = true;
-      applyDragVisual(lastDy);
+      const dy = getClientY(e) - startY;
+      if (Math.abs(dy) > 6) moved = true;
+      const bounds = getBounds();
+      // 위로 드래그(dy < 0) -> 조작창 확장 & 모니터링창 축소 / 아래로 드래그(dy > 0) -> 조작창 축소 & 모니터링창 확장
+      applyHeight(startCtrlH - dy, bounds);
     }
 
     function onEnd(e) {
       if (!dragging) return;
       if (e && e.cancelable) e.preventDefault();
       dragging = false;
+      splitEl.classList.remove('is-dragging');
       if (mode === 'touch') {
         window.removeEventListener('touchmove', onMove);
         window.removeEventListener('touchend', onEnd);
@@ -953,12 +987,29 @@
         window.removeEventListener('mouseup', onEnd);
       }
       mode = null;
-      clearDragVisual();
       if (typeof onInteract === 'function') onInteract();
-      if (moved) {
-        if (Math.abs(lastDy) > 14) setCollapsed(lastDy > 0);
+      const bounds = getBounds();
+      if (!moved) {
+        // 단순 탭: 접힘 <-> 기본 펼침 토글
+        if (splitEl.classList.contains('ctrl-collapsed')) {
+          ctrlEl.style.flex = '';
+          splitEl.classList.remove('ctrl-collapsed');
+        } else {
+          ctrlEl.style.flex = '';
+          splitEl.classList.add('ctrl-collapsed');
+        }
+      } else if (lastCtrlH <= bounds.minH + 26) {
+        // 하단 끝 근처 -> 완전 최소화 스냅
+        ctrlEl.style.flex = '';
+        splitEl.classList.add('ctrl-collapsed');
+      } else if (lastCtrlH >= bounds.maxH - 26) {
+        // 상단 끝 근처 -> 완전 최대화 스냅
+        splitEl.classList.remove('ctrl-collapsed');
+        ctrlEl.style.flex = `0 0 ${bounds.maxH}px`;
       } else {
-        setCollapsed(!splitEl.classList.contains('ctrl-collapsed'));
+        // 중간 임의 높이 유지 (모니터링창과 조작창 실시간 비율 유지)
+        splitEl.classList.remove('ctrl-collapsed');
+        ctrlEl.style.flex = `0 0 ${Math.round(lastCtrlH)}px`;
       }
       playTone(480, 0.03, 0.02);
     }
@@ -983,8 +1034,12 @@
 
     window.addEventListener('resize', () => {
       if (window.innerWidth >= 960) {
-        clearDragVisual();
+        if (ctrlEl) ctrlEl.style.flex = '';
         splitEl.classList.remove('ctrl-collapsed');
+      } else if (ctrlEl && ctrlEl.style.flex && !splitEl.classList.contains('ctrl-collapsed')) {
+        const bounds = getBounds();
+        const curH = ctrlEl.getBoundingClientRect().height;
+        ctrlEl.style.flex = `0 0 ${Math.max(bounds.minH, Math.min(bounds.maxH, Math.round(curH)))}px`;
       }
     });
 

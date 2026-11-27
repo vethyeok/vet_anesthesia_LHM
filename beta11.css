@@ -992,14 +992,19 @@ body.b11-immersive .app-shell {
 /* Monitoring Window (모니터링창) */
 .ch1-monitor {
   flex: 1 1 0;
-  min-height: 110px;
+  min-height: 56px;
   background: var(--white);
   border: 1.5px solid var(--brown-border);
   border-radius: var(--radius-xl);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: flex 0.25s ease;
+  transition: flex 0.22s ease;
+}
+
+.ch1-split.is-dragging .ch1-monitor,
+.ch1-split.is-dragging .ch1-control {
+  transition: none !important;
 }
 
 .ch1-split.ctrl-collapsed .ch1-monitor {
