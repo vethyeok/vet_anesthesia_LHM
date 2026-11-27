@@ -2426,6 +2426,90 @@ body.b11-immersive .app-shell {
   100% { opacity: 1; transform: scale(1); }
 }
 
+/* Chapter 4: Monitor panel tap -> Spotlight blur & Quick-Action Popover */
+.ch4-tap-panel {
+  cursor: pointer;
+  transition: filter 0.14s ease, box-shadow 0.14s ease;
+}
+.ch4-tap-panel:hover {
+  filter: brightness(1.08);
+}
+.ch4-tap-panel:active {
+  filter: brightness(1.14);
+}
+.ch4-qa-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 108;
+  background: rgba(20, 16, 12, 0.48);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+.ch4-qa-backdrop.hidden {
+  display: none;
+}
+.ch4-qa-spotlight {
+  position: fixed;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 0 2px rgba(255, 243, 224, 0.85), 0 12px 28px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  background: #231f1b;
+  transition: transform 0.14s ease;
+}
+.ch4-qa-spotlight:active {
+  transform: scale(0.985);
+}
+.ch4-qa-spotlight .m-cell {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: 10px;
+}
+.ch4-qa-popover {
+  position: fixed;
+  background: var(--ivory);
+  border: 1.5px solid var(--brown-border);
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 14px 36px rgba(28, 20, 12, 0.36);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: ch4QaIn 0.16s ease-out;
+}
+@keyframes ch4QaIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ch4-qa-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ch4-qa-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--brown);
+}
+.ch4-qa-hint {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--brown-soft);
+}
+.ch4-qa-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.ch4-qa-grid .prog-btn {
+  min-height: 36px;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+
 
 
 

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Chapter 4. 마취 유지 — 베타 1.1</title>
-  <link rel="stylesheet" href="beta11.css?v=20261127g" />
+  <link rel="stylesheet" href="beta11.css?v=20261127h" />
   <script src="beta11-settings.js"></script>
   <script src="beta11-ch1-data.js"></script>
 </head>
@@ -51,7 +51,7 @@
                   <!-- 파형 보기 모드 (이미지 2 구성 · 베타 1.1 다크 차콜 통일) -->
                   <div class="ch4-wave-wrap" id="ch4-wave-wrap">
                     <div class="ch4-wave-group">
-                      <div class="ch4-wave-band">
+                      <div class="ch4-wave-band ch4-tap-panel" data-quick-panel="ecg">
                         <div class="ch4-wave-plot">
                           <span class="ch4-wave-tag">ECG II · 25mm/s</span>
                           <canvas id="ch4-cv-ecg" class="ch4-wave-cv"></canvas>
@@ -64,7 +64,7 @@
                           </div>
                         </div>
                       </div>
-                      <div class="ch4-wave-band">
+                      <div class="ch4-wave-band ch4-tap-panel" data-quick-panel="pleth">
                         <div class="ch4-wave-plot">
                           <span class="ch4-wave-tag">PLETH</span>
                           <canvas id="ch4-cv-pleth" class="ch4-wave-cv is-pleth"></canvas>
@@ -79,7 +79,7 @@
                       </div>
                     </div>
                     <div class="ch4-wave-group">
-                      <div class="ch4-wave-band">
+                      <div class="ch4-wave-band ch4-tap-panel" data-quick-panel="co2">
                         <div class="ch4-wave-plot">
                           <span class="ch4-wave-tag" id="ch4-w-fico2-tag">CO₂ · 4mm/s · FiCO₂ 0</span>
                           <canvas id="ch4-cv-co2" class="ch4-wave-cv is-co2"></canvas>
@@ -101,19 +101,19 @@
 
                   <!-- 파형 숨김 모드 (상단 4칸 HR · RR · SpO2 · ETCO2) -->
                   <div class="monitor-row ch4-num-top hidden" id="ch4-num-top">
-                    <div class="m-cell">
+                    <div class="m-cell ch4-tap-panel" data-quick-panel="ecg">
                       <span class="mk">HR</span>
                       <span class="mv" style="white-space:nowrap;"><span id="ch4-v-hr">--</span> <span id="ch4-v-hrstatus" style="font-size:9.5px; font-weight:700; color:#86efac;">정상</span></span>
                     </div>
-                    <div class="m-cell">
+                    <div class="m-cell ch4-tap-panel" data-quick-panel="co2">
                       <span class="mk">RR</span>
                       <span class="mv" style="white-space:nowrap;"><span id="ch4-v-rr">--</span> <span id="ch4-v-rrmode" style="font-size:9.5px; font-weight:700; color:#86efac;">자발</span></span>
                     </div>
-                    <div class="m-cell">
+                    <div class="m-cell ch4-tap-panel" data-quick-panel="pleth">
                       <span class="mk">SpO₂</span>
                       <span class="mv" id="ch4-v-spo2">--%</span>
                     </div>
-                    <div class="m-cell">
+                    <div class="m-cell ch4-tap-panel" data-quick-panel="co2">
                       <span class="mk">ETCO₂</span>
                       <span class="mv" style="white-space:nowrap;"><span id="ch4-v-etco2">--</span> <span id="ch4-v-etwave" style="font-size:9.5px; font-weight:700; color:#86efac;">정상</span></span>
                     </div>
@@ -121,15 +121,15 @@
 
                   <!-- 공통 하단 3칸: SBP/MBP/DBP · BT (°C) · ISO % / MAC -->
                   <div class="monitor-row" style="grid-template-columns:repeat(3,1fr);">
-                    <div class="m-cell">
+                    <div class="m-cell ch4-tap-panel" data-quick-panel="bp">
                       <span class="mk">SBP/MBP/DBP</span>
                       <span class="mv" id="ch4-v-bp" style="font-size:13px;">--/--/--</span>
                     </div>
-                    <div class="m-cell">
+                    <div class="m-cell ch4-tap-panel" data-quick-panel="bt">
                       <span class="mk">BT (°C)</span>
                       <span class="mv" id="ch4-v-bt" style="font-size:13.5px;">--.-°C</span>
                     </div>
-                    <div class="m-cell">
+                    <div class="m-cell ch4-tap-panel" data-quick-panel="iso">
                       <span class="mk">ISO % / MAC</span>
                       <span class="mv" id="ch4-v-iso" style="font-size:13px;">1.5% / 1.2</span>
                     </div>
@@ -340,6 +340,18 @@
     </div>
   </div>
 
+  <!-- 모니터 패널 터치 시 스포트라이트 블러 + 관련 처치 팝오버 -->
+  <div id="ch4-qa-backdrop" class="ch4-qa-backdrop hidden" role="dialog" aria-modal="true" aria-label="관련 처치 빠른 실행">
+    <div id="ch4-qa-spotlight" class="ch4-qa-spotlight" title="한 번 더 터치하면 관련 조작창으로 이동"></div>
+    <div id="ch4-qa-popover" class="ch4-qa-popover">
+      <div class="ch4-qa-head">
+        <span class="ch4-qa-title" id="ch4-qa-title"></span>
+        <span class="ch4-qa-hint">패널 재터치 → 조작창 이동</span>
+      </div>
+      <div class="ch4-qa-grid" id="ch4-qa-grid"></div>
+    </div>
+  </div>
+
   <!-- 3, 2, 1 시작 카운트다운 오버레이 -->
   <div id="ch4-countdown-overlay" class="ch4-cd-backdrop hidden" aria-live="assertive">
     <div class="ch4-cd-num font-maru" id="ch4-cd-num">3</div>
@@ -479,6 +491,18 @@
         co2Buf: new Array(CO2_BUF_LEN).fill(-0.78)
       };
 
+      const qaBackdropEl = document.getElementById('ch4-qa-backdrop');
+      const qaSpotlightEl = document.getElementById('ch4-qa-spotlight');
+      const qaPopoverEl = document.getElementById('ch4-qa-popover');
+      const qaTitleEl = document.getElementById('ch4-qa-title');
+      const qaGridEl = document.getElementById('ch4-qa-grid');
+      let qaState = null; // { key, sourceEl }
+
+      function closeQuickPanel() {
+        qaState = null;
+        if (qaBackdropEl) qaBackdropEl.classList.add('hidden');
+      }
+
       function stopSim() {
         if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
         if (waveAnimId) { cancelAnimationFrame(waveAnimId); waveAnimId = null; }
@@ -486,6 +510,7 @@
         countdownActive = false;
         pendingCountdown = false;
         if (cdOverlayEl) cdOverlayEl.classList.add('hidden');
+        closeQuickPanel();
       }
       window.__b11Cleanup = stopSim;
 
@@ -742,6 +767,7 @@
           drawChannel(cvEcg, waveState.ecgBuf, waveState.x, '#4ade80', 'rgba(74,222,128,0.6)', false);
           drawChannel(cvPleth, waveState.plethBuf, waveState.x, '#38bdf8', 'rgba(56,189,248,0.6)', false);
           drawChannel(cvCo2, waveState.co2Buf, waveState.co2X, '#facc15', 'rgba(250,204,21,0.6)', true);
+          if (qaState) syncSpotlightCanvasOnly();
         }
         waveAnimId = requestAnimationFrame(animateWaves);
       }
@@ -795,6 +821,177 @@
       }));
       document.getElementById('ch4-cat-help-close').addEventListener('click', () => catHelpModalEl.classList.add('hidden'));
       catHelpModalEl.addEventListener('click', (e) => { if (e.target === catHelpModalEl) catHelpModalEl.classList.add('hidden'); });
+
+      // 모니터 패널 터치 -> 스포트라이트 블러 + 관련 처치 팝업 (재터치 시 관련 조작창 자동 이동)
+      const QUICK_PANELS = {
+        ecg: {
+          title: 'ECG · HR 관련 처치',
+          tab: 'drug',
+          actions: [
+            { label: 'Atropine', sel: '[data-drug4="atropine"]' },
+            { label: 'Glycopyrrolate', sel: '[data-drug4="glyco"]' },
+            { label: 'Fentanyl', sel: '[data-drug4="fentanyl"]' },
+            { label: 'Lidocaine', sel: '[data-drug4="lidocaine"]' },
+            { label: 'Calcium Gluconate', sel: '[data-drug4="caglu"]', span2: true }
+          ]
+        },
+        pleth: {
+          title: 'SpO₂ · PLETH 관련 처치',
+          tab: 'check',
+          actions: [
+            { label: '센서 재부착', sel: '#ch4-chk-sensor' },
+            { label: 'IPPV 기계환기', sel: '#ch4-btn-vent' },
+            { label: '수동 환기 (1회)', sel: '#ch4-btn-bag' },
+            { label: '기관튜브 확인', sel: '#ch4-chk-ett' }
+          ]
+        },
+        co2: {
+          title: 'ETCO₂ · RR 관련 처치',
+          tab: 'vent',
+          actions: [
+            { label: 'IPPV 기계환기', sel: '#ch4-btn-vent' },
+            { label: '수동 환기 (1회)', sel: '#ch4-btn-bag' },
+            { label: '소다라임·밸브 점검', sel: '#ch4-chk-soda' },
+            { label: '기관튜브 확인', sel: '#ch4-chk-ett' }
+          ]
+        },
+        bp: {
+          title: '혈압 (SBP/MBP/DBP) 관련 처치',
+          tab: 'drug',
+          actions: [
+            { label: 'Iso -0.5%', sel: '#ch4-iso-down' },
+            { label: '수액 볼루스 (10 mL/kg)', sel: '#ch4-btn-bolus' },
+            { label: 'Ephedrine', sel: '[data-drug4="ephedrine"]' },
+            { label: 'Norepinephrine CRI', sel: '[data-drug4="norepi"]' }
+          ]
+        },
+        bt: {
+          title: '체온 (BT) 관련 처치',
+          tab: 'vent',
+          actions: [
+            { label: '능동 가온', sel: '#ch4-btn-warm' },
+            { label: '신체 검사', sel: '#ch4-btn-phys' }
+          ]
+        },
+        iso: {
+          title: '기화기 (ISO % / MAC) 관련 처치',
+          tab: 'vent',
+          actions: [
+            { label: 'Iso -0.5%', sel: '#ch4-iso-down' },
+            { label: 'Iso +0.5%', sel: '#ch4-iso-up' },
+            { label: '기화기 OFF', sel: '#ch4-iso-off' },
+            { label: '심도 평가', sel: '#ch4-btn-depth' }
+          ]
+        }
+      };
+
+      function syncSpotlightContent() {
+        if (!qaState || !qaState.sourceEl) return;
+        const src = qaState.sourceEl;
+        const clone = src.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+        clone.classList.remove('ch4-tap-panel');
+        qaSpotlightEl.innerHTML = '';
+        qaSpotlightEl.appendChild(clone);
+        const srcCv = src.querySelector('canvas');
+        const dstCv = clone.querySelector('canvas');
+        if (srcCv && dstCv && srcCv.width > 0 && srcCv.height > 0) {
+          dstCv.width = srcCv.width;
+          dstCv.height = srcCv.height;
+          dstCv.getContext('2d').drawImage(srcCv, 0, 0);
+        }
+        // 버튼 active 상태 동기화
+        qaGridEl.querySelectorAll('[data-qa-sel]').forEach((btn) => {
+          const real = document.querySelector(btn.dataset.qaSel);
+          if (real) btn.classList.toggle('active', real.classList.contains('active'));
+        });
+      }
+
+      function syncSpotlightCanvasOnly() {
+        if (!qaState || !qaState.sourceEl) return;
+        const srcCv = qaState.sourceEl.querySelector('canvas');
+        const dstCv = qaSpotlightEl.querySelector('canvas');
+        if (srcCv && dstCv && srcCv.width > 0 && srcCv.height > 0) {
+          if (dstCv.width !== srcCv.width || dstCv.height !== srcCv.height) {
+            dstCv.width = srcCv.width;
+            dstCv.height = srcCv.height;
+          }
+          const ctx = dstCv.getContext('2d');
+          ctx.clearRect(0, 0, dstCv.width, dstCv.height);
+          ctx.drawImage(srcCv, 0, 0);
+        }
+      }
+
+      function openQuickPanel(key, sourceEl) {
+        if (!sim || evaluated || countdownActive) return;
+        const cfg = QUICK_PANELS[key];
+        if (!cfg || !sourceEl) return;
+        qaState = { key, sourceEl };
+        const rect = sourceEl.getBoundingClientRect();
+        qaSpotlightEl.style.left = `${Math.round(rect.left)}px`;
+        qaSpotlightEl.style.top = `${Math.round(rect.top)}px`;
+        qaSpotlightEl.style.width = `${Math.round(rect.width)}px`;
+        qaSpotlightEl.style.height = `${Math.round(rect.height)}px`;
+
+        qaTitleEl.textContent = cfg.title;
+        qaGridEl.innerHTML = '';
+        cfg.actions.forEach((a) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `b-btn prog-btn${a.span2 ? ' span-2' : ''}`;
+          btn.dataset.qaSel = a.sel;
+          btn.textContent = a.label;
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const real = document.querySelector(a.sel);
+            if (real) real.click();
+            syncSpotlightContent();
+          });
+          qaGridEl.appendChild(btn);
+        });
+
+        syncSpotlightContent();
+        qaBackdropEl.classList.remove('hidden');
+
+        // 팝오버 위치: 스포트라이트 바로 아래 (화면 하단 넘치면 위쪽으로 배치)
+        const popW = Math.min(340, window.innerWidth - 20);
+        const popLeft = Math.max(10, Math.min(window.innerWidth - popW - 10, rect.left + (rect.width - popW) / 2));
+        qaPopoverEl.style.width = `${Math.round(popW)}px`;
+        qaPopoverEl.style.left = `${Math.round(popLeft)}px`;
+        const popH = qaPopoverEl.offsetHeight || 150;
+        let popTop = rect.bottom + 10;
+        if (popTop + popH > window.innerHeight - 12) {
+          popTop = Math.max(12, rect.top - popH - 10);
+        }
+        qaPopoverEl.style.top = `${Math.round(popTop)}px`;
+        Settings.playTone(540, 0.04, 0.025);
+      }
+
+      document.querySelectorAll('[data-quick-panel]').forEach((el) => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openQuickPanel(el.dataset.quickPanel, el);
+        });
+      });
+
+      qaSpotlightEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!qaState) return;
+        const cfg = QUICK_PANELS[qaState.key];
+        closeQuickPanel();
+        if (cfg && cfg.tab) {
+          Settings.playTone(620, 0.05, 0.03);
+          activateTab(cfg.tab);
+        }
+      });
+
+      qaBackdropEl.addEventListener('click', (e) => {
+        if (e.target === qaBackdropEl) {
+          Settings.playTone(460, 0.03, 0.02);
+          closeQuickPanel();
+        }
+      });
 
       function setCollapsed(c) {
         if (window.innerWidth >= 960) { splitEl.classList.remove('ctrl-collapsed'); return; }
@@ -962,6 +1159,7 @@
           <div class="modal-row"><span class="muted">기화기 종료 (0%)</span><strong style="color:${sim.iso === 0 ? '#15803d' : '#b91c1c'};">${sim.iso === 0 ? 'OFF 완료' : `가동 중 (${sim.iso.toFixed(1)}%)`}</strong></div>
           <div class="modal-row"><span class="muted">발생 이벤트 / 처치</span><strong>${sim.events}건 / ${sim.actions}회</strong></div>
         `;
+        if (qaState) syncSpotlightContent();
       }
 
       function finalizeEvaluation(forcedArrestCause) {
