@@ -99,23 +99,23 @@
                     </div>
                   </div>
 
-                  <!-- 파형 숨김 모드 (이미지 3 구성: 상단 4칸 HR · RR · ETCO2 · SpO2) -->
+                  <!-- 파형 숨김 모드 (상단 4칸 HR · RR · SpO2 · ETCO2) -->
                   <div class="monitor-row ch4-num-top hidden" id="ch4-num-top">
                     <div class="m-cell">
                       <span class="mk">HR</span>
-                      <span class="mv"><span id="ch4-v-hr">--</span> <span id="ch4-v-hrstatus" style="font-size:9.5px; font-weight:700; color:#86efac;">정상파형</span></span>
+                      <span class="mv" style="white-space:nowrap;"><span id="ch4-v-hr">--</span> <span id="ch4-v-hrstatus" style="font-size:9.5px; font-weight:700; color:#86efac;">정상</span></span>
                     </div>
                     <div class="m-cell">
                       <span class="mk">RR</span>
-                      <span class="mv"><span id="ch4-v-rr">--</span> <span id="ch4-v-rrmode" style="font-size:10px; font-weight:700; color:#86efac;">자발</span></span>
-                    </div>
-                    <div class="m-cell">
-                      <span class="mk">ETCO₂</span>
-                      <span class="mv"><span id="ch4-v-etco2">--</span> <span id="ch4-v-etwave" style="font-size:9.5px; font-weight:700; color:#86efac;">정상</span></span>
+                      <span class="mv" style="white-space:nowrap;"><span id="ch4-v-rr">--</span> <span id="ch4-v-rrmode" style="font-size:9.5px; font-weight:700; color:#86efac;">자발</span></span>
                     </div>
                     <div class="m-cell">
                       <span class="mk">SpO₂</span>
                       <span class="mv" id="ch4-v-spo2">--%</span>
+                    </div>
+                    <div class="m-cell">
+                      <span class="mk">ETCO₂</span>
+                      <span class="mv" style="white-space:nowrap;"><span id="ch4-v-etco2">--</span> <span id="ch4-v-etwave" style="font-size:9.5px; font-weight:700; color:#86efac;">정상</span></span>
                     </div>
                   </div>
 
@@ -906,9 +906,10 @@
         document.getElementById('ch4-w-fico2-tag').textContent = `CO₂ · 4mm/s · FiCO₂ ${Math.round(sim.fiCO2)}`;
 
         // 파형 숨김 상단 4칸
+        const hrStatusShort = hrStatus === '정상파형' ? '정상' : hrStatus;
         document.getElementById('ch4-v-hr').textContent = hrTxt;
         const vHrStEl = document.getElementById('ch4-v-hrstatus');
-        vHrStEl.textContent = hrStatus;
+        vHrStEl.textContent = hrStatusShort;
         vHrStEl.style.color = hrStatusCol;
         document.getElementById('ch4-v-rr').textContent = String(rrVal);
         const vRrModeEl = document.getElementById('ch4-v-rrmode');
