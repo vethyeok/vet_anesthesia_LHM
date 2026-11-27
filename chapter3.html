@@ -103,6 +103,18 @@
               </div>
 
               <div>
+                <div class="eval-sec-lbl">기타 주사제 (선택사항)</div>
+                <div class="ch3-drug-row">
+                  <div class="ch3-drug-group">
+                    <button type="button" class="b-btn prog-btn" data-etc3="Maropitant">Maropitant</button>
+                    <button type="button" class="b-btn prog-btn" data-etc3="Famotidine">Famotidine</button>
+                    <button type="button" class="b-btn prog-btn" data-etc3="Atropine">Atropine</button>
+                  </div>
+                  <button type="button" class="b-btn ch3-antag-btn is-dose" id="ch3-etc-action-btn">투여</button>
+                </div>
+              </div>
+
+              <div>
                 <div class="eval-sec-lbl">항생제</div>
                 <div class="ch3-drug-row">
                   <div class="ch3-drug-group">
@@ -110,7 +122,7 @@
                     <button type="button" class="b-btn prog-btn" data-abx3="Ampi-Sulbac">Ampi-Sulbac</button>
                     <button type="button" class="b-btn prog-btn" data-abx3="Metronidazole">Metronidazole</button>
                   </div>
-                  <button type="button" class="b-btn ch3-antag-btn" id="ch3-abx-antag-btn">길항</button>
+                  <button type="button" class="b-btn ch3-antag-btn is-dose" id="ch3-abx-antag-btn">투여</button>
                 </div>
               </div>
 
@@ -122,47 +134,37 @@
                     <button type="button" class="b-btn prog-btn" data-sed3="Acepromazine">Acepromazine</button>
                     <button type="button" class="b-btn prog-btn" data-sed3="Benzodiazepines">Benzodiazepines</button>
                   </div>
-                  <button type="button" class="b-btn ch3-antag-btn is-dose" id="ch3-sed-action-btn">투약</button>
+                  <button type="button" class="b-btn ch3-antag-btn is-dose" id="ch3-sed-action-btn">투여</button>
                 </div>
-              </div>
-
-              <div>
-                <div class="eval-sec-lbl">전처치 약물 선택</div>
-                <div class="prog-grid">
-                  <button type="button" class="b-btn prog-btn" data-p3="Midazolam">Midazolam</button>
-                  <button type="button" class="b-btn prog-btn" data-p3="Dexmedetomidine">Dexmedetomidine</button>
-                  <button type="button" class="b-btn prog-btn" data-p3="Methadone">Methadone</button>
-                  <button type="button" class="b-btn prog-btn" data-p3="Butorphanol">Butorphanol</button>
-                </div>
-              </div>
-
-              <div class="exam-btn-list">
-                <button type="button" class="b-btn exam-main-btn" id="ch3-btn-apply-premed">전처치 일괄 투여</button>
               </div>
             </div>
 
             <!-- 2. 도입 · 삽관 -->
             <div class="ch1-pane pane-hidden" data-content="induct">
               <div>
-                <div class="eval-sec-lbl">유도제 선택 및 적정</div>
-                <div class="prog-grid" style="margin-bottom:8px;">
-                  <button type="button" class="b-btn prog-btn" data-i3="Propofol">Propofol</button>
-                  <button type="button" class="b-btn prog-btn" data-i3="Alfaxalone">Alfaxalone</button>
-                  <button type="button" class="b-btn prog-btn" data-i3="Etomidate">Etomidate</button>
-                  <button type="button" class="b-btn prog-btn" data-i3="Ketamine+Midazolam">Ketamine+Midazolam</button>
+                <div class="eval-sec-lbl">유도제 (1/4용량 투여)</div>
+                <div class="ch3-drug-row">
+                  <div class="ch3-drug-group">
+                    <button type="button" class="b-btn prog-btn" data-i3="Alfaxalone">Alfaxalone</button>
+                    <button type="button" class="b-btn prog-btn" data-i3="Propofol">Propofol</button>
+                    <button type="button" class="b-btn prog-btn" data-i3="Etomidate">Etomidate</button>
+                  </div>
+                  <button type="button" class="b-btn ch3-antag-btn is-dose" id="ch3-btn-titrate">투여</button>
                 </div>
-                <button type="button" class="b-btn exam-main-btn" id="ch3-btn-titrate">1/4 용량 적정 투여 (0/4)</button>
               </div>
 
               <div>
-                <div class="eval-sec-lbl">기관튜브 (ETT) 규격 및 삽관</div>
+                <div class="ch3-lbl-row">
+                  <div class="eval-sec-lbl">기관튜브 (ETT) 규격 및 삽관</div>
+                  <button type="button" class="b-btn ch3-help-q-btn" id="ch3-ett-help-btn" aria-label="기관튜브 규격 도움말">?</button>
+                </div>
                 <div class="asa-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:8px;">
                   <button type="button" class="b-btn asa-btn" data-ett="3.5">3.5</button>
                   <button type="button" class="b-btn asa-btn" data-ett="4.5">4.5</button>
                   <button type="button" class="b-btn asa-btn" data-ett="6.0">6.0</button>
                   <button type="button" class="b-btn asa-btn" data-ett="9.0">9.0</button>
                 </div>
-                <button type="button" class="b-btn exam-main-btn" id="ch3-btn-intubate">기관삽관 및 커프 팽창</button>
+                <button type="button" class="b-btn exam-main-btn" id="ch3-btn-intubate">기관삽관</button>
               </div>
             </div>
 
@@ -198,6 +200,73 @@
       <div id="ch3-antag-help-body" class="ch2-help-item" style="margin-bottom:14px;"></div>
       <div class="modal-close-wrap">
         <button id="ch3-antag-help-close" type="button" class="b-btn modal-close-btn">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ETT 규격 가이드 팝업 -->
+  <div id="ch3-ett-help-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch3-ett-help-title" style="backdrop-filter:blur(6px); z-index:116;">
+    <div class="modal-card" style="max-width:460px; max-height:86dvh; display:flex; flex-direction:column;">
+      <h2 id="ch3-ett-help-title" class="font-maru" style="font-size:18px; font-weight:600; color:var(--brown); margin-bottom:10px; flex-shrink:0;">기관튜브 (ETT) 가이드</h2>
+      <div style="overflow-y:auto; flex:1 1 auto; margin-bottom:12px;">
+        <div class="ch3-ett-info-box">
+          <div>• <span class="ett-murphy">Murphy (표준 PVC):</span> 일반·복부·흉부·정형 수술 및 <strong>MRI 촬영</strong>(금속 코일 아티팩트 방지) 권장</div>
+          <div style="margin-top:4px;">• <span class="ett-armored">Armored (나선 보강):</span> <strong>두경부·구강·치과·안과·단두종(BOAS)</strong> 처치 시 경부 굴곡 꺾임 방지 (벽이 두꺼워 동일 OD 기준 ID가 ~0.5 mm 작음, 최대 8.0 ID)</div>
+        </div>
+        <div class="ch3-ett-table-wrap">
+          <table class="ch3-ett-table">
+            <thead>
+              <tr><th>I.D (mm)</th><th>Murphy (O.D mm)</th><th>Armored (O.D mm)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>3.0</td><td>4.1</td><td>-</td></tr>
+              <tr><td>3.5</td><td>4.8</td><td>5.3</td></tr>
+              <tr><td>4.0</td><td>5.4</td><td>6.0</td></tr>
+              <tr><td>4.5</td><td>6.1</td><td>6.7</td></tr>
+              <tr><td>5.0</td><td>6.7</td><td>7.3</td></tr>
+              <tr><td>5.5</td><td>7.3</td><td>8.0</td></tr>
+              <tr><td>6.0</td><td>8.0</td><td>8.6</td></tr>
+              <tr><td>6.5</td><td>8.7</td><td>9.1</td></tr>
+              <tr><td>7.0</td><td>9.3</td><td>9.7</td></tr>
+              <tr><td>7.5</td><td>10.0</td><td>10.2</td></tr>
+              <tr><td>8.0</td><td>10.7</td><td>10.8</td></tr>
+              <tr><td>8.5</td><td>11.3</td><td>-</td></tr>
+              <tr><td>9.0</td><td>12.0</td><td>-</td></tr>
+              <tr><td>9.5</td><td>12.7</td><td>-</td></tr>
+              <tr><td>10.0</td><td>13.3</td><td>-</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-close-wrap" style="flex-shrink:0;">
+        <button id="ch3-ett-help-close" type="button" class="b-btn modal-close-btn">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 기관삽관 미니게임 시뮬레이터 팝업 -->
+  <div id="ch3-intub-game-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch3-intub-game-title" style="backdrop-filter:blur(6px); z-index:118;">
+    <div class="modal-card" style="max-width:420px;">
+      <h2 id="ch3-intub-game-title" class="font-maru" style="font-size:18px; font-weight:600; color:var(--brown); margin-bottom:6px;">기관삽관 시뮬레이터</h2>
+      <p id="ch3-intub-game-sub" style="font-size:12.5px; color:var(--brown-soft); margin-bottom:10px;">흰색 튜브 가이드가 녹색 <strong>성문(기관 입구)</strong> 영역에 들어왔을 때 삽입 버튼을 누르세요.</p>
+      <div class="ch3-intub-stage">
+        <div class="ch3-intub-larynx">
+          <span class="ch3-intub-label-left">식도 이탈</span>
+          <div class="ch3-intub-glottis">
+            <span>성문 (Glottis)</span>
+            <span id="ch3-intub-ett-lbl" style="font-size:10px; opacity:0.9;">ETT #--</span>
+          </div>
+          <span class="ch3-intub-label-right">식도 이탈</span>
+        </div>
+        <div class="ch3-intub-track">
+          <div class="ch3-intub-zone"></div>
+          <div class="ch3-intub-cursor" id="ch3-intub-cursor"></div>
+        </div>
+        <div class="ch3-intub-status" id="ch3-intub-status">후두경으로 후두개를 누르고 성문을 확인 중...</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button id="ch3-intub-insert-btn" type="button" class="b-btn" style="flex:1; height:42px; border-radius:12px; font-weight:700;">튜브 삽입!</button>
+        <button id="ch3-intub-cancel-btn" type="button" class="b-btn modal-close-btn" style="flex:0 0 82px; height:42px;">취소</button>
       </div>
     </div>
   </div>
@@ -258,8 +327,8 @@
       const chkBodyEl = document.getElementById('ch3-chk-body');
       const logListEl = document.getElementById('ch3-log-list');
       const ctrlHandleEl = document.getElementById('ch3-ctrl-handle');
-      const btnPremed = document.getElementById('ch3-btn-apply-premed');
       const btnPreO2 = document.getElementById('ch3-btn-preo2');
+      const etcActionBtn = document.getElementById('ch3-etc-action-btn');
       const abxAntagBtn = document.getElementById('ch3-abx-antag-btn');
       const sedActionBtn = document.getElementById('ch3-sed-action-btn');
       const btnTitrate = document.getElementById('ch3-btn-titrate');
@@ -269,6 +338,14 @@
       const antagHelpModalEl = document.getElementById('ch3-antag-help-modal');
       const antagHelpTitleEl = document.getElementById('ch3-antag-help-title');
       const antagHelpBodyEl = document.getElementById('ch3-antag-help-body');
+      const ettHelpBtn = document.getElementById('ch3-ett-help-btn');
+      const ettHelpModalEl = document.getElementById('ch3-ett-help-modal');
+      const intubGameModalEl = document.getElementById('ch3-intub-game-modal');
+      const intubCursorEl = document.getElementById('ch3-intub-cursor');
+      const intubStatusEl = document.getElementById('ch3-intub-status');
+      const intubEttLblEl = document.getElementById('ch3-intub-ett-lbl');
+      const intubInsertBtn = document.getElementById('ch3-intub-insert-btn');
+      const intubCancelBtn = document.getElementById('ch3-intub-cancel-btn');
       const detailModalEl = document.getElementById('ch3-preop-detail-modal');
       const dtHxEl = document.getElementById('ch3-dt-hx');
       const dtPeEl = document.getElementById('ch3-dt-pe');
@@ -291,16 +368,20 @@
       let currentStageId = 'tutorial';
       let currentCase = null;
       let vitals = { hr: 110, rr: 24, rrMode: '자발 호흡', spo2: 96, sbp: 122, map: 91, dbp: 76, etco2: null, etco2Wave: '파형 없음', depth: '각성' };
+      let etcPicks = new Set();
+      let etcDone = false;
       let abxPicks = new Set();
-      let abxAntagUsed = false;
+      let abxPhase = 'dose'; // 'dose' -> 'antag' -> 'help'
       let abxAllergy = { active: false, severity: null, resolved: false, delta: { hr: 0, rr: 0, sbp: 0, map: 0, dbp: 0 } };
       let sedPicks = new Set();
       let sedPhase = 'dose'; // 'dose' -> 'antag' -> 'help'
       let sedAdverse = { active: false, issues: [], resolved: false, delta: { hr: 0, rr: 0, sbp: 0, map: 0, dbp: 0 } };
-      let premedPicks = new Set();
-      let premedBtnDone = false;
       let indPick = null;
       let ettPick = null;
+      let intubAnimId = null;
+      let intubPos = 50;
+      let intubDir = 1;
+      let intubMisses = 0;
       let state = { premedDone: false, preO2Done: false, titrateCount: 0, intubated: false, trans: new Set(), mistakes: [] };
       let logs = [];
       let evaluated = false;
@@ -523,9 +604,9 @@
         statusLineEl.innerHTML = `<strong>진행 상태:</strong> ${stText}`;
 
         const administeredPremeds = [
-          ...(premedBtnDone ? [...abxPicks] : []),
-          ...(sedPhase !== 'dose' ? [...sedPicks] : []),
-          ...(premedBtnDone ? [...premedPicks] : [])
+          ...(etcDone ? [...etcPicks] : []),
+          ...(abxPhase !== 'dose' ? [...abxPicks] : []),
+          ...(sedPhase !== 'dose' ? [...sedPicks] : [])
         ];
         chkBodyEl.innerHTML = `
           <div class="sig-hx-list">
@@ -540,6 +621,9 @@
 
       document.getElementById('ch3-antag-help-close').addEventListener('click', () => antagHelpModalEl.classList.add('hidden'));
       antagHelpModalEl.addEventListener('click', (e) => { if (e.target === antagHelpModalEl) antagHelpModalEl.classList.add('hidden'); });
+      ettHelpBtn.addEventListener('click', () => { Settings.playTone(520, 0.04, 0.025); ettHelpModalEl.classList.remove('hidden'); });
+      document.getElementById('ch3-ett-help-close').addEventListener('click', () => ettHelpModalEl.classList.add('hidden'));
+      ettHelpModalEl.addEventListener('click', (e) => { if (e.target === ettHelpModalEl) ettHelpModalEl.classList.add('hidden'); });
 
       function detectAbxAllergy(c, pickedSet) {
         if (!c || !pickedSet || !pickedSet.size) return null;
@@ -632,8 +716,31 @@
         sedAdverse = { active: true, issues, resolved: false, delta: tot };
       }
 
+      document.querySelectorAll('[data-etc3]').forEach((b) => b.addEventListener('click', () => {
+        if (evaluated || etcDone) return;
+        const k = b.dataset.etc3;
+        if (etcPicks.has(k)) etcPicks.delete(k); else etcPicks.add(k);
+        b.classList.toggle('active', etcPicks.has(k));
+        Settings.playTone(540, 0.04, 0.025);
+      }));
+
+      etcActionBtn.addEventListener('click', () => {
+        if (evaluated || etcDone || !etcPicks.size) return;
+        etcDone = true;
+        etcActionBtn.textContent = '완료';
+        etcActionBtn.classList.remove('is-dose');
+        etcActionBtn.classList.add('exam-done');
+        etcActionBtn.disabled = true;
+        if (etcPicks.has('Atropine')) {
+          vitals.hr = Math.min(200, vitals.hr + 18);
+        }
+        addLog(`기타 주사제 투여: ${Array.from(etcPicks).join(', ')}`);
+        Settings.playTone(620, 0.06, 0.03);
+        renderMonitor();
+      });
+
       document.querySelectorAll('[data-abx3]').forEach((b) => b.addEventListener('click', () => {
-        if (evaluated || premedBtnDone) return;
+        if (evaluated || abxPhase !== 'dose') return;
         const k = b.dataset.abx3;
         if (abxPicks.has(k)) abxPicks.delete(k); else abxPicks.add(k);
         b.classList.toggle('active', abxPicks.has(k));
@@ -641,7 +748,7 @@
       }));
 
       abxAntagBtn.addEventListener('click', () => {
-        if (abxAntagUsed) {
+        if (abxPhase === 'help') {
           Settings.playTone(520, 0.04, 0.025);
           antagHelpTitleEl.textContent = ABX_ANTAG_HELP.title;
           antagHelpBodyEl.textContent = ABX_ANTAG_HELP.desc;
@@ -649,24 +756,47 @@
           return;
         }
         if (evaluated) return;
-        abxAntagUsed = true;
-        if (abxAllergy.active) {
-          vitals.hr = Math.max(40, vitals.hr - abxAllergy.delta.hr);
-          vitals.rr = Math.max(6, vitals.rr - abxAllergy.delta.rr);
-          vitals.sbp = Math.min(200, vitals.sbp - abxAllergy.delta.sbp);
-          vitals.map = Math.min(150, vitals.map - abxAllergy.delta.map);
-          vitals.dbp = Math.min(120, vitals.dbp - abxAllergy.delta.dbp);
-          abxAllergy.active = false;
-          abxAllergy.resolved = true;
-          addLog('항생제 알러지 길항 처치 완료 — 생체 바이탈 회복');
-        } else {
-          addLog('항생제 알러지 길항 처치 확인');
+        if (abxPhase === 'dose') {
+          if (!abxPicks.size) return;
+          abxPhase = 'antag';
+          state.premedDone = true;
+          // 항생제 숨김 감점: Cefa+Ampi, Ampi+Metro 감점 (Cefa+Metro 허용)
+          if (abxPicks.has('Cefazolin') && abxPicks.has('Ampi-Sulbac')) {
+            state.mistakes.push('항생제 중복 병용: Cefazolin + Ampi-Sulbac');
+          }
+          if (abxPicks.has('Ampi-Sulbac') && abxPicks.has('Metronidazole')) {
+            state.mistakes.push('항생제 중복 병용: Ampi-Sulbac + Metronidazole');
+          }
+          addLog(`항생제 투여: ${Array.from(abxPicks).join(', ')}`);
+          const allergySev = detectAbxAllergy(currentCase, abxPicks);
+          if (allergySev) applyAbxAllergyReaction(allergySev);
+          abxAntagBtn.textContent = '길항';
+          abxAntagBtn.classList.remove('is-dose');
+          abxAntagBtn.setAttribute('aria-label', '항생제 알러지 길항');
+          Settings.playTone(620, 0.06, 0.03);
+          renderMonitor();
+          return;
         }
-        abxAntagBtn.textContent = '?';
-        abxAntagBtn.classList.add('is-help');
-        abxAntagBtn.setAttribute('aria-label', '항생제 알러지 약물 도움말');
-        Settings.playTone(640, 0.06, 0.03);
-        renderMonitor();
+        if (abxPhase === 'antag') {
+          abxPhase = 'help';
+          if (abxAllergy.active) {
+            vitals.hr = Math.max(40, vitals.hr - abxAllergy.delta.hr);
+            vitals.rr = Math.max(6, vitals.rr - abxAllergy.delta.rr);
+            vitals.sbp = Math.min(200, vitals.sbp - abxAllergy.delta.sbp);
+            vitals.map = Math.min(150, vitals.map - abxAllergy.delta.map);
+            vitals.dbp = Math.min(120, vitals.dbp - abxAllergy.delta.dbp);
+            abxAllergy.active = false;
+            abxAllergy.resolved = true;
+            addLog('항생제 알러지 길항 처치 완료 — 생체 바이탈 회복');
+          } else {
+            addLog('항생제 알러지 길항 처치 확인');
+          }
+          abxAntagBtn.textContent = '?';
+          abxAntagBtn.classList.add('is-help');
+          abxAntagBtn.setAttribute('aria-label', '항생제 알러지 약물 도움말');
+          Settings.playTone(640, 0.06, 0.03);
+          renderMonitor();
+        }
       });
 
       document.querySelectorAll('[data-sed3]').forEach((b) => b.addEventListener('click', () => {
@@ -730,46 +860,6 @@
         }
       });
 
-      document.querySelectorAll('[data-p3]').forEach((b) => b.addEventListener('click', () => {
-        if (evaluated || premedBtnDone) return;
-        const k = b.dataset.p3;
-        if (premedPicks.has(k)) premedPicks.delete(k); else premedPicks.add(k);
-        b.classList.toggle('active', premedPicks.has(k));
-        Settings.playTone(540, 0.04, 0.025);
-      }));
-
-      btnPremed.addEventListener('click', () => {
-        if (evaluated || premedBtnDone || (!premedPicks.size && !abxPicks.size)) return;
-        premedBtnDone = true;
-        state.premedDone = true;
-        btnPremed.classList.add('exam-done');
-        btnPremed.disabled = true;
-        if (premedPicks.size) {
-          vitals.hr = Math.max(55, vitals.hr - (premedPicks.has('Dexmedetomidine') ? 26 : 12));
-          vitals.rr = Math.max(12, vitals.rr - 6);
-          vitals.rrMode = '자발 호흡';
-          vitals.depth = '경도 진정';
-        }
-        if (currentCase.trueAsa >= 4 && premedPicks.has('Dexmedetomidine')) {
-          state.mistakes.push('중증/응급 환자에서 Dexmedetomidine 전처치로 혈역학 부담 증가');
-        }
-        // 항생제 숨김 감점: Cefa+Ampi, Ampi+Metro 감점 (Cefa+Metro 허용)
-        if (abxPicks.has('Cefazolin') && abxPicks.has('Ampi-Sulbac')) {
-          state.mistakes.push('항생제 중복 병용: Cefazolin + Ampi-Sulbac');
-        }
-        if (abxPicks.has('Ampi-Sulbac') && abxPicks.has('Metronidazole')) {
-          state.mistakes.push('항생제 중복 병용: Ampi-Sulbac + Metronidazole');
-        }
-        addLog(`전처치 투여: ${[...abxPicks, ...premedPicks].join(', ')}`);
-
-        // 환자 항생제 알러지 반응 체크
-        const allergySev = detectAbxAllergy(currentCase, abxPicks);
-        if (allergySev) applyAbxAllergyReaction(allergySev);
-
-        Settings.playTone(620, 0.06, 0.03);
-        renderMonitor();
-      });
-
       btnPreO2.addEventListener('click', () => {
         if (evaluated || state.preO2Done) return;
         state.preO2Done = true;
@@ -782,31 +872,47 @@
       });
 
       document.querySelectorAll('[data-i3]').forEach((b) => b.addEventListener('click', () => {
-        if (evaluated || state.intubated) return;
+        if (evaluated || state.intubated || state.titrateCount > 0) return;
         indPick = b.dataset.i3;
         document.querySelectorAll('[data-i3]').forEach((el) => el.classList.toggle('active', el === b));
         Settings.playTone(540, 0.04, 0.025);
       }));
 
       btnTitrate.addEventListener('click', () => {
-        if (evaluated || state.intubated || !indPick) return;
+        if (evaluated || state.intubated || !indPick || state.titrateCount >= 4) return;
         state.titrateCount = Math.min(4, state.titrateCount + 1);
-        btnTitrate.textContent = `1/4 용량 적정 투여 (${state.titrateCount}/4)`;
-        const bpDrop = indPick === 'Etomidate' ? 2 : 6;
-        vitals.sbp = Math.max(70, vitals.sbp - Math.round(bpDrop * 1.3));
-        vitals.map = Math.max(52, vitals.map - bpDrop);
-        vitals.dbp = Math.max(38, vitals.dbp - Math.round(bpDrop * 0.8));
-        vitals.rr = Math.max(6, vitals.rr - 4);
-        vitals.depth = state.titrateCount >= 3 ? '삽관 가능' : '중등도 진정';
+        btnTitrate.textContent = String(state.titrateCount);
+
+        // 약물별 숨김 임상 특성 반영 (표기하지 않음)
+        const mapDrop = indPick === 'Etomidate' ? 1 : indPick === 'Propofol' ? 9 : 5;
+        const sbpDrop = indPick === 'Etomidate' ? 2 : indPick === 'Propofol' ? 11 : 6;
+        const dbpDrop = indPick === 'Etomidate' ? 1 : indPick === 'Propofol' ? 7 : 4;
+        const rrDrop = indPick === 'Propofol' ? 4 : 3;
+
+        vitals.sbp = Math.max(66, vitals.sbp - sbpDrop);
+        vitals.map = Math.max(50, vitals.map - mapDrop);
+        vitals.dbp = Math.max(36, vitals.dbp - dbpDrop);
+        vitals.rr = Math.max(6, vitals.rr - rrDrop);
+
+        if (state.titrateCount === 1 && indPick === 'Etomidate' && sedPhase === 'dose') {
+          state.mistakes.push('Etomidate 단독 투여(진정 전처치 누락)로 구역·근간대경련 발생');
+          addLog('Etomidate 단독 투여: 구역 및 근간대경련 관찰');
+        }
+
+        vitals.depth = state.titrateCount >= 3 ? '삽관 가능' : state.titrateCount === 2 ? '중등도 진정' : (vitals.depth === '각성' ? '경도 진정' : '중등도 진정');
+
         if (state.titrateCount === 4) {
-          vitals.rr = 0;
+          vitals.rr = 4;
           vitals.rrMode = '무호흡';
-          if (!state.preO2Done) vitals.spo2 = Math.max(88, vitals.spo2 - 7);
-          state.mistakes.push('유도제 과다 적정(4/4)으로 일시적 무호흡·저혈압 유발');
-          addLog(`${indPick} 4/4 과투여 — 무호흡 주의`);
+          vitals.sbp = Math.max(60, vitals.sbp - 14);
+          vitals.map = Math.max(45, vitals.map - 12);
+          vitals.dbp = Math.max(32, vitals.dbp - 10);
+          if (!state.preO2Done) vitals.spo2 = Math.max(82, vitals.spo2 - 8);
+          state.mistakes.push('유도제 4/4 과투여로 일시적 무호흡(RR 4) 및 저혈압 유발');
+          addLog(`${indPick} 4/4 과투여 — 일시적 무호흡(RR 4)·저혈압 발생`);
         } else {
           vitals.rrMode = '자발 호흡';
-          addLog(`${indPick} ${state.titrateCount}/4 적정 투여 (${vitals.depth})`);
+          addLog(`${indPick} ${state.titrateCount}/4 용량 적정 투여 (${vitals.depth})`);
         }
         Settings.playTone(580, 0.05, 0.03);
         renderMonitor();
@@ -819,14 +925,13 @@
         Settings.playTone(540, 0.04, 0.025);
       }));
 
-      btnIntubate.addEventListener('click', () => {
-        if (evaluated || state.intubated || !ettPick) return;
-        if (state.titrateCount < 2) {
-          state.mistakes.push('유도 깊이 부족 상태에서 조기 삽관 시도');
-          addLog('유도 깊이 부족 — 구역반사 발생, 추가 적정 필요');
-          Settings.playTone(320, 0.08, 0.03);
-          return;
-        }
+      function stopIntubGame() {
+        if (intubAnimId) { cancelAnimationFrame(intubAnimId); intubAnimId = null; }
+      }
+
+      function completeIntubation() {
+        stopIntubGame();
+        intubGameModalEl.classList.add('hidden');
         state.intubated = true;
         btnIntubate.classList.add('exam-done');
         btnIntubate.disabled = true;
@@ -836,19 +941,85 @@
         const ettMismatch = ettPick !== recEtt;
         if (ettMismatch) {
           state.mistakes.push(`ETT 규격 오차 (선택 #${ettPick} / 권장 #${recEtt})`);
+        }
+        if (vitals.rrMode === '무호흡' || vitals.rr <= 4) {
+          vitals.etco2 = 58;
+          vitals.etco2Wave = '이상 파형';
+        } else if (ettMismatch) {
           vitals.etco2 = 48;
           vitals.etco2Wave = '이상 파형';
-        } else if (vitals.rrMode === '무호흡' || vitals.rr <= 4) {
-          vitals.etco2 = 52;
-          vitals.etco2Wave = '이상 파형';
         } else {
-          vitals.etco2 = 39;
+          vitals.etco2 = 38;
           vitals.etco2Wave = '정상 파형';
         }
         vitals.depth = '수술 적정 도입';
-        addLog(`ETT #${ettPick} 기관삽관 완료 · 커프 팽창 · ETCO₂ ${vitals.etco2} mmHg (${vitals.etco2Wave})`);
+        addLog(`ETT #${ettPick} 기관삽관 완료 · ETCO₂ ${vitals.etco2} mmHg (${vitals.etco2Wave})`);
         Settings.playTone(700, 0.07, 0.035);
         renderMonitor();
+      }
+
+      function openIntubGame() {
+        stopIntubGame();
+        intubPos = 14;
+        intubDir = 1;
+        intubEttLblEl.textContent = `ETT #${ettPick}`;
+        intubCursorEl.style.left = `${intubPos}%`;
+        intubStatusEl.textContent = '후두경으로 후두개를 누르고 성문을 확인 중...';
+        intubStatusEl.className = 'ch3-intub-status';
+        intubInsertBtn.disabled = false;
+        intubGameModalEl.classList.remove('hidden');
+
+        let lastTs = null;
+        const speed = 58; // % per second
+        function tick(ts) {
+          if (lastTs !== null) {
+            const dt = Math.min(0.05, (ts - lastTs) / 1000);
+            intubPos += intubDir * speed * dt;
+            if (intubPos >= 94) { intubPos = 94; intubDir = -1; }
+            else if (intubPos <= 6) { intubPos = 6; intubDir = 1; }
+            intubCursorEl.style.left = `${intubPos.toFixed(1)}%`;
+          }
+          lastTs = ts;
+          intubAnimId = requestAnimationFrame(tick);
+        }
+        intubAnimId = requestAnimationFrame(tick);
+      }
+
+      intubInsertBtn.addEventListener('click', () => {
+        if (!intubAnimId) return;
+        if (intubPos >= 34 && intubPos <= 66) {
+          stopIntubGame();
+          intubInsertBtn.disabled = true;
+          intubStatusEl.textContent = '성문 통과 성공! 커프를 팽창하고 호흡회로를 연결합니다.';
+          intubStatusEl.className = 'ch3-intub-status ok';
+          Settings.playTone(740, 0.08, 0.035);
+          setTimeout(() => completeIntubation(), 350);
+        } else {
+          intubMisses += 1;
+          intubStatusEl.textContent = '성문 이탈(식도 방향) — 녹색 성문 영역에 맞춰 다시 삽입하세요!';
+          intubStatusEl.className = 'ch3-intub-status err';
+          addLog('기관삽관 재시도: 성문 이탈 (식도 방향)');
+          if (intubMisses === 2) {
+            state.mistakes.push('기관삽관 반복 실패로 기도 자극 증가');
+          }
+          Settings.playTone(280, 0.09, 0.03);
+        }
+      });
+
+      intubCancelBtn.addEventListener('click', () => {
+        stopIntubGame();
+        intubGameModalEl.classList.add('hidden');
+      });
+
+      btnIntubate.addEventListener('click', () => {
+        if (evaluated || state.intubated || !ettPick) return;
+        if (state.titrateCount < 2) {
+          state.mistakes.push('유도 깊이 부족 상태에서 조기 삽관 시도');
+          addLog('유도 깊이 부족 — 구역반사 발생(삽관 불가), 추가 적정 필요');
+          Settings.playTone(320, 0.08, 0.03);
+          return;
+        }
+        openIntubGame();
       });
 
       document.querySelectorAll('[data-tr]').forEach((b) => b.addEventListener('click', () => {
@@ -965,16 +1136,18 @@
       async function loadStage(stageId, opts = {}) {
         const prevCase = currentCase;
         currentStageId = stageId;
+        stopIntubGame();
+        etcPicks = new Set();
+        etcDone = false;
         abxPicks = new Set();
-        abxAntagUsed = false;
+        abxPhase = 'dose';
         abxAllergy = { active: false, severity: null, resolved: false, delta: { hr: 0, rr: 0, sbp: 0, map: 0, dbp: 0 } };
         sedPicks = new Set();
         sedPhase = 'dose';
         sedAdverse = { active: false, issues: [], resolved: false, delta: { hr: 0, rr: 0, sbp: 0, map: 0, dbp: 0 } };
-        premedPicks = new Set();
-        premedBtnDone = false;
         indPick = null;
         ettPick = null;
+        intubMisses = 0;
         state = { premedDone: false, preO2Done: false, titrateCount: 0, intubated: false, trans: new Set(), mistakes: [] };
         logs = [];
         evaluated = false;
@@ -982,19 +1155,34 @@
         aiText = null; soapText = null;
 
         antagHelpModalEl.classList.add('hidden');
+        ettHelpModalEl.classList.add('hidden');
+        intubGameModalEl.classList.add('hidden');
         detailModalEl.classList.add('hidden');
         reviewModalEl.classList.add('hidden');
         stampOverlayEl.classList.add('hidden');
         evalSubmitBtn.textContent = '도입 완료';
-        btnTitrate.textContent = '1/4 용량 적정 투여 (0/4)';
-        abxAntagBtn.textContent = '길항';
+
+        etcActionBtn.textContent = '투여';
+        etcActionBtn.classList.add('is-dose');
+        etcActionBtn.classList.remove('exam-done');
+        etcActionBtn.disabled = false;
+
+        abxAntagBtn.textContent = '투여';
+        abxAntagBtn.classList.add('is-dose');
         abxAntagBtn.classList.remove('is-help');
         abxAntagBtn.removeAttribute('aria-label');
-        sedActionBtn.textContent = '투약';
+
+        sedActionBtn.textContent = '투여';
         sedActionBtn.classList.add('is-dose');
         sedActionBtn.classList.remove('is-help');
         sedActionBtn.removeAttribute('aria-label');
-        document.querySelectorAll('[data-abx3], [data-sed3], [data-p3], [data-i3], [data-ett]').forEach((b) => b.classList.remove('active'));
+
+        btnTitrate.textContent = '투여';
+        btnTitrate.classList.add('is-dose');
+        btnTitrate.classList.remove('exam-done');
+        btnTitrate.disabled = false;
+
+        document.querySelectorAll('[data-etc3], [data-abx3], [data-sed3], [data-i3], [data-ett]').forEach((b) => b.classList.remove('active'));
         document.querySelectorAll('.exam-main-btn').forEach((b) => { b.classList.remove('exam-done'); b.disabled = false; });
         ['ch3-sec-vitals', 'ch3-sec-chk', 'ch3-sec-log'].forEach((id) => setMonCollapsed(id, false));
         logListEl.innerHTML = '<div class="mon-empty">도입 대기 중</div>';
@@ -1036,13 +1224,13 @@
         chapterTitle: '마취 도입',
         initialStageId: 'tutorial',
         helpSlides: [
-          { mark: '1', label: '전처치 및 전산소화', desc: '적절한 전처치 투여 후 3분 전산소화로 산소 예비량을 확보합니다.' },
+          { mark: '1', label: '전처치 및 전산소화', desc: '전산소화로 산소 예비량을 확보하고 전처치 약물을 선택해 투여합니다.' },
           { mark: '2', label: '유도제 적정 및 삽관', desc: '1/4씩 적정하여 무호흡을 방지하고 체중에 맞는 ETT로 삽관합니다.' },
           { mark: '3', label: '유지 전환 체크', desc: 'O₂, 기화기, APL 밸브 개방, 모니터 부착 완료 후 도입을 마칩니다.' }
         ],
         tutorialSteps: [
-          { title: '1. 도입 모니터링창', sel: '#ch3-monitor', onEnter: () => activateTab('premed'), text: '실시간 생체 모니터(HR·SpO₂·MAP·RR·ETCO₂)와 도입 체크리스트·처치 로그를 확인합니다.' },
-          { title: '2. 전처치 · 전산소화', sel: '#ch3-control', onEnter: () => activateTab('premed'), text: '전처치 약물을 선택해 일괄 투여하고, 전산소화(Pre-O₂)로 산소 예비량을 확보합니다.' },
+          { title: '1. 도입 모니터링창', sel: '#ch3-monitor', onEnter: () => activateTab('premed'), text: '실시간 생체 모니터와 도입 체크리스트·처치 로그를 확인합니다.' },
+          { title: '2. 전처치 · 전산소화', sel: '#ch3-control', onEnter: () => activateTab('premed'), text: '전산소화로 산소 예비량을 확보하고 전처치 약물을 선택해 투여합니다.' },
           { title: '3. 도입 · 기관삽관', sel: '#ch3-control', onEnter: () => activateTab('induct'), text: '유도제를 1/4씩 적정 투여한 뒤 체중에 맞는 ETT 규격을 선택해 삽관합니다.' },
           { title: '4. 유지 전환 및 시작', sel: '#ch3-control', onEnter: () => activateTab('trans'), text: 'O₂·기화기·APL 밸브 개방·모니터 부착을 완료하고 도입 완료를 누릅니다. 이제 튜토리얼 케이스를 시작합니다.' }
         ],
