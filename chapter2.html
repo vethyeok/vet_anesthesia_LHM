@@ -223,17 +223,19 @@
     </div>
   </div>
 
-  <!-- Chapter 1 마취 전 검사 결과 상세 팝업 -->
+  <!-- Chapter 1 마취 전 검사 및 특이사항 상세 팝업 -->
   <div id="ch2-preop-detail-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch2-detail-title" style="backdrop-filter:blur(6px); z-index:115;">
     <div class="modal-card" style="max-width:460px; max-height:85dvh; display:flex; flex-direction:column;">
-      <h2 id="ch2-detail-title" class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown); margin-bottom:10px;">마취 전 검사 상세 결과</h2>
+      <h2 id="ch2-detail-title" class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown); margin-bottom:10px;">마취 전 검사 및 특이사항</h2>
       <div class="step-tabs" role="tablist" style="margin-bottom:10px; flex-shrink:0;">
-        <button type="button" class="step-tab active" data-dt-tab="pe">신체검사</button>
+        <button type="button" class="step-tab active" data-dt-tab="hx">특이사항</button>
+        <button type="button" class="step-tab" data-dt-tab="pe">신체검사</button>
         <button type="button" class="step-tab" data-dt-tab="lab">혈액검사</button>
         <button type="button" class="step-tab" data-dt-tab="img">영상검사</button>
       </div>
       <div style="flex:1 1 auto; overflow-y:auto; display:flex; flex-direction:column; gap:10px; min-height:200px; padding-right:2px;">
-        <div id="ch2-dt-pe" data-dt-pane="pe"></div>
+        <div id="ch2-dt-hx" data-dt-pane="hx"></div>
+        <div id="ch2-dt-pe" data-dt-pane="pe" class="pane-hidden"></div>
         <div id="ch2-dt-lab" data-dt-pane="lab" class="pane-hidden"></div>
         <div id="ch2-dt-img" data-dt-pane="img" class="pane-hidden"></div>
       </div>
@@ -292,6 +294,7 @@
       const catHelpBodyEl = document.getElementById('ch2-cat-help-body');
 
       const detailModalEl = document.getElementById('ch2-preop-detail-modal');
+      const dtHxEl = document.getElementById('ch2-dt-hx');
       const dtPeEl = document.getElementById('ch2-dt-pe');
       const dtLabEl = document.getElementById('ch2-dt-lab');
       const dtImgEl = document.getElementById('ch2-dt-img');
@@ -538,7 +541,7 @@
         e.stopPropagation();
         if (!currentCase) return;
         Settings.playTone(540, 0.05, 0.03);
-        setDetailTab('pe');
+        setDetailTab('hx');
         detailModalEl.classList.remove('hidden');
       });
       document.getElementById('ch2-detail-close').addEventListener('click', () => detailModalEl.classList.add('hidden'));
@@ -554,6 +557,9 @@
       }
 
       function renderFullPreopDetail(c, P) {
+        const hxRows = (c.history || []).map((h) => `<div class="img-row"><strong>${escapeHtml(h.label)}</strong><br/>${escapeHtml(h.text)}</div>`);
+        dtHxEl.innerHTML = `<div class="img-list"><div class="img-row"><strong>주호소</strong><br/>${escapeHtml(c.chiefComplaint)}</div>${hxRows.join('')}</div>`;
+
         const p = c.pe;
         const isCat = c.species === 'cat';
         const abnBT = p.bt < 37.5 || p.bt > 39.2;
