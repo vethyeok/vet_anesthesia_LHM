@@ -1025,49 +1025,25 @@
 
       /* 1단계: 자세 신전 & 후두 노출 (+ 고양이 국소마취) */
       function renderIgStep1() {
-        const exp = ig.exposePct;
-        const exposed = exp >= ig.exposeTarget;
-        const epiDrop = Math.round((exp / 100) * 34);
-        const bladeY = Math.round((exp / 100) * 32);
-        const glottisOp = Math.max(0.08, Math.min(1, (exp - 25) / (ig.exposeTarget - 25)));
-        const palateLen = ig.isBrachy ? 18 : 6;
+        const sp = ig.isCat ? 'cat' : 'dog';
+        const bgSrc = `assets/intubation/${sp}_larynx_empty.jpg`;
+        const tongueSrc = `assets/intubation/${sp}_tongue.png`;
 
         igBodyEl.innerHTML = `
           <div class="ch3-ig-grid">
-            <div class="ch3-ig-canvas-box" id="ch3-ig-s1-canvas">
-              <svg viewBox="0 0 320 210" aria-label="구강 및 인후두 뷰">
-                <rect x="0" y="0" width="320" height="210" rx="10" fill="#fbf7f0"/>
-                <!-- 구강 외곽 -->
-                <ellipse cx="160" cy="108" rx="112" ry="86" fill="${ig.isCat ? '#d6c3a8' : '#dfc8a8'}" stroke="#8b6f52" stroke-width="2"/>
-                <ellipse cx="160" cy="108" rx="88" ry="68" fill="#9f3f49" stroke="#7c2d36" stroke-width="2"/>
-                <!-- 위쪽 식도 입구 -->
-                <ellipse cx="160" cy="64" rx="22" ry="9" fill="#5b1f27" opacity="${glottisOp.toFixed(2)}"/>
-                <text x="160" y="51" text-anchor="middle" font-size="10" font-weight="700" fill="#fde68a" opacity="${glottisOp.toFixed(2)}">식도 입구</text>
-                <!-- 성문 / 피열연골 -->
-                <g opacity="${glottisOp.toFixed(2)}">
-                  <path d="M138 112 Q160 72 182 112 Z" fill="#fca5a5" stroke="#7f1d1d" stroke-width="2"/>
-                  <polygon points="151,108 160,84 169,108" fill="#1e1b24"/>
-                  <text x="160" y="124" text-anchor="middle" font-size="10" font-weight="700" fill="#dcfce7">성문(피열연골)</text>
-                </g>
-                <!-- 연구개 (단두종은 길게) -->
-                <path d="M108 48 Q160 ${62 + palateLen - Math.round(epiDrop * 0.45)} 212 48 L204 42 Q160 44 116 42 Z" fill="#c95b65" stroke="#881337" stroke-width="1.2"/>
-                <!-- 후두개 (아래로 젖혀짐) -->
-                <path d="M130 ${106 + epiDrop} Q160 ${78 + epiDrop} 190 ${106 + epiDrop} Q160 ${122 + epiDrop} 130 ${106 + epiDrop} Z" fill="#e87982" stroke="#881337" stroke-width="1.5"/>
-                <!-- 혀뿌리 -->
-                <path d="M96 154 Q160 ${130 + Math.round(epiDrop * 0.5)} 224 154 Q195 178 160 180 Q125 178 96 154 Z" fill="#e17c87" stroke="#9f3f49" stroke-width="1.5"/>
-                <!-- 후두경 블레이드 & 핸들 (드래그 가능) -->
-                <g id="ch3-ig-blade" transform="translate(0, ${bladeY})" style="cursor:ns-resize;">
-                  <path d="M148 124 L172 124 L176 156 L144 156 Z" fill="#cbd5e1" stroke="#475569" stroke-width="1.6"/>
-                  <rect x="148" y="154" width="24" height="44" rx="6" fill="#94a3b8" stroke="#334155" stroke-width="1.6"/>
-                  <line x1="154" y1="166" x2="166" y2="166" stroke="#f8fafc" stroke-width="1.6"/>
-                  <line x1="154" y1="174" x2="166" y2="174" stroke="#f8fafc" stroke-width="1.6"/>
-                  <text x="160" y="191" text-anchor="middle" font-size="9" font-weight="700" fill="#1e293b">드래그 ↓</text>
-                </g>
-              </svg>
-              <div style="width:100%; margin-top:4px; display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--brown);">
-                <span>후두 노출: <strong>${Math.round(exp)}%</strong> (목표 ${ig.exposeTarget}%)</span>
+            <div class="ch3-ig-canvas-box">
+              <div class="ch3-ig-stage-frame" id="ch3-ig-s1-canvas" style="cursor:ns-resize;">
+                <img class="ch3-ig-bg" src="${bgSrc}" alt="구강 및 인후두 배경" draggable="false"/>
+                <div id="ch3-ig-s1-eso-tag" style="position:absolute; left:50%; top:39%; transform:translate(-50%,-50%); font-size:10px; font-weight:700; color:#fef08a; background:rgba(91,31,39,0.72); padding:1px 6px; border-radius:6px; pointer-events:none; opacity:0.1;">식도 입구</div>
+                <div id="ch3-ig-s1-glo-tag" style="position:absolute; left:50%; top:53%; transform:translate(-50%,-50%); font-size:10px; font-weight:700; color:#dcfce7; background:rgba(20,83,45,0.72); padding:1px 6px; border-radius:6px; pointer-events:none; opacity:0.1;">성문(피열연골)</div>
+                <img id="ch3-ig-tongue-img" class="ch3-ig-layer" src="${tongueSrc}" alt="혀" draggable="false" style="left:50%; top:47%; width:34%; height:auto; transform:translate(-50%, 0%);"/>
+                <img id="ch3-ig-scope-img" class="ch3-ig-layer" src="assets/intubation/laryngoscope_top.png" alt="후두경" draggable="false" style="left:50%; top:52%; width:15%; height:auto; transform:translate(-50%, 0%); filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35));"/>
+                <div style="position:absolute; right:8px; bottom:8px; font-size:10.5px; font-weight:700; color:#fff; background:rgba(45,35,28,0.72); padding:2px 7px; border-radius:99px; pointer-events:none;">아래로 드래그 ↓</div>
+              </div>
+              <div style="width:100%; margin-top:5px; display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--brown);">
+                <span>후두 노출: <strong id="ch3-ig-s1-pct">0%</strong> (목표 ${ig.exposeTarget}%)</span>
                 <div style="flex:1; height:7px; background:var(--beige-soft); border-radius:99px; overflow:hidden; border:1px solid var(--border);">
-                  <div style="width:${Math.min(100, exp)}%; height:100%; background:${exposed ? '#22c55e' : '#d97706'};"></div>
+                  <div id="ch3-ig-s1-bar" style="width:0%; height:100%; background:#d97706;"></div>
                 </div>
               </div>
             </div>
@@ -1076,28 +1052,70 @@
               <div style="display:flex; flex-direction:column; gap:7px;">
                 ${ig.isBrachy ? '<div class="ch3-ig-alert">단두종 환자: 연구개가 길어 후두경을 더 깊게(90%) 내려야 성문이 노출됩니다.</div>' : ''}
                 ${ig.isCat ? `
-                  <div class="ch3-ig-alert ${ig.lidoDone ? 'ok' : 'danger'}">
-                    ${ig.lidoDone ? '성문 이완 완료 (2% Lidocaine 적용됨)' : ig.lidoWait > 0 ? `2% Lidocaine 분무 완료 — 이완 대기 ${ig.lidoWait.toFixed(1)}초 (임상 60~90초)` : '후두경련 위험! 성문에 2% Lidocaine 스프레이를 분무하세요.'}
-                  </div>
-                  <button type="button" class="b-btn ch3-ig-btn-primary" id="ch3-ig-lido-btn" ${!exposed || ig.lidoDone || ig.lidoWait > 0 ? 'disabled' : ''}>
-                    ${ig.lidoDone ? '2% Lidocaine 완료' : ig.lidoWait > 0 ? `성문 이완 중 (${ig.lidoWait.toFixed(1)}초)` : '2% Lidocaine 스프레이'}
-                  </button>
-                  <button type="button" class="b-btn ch3-ig-btn-sub" id="ch3-ig-benzo-btn" ${!exposed ? 'disabled' : ''}>Benzocaine 스프레이</button>
+                  <div id="ch3-ig-lido-alert" class="ch3-ig-alert danger">후두경련 위험! 성문에 2% Lidocaine 스프레이를 분무하세요.</div>
+                  <button type="button" class="b-btn ch3-ig-btn-primary" id="ch3-ig-lido-btn" disabled>2% Lidocaine 스프레이</button>
+                  <button type="button" class="b-btn ch3-ig-btn-sub" id="ch3-ig-benzo-btn" disabled>Benzocaine 스프레이</button>
                 ` : '<div class="ch3-ig-hint">후두경 핸들을 아래로 드래그하거나 보조 버튼을 눌러 혀뿌리를 누르고 후두개를 젖히세요.</div>'}
               </div>
               <div style="display:flex; flex-direction:column; gap:6px;">
                 <button type="button" class="b-btn ch3-ig-btn-sub" id="ch3-ig-press-btn">후두경 누르기 (+25%)</button>
-                <button type="button" class="b-btn ch3-ig-btn-primary" id="ch3-ig-s1-next" ${!exposed ? 'disabled' : ''}>다음: 성문 조준 →</button>
+                <button type="button" class="b-btn ch3-ig-btn-primary" id="ch3-ig-s1-next" disabled>다음: 성문 조준 →</button>
               </div>
             </div>
           </div>
         `;
 
         const canvasBox = document.getElementById('ch3-ig-s1-canvas');
+        const tongueImg = document.getElementById('ch3-ig-tongue-img');
+        const scopeImg = document.getElementById('ch3-ig-scope-img');
+        const esoTag = document.getElementById('ch3-ig-s1-eso-tag');
+        const gloTag = document.getElementById('ch3-ig-s1-glo-tag');
+        const pctEl = document.getElementById('ch3-ig-s1-pct');
+        const barEl = document.getElementById('ch3-ig-s1-bar');
+        const nextBtn = document.getElementById('ch3-ig-s1-next');
+        const lidoAlert = document.getElementById('ch3-ig-lido-alert');
+        const lidoBtn = document.getElementById('ch3-ig-lido-btn');
+        const benzoBtn = document.getElementById('ch3-ig-benzo-btn');
+
+        function syncStep1() {
+          const exp = ig.exposePct;
+          const exposed = exp >= ig.exposeTarget;
+          const slideY = (exp / 100) * 44;
+          const scopeY = (exp / 100) * 28;
+          const tagOp = Math.max(0.08, Math.min(1, (exp - 20) / Math.max(1, ig.exposeTarget - 20)));
+
+          tongueImg.style.transform = `translate(-50%, ${slideY.toFixed(1)}%)`;
+          scopeImg.style.transform = `translate(-50%, ${scopeY.toFixed(1)}%)`;
+          esoTag.style.opacity = tagOp.toFixed(2);
+          gloTag.style.opacity = tagOp.toFixed(2);
+          pctEl.textContent = `${Math.round(exp)}%`;
+          barEl.style.width = `${Math.min(100, exp).toFixed(1)}%`;
+          barEl.style.background = exposed ? '#22c55e' : '#d97706';
+          nextBtn.disabled = !exposed;
+
+          if (ig.isCat && lidoAlert && lidoBtn && benzoBtn) {
+            lidoAlert.className = `ch3-ig-alert ${ig.lidoDone ? 'ok' : 'danger'}`;
+            lidoAlert.textContent = ig.lidoDone
+              ? '성문 이완 완료 (2% Lidocaine 적용됨)'
+              : ig.lidoWait > 0
+                ? `2% Lidocaine 분무 완료 — 이완 대기 ${ig.lidoWait.toFixed(1)}초 (임상 60~90초)`
+                : '후두경련 위험! 성문에 2% Lidocaine 스프레이를 분무하세요.';
+            lidoBtn.disabled = !exposed || ig.lidoDone || ig.lidoWait > 0;
+            lidoBtn.textContent = ig.lidoDone
+              ? '2% Lidocaine 완료'
+              : ig.lidoWait > 0
+                ? `성문 이완 중 (${ig.lidoWait.toFixed(1)}초)`
+                : '2% Lidocaine 스프레이';
+            benzoBtn.disabled = !exposed;
+          }
+        }
+        syncStep1();
+
         let dragging = false;
         let startY = 0;
         let startExp = ig.exposePct;
         canvasBox.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
           dragging = true;
           startY = e.clientY;
           startExp = ig.exposePct;
@@ -1106,19 +1124,24 @@
         canvasBox.addEventListener('pointermove', (e) => {
           if (!dragging) return;
           const dy = e.clientY - startY;
-          ig.exposePct = Math.max(0, Math.min(100, startExp + dy * 1.1));
-          renderIgStep1();
+          ig.exposePct = Math.max(0, Math.min(100, startExp + dy * 0.9));
+          syncStep1();
         });
-        canvasBox.addEventListener('pointerup', () => { dragging = false; });
+        const endDrag1 = () => {
+          if (!dragging) return;
+          dragging = false;
+          if (ig.exposePct >= ig.exposeTarget) setIgStatus('후두개가 젖혀져 성문과 위쪽 식도 입구가 노출되었습니다.', 'ok');
+        };
+        canvasBox.addEventListener('pointerup', endDrag1);
+        canvasBox.addEventListener('pointercancel', endDrag1);
 
         document.getElementById('ch3-ig-press-btn').addEventListener('click', () => {
           ig.exposePct = Math.min(100, ig.exposePct + 25);
           Settings.playTone(520, 0.04, 0.025);
           if (ig.exposePct >= ig.exposeTarget) setIgStatus('후두개가 젖혀져 성문과 위쪽 식도 입구가 노출되었습니다.', 'ok');
-          renderIgStep1();
+          syncStep1();
         });
 
-        const lidoBtn = document.getElementById('ch3-ig-lido-btn');
         if (lidoBtn) {
           lidoBtn.addEventListener('click', () => {
             if (ig.lidoDone || ig.lidoWait > 0) return;
@@ -1126,7 +1149,7 @@
             Settings.playTone(620, 0.06, 0.03);
             addLog('고양이 성문 2% Lidocaine 국소마취 분무 (이완 대기)');
             setIgStatus('2% Lidocaine 분무 완료 — 2초간 성문 이완을 대기합니다...', 'ok');
-            renderIgStep1();
+            syncStep1();
             ig.lidoTimer = setInterval(() => {
               ig.lidoWait = Math.max(0, +(ig.lidoWait - 0.2).toFixed(1));
               if (ig.lidoWait <= 0) {
@@ -1136,12 +1159,11 @@
                 Settings.playTone(720, 0.07, 0.03);
                 setIgStatus('고양이 성문 이완 완료! 다음 단계로 진행하세요.', 'ok');
               }
-              if (ig && ig.step === 1) renderIgStep1();
+              if (ig && ig.step === 1) syncStep1();
             }, 200);
           });
         }
 
-        const benzoBtn = document.getElementById('ch3-ig-benzo-btn');
         if (benzoBtn) {
           benzoBtn.addEventListener('click', () => {
             addIgMistakeOnce('cat_benzo', '고양이 후두 마취에 Benzocaine 사용 (메트헤모글로빈혈증 위험 및 후두경련 유발)');
@@ -1152,7 +1174,7 @@
           });
         }
 
-        document.getElementById('ch3-ig-s1-next').addEventListener('click', () => {
+        nextBtn.addEventListener('click', () => {
           if (ig.exposePct < ig.exposeTarget) return;
           if (ig.isCat && !ig.lidoDone) {
             addIgMistakeOnce('cat_no_lido', '고양이 후두 2% Lidocaine 미분무(또는 이완 대기 누락) 강행으로 후두경련 발생');
@@ -1172,30 +1194,27 @@
 
       /* 2A단계: 호흡에 맞춰 여닫히는 성문 조준 & 진입 */
       function renderIgStep2Glottis() {
-        ig.tubeX = 246;
-        ig.tubeY = 172;
+        const sp = ig.isCat ? 'cat' : 'dog';
+        const bgSrc = `assets/intubation/${sp}_larynx_empty.jpg`;
+        const tongueSrc = `assets/intubation/${sp}_tongue.png`;
+        ig.tubeX = 76;
+        ig.tubeY = 78;
+
         igBodyEl.innerHTML = `
           <div class="ch3-ig-grid">
-            <div class="ch3-ig-canvas-box" id="ch3-ig-s2a-canvas">
-              <svg viewBox="0 0 320 210" id="ch3-ig-s2a-svg" aria-label="성문 조준 뷰">
-                <rect x="0" y="0" width="320" height="210" rx="10" fill="#fbf7f0"/>
-                <ellipse cx="152" cy="108" rx="106" ry="82" fill="${ig.isCat ? '#d6c3a8' : '#dfc8a8'}" stroke="#8b6f52" stroke-width="2"/>
-                <ellipse cx="152" cy="108" rx="82" ry="64" fill="#9f3f49" stroke="#7c2d36" stroke-width="2"/>
-                <!-- 위쪽 식도 입구 (오답 영역) -->
-                <ellipse cx="152" cy="64" rx="26" ry="11" fill="#4c151d" stroke="#f87171" stroke-width="1.5" stroke-dasharray="3 2"/>
-                <text x="152" y="50" text-anchor="middle" font-size="10" font-weight="700" fill="#fecaca">식도 입구 (주의)</text>
-                <!-- 성문 (호흡에 따라 개폐) -->
-                <circle cx="152" cy="112" r="24" fill="rgba(34,197,94,0.18)" stroke="#4ade80" stroke-width="2" stroke-dasharray="4 2"/>
-                <polygon id="ch3-ig-glottis-poly" points="140,122 152,92 164,122" fill="#18181b" stroke="#fca5a5" stroke-width="1.6"/>
-                <text id="ch3-ig-glottis-lbl" x="152" y="146" text-anchor="middle" font-size="10" font-weight="700" fill="#dcfce7">성문 열림</text>
-                <!-- 드래그 가능한 ETT 튜브 -->
-                <g id="ch3-ig-ett-drag" style="cursor:grab;">
-                  <line id="ch3-ig-ett-shaft" x1="295" y1="205" x2="246" y2="172" stroke="#e0f2fe" stroke-width="11" stroke-linecap="round"/>
-                  <line id="ch3-ig-ett-shaft-in" x1="295" y1="205" x2="246" y2="172" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
-                  <circle id="ch3-ig-ett-tip" cx="246" cy="172" r="9" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-                  <text id="ch3-ig-ett-txt" x="246" y="194" text-anchor="middle" font-size="10" font-weight="700" fill="#0c4a6e">ETT #${ettPick} 드래그</text>
-                </g>
-              </svg>
+            <div class="ch3-ig-canvas-box">
+              <div class="ch3-ig-stage-frame" id="ch3-ig-s2a-canvas" style="cursor:grab;">
+                <img class="ch3-ig-bg" src="${bgSrc}" alt="성문 조준 배경" draggable="false"/>
+                <img class="ch3-ig-layer" src="${tongueSrc}" alt="혀" draggable="false" style="left:50%; top:47%; width:34%; height:auto; transform:translate(-50%, 44%);"/>
+                <!-- 위쪽 식도 입구 경고 영역 -->
+                <div style="position:absolute; left:50%; top:39%; width:18%; height:11%; transform:translate(-50%,-50%); border-radius:999px; border:1.8px dashed #f87171; background:rgba(127,29,29,0.28); pointer-events:none; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:#fecaca;">식도 주의</div>
+                <!-- 호흡에 맞춰 여닫히는 성문 중앙 타겟 -->
+                <div id="ch3-ig-glottis-ring" style="position:absolute; left:50%; top:53%; width:18%; height:22%; transform:translate(-50%,-50%) scaleX(1); border-radius:999px; border:2.5px dashed #4ade80; background:rgba(34,197,94,0.22); pointer-events:none; transition:border-color 0.12s;"></div>
+                <div id="ch3-ig-glottis-lbl" style="position:absolute; left:50%; top:68%; transform:translate(-50%,-50%); font-size:10px; font-weight:700; color:#dcfce7; background:rgba(20,83,45,0.78); padding:1px 7px; border-radius:99px; pointer-events:none;">성문 열림 (삽입 가능)</div>
+                <!-- 드래그 가능한 실사 ETT 튜브 (좌하단 끝점이 튜브 팁) -->
+                <img id="ch3-ig-s2a-ett" class="ch3-ig-layer" src="assets/intubation/ett_deflated.png" alt="기관튜브" draggable="false" style="left:76%; top:78%; width:36%; height:auto; transform:translate(-12%, -88%); filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35));"/>
+                <div style="position:absolute; left:8px; bottom:8px; font-size:10px; font-weight:700; color:#fff; background:rgba(45,35,28,0.72); padding:2px 7px; border-radius:99px; pointer-events:none;">ETT #${ettPick} 드래그 → 성문</div>
+              </div>
             </div>
             <div class="ch3-ig-side">
               <div style="display:flex; flex-direction:column; gap:7px;">
@@ -1210,23 +1229,23 @@
           </div>
         `;
 
-        const poly = document.getElementById('ch3-ig-glottis-poly');
+        const stage = document.getElementById('ch3-ig-s2a-canvas');
+        const ring = document.getElementById('ch3-ig-glottis-ring');
         const lbl = document.getElementById('ch3-ig-glottis-lbl');
-        const svg = document.getElementById('ch3-ig-s2a-svg');
-        const shaft = document.getElementById('ch3-ig-ett-shaft');
-        const shaftIn = document.getElementById('ch3-ig-ett-shaft-in');
-        const tip = document.getElementById('ch3-ig-ett-tip');
-        const txt = document.getElementById('ch3-ig-ett-txt');
+        const ettImg = document.getElementById('ch3-ig-s2a-ett');
 
-        let t0 = performance.now();
+        const t0 = performance.now();
         function animGlottis(now) {
           const dt = (now - t0) / 1000;
           const baseOpen = 0.5 + 0.5 * Math.sin(dt * 2.4);
           ig.glottisOpen = ig.laryngospasm ? baseOpen * 0.65 : baseOpen;
-          const halfW = 3 + ig.glottisOpen * 13;
-          poly.setAttribute('points', `${(152 - halfW).toFixed(1)},124 152,92 ${(152 + halfW).toFixed(1)},124`);
-          lbl.textContent = ig.glottisOpen >= 0.45 ? '성문 열림 (삽입 가능)' : '성문 닫힘 (대기)';
-          lbl.setAttribute('fill', ig.glottisOpen >= 0.45 ? '#86efac' : '#fca5a5');
+          const sx = 0.35 + ig.glottisOpen * 0.85;
+          const isOpen = ig.glottisOpen >= 0.45;
+          ring.style.transform = `translate(-50%,-50%) scaleX(${sx.toFixed(2)})`;
+          ring.style.borderColor = isOpen ? '#4ade80' : '#f87171';
+          ring.style.background = isOpen ? 'rgba(34,197,94,0.22)' : 'rgba(239,68,68,0.22)';
+          lbl.textContent = isOpen ? '성문 열림 (삽입 가능)' : '성문 닫힘 (대기)';
+          lbl.style.background = isOpen ? 'rgba(20,83,45,0.78)' : 'rgba(127,29,29,0.78)';
           intubAnimId = requestAnimationFrame(animGlottis);
         }
         intubAnimId = requestAnimationFrame(animGlottis);
@@ -1242,7 +1261,7 @@
           } else {
             ig.placement = 'normal';
             ig.sub2 = 'depth';
-            ig.depthPct = 36;
+            ig.depthPct = 34;
             Settings.playTone(660, 0.06, 0.03);
             setIgStatus('성문 통과! 측면 흉곽에서 튜브를 흉강입구(녹색 구간) 길이에 맞추세요.', 'ok');
             renderIgStep();
@@ -1251,38 +1270,37 @@
 
         let dragging = false;
         function updateTubePos(clientX, clientY) {
-          const rect = svg.getBoundingClientRect();
-          const x = ((clientX - rect.left) / rect.width) * 320;
-          const y = ((clientY - rect.top) / rect.height) * 210;
-          ig.tubeX = Math.max(40, Math.min(290, x));
-          ig.tubeY = Math.max(30, Math.min(195, y));
-          shaft.setAttribute('x2', ig.tubeX); shaft.setAttribute('y2', ig.tubeY);
-          shaftIn.setAttribute('x2', ig.tubeX); shaftIn.setAttribute('y2', ig.tubeY);
-          tip.setAttribute('cx', ig.tubeX); tip.setAttribute('cy', ig.tubeY);
-          txt.setAttribute('x', ig.tubeX); txt.setAttribute('y', ig.tubeY + 22);
+          const rect = stage.getBoundingClientRect();
+          ig.tubeX = Math.max(12, Math.min(92, ((clientX - rect.left) / rect.width) * 100));
+          ig.tubeY = Math.max(15, Math.min(92, ((clientY - rect.top) / rect.height) * 100));
+          ettImg.style.left = `${ig.tubeX.toFixed(1)}%`;
+          ettImg.style.top = `${ig.tubeY.toFixed(1)}%`;
         }
-        svg.addEventListener('pointerdown', (e) => {
+        stage.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
           dragging = true;
-          svg.setPointerCapture(e.pointerId);
+          stage.setPointerCapture(e.pointerId);
           updateTubePos(e.clientX, e.clientY);
         });
-        svg.addEventListener('pointermove', (e) => {
+        stage.addEventListener('pointermove', (e) => {
           if (!dragging) return;
           updateTubePos(e.clientX, e.clientY);
         });
-        svg.addEventListener('pointerup', () => {
+        const endDrag2a = () => {
           if (!dragging) return;
           dragging = false;
-          const dEso = Math.hypot(ig.tubeX - 152, ig.tubeY - 64);
-          const dGlo = Math.hypot(ig.tubeX - 152, ig.tubeY - 112);
-          if (dEso < 28) {
+          const dEso = Math.hypot(ig.tubeX - 50, ig.tubeY - 39);
+          const dGlo = Math.hypot(ig.tubeX - 50, ig.tubeY - 53);
+          if (dEso < 11) {
             enterGlottis(true);
-          } else if (dGlo < 28) {
+          } else if (dGlo < 13) {
             enterGlottis(ig.glottisOpen < 0.45);
           } else {
             setIgStatus('튜브 끝을 녹색 성문 중앙으로 끝까지 드래그하세요.');
           }
-        });
+        };
+        stage.addEventListener('pointerup', endDrag2a);
+        stage.addEventListener('pointercancel', endDrag2a);
 
         document.getElementById('ch3-ig-aim-btn').addEventListener('click', () => {
           enterGlottis(ig.glottisOpen < 0.45);
@@ -1295,39 +1313,28 @@
 
       /* 2B단계: 측면 흉곽 실루엣에서 튜브 깊이 삽입 */
       function renderIgStep2Depth() {
-        const pct = ig.depthPct;
-        const tipX = 76 + (pct / 100) * 194; // 76(입) -> 157~208(흉강입구 녹색) -> 208~270(기관분기부 빨강)
-        const inGreen = pct >= 42 && pct <= 68;
-        const tooDeep = pct > 68;
+        const sp = ig.isCat ? 'cat' : 'dog';
+        const latSrc = `assets/intubation/${sp}_lateral.jpg`;
 
         igBodyEl.innerHTML = `
           <div class="ch3-ig-grid">
-            <div class="ch3-ig-canvas-box" id="ch3-ig-s2b-canvas">
-              <svg viewBox="0 0 320 195" id="ch3-ig-s2b-svg" aria-label="측면 흉곽 튜브 깊이 조절">
-                <rect x="0" y="0" width="320" height="195" rx="10" fill="#fbf7f0"/>
-                <!-- 측면 두경부·흉곽 실루엣 -->
-                <path d="M40 78 Q58 52 96 54 L132 62 Q178 60 226 56 Q276 58 298 92 L298 168 L170 168 L156 130 L118 118 L72 112 Q46 108 40 78 Z" fill="#e5d6c3" stroke="#8b6f52" stroke-width="2"/>
-                <!-- 폐 실루엣 -->
-                <ellipse cx="242" cy="112" rx="42" ry="34" fill="#fca5a5" opacity="0.45" stroke="#dc2626" stroke-width="1.2"/>
-                <!-- 기관 통로 -->
-                <line x1="74" y1="88" x2="262" y2="108" stroke="#64748b" stroke-width="14" stroke-linecap="round" opacity="0.35"/>
-                <!-- 녹색 타겟 구간: 흉강입구 (42%~68% => x 157~208) -->
-                <rect x="157" y="72" width="51" height="58" rx="8" fill="rgba(34,197,94,0.25)" stroke="#16a34a" stroke-width="2" stroke-dasharray="4 2"/>
-                <text x="182" y="66" text-anchor="middle" font-size="10" font-weight="700" fill="#15803d">흉강입구 (적정)</text>
-                <!-- 빨간 위험 구간: 기관분기부 과삽입 (>68% => x 209~270) -->
-                <rect x="210" y="74" width="60" height="60" rx="8" fill="rgba(239,68,68,0.22)" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="4 2"/>
-                <text x="240" y="66" text-anchor="middle" font-size="10" font-weight="700" fill="#b91c1c">과삽입 (분기부)</text>
-                <!-- ETT 튜브 (앞뒤 드래그) -->
-                <line x1="36" y1="84" x2="${tipX.toFixed(1)}" y2="${(84 + (pct / 100) * 22).toFixed(1)}" stroke="#0284c7" stroke-width="7" stroke-linecap="round"/>
-                <circle cx="${tipX.toFixed(1)}" cy="${(84 + (pct / 100) * 22).toFixed(1)}" r="7" fill="${inGreen ? '#16a34a' : tooDeep ? '#dc2626' : '#0284c7'}" stroke="#ffffff" stroke-width="2"/>
-                <text x="160" y="182" text-anchor="middle" font-size="10.5" font-weight="700" fill="#5c4738">좌우로 드래그해 튜브 끝을 녹색 흉강입구에 맞추세요</text>
-              </svg>
+            <div class="ch3-ig-canvas-box">
+              <div class="ch3-ig-stage-frame" id="ch3-ig-s2b-canvas" style="cursor:ew-resize;">
+                <img class="ch3-ig-bg" src="${latSrc}" alt="측면 흉곽 해부도" draggable="false"/>
+                <!-- 녹색 흉강입구 적정 구간 -->
+                <div class="ch3-ig-zone-overlay ch3-ig-zone-green" style="left:49%; top:47%; width:15%; height:24%;">흉강입구</div>
+                <!-- 빨간 기관분기부 과삽입 구간 -->
+                <div class="ch3-ig-zone-overlay ch3-ig-zone-red" style="left:65%; top:50%; width:16%; height:25%;">과삽입</div>
+                <!-- 드래그 이동하는 실사 ETT 튜브 -->
+                <img id="ch3-ig-s2b-ett" class="ch3-ig-layer" src="assets/intubation/ett_deflated.png" alt="기관튜브" draggable="false" style="left:16%; top:24%; width:36%; height:auto; transform:translate(0%, 0%) rotate(-122deg); transform-origin:50% 50%; filter:drop-shadow(0 2px 5px rgba(0,0,0,0.3));"/>
+                <!-- 튜브 끝 위치 마커 -->
+                <div id="ch3-ig-s2b-tip" style="position:absolute; left:40%; top:56%; width:12px; height:12px; margin-left:-6px; margin-top:-6px; border-radius:50%; background:#0284c7; border:2px solid #fff; box-shadow:0 0 6px rgba(0,0,0,0.4); pointer-events:none;"></div>
+                <div style="position:absolute; left:50%; bottom:6px; transform:translateX(-50%); font-size:10px; font-weight:700; color:#fff; background:rgba(45,35,28,0.74); padding:2px 8px; border-radius:99px; white-space:nowrap; pointer-events:none;">좌우 드래그 → 튜브 끝을 녹색 흉강입구에 맞추기</div>
+              </div>
             </div>
             <div class="ch3-ig-side">
               <div style="display:flex; flex-direction:column; gap:7px;">
-                <div class="ch3-ig-alert ${inGreen ? 'ok' : tooDeep ? 'danger' : ''}">
-                  ${inGreen ? '적정 깊이: 견갑 앞쪽 흉강입구 위치' : tooDeep ? '주의: 기관분기부 넘어 과삽입(일측 기관지 삽관 위험)!' : '현재 깊이가 얕습니다. 녹색 흉강입구까지 삽입하세요.'}
-                </div>
+                <div id="ch3-ig-s2b-alert" class="ch3-ig-alert">현재 깊이가 얕습니다. 녹색 흉강입구까지 삽입하세요.</div>
                 <div style="display:flex; gap:6px;">
                   <button type="button" class="b-btn ch3-ig-btn-sub" id="ch3-ig-depth-pull">← 뒤로 빼기</button>
                   <button type="button" class="b-btn ch3-ig-btn-sub" id="ch3-ig-depth-push">앞으로 밀기 →</button>
@@ -1338,27 +1345,64 @@
           </div>
         `;
 
-        const svg = document.getElementById('ch3-ig-s2b-svg');
+        const stage = document.getElementById('ch3-ig-s2b-canvas');
+        const ettImg = document.getElementById('ch3-ig-s2b-ett');
+        const tipDot = document.getElementById('ch3-ig-s2b-tip');
+        const alertEl = document.getElementById('ch3-ig-s2b-alert');
+
+        function syncStep2Depth() {
+          const pct = ig.depthPct; // 12..95
+          const inGreen = pct >= 42 && pct <= 68;
+          const tooDeep = pct > 68;
+          // 팁 좌표: 구강(left 26%, top 41%) -> 흉강입구(50~64%, 58%) -> 분기부(66~79%, 64%)
+          const tipLeft = 24 + (pct / 100) * 57;
+          const tipTop = 40 + (pct / 100) * 26;
+          const shiftX = (pct - 34) * 1.3;
+          const shiftY = (pct - 34) * 0.55;
+
+          ettImg.style.transform = `translate(${shiftX.toFixed(1)}%, ${shiftY.toFixed(1)}%) rotate(-122deg)`;
+          tipDot.style.left = `${tipLeft.toFixed(1)}%`;
+          tipDot.style.top = `${tipTop.toFixed(1)}%`;
+          tipDot.style.background = inGreen ? '#16a34a' : tooDeep ? '#dc2626' : '#0284c7';
+          alertEl.className = `ch3-ig-alert ${inGreen ? 'ok' : tooDeep ? 'danger' : ''}`;
+          alertEl.textContent = inGreen
+            ? '적정 깊이: 견갑 앞쪽 흉강입구 위치'
+            : tooDeep
+              ? '주의: 기관분기부 넘어 과삽입(일측 기관지 삽관 위험)!'
+              : '현재 깊이가 얕습니다. 녹색 흉강입구까지 삽입하세요.';
+        }
+        syncStep2Depth();
+
         let dragging = false;
         function updateDepth(clientX) {
-          const rect = svg.getBoundingClientRect();
-          const x = ((clientX - rect.left) / rect.width) * 320;
-          ig.depthPct = Math.max(12, Math.min(95, ((x - 76) / 194) * 100));
-          renderIgStep2Depth();
+          const rect = stage.getBoundingClientRect();
+          const xPct = ((clientX - rect.left) / rect.width) * 100;
+          ig.depthPct = Math.max(12, Math.min(95, ((xPct - 24) / 57) * 100));
+          syncStep2Depth();
         }
-        svg.addEventListener('pointerdown', (e) => { dragging = true; svg.setPointerCapture(e.pointerId); updateDepth(e.clientX); });
-        svg.addEventListener('pointermove', (e) => { if (dragging) updateDepth(e.clientX); });
-        svg.addEventListener('pointerup', () => { dragging = false; });
+        stage.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          dragging = true;
+          stage.setPointerCapture(e.pointerId);
+          updateDepth(e.clientX);
+        });
+        stage.addEventListener('pointermove', (e) => {
+          if (!dragging) return;
+          updateDepth(e.clientX);
+        });
+        const endDrag2b = () => { dragging = false; };
+        stage.addEventListener('pointerup', endDrag2b);
+        stage.addEventListener('pointercancel', endDrag2b);
 
         document.getElementById('ch3-ig-depth-pull').addEventListener('click', () => {
           ig.depthPct = Math.max(12, ig.depthPct - 10);
           Settings.playTone(500, 0.04, 0.025);
-          renderIgStep2Depth();
+          syncStep2Depth();
         });
         document.getElementById('ch3-ig-depth-push').addEventListener('click', () => {
           ig.depthPct = Math.min(95, ig.depthPct + 10);
           Settings.playTone(560, 0.04, 0.025);
-          renderIgStep2Depth();
+          syncStep2Depth();
         });
         document.getElementById('ch3-ig-depth-confirm').addEventListener('click', () => {
           if (ig.depthPct < 42) {
@@ -1383,6 +1427,8 @@
 
       /* 3단계: 위치 확인 (ETCO₂ & 양측 폐음 확인) */
       function renderIgStep3() {
+        const sp = ig.isCat ? 'cat' : 'dog';
+        const latSrc = `assets/intubation/${sp}_lateral.jpg`;
         const isNormal = ig.placement === 'normal';
         const isEso = ig.placement === 'esophageal';
         const isBronch = ig.placement === 'endobronchial';
@@ -1391,23 +1437,27 @@
           ? 'M8 52 L212 52'
           : 'M8 52 L26 52 L32 18 L72 18 L78 52 L114 52 L120 18 L160 18 L166 52 L212 52';
         const waveColor = isEso ? '#ef4444' : isBronch ? '#f59e0b' : '#4ade80';
+        const showPct = isEso ? 52 : isBronch ? Math.max(74, ig.depthPct) : 55;
+        const shiftX = (showPct - 34) * 1.3;
+        const shiftY = isEso ? -10 : (showPct - 34) * 0.55;
 
         igBodyEl.innerHTML = `
           <div class="ch3-ig-grid">
-            <div class="ch3-ig-canvas-box" id="ch3-ig-s3-canvas">
-              <svg viewBox="0 0 320 195" aria-label="양측 폐음 확인">
-                <rect x="0" y="0" width="320" height="195" rx="10" fill="#fbf7f0"/>
-                <text x="160" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#4a3728">양측 폐음 확인 (청진)</text>
-                <!-- 기관 및 좌/우 폐 -->
-                <rect x="152" y="34" width="16" height="46" rx="4" fill="#cbd5e1" stroke="#64748b" stroke-width="1.5"/>
-                <path d="M150 76 C112 76 84 106 88 148 C92 168 128 172 148 156 Z" fill="${isNormal ? '#bbf7d0' : '#fecaca'}" stroke="${isNormal ? '#16a34a' : '#dc2626'}" stroke-width="2"/>
-                <path d="M170 76 C208 76 236 106 232 148 C228 168 192 172 172 156 Z" fill="${isEso ? '#fecaca' : '#bbf7d0'}" stroke="${isEso ? '#dc2626' : '#16a34a'}" stroke-width="2"/>
-                <!-- 좌/우 폐음 상태 배지 -->
-                <text x="116" y="124" text-anchor="middle" font-size="11" font-weight="700" fill="${isNormal ? '#166534' : '#b91c1c'}">${isNormal ? '✓ 좌측 정상' : isBronch ? '✕ 좌측 감소' : '✕ 폐음 소실'}</text>
-                <text x="204" y="124" text-anchor="middle" font-size="11" font-weight="700" fill="${isEso ? '#b91c1c' : '#166534'}">${isEso ? '✕ 폐음 소실' : '✓ 우측 정상'}</text>
-                ${isEso ? '<text x="160" y="184" text-anchor="middle" font-size="11" font-weight="700" fill="#b91c1c">경고: 복부 팽만 및 위 내 공기음 청진!</text>' : ''}
-                ${isBronch ? '<text x="160" y="184" text-anchor="middle" font-size="11" font-weight="700" fill="#b45309">좌측으로 드래그하거나 "튜브 살짝 빼기"로 교정하세요</text>' : ''}
-              </svg>
+            <div class="ch3-ig-canvas-box">
+              <div class="ch3-ig-stage-frame" id="ch3-ig-s3-canvas" style="${isBronch ? 'cursor:ew-resize;' : ''}">
+                <img class="ch3-ig-bg" src="${latSrc}" alt="측면 폐음 확인 배경" draggable="false"/>
+                <div class="ch3-ig-zone-overlay ch3-ig-zone-green" style="left:49%; top:47%; width:15%; height:24%;">흉강입구</div>
+                <div class="ch3-ig-zone-overlay ch3-ig-zone-red" style="left:65%; top:50%; width:16%; height:25%;">분기부</div>
+                <img id="ch3-ig-s3-ett" class="ch3-ig-layer" src="assets/intubation/ett_deflated.png" alt="기관튜브" draggable="false" style="left:16%; top:24%; width:36%; height:auto; transform:translate(${shiftX.toFixed(1)}%, ${shiftY.toFixed(1)}%) rotate(-122deg); filter:drop-shadow(0 2px 5px rgba(0,0,0,0.3));"/>
+                <!-- 양측 폐음 확인 배지 -->
+                <div style="position:absolute; left:8px; top:8px; font-size:10.5px; font-weight:700; color:#4a3728; background:rgba(251,247,240,0.9); border:1px solid var(--brown-border); padding:2px 8px; border-radius:99px; pointer-events:none;">양측 폐음 확인</div>
+                <div style="position:absolute; right:8px; bottom:32px; display:flex; gap:5px; pointer-events:none;">
+                  <span style="font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:8px; background:${isNormal ? 'rgba(220,252,231,0.95)' : 'rgba(254,226,226,0.95)'}; color:${isNormal ? '#166534' : '#b91c1c'}; border:1px solid ${isNormal ? '#22c55e' : '#ef4444'};">${isNormal ? '✓ 좌측 정상' : isBronch ? '✕ 좌측 감소' : '✕ 폐음 소실'}</span>
+                  <span style="font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:8px; background:${isEso ? 'rgba(254,226,226,0.95)' : 'rgba(220,252,231,0.95)'}; color:${isEso ? '#b91c1c' : '#166534'}; border:1px solid ${isEso ? '#ef4444' : '#22c55e'};">${isEso ? '✕ 폐음 소실' : '✓ 우측 정상'}</span>
+                </div>
+                ${isEso ? '<div style="position:absolute; left:50%; bottom:6px; transform:translateX(-50%); font-size:10px; font-weight:700; color:#fff; background:rgba(185,28,28,0.88); padding:2px 8px; border-radius:99px; white-space:nowrap; pointer-events:none;">경고: 복부 팽만 및 위 내 공기음 청진!</div>' : ''}
+                ${isBronch ? '<div style="position:absolute; left:50%; bottom:6px; transform:translateX(-50%); font-size:10px; font-weight:700; color:#fff; background:rgba(180,83,9,0.88); padding:2px 8px; border-radius:99px; white-space:nowrap; pointer-events:none;">← 왼쪽으로 드래그하거나 "튜브 살짝 빼기"로 교정</div>' : ''}
+              </div>
             </div>
             <div class="ch3-ig-side">
               <div style="display:flex; flex-direction:column; gap:7px;">
@@ -1435,11 +1485,20 @@
 
         if (isBronch) {
           const box = document.getElementById('ch3-ig-s3-canvas');
+          const ettImg = document.getElementById('ch3-ig-s3-ett');
           let sx = 0, down = false;
-          box.addEventListener('pointerdown', (e) => { down = true; sx = e.clientX; box.setPointerCapture(e.pointerId); });
+          box.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            down = true;
+            sx = e.clientX;
+            box.setPointerCapture(e.pointerId);
+          });
           box.addEventListener('pointermove', (e) => {
             if (!down) return;
-            if (sx - e.clientX > 28) {
+            const dx = Math.max(0, sx - e.clientX);
+            const curPct = Math.max(55, showPct - dx * 0.45);
+            ettImg.style.transform = `translate(${((curPct - 34) * 1.3).toFixed(1)}%, ${((curPct - 34) * 0.55).toFixed(1)}%) rotate(-122deg)`;
+            if (dx > 28) {
               down = false;
               ig.placement = 'normal';
               ig.depthPct = 55;
@@ -1449,7 +1508,9 @@
               renderIgStep3();
             }
           });
-          box.addEventListener('pointerup', () => { down = false; });
+          const endDrag3 = () => { down = false; };
+          box.addEventListener('pointerup', endDrag3);
+          box.addEventListener('pointercancel', endDrag3);
 
           document.getElementById('ch3-ig-pullback-btn').addEventListener('click', () => {
             ig.placement = 'normal';
@@ -1483,56 +1544,35 @@
           }
           ig.step = 4;
           Settings.playTone(640, 0.06, 0.03);
-          setIgStatus('주사기 플런저를 드래그하거나 +0.5 mL 버튼으로 20 cmH₂O 녹색 구간에 맞추세요.');
+          setIgStatus('화면을 좌우로 드래그하거나 +0.5 mL 버튼으로 20 cmH₂O 녹색 구간에 맞추세요.');
           renderIgStep();
         });
       }
 
-      /* 4단계: 커프 최소량 팽창 & 고정 */
+      /* 4단계: 커프 최소량 팽창 & 고정 (ett_deflated + ett_inflated 크로스페이드) */
       function renderIgStep4() {
-        const cmh2o = ig.cuffPressure;
-        const ml = ig.cuffMl;
-        const isLow = cmh2o < 18;
-        const isOk = cmh2o >= 18 && cmh2o <= 24;
-        const isHigh = cmh2o > 24;
-        const needlePct = Math.max(2, Math.min(98, (cmh2o / 36) * 100));
-        const plungerX = Math.max(0, Math.min(68, (ml / 6) * 68));
-        const balloonR = 14 + Math.min(18, ml * 3);
-
         igBodyEl.innerHTML = `
           <div class="ch3-ig-grid">
-            <div class="ch3-ig-canvas-box" id="ch3-ig-s4-canvas">
-              <svg viewBox="0 0 320 195" id="ch3-ig-s4-svg" aria-label="커프 팽창 주사기">
-                <rect x="0" y="0" width="320" height="195" rx="10" fill="#fbf7f0"/>
-                <!-- ETT 커프 & 파일럿 벌룬 -->
-                <rect x="28" y="64" width="108" height="20" rx="10" fill="#bae6fd" stroke="#0284c7" stroke-width="1.8"/>
-                <ellipse cx="82" cy="74" rx="28" ry="${balloonR.toFixed(1)}" fill="${isHigh ? 'rgba(239,68,68,0.35)' : isOk ? 'rgba(34,197,94,0.3)' : 'rgba(56,189,248,0.28)'}" stroke="${isHigh ? '#dc2626' : isOk ? '#16a34a' : '#0284c7'}" stroke-width="2"/>
-                <text x="82" y="122" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4a3728">커프 (${ml.toFixed(1)} mL)</text>
-                <!-- 연결 튜브 -->
-                <path d="M136 74 L172 74" stroke="#64748b" stroke-width="3"/>
-                <!-- 주사기 배럴 & 플런저 (좌측으로 밀어 주입) -->
-                <rect x="172" y="58" width="96" height="32" rx="6" fill="#ffffff" stroke="#475569" stroke-width="2"/>
-                <rect x="174" y="60" width="${Math.max(4, 92 - plungerX).toFixed(1)}" height="28" rx="4" fill="#e0f2fe"/>
-                <g id="ch3-ig-plunger" style="cursor:ew-resize;">
-                  <rect x="${(260 - plungerX).toFixed(1)}" y="60" width="8" height="28" fill="#334155"/>
-                  <rect x="${(268 - plungerX).toFixed(1)}" y="71" width="36" height="6" fill="#94a3b8"/>
-                  <rect x="${(302 - plungerX).toFixed(1)}" y="56" width="8" height="36" rx="3" fill="#475569"/>
-                </g>
-                <text x="220" y="114" text-anchor="middle" font-size="10.5" font-weight="700" fill="#5c4738">← 플런저를 왼쪽으로 드래그해 공기 주입</text>
-              </svg>
+            <div class="ch3-ig-canvas-box">
+              <div class="ch3-ig-stage-frame" id="ch3-ig-s4-canvas" style="cursor:ew-resize; background:#fbf7f0;">
+                <img class="ch3-ig-layer" src="assets/intubation/ett_deflated.png" alt="커프 미팽창 ETT" draggable="false" style="inset:4%; width:92%; height:92%; object-fit:contain;"/>
+                <img id="ch3-ig-cuff-inflated" class="ch3-ig-layer" src="assets/intubation/ett_inflated.png" alt="커프 팽창 ETT" draggable="false" style="inset:4%; width:92%; height:92%; object-fit:contain; opacity:0; transition:opacity 0.12s linear;"/>
+                <div id="ch3-ig-cuff-ml-badge" style="position:absolute; left:8px; top:8px; font-size:11px; font-weight:700; color:var(--brown); background:rgba(251,247,240,0.92); border:1px solid var(--brown-border); padding:2px 8px; border-radius:99px; pointer-events:none;">주입량 0.0 mL</div>
+                <div style="position:absolute; left:50%; bottom:6px; transform:translateX(-50%); font-size:10px; font-weight:700; color:#fff; background:rgba(45,35,28,0.74); padding:2px 8px; border-radius:99px; white-space:nowrap; pointer-events:none;">← 왼쪽 드래그: 주입 / 오른쪽 드래그: 감압 →</div>
+              </div>
             </div>
             <div class="ch3-ig-side">
               <div style="display:flex; flex-direction:column; gap:7px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:700; color:var(--brown);">
                   <span>커프 압력 (양압 20 cmH₂O 기준)</span>
-                  <span style="color:${isOk ? '#15803d' : '#b91c1c'};">${Math.round(cmh2o)} cmH₂O</span>
+                  <span id="ch3-ig-cuff-cmh2o" style="color:#b91c1c;">0 cmH₂O</span>
                 </div>
                 <div>
-                  <div class="ch3-ig-gauge-track">
+                  <div class="ch3-ig-gauge-track" id="ch3-ig-gauge-track" style="cursor:ew-resize;">
                     <div class="ch3-ig-gauge-seg-low"></div>
                     <div class="ch3-ig-gauge-seg-ok"></div>
                     <div class="ch3-ig-gauge-seg-hi"></div>
-                    <div class="ch3-ig-gauge-needle" style="left:${needlePct.toFixed(1)}%;"></div>
+                    <div class="ch3-ig-gauge-needle" id="ch3-ig-gauge-needle" style="left:2%;"></div>
                   </div>
                   <div class="ch3-ig-gauge-labels">
                     <span>누출</span>
@@ -1540,9 +1580,7 @@
                     <span>과팽창</span>
                   </div>
                 </div>
-                <div class="ch3-ig-alert ${isOk ? 'ok' : isHigh ? 'danger' : ''}">
-                  ${isOk ? '적정 밀폐: 양압 20 cmH₂O에서 공기 누출이 멈췄습니다.' : isHigh ? '경고: 과팽창! 기관 점막 허혈·손상 위험 (감점) — 감압하세요.' : '공기 누출 중: 주사기로 공기를 주입해 녹색 구간에 맞추세요.'}
-                </div>
+                <div id="ch3-ig-cuff-alert" class="ch3-ig-alert">공기 누출 중: 주사기로 공기를 주입해 녹색 구간에 맞추세요.</div>
                 <div style="display:flex; gap:6px;">
                   <button type="button" class="b-btn ch3-ig-btn-sub" id="ch3-ig-cuff-minus">-0.5 mL</button>
                   <button type="button" class="b-btn ch3-ig-btn-primary" id="ch3-ig-cuff-plus">+0.5 mL 주입</button>
@@ -1553,9 +1591,39 @@
           </div>
         `;
 
+        const stage = document.getElementById('ch3-ig-s4-canvas');
+        const inflatedImg = document.getElementById('ch3-ig-cuff-inflated');
+        const mlBadge = document.getElementById('ch3-ig-cuff-ml-badge');
+        const cmh2oEl = document.getElementById('ch3-ig-cuff-cmh2o');
+        const needleEl = document.getElementById('ch3-ig-gauge-needle');
+        const gaugeTrack = document.getElementById('ch3-ig-gauge-track');
+        const alertEl = document.getElementById('ch3-ig-cuff-alert');
+
+        function syncStep4() {
+          const cmh2o = ig.cuffPressure;
+          const ml = ig.cuffMl;
+          const isOk = cmh2o >= 18 && cmh2o <= 24;
+          const isHigh = cmh2o > 24;
+          const needlePct = Math.max(2, Math.min(98, (cmh2o / 36) * 100));
+          const infOp = Math.max(0, Math.min(1, cmh2o / 22));
+
+          inflatedImg.style.opacity = infOp.toFixed(2);
+          mlBadge.textContent = `주입량 ${ml.toFixed(1)} mL`;
+          cmh2oEl.textContent = `${Math.round(cmh2o)} cmH₂O`;
+          cmh2oEl.style.color = isOk ? '#15803d' : '#b91c1c';
+          needleEl.style.left = `${needlePct.toFixed(1)}%`;
+          alertEl.className = `ch3-ig-alert ${isOk ? 'ok' : isHigh ? 'danger' : ''}`;
+          alertEl.textContent = isOk
+            ? '적정 밀폐: 양압 20 cmH₂O에서 공기 누출이 멈췄습니다.'
+            : isHigh
+              ? '경고: 과팽창! 기관 점막 허혈·손상 위험 (감점) — 감압하세요.'
+              : '공기 누출 중: 주사기로 공기를 주입해 녹색 구간에 맞추세요.';
+        }
+        syncStep4();
+
         function setCuffMl(nextMl) {
           ig.cuffMl = Math.max(0, Math.min(6.0, +(nextMl).toFixed(1)));
-          ig.cuffPressure = Math.round(ig.cuffMl * 6.0); // 3.0~4.0mL => 18~24 cmH2O (target 20)
+          ig.cuffPressure = Math.round(ig.cuffMl * 6.0); // 3.0~4.0mL => 18~24 cmH2O (최대 36)
           if (ig.cuffPressure > 24) {
             addIgMistakeOnce('cuff_overinflate', '커프 과팽창으로 기관 점막 손상 위험 유발');
             addLog(`경고: 커프 과팽창 (${ig.cuffPressure} cmH₂O) — 기관 점막 손상 위험`);
@@ -1565,18 +1633,41 @@
           } else {
             setIgStatus('공기 누출 중 — 녹색 적정 밀폐 구간까지 조금 더 주입하세요.');
           }
-          renderIgStep4();
+          syncStep4();
         }
 
-        const svg = document.getElementById('ch3-ig-s4-svg');
         let dragging = false, startX = 0, startMl = ig.cuffMl;
-        svg.addEventListener('pointerdown', (e) => { dragging = true; startX = e.clientX; startMl = ig.cuffMl; svg.setPointerCapture(e.pointerId); });
-        svg.addEventListener('pointermove', (e) => {
-          if (!dragging) return;
-          const dx = startX - e.clientX; // 왼쪽 드래그 = 주입 증가
-          setCuffMl(startMl + dx * 0.04);
+        stage.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          dragging = true;
+          startX = e.clientX;
+          startMl = ig.cuffMl;
+          stage.setPointerCapture(e.pointerId);
         });
-        svg.addEventListener('pointerup', () => { dragging = false; });
+        stage.addEventListener('pointermove', (e) => {
+          if (!dragging) return;
+          setCuffMl(startMl + (startX - e.clientX) * 0.035);
+        });
+        const endDrag4 = () => { dragging = false; };
+        stage.addEventListener('pointerup', endDrag4);
+        stage.addEventListener('pointercancel', endDrag4);
+
+        let gaugeDrag = false;
+        function updateFromGauge(clientX) {
+          const rect = gaugeTrack.getBoundingClientRect();
+          const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+          setCuffMl(ratio * 6.0);
+        }
+        gaugeTrack.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          gaugeDrag = true;
+          gaugeTrack.setPointerCapture(e.pointerId);
+          updateFromGauge(e.clientX);
+        });
+        gaugeTrack.addEventListener('pointermove', (e) => { if (gaugeDrag) updateFromGauge(e.clientX); });
+        const endGaugeDrag = () => { gaugeDrag = false; };
+        gaugeTrack.addEventListener('pointerup', endGaugeDrag);
+        gaugeTrack.addEventListener('pointercancel', endGaugeDrag);
 
         document.getElementById('ch3-ig-cuff-plus').addEventListener('click', () => {
           Settings.playTone(580, 0.04, 0.025);
