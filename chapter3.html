@@ -1601,7 +1601,9 @@
         let sweepX = 0;
         let lastTs = performance.now();
         let phaseSec = 0;
-        const pxPerSec = 26; // 실제 모니터 4 mm/s 감각
+        let pxAccum = 0;
+        const pxPerSec = 15; // 실제 모니터 천천히 흐르는 4 mm/s 감각 (240px ≈ 16초 스위프)
+        capBuf[0] = { y: baseY, color: ig.placement === 'esophageal' ? '#ef4444' : (ig.placement === 'endobronchial' ? '#f59e0b' : '#4ade80') };
 
         function sampleCapno(t) {
           if (!ig) return { y: baseY, color: '#4ade80' };
@@ -1609,14 +1611,14 @@
           const isBronch = ig.placement === 'endobronchial';
           const peakH = isBronch ? 40 : 34;
           const color = isBronch ? '#f59e0b' : '#4ade80';
-          const cycle = 3.2; // ~18 bpm 호흡 주기
+          const cycle = 4.6; // ~13 bpm (화면 폭당 약 3.5개 넓은 캡노그램 파형)
           const p = (t % cycle) / cycle;
-          // Phase 1 (기준선 0): 0.00~0.34, Phase 2 (급상승): 0.34~0.42, Phase 3 (폐포고원): 0.42~0.76, Phase 0 (흡기 급하강): 0.76~0.83
+          // Phase 1 (흡기 기준선 0): 0.00~0.22, Phase 2 (급상승): 0.22~0.36, Phase 3 (완만 상승 폐포고원): 0.36~0.88, Phase 0 (흡기 급하강): 0.88~0.91
           let h = 0;
-          if (p < 0.34) h = 0;
-          else if (p < 0.42) h = peakH * ((p - 0.34) / 0.08);
-          else if (p < 0.76) h = peakH * (0.94 + 0.08 * ((p - 0.42) / 0.34));
-          else if (p < 0.83) h = peakH * (1 - (p - 0.76) / 0.07);
+          if (p < 0.22) h = 0;
+          else if (p < 0.36) h = peakH * 0.86 * ((p - 0.22) / 0.14);
+          else if (p < 0.88) h = peakH * (0.86 + 0.14 * ((p - 0.36) / 0.52));
+          else if (p < 0.91) h = peakH * (1 - (p - 0.88) / 0.03);
           else h = 0;
           return { y: baseY - h, color };
         }
@@ -1624,13 +1626,17 @@
         function drawCapno(now) {
           const dt = Math.min(0.06, (now - lastTs) / 1000);
           lastTs = now;
-          const steps = Math.max(1, Math.round(dt * pxPerSec));
-          const stepDt = dt / steps;
-          for (let i = 0; i < steps; i++) {
-            phaseSec += stepDt;
-            sweepX = (sweepX + 1) % W;
-            capBuf[sweepX] = sampleCapno(phaseSec);
-            for (let g = 1; g <= 8; g++) capBuf[(sweepX + g) % W] = null; // 스위프 지우개 간격
+          pxAccum += dt * pxPerSec;
+          const steps = Math.floor(pxAccum);
+          if (steps > 0) {
+            pxAccum -= steps;
+            const stepSec = 1 / pxPerSec;
+            for (let i = 0; i < steps; i++) {
+              phaseSec += stepSec;
+              sweepX = (sweepX + 1) % W;
+              capBuf[sweepX] = sampleCapno(phaseSec);
+              for (let g = 1; g <= 8; g++) capBuf[(sweepX + g) % W] = null; // 스위프 지우개 간격
+            }
           }
 
           ctx2d.fillStyle = '#0b111a';
