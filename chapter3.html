@@ -390,7 +390,7 @@
       let intubTickId = null;
       let intubMisses = 0;
       let ig = null;
-      let state = { premedDone: false, preO2Done: false, titrateCount: 0, intubated: false, trans: new Set(), mistakes: [] };
+      let state = { premedDone: false, preO2Done: false, premedAfterInduct: false, titrateCount: 0, overdoseLogged: false, intubated: false, trans: new Set(), earlyTrans: new Set(), mistakes: [] };
       let logs = [];
       let evaluated = false;
       let lastReport = null;
@@ -767,6 +767,7 @@
         if (abxPhase === 'dose') {
           if (!abxPicks.size) return;
           abxPhase = 'antag';
+          if (state.titrateCount > 0) state.premedAfterInduct = true;
           state.premedDone = true;
           // 항생제 숨김 감점: Cefa+Ampi, Ampi+Metro 감점 (Cefa+Metro 허용)
           if (abxPicks.has('Cefazolin') && abxPicks.has('Ampi-Sulbac')) {
@@ -827,6 +828,7 @@
         if (sedPhase === 'dose') {
           if (!sedPicks.size) return;
           sedPhase = 'antag';
+          if (state.titrateCount > 0) state.premedAfterInduct = true;
           state.premedDone = true;
           vitals.hr = Math.max(55, vitals.hr - (sedPicks.has('α2-agonist') ? 16 : 8));
           vitals.rr = Math.max(12, vitals.rr - 4);
@@ -887,8 +889,8 @@
       }));
 
       btnTitrate.addEventListener('click', () => {
-        if (evaluated || state.intubated || !indPick || state.titrateCount >= 4) return;
-        state.titrateCount = Math.min(4, state.titrateCount + 1);
+        if (evaluated || state.intubated || !indPick) return;
+        state.titrateCount += 1;
         btnTitrate.textContent = String(state.titrateCount);
 
         // 약물별 숨김 임상 특성 반영 (표기하지 않음)
@@ -909,15 +911,20 @@
 
         vitals.depth = state.titrateCount >= 3 ? '삽관 가능' : state.titrateCount === 2 ? '중등도 진정' : (vitals.depth === '각성' ? '경도 진정' : '중등도 진정');
 
-        if (state.titrateCount === 4) {
+        if (state.titrateCount >= 5) {
           vitals.rr = 4;
           vitals.rrMode = '무호흡';
           vitals.sbp = Math.max(60, vitals.sbp - 14);
           vitals.map = Math.max(45, vitals.map - 12);
           vitals.dbp = Math.max(32, vitals.dbp - 10);
           if (!state.preO2Done) vitals.spo2 = Math.max(82, vitals.spo2 - 8);
-          state.mistakes.push('유도제 4/4 과투여로 일시적 무호흡(RR 4) 및 저혈압 유발');
-          addLog(`${indPick} 4/4 과투여 — 일시적 무호흡(RR 4)·저혈압 발생`);
+          if (!state.overdoseLogged) {
+            state.overdoseLogged = true;
+            state.mistakes.push('유도제 5회 이상 과투여로 일시적 무호흡(RR 4) 및 저혈압 유발');
+            addLog(`${indPick} ${state.titrateCount}회 과투여 — 일시적 무호흡(RR 4)·저혈압 발생`);
+          } else {
+            addLog(`${indPick} ${state.titrateCount}회 추가 과투여 — 무호흡·저혈압 지속`);
+          }
         } else {
           vitals.rrMode = '자발 호흡';
           addLog(`${indPick} ${state.titrateCount}/4 용량 적정 투여 (${vitals.depth})`);
@@ -1971,6 +1978,13 @@
         state.trans.add(k);
         b.classList.add('exam-done');
         b.disabled = true;
+        if ((k === 'o2' || k === 'iso') && !state.intubated) {
+          state.earlyTrans.add(k);
+          addLog(`경고: 기관삽관 이전 유지 전환 시행 (${b.textContent.trim()})`);
+          Settings.playTone(320, 0.08, 0.03);
+          renderMonitor();
+          return;
+        }
         if (k === 'o2' && state.intubated) {
           if (vitals.rrMode === '무호흡') {
             vitals.rr = 12;
@@ -2047,12 +2061,25 @@
 
         let score = 100;
         if (!state.premedDone) score -= 15;
+        if (state.premedAfterInduct) score -= 15;
         if (!state.preO2Done) score -= 12;
         if (!state.intubated) score -= 25;
         score -= (4 - state.trans.size) * 8;
+        score -= state.earlyTrans.size * 12;
         score -= state.mistakes.length * 8;
         score = Math.max(0, Math.min(100, Math.round(score)));
         const grade = score >= 95 ? 'S' : score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 50 ? 'D' : 'F';
+
+        const reviewNotes = [...state.mistakes];
+        if (state.premedAfterInduct) {
+          reviewNotes.push('유도제 투여 이전 전처치 누락: 항생제·진정제를 유도제 투여 이후 투여 (-15점)');
+        }
+        if (state.earlyTrans.has('o2')) {
+          reviewNotes.push('기관삽관 이전 유지 전환: O₂ 유량 설정 및 호흡회로 연결 시행 (-12점)');
+        }
+        if (state.earlyTrans.has('iso')) {
+          reviewNotes.push('기관삽관 이전 유지 전환: 기화기 개방 시행 (-12점)');
+        }
 
         lastReport = { caseObj: currentCase, score, grade };
         aiText = null; soapText = null;
@@ -2068,7 +2095,7 @@
           </div>
           <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
             <div class="b-label"><span>오답노트</span></div>
-            ${state.mistakes.length ? state.mistakes.map((m) => `<p style="color:#b91c1c;">• ${escapeHtml(m)}</p>`).join('') : '<p>• 감점 사항 없이 안전하게 마취 도입과 유지 전환을 완료했습니다.</p>'}
+            ${reviewNotes.length ? reviewNotes.map((m) => `<p style="color:#b91c1c;">• ${escapeHtml(m)}</p>`).join('') : '<p>• 감점 사항 없이 안전하게 마취 도입과 유지 전환을 완료했습니다.</p>'}
           </div>
         `;
 
@@ -2099,7 +2126,7 @@
         indPick = null;
         ettPick = null;
         intubMisses = 0;
-        state = { premedDone: false, preO2Done: false, titrateCount: 0, intubated: false, trans: new Set(), mistakes: [] };
+        state = { premedDone: false, preO2Done: false, premedAfterInduct: false, titrateCount: 0, overdoseLogged: false, intubated: false, trans: new Set(), earlyTrans: new Set(), mistakes: [] };
         logs = [];
         evaluated = false;
         lastReport = null;
@@ -2193,7 +2220,7 @@
         ],
         tutorialSteps: [
           { title: '1. 도입 모니터링창', sel: '#ch3-monitor', onEnter: () => activateTab('premed'), text: '실시간 생체 모니터와 도입 체크리스트·처치 로그를 확인합니다.' },
-          { title: '2. 전처치 · 전산소화', sel: '#ch3-control', onEnter: () => activateTab('premed'), text: '전산소화로 산소 예비량을 확보하고 전처치 약물을 선택해 투여합니다.' },
+          { title: '2. 전처치 · 전산소화', sel: '#ch3-control', onEnter: () => activateTab('premed'), text: '전산소화로 산소 예비량을 확보하고 전처치 약물을 선택해 투여합니다. *실제 투여 약물 구성은 환자 상태에 따라 다르니 본 시뮬레이터에 의존하면 안됩니다.' },
           { title: '3. 도입 · 기관삽관', sel: '#ch3-control', onEnter: () => activateTab('induct'), text: '유도제를 1/4씩 적정 투여한 뒤 체중에 맞는 ETT 규격을 선택해 삽관합니다.' },
           { title: '4. 유지 전환 및 시작', sel: '#ch3-control', onEnter: () => activateTab('trans'), text: 'O₂·기화기·APL 밸브 개방·모니터 부착을 완료하고 도입 완료를 누릅니다. 이제 튜토리얼 케이스를 시작합니다.' }
         ],
