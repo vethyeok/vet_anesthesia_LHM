@@ -141,13 +141,23 @@ h1, h2, h3, .font-maru {
   transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
 }
 
-.b-btn:hover,
-.b-btn:focus-visible,
 .b-btn.active {
   background: var(--brown);
   color: var(--white);
   border-color: var(--brown);
   outline: none;
+}
+
+.b-btn:focus-visible {
+  outline: 2px solid var(--brown);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .b-btn:hover:not(.active):not(:disabled) {
+    background: var(--beige-soft);
+    border-color: var(--brown);
+  }
 }
 
 .b-btn:active {
@@ -310,10 +320,15 @@ h1, h2, h3, .font-maru {
   transition: background-color 0.16s ease, color 0.16s ease;
 }
 
-.step-tab:hover,
 .step-tab.active {
   background: var(--brown);
   color: var(--ivory);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .step-tab:hover:not(.active) {
+    background: var(--beige-soft);
+  }
 }
 
 /* Wireframe / Layout Placeholder Box */
