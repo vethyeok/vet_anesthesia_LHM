@@ -999,16 +999,16 @@
           ctrlEl.style.flex = '';
           splitEl.classList.add('ctrl-collapsed');
         }
-      } else if (lastCtrlH <= bounds.minH + 26) {
+      } else if (lastCtrlH <= bounds.minH + 40) {
         // 하단 끝 근처 -> 완전 최소화 스냅
         ctrlEl.style.flex = '';
         splitEl.classList.add('ctrl-collapsed');
-      } else if (lastCtrlH >= bounds.maxH - 26) {
+      } else if (lastCtrlH >= bounds.maxH - 40) {
         // 상단 끝 근처 -> 완전 최대화 스냅
         splitEl.classList.remove('ctrl-collapsed');
         ctrlEl.style.flex = `0 0 ${bounds.maxH}px`;
-      } else if (Math.abs(lastCtrlH - bounds.defaultH) <= 28) {
-        // 기본 펼침 범위 근처 -> 기본 비율로 자석 스냅
+      } else if (Math.abs(lastCtrlH - bounds.defaultH) <= 60) {
+        // 맨 처음 회색줄(중앙) 주변 위·아래 범위 -> 기본 위치로 자석 스냅
         splitEl.classList.remove('ctrl-collapsed');
         ctrlEl.style.flex = '';
       } else {
