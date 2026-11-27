@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Chapter 4. 마취 유지 — 베타 1.1</title>
-  <link rel="stylesheet" href="beta11.css?v=20261127f" />
+  <link rel="stylesheet" href="beta11.css?v=20261127g" />
   <script src="beta11-settings.js"></script>
   <script src="beta11-ch1-data.js"></script>
 </head>
@@ -13,6 +13,9 @@
     <header class="top-bar">
       <div class="top-left">
         <div class="top-title">Chapter 4. 마취 유지</div>
+        <button type="button" class="b-btn ch4-top-pause-btn" id="ch4-top-pause-btn" aria-label="일시정지" title="일시정지 / 재개">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3" y="2.5" width="3.5" height="11" rx="1"/><rect x="9.5" y="2.5" width="3.5" height="11" rx="1"/></svg>
+        </button>
       </div>
       <div id="chapter-top-actions" class="top-actions"></div>
     </header>
@@ -192,8 +195,7 @@
                   <button type="button" class="b-btn prog-btn" id="ch4-btn-vent">IPPV 기계환기</button>
                   <button type="button" class="b-btn prog-btn" id="ch4-btn-bag">수동 환기 (1회)</button>
                   <button type="button" class="b-btn prog-btn" id="ch4-btn-warm">능동 가온</button>
-                  <button type="button" class="b-btn prog-btn" id="ch4-btn-pause">일시정지</button>
-                  <button type="button" class="b-btn prog-btn span-2" id="ch4-btn-bolus">결정질 수액 볼루스 (10 mL/kg)</button>
+                  <button type="button" class="b-btn prog-btn" id="ch4-btn-bolus">수액 볼루스 (10 mL/kg)</button>
                 </div>
               </div>
             </div>
@@ -338,6 +340,12 @@
     </div>
   </div>
 
+  <!-- 3, 2, 1 시작 카운트다운 오버레이 -->
+  <div id="ch4-countdown-overlay" class="ch4-cd-backdrop hidden" aria-live="assertive">
+    <div class="ch4-cd-label" id="ch4-cd-label">마취 유지 시작 준비</div>
+    <div class="ch4-cd-num font-maru" id="ch4-cd-num">3</div>
+  </div>
+
   <script>
     (function () {
       const Data = window.Beta11Ch1Data;
@@ -432,6 +440,9 @@
       let currentCase = null;
       let tickTimer = null;
       let waveAnimId = null;
+      let countdownTimer = null;
+      let countdownActive = false;
+      let pendingCountdown = false;
       let sim = null;
       let logs = [];
       let evaluated = false;
@@ -439,6 +450,21 @@
       let aiText = null;
       let soapText = null;
       let wavesVisible = true;
+
+      const topPauseBtn = document.getElementById('ch4-top-pause-btn');
+      const cdOverlayEl = document.getElementById('ch4-countdown-overlay');
+      const cdNumEl = document.getElementById('ch4-cd-num');
+      const cdLabelEl = document.getElementById('ch4-cd-label');
+      const ICON_PAUSE = '<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3" y="2.5" width="3.5" height="11" rx="1"/><rect x="9.5" y="2.5" width="3.5" height="11" rx="1"/></svg>';
+      const ICON_PLAY = '<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5L4 2.5z"/></svg>';
+
+      function setPauseBtnUI(paused) {
+        if (!topPauseBtn) return;
+        topPauseBtn.classList.toggle('is-paused', Boolean(paused));
+        topPauseBtn.innerHTML = paused ? ICON_PLAY : ICON_PAUSE;
+        topPauseBtn.setAttribute('aria-label', paused ? '재개' : '일시정지');
+        topPauseBtn.title = paused ? '재개' : '일시정지';
+      }
 
       // 3-channel waveform buffers (ported from maintenance.html)
       const BUF_LEN = 240;
@@ -458,6 +484,10 @@
       function stopSim() {
         if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
         if (waveAnimId) { cancelAnimationFrame(waveAnimId); waveAnimId = null; }
+        if (countdownTimer) { clearTimeout(countdownTimer); countdownTimer = null; }
+        countdownActive = false;
+        pendingCountdown = false;
+        if (cdOverlayEl) cdOverlayEl.classList.add('hidden');
       }
       window.__b11Cleanup = stopSim;
 
@@ -1168,12 +1198,11 @@
         Settings.playTone(620, 0.05, 0.03);
         renderUI();
       });
-      document.getElementById('ch4-btn-pause').addEventListener('click', (e) => {
-        if (!sim || evaluated) return;
+      topPauseBtn.addEventListener('click', () => {
+        if (!sim || evaluated || countdownActive) return;
         sim.paused = !sim.paused;
-        e.currentTarget.classList.toggle('active', sim.paused);
-        e.currentTarget.textContent = sim.paused ? '재개' : '일시정지';
-        Settings.playTone(500, 0.04, 0.025);
+        setPauseBtnUI(sim.paused);
+        Settings.playTone(sim.paused ? 440 : 620, 0.05, 0.03);
       });
 
       function pushDrugMistake(msg) {
@@ -1373,6 +1402,49 @@
         finalizeEvaluation(null);
       });
 
+      function startCountdownAndRun() {
+        if (!sim || evaluated) return;
+        if (countdownTimer) { clearTimeout(countdownTimer); countdownTimer = null; }
+        countdownActive = true;
+        pendingCountdown = false;
+        sim.paused = true;
+        setPauseBtnUI(false);
+
+        const steps = [
+          { text: '3', freq: 520, dur: 0.12, vol: 0.055, delay: 800, go: false },
+          { text: '2', freq: 580, dur: 0.12, vol: 0.055, delay: 800, go: false },
+          { text: '1', freq: 660, dur: 0.12, vol: 0.055, delay: 800, go: false },
+          { text: 'START', freq: 880, dur: 0.22, vol: 0.065, delay: 480, go: true }
+        ];
+        cdLabelEl.textContent = currentCase ? `${currentCase.name} · 마취 유지 시작` : '마취 유지 시작 준비';
+        cdOverlayEl.classList.remove('hidden');
+
+        function runStep(idx) {
+          if (!countdownActive || !sim || evaluated) return;
+          if (idx >= steps.length) {
+            countdownActive = false;
+            cdOverlayEl.classList.add('hidden');
+            sim.paused = false;
+            setPauseBtnUI(false);
+            tickTimer = setInterval(stepSim, 1000);
+            waveAnimId = requestAnimationFrame(animateWaves);
+            return;
+          }
+          const st = steps[idx];
+          cdNumEl.textContent = st.text;
+          cdNumEl.classList.toggle('is-go', st.go);
+          cdNumEl.style.animation = 'none';
+          void cdNumEl.offsetWidth;
+          cdNumEl.style.animation = '';
+          Settings.playTone(st.freq, st.dur, st.vol);
+          if (st.go) {
+            setTimeout(() => Settings.playTone(1174, 0.18, 0.045), 90);
+          }
+          countdownTimer = setTimeout(() => runStep(idx + 1), st.delay);
+        }
+        runStep(0);
+      }
+
       async function loadStage(stageId, opts = {}) {
         stopSim();
         const prevCase = currentCase;
@@ -1388,8 +1460,8 @@
         detailModalEl.classList.add('hidden');
         stampOverlayEl.classList.add('hidden');
         evalSubmitBtn.textContent = '마취 유지 완료';
-        document.querySelectorAll('#ch4-btn-vent, #ch4-btn-warm, #ch4-btn-pause, [data-drug4]').forEach((b) => b.classList.remove('active'));
-        document.getElementById('ch4-btn-pause').textContent = '일시정지';
+        document.querySelectorAll('#ch4-btn-vent, #ch4-btn-warm, [data-drug4]').forEach((b) => b.classList.remove('active'));
+        setPauseBtnUI(false);
         ['ch4-sec-vitals', 'ch4-sec-state', 'ch4-sec-log'].forEach((id) => setMonCollapsed(id, false));
         logListEl.innerHTML = '<div class="mon-empty">수술 시작 대기</div>';
         activateTab('vent');
@@ -1411,7 +1483,7 @@
         renderFullPreopDetail(currentCase);
 
         sim = {
-          sec: 0, prog: 0, paused: false, arrested: false,
+          sec: 0, prog: 0, paused: true, arrested: false, rhythm: 'NSR',
           hr: currentCase.pe.hr, spo2: 98, etco2: 41, fiCO2: 0,
           map: Math.max(66, currentCase.pe.bpMap - 6), bt: currentCase.pe.bt,
           iso: 1.5, ippv: false, warm: false, norepi: false,
@@ -1425,8 +1497,16 @@
         addLog('마취 유지 시작 — 피부 절개 준비');
         prefillWaves();
         renderUI();
-        tickTimer = setInterval(stepSim, 1000);
-        waveAnimId = requestAnimationFrame(animateWaves);
+        drawChannel(cvEcg, waveState.ecgBuf, waveState.x, '#4ade80', 'rgba(74,222,128,0.6)', false);
+        drawChannel(cvPleth, waveState.plethBuf, waveState.x, '#38bdf8', 'rgba(56,189,248,0.6)', false);
+        drawChannel(cvCo2, waveState.co2Buf, waveState.co2X, '#facc15', 'rgba(250,204,21,0.6)', true);
+
+        const tutOpen = Boolean(document.getElementById('ch-tut-backdrop'));
+        if (tutOpen) {
+          pendingCountdown = true;
+        } else {
+          startCountdownAndRun();
+        }
       }
 
       const chapterCtrl = Settings.initChapterCommon({
@@ -1444,7 +1524,10 @@
           { title: '3. 약물 · CRI & 점검 · 평가', sel: '#ch4-control', onEnter: () => activateTab('check'), text: '돌발 이벤트 시 약물·CRI로 대응하되, 파형·수치 이상이 장치 아티팩트인지 점검·평가 탭에서 먼저 확인하세요.' },
           { title: '4. 유지 종료 및 시작', sel: '#ch4-control', onEnter: () => activateTab('finish'), text: '수술 100% 완료 후 기화기를 OFF(0%)로 전환하고 마취 유지 완료를 누릅니다. 이제 튜토리얼 케이스를 시작합니다.' }
         ],
-        onTutorialFinish: () => activateTab('vent'),
+        onTutorialFinish: () => {
+          activateTab('vent');
+          if (pendingCountdown) startCountdownAndRun();
+        },
         onSelectStage: (stageId, opts) => loadStage(stageId, opts)
       });
 
