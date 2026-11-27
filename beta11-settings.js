@@ -834,15 +834,17 @@
       playTone(500, 0.05, 0.03);
       stageModal.classList.remove('hidden');
     });
-    document.getElementById('ch-stage-close').addEventListener('click', () => {
+    function dismissStageModal() {
+      const wasInitial = initialStageSelectOpen;
       initialStageSelectOpen = false;
       stageModal.classList.add('hidden');
-    });
-    stageModal.addEventListener('click', (e) => {
-      if (e.target === stageModal) {
-        initialStageSelectOpen = false;
-        stageModal.classList.add('hidden');
+      if (wasInitial && typeof cfg.onInitialStageClose === 'function') {
+        cfg.onInitialStageClose();
       }
+    }
+    document.getElementById('ch-stage-close').addEventListener('click', dismissStageModal);
+    stageModal.addEventListener('click', (e) => {
+      if (e.target === stageModal) dismissStageModal();
     });
 
     document.getElementById('ch-btn-settings').addEventListener('click', () => { syncChSettings(); toastEl.textContent = ''; playTone(500, 0.05, 0.03); settingsModal.classList.remove('hidden'); });

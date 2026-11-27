@@ -1393,6 +1393,10 @@
         if (!sim || evaluated || countdownActive) return;
         sim.paused = !sim.paused;
         setPauseBtnUI(sim.paused);
+        if (!sim.paused) {
+          if (!tickTimer) tickTimer = setInterval(stepSim, 1000);
+          if (!waveAnimId) waveAnimId = requestAnimationFrame(animateWaves);
+        }
         Settings.playTone(sim.paused ? 440 : 620, 0.05, 0.03);
       });
 
@@ -1716,6 +1720,11 @@
         onTutorialFinish: () => {
           activateTab('vent');
           if (pendingCountdown) startCountdownAndRun();
+        },
+        onInitialStageClose: () => {
+          if (sim && !evaluated && !tickTimer && !countdownActive) {
+            startCountdownAndRun();
+          }
         },
         onSelectStage: (stageId, opts) => {
           if (stageId === 'tutorial') {
