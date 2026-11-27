@@ -26,23 +26,27 @@
             <div class="ch1-cc-line" id="ch3-status-line"></div>
           </div>
 
-          <div class="ch1-monitor-scroll">
+          <div class="ch1-monitor-scroll" id="ch3-monitor-scroll" style="cursor:grab;">
             <div class="mon-sec" id="ch3-sec-vitals">
               <div class="mon-sec-title">
-                <span>1. 실시간 생체 모니터</span>
+                <span>1. 생체 모니터링</span>
                 <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch3-sec-vitals">접기</button>
               </div>
               <div class="mon-sec-body">
                 <div class="monitor-mock" style="padding:10px;">
-                  <div class="monitor-row">
+                  <div class="monitor-row" style="grid-template-columns:repeat(3,1fr);">
                     <div class="m-cell"><span class="mk">HR</span><span class="mv" id="ch3-v-hr">--</span></div>
-                    <div class="m-cell"><span class="mk">SpO₂</span><span class="mv" id="ch3-v-spo2">--%</span></div>
-                    <div class="m-cell"><span class="mk">MAP</span><span class="mv" id="ch3-v-map">--</span></div>
                     <div class="m-cell"><span class="mk">RR</span><span class="mv" id="ch3-v-rr">--</span></div>
+                    <div class="m-cell"><span class="mk">SpO₂</span><span class="mv" id="ch3-v-spo2">--%</span></div>
                   </div>
-                  <div class="monitor-row" style="grid-template-columns:repeat(2,1fr);">
-                    <div class="m-cell"><span class="mk">ETCO₂</span><span class="mv" id="ch3-v-etco2" style="font-size:14px;">--</span></div>
-                    <div class="m-cell"><span class="mk">마취 깊이</span><span class="mv" id="ch3-v-depth" style="font-size:13px;">각성</span></div>
+                  <div class="monitor-row" style="grid-template-columns:repeat(3,1fr);">
+                    <div class="m-cell"><span class="mk">SBP/MAP/DBP</span><span class="mv" id="ch3-v-bp" style="font-size:12.5px;">--/--/--</span></div>
+                    <div class="m-cell">
+                      <span class="mk">ETCO₂</span>
+                      <span class="mv" id="ch3-v-etco2" style="font-size:13px;">--</span>
+                      <span id="ch3-v-etco2-wave" style="font-size:10.5px; color:#cbd5e1; margin-top:2px;">파형 없음</span>
+                    </div>
+                    <div class="m-cell"><span class="mk">마취 심도</span><span class="mv" id="ch3-v-depth" style="font-size:12.5px;">각성</span></div>
                   </div>
                 </div>
               </div>
@@ -193,7 +197,7 @@
 
       let currentStageId = 'tutorial';
       let currentCase = null;
-      let vitals = { hr: 110, spo2: 96, map: 90, rr: 24, etco2: null, depth: '각성' };
+      let vitals = { hr: 110, rr: 24, spo2: 96, sbp: 122, map: 91, dbp: 76, etco2: null, etco2Wave: '파형 없음', depth: '각성' };
       let premedPicks = new Set();
       let indPick = null;
       let ettPick = null;
@@ -206,6 +210,31 @@
 
       window.__b11Cleanup = null;
       function escapeHtml(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+      /* Monitoring Window Drag-to-Scroll */
+      const monitorScrollEl = document.getElementById('ch3-monitor-scroll');
+      let monDrag = false, monStartY = 0, monStartScroll = 0;
+      monitorScrollEl.addEventListener('pointerdown', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        if (e.target.closest('button, a, input, select, textarea')) return;
+        monDrag = true;
+        monStartY = e.clientY;
+        monStartScroll = monitorScrollEl.scrollTop;
+        monitorScrollEl.style.cursor = 'grabbing';
+        monitorScrollEl.style.userSelect = 'none';
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!monDrag) return;
+        monitorScrollEl.scrollTop = monStartScroll - (e.clientY - monStartY);
+      });
+      const endMonDrag = () => {
+        if (!monDrag) return;
+        monDrag = false;
+        monitorScrollEl.style.cursor = 'grab';
+        monitorScrollEl.style.userSelect = '';
+      };
+      window.addEventListener('pointerup', endMonDrag);
+      window.addEventListener('pointercancel', endMonDrag);
 
       function setMonCollapsed(id, c) {
         const sec = document.getElementById(id);
@@ -261,10 +290,15 @@
 
       function renderMonitor() {
         document.getElementById('ch3-v-hr').textContent = Math.round(vitals.hr);
-        document.getElementById('ch3-v-spo2').textContent = `${Math.round(vitals.spo2)}%`;
-        document.getElementById('ch3-v-map').textContent = Math.round(vitals.map);
         document.getElementById('ch3-v-rr').textContent = Math.round(vitals.rr);
+        document.getElementById('ch3-v-spo2').textContent = `${Math.round(vitals.spo2)}%`;
+        document.getElementById('ch3-v-bp').textContent = `${Math.round(vitals.sbp)}/${Math.round(vitals.map)}/${Math.round(vitals.dbp)}`;
         document.getElementById('ch3-v-etco2').textContent = vitals.etco2 != null ? `${vitals.etco2} mmHg` : '--';
+        const waveEl = document.getElementById('ch3-v-etco2-wave');
+        if (waveEl) {
+          waveEl.textContent = vitals.etco2Wave || '파형 없음';
+          waveEl.style.color = vitals.etco2Wave === '정상 파형' ? '#86efac' : vitals.etco2Wave === '이상 파형' ? '#fca5a5' : '#cbd5e1';
+        }
         document.getElementById('ch3-v-depth').textContent = vitals.depth;
 
         const stText = state.trans.size >= 4 ? '유지 전환 완료' : state.intubated ? '삽관 완료 (유지 전환 대기)' : state.premedDone ? '전처치 완료 (도입 대기)' : '전처치 대기';
@@ -275,7 +309,7 @@
             <div class="sig-hx-row"><span class="sig-hx-k">전처치:</span><span>${state.premedDone ? Array.from(premedPicks).join(', ') : '미실시'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">전산소화:</span><span>${state.preO2Done ? '완료 (SpO₂ 99%)' : '미실시'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유도 적정:</span><span>${indPick ? `${indPick} (${state.titrateCount}/4)` : '미실시'}</span></div>
-            <div class="sig-hx-row"><span class="sig-hx-k">기관삽관:</span><span>${state.intubated ? `ETT #${ettPick} 삽관 · ETCO₂ 확인` : '미실시'}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">기관삽관:</span><span>${state.intubated ? `ETT #${ettPick} 삽관 · ${vitals.etco2Wave}` : '미실시'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유지 전환:</span><span>${state.trans.size} / 4 항목 완료</span></div>
           </div>
         `;
@@ -327,9 +361,12 @@
         if (evaluated || state.intubated || !indPick) return;
         state.titrateCount = Math.min(4, state.titrateCount + 1);
         btnTitrate.textContent = `1/4 용량 적정 투여 (${state.titrateCount}/4)`;
-        vitals.map = Math.max(52, vitals.map - (indPick === 'Etomidate' ? 2 : 6));
+        const bpDrop = indPick === 'Etomidate' ? 2 : 6;
+        vitals.sbp = Math.max(70, vitals.sbp - Math.round(bpDrop * 1.3));
+        vitals.map = Math.max(52, vitals.map - bpDrop);
+        vitals.dbp = Math.max(38, vitals.dbp - Math.round(bpDrop * 0.8));
         vitals.rr = Math.max(6, vitals.rr - 4);
-        vitals.depth = state.titrateCount >= 3 ? '삽관 가능 깊이' : '중등도 진정';
+        vitals.depth = state.titrateCount >= 3 ? '삽관 가능' : '중등도 진정';
         if (state.titrateCount === 4) {
           vitals.rr = 4;
           if (!state.preO2Done) vitals.spo2 = Math.max(88, vitals.spo2 - 7);
@@ -362,13 +399,21 @@
         btnIntubate.disabled = true;
         btnTitrate.classList.add('exam-done');
         btnTitrate.disabled = true;
-        vitals.etco2 = 39;
-        vitals.depth = '수술 적정 도입';
         const recEtt = expectedEtt(currentCase);
-        if (ettPick !== recEtt) {
+        const ettMismatch = ettPick !== recEtt;
+        if (ettMismatch) {
           state.mistakes.push(`ETT 규격 오차 (선택 #${ettPick} / 권장 #${recEtt})`);
+          vitals.etco2 = 48;
+          vitals.etco2Wave = '이상 파형';
+        } else if (vitals.rr <= 4) {
+          vitals.etco2 = 52;
+          vitals.etco2Wave = '이상 파형';
+        } else {
+          vitals.etco2 = 39;
+          vitals.etco2Wave = '정상 파형';
         }
-        addLog(`ETT #${ettPick} 기관삽관 완료 · 커프 팽창 · ETCO₂ 파형 확인`);
+        vitals.depth = '수술 적정 도입';
+        addLog(`ETT #${ettPick} 기관삽관 완료 · 커프 팽창 · ETCO₂ ${vitals.etco2} mmHg (${vitals.etco2Wave})`);
         Settings.playTone(700, 0.07, 0.035);
         renderMonitor();
       });
@@ -504,7 +549,17 @@
           currentCase = Data.getFixedCase(stageId);
         }
 
-        vitals = { hr: currentCase.pe.hr, spo2: currentCase.trueAsa >= 5 ? 92 : 97, map: currentCase.pe.bpMap, rr: currentCase.pe.rr, etco2: null, depth: '각성' };
+        vitals = {
+          hr: currentCase.pe.hr,
+          rr: currentCase.pe.rr,
+          spo2: currentCase.trueAsa >= 5 ? 92 : 97,
+          sbp: currentCase.pe.bpSys,
+          map: currentCase.pe.bpMap,
+          dbp: currentCase.pe.bpDia,
+          etco2: null,
+          etco2Wave: '파형 없음',
+          depth: '각성'
+        };
         const spKr = currentCase.species === 'cat' ? '고양이' : '개';
         sigHeadEl.innerHTML = `<span>${currentCase.name}</span><span class="ch1-sig-meta">${spKr} · ${currentCase.breed} · ${currentCase.age} · ${currentCase.weight} kg</span>`;
         renderMonitor();
