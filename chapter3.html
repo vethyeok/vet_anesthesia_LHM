@@ -98,6 +98,22 @@
           <div class="ch1-ctrl-body">
             <!-- 1. 전처치 -->
             <div class="ch1-pane" data-content="premed">
+              <div class="exam-btn-list">
+                <button type="button" class="b-btn exam-main-btn" id="ch3-btn-preo2">전산소화</button>
+              </div>
+
+              <div>
+                <div class="eval-sec-lbl">항생제</div>
+                <div class="ch3-drug-row">
+                  <div class="ch3-drug-group">
+                    <button type="button" class="b-btn prog-btn" data-abx3="Cefazolin">Cefazolin</button>
+                    <button type="button" class="b-btn prog-btn" data-abx3="Ampi-Sulbac">Ampi-Sulbac</button>
+                    <button type="button" class="b-btn prog-btn" data-abx3="Metronidazole">Metronidazole</button>
+                  </div>
+                  <button type="button" class="b-btn ch3-antag-btn" id="ch3-abx-antag-btn">길항</button>
+                </div>
+              </div>
+
               <div>
                 <div class="eval-sec-lbl">전처치 약물 선택</div>
                 <div class="prog-grid">
@@ -107,9 +123,9 @@
                   <button type="button" class="b-btn prog-btn" data-p3="Butorphanol">Butorphanol</button>
                 </div>
               </div>
+
               <div class="exam-btn-list">
                 <button type="button" class="b-btn exam-main-btn" id="ch3-btn-apply-premed">전처치 일괄 투여</button>
-                <button type="button" class="b-btn exam-main-btn" id="ch3-btn-preo2">전산소화 (Pre-O₂ 3분)</button>
               </div>
             </div>
 
@@ -161,6 +177,17 @@
         </section>
       </div>
     </main>
+  </div>
+
+  <!-- 길항 약물 도움말 팝업 -->
+  <div id="ch3-antag-help-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch3-antag-help-title" style="backdrop-filter:blur(6px); z-index:116;">
+    <div class="modal-card" style="max-width:420px;">
+      <h2 id="ch3-antag-help-title" class="font-maru" style="font-size:18px; font-weight:600; color:var(--brown); margin-bottom:10px;">항생제 알러지 약물</h2>
+      <div id="ch3-antag-help-body" class="ch2-help-item" style="margin-bottom:14px;"></div>
+      <div class="modal-close-wrap">
+        <button id="ch3-antag-help-close" type="button" class="b-btn modal-close-btn">닫기</button>
+      </div>
+    </div>
   </div>
 
   <!-- Chapter 1 마취 전 검사 및 특이사항 상세 팝업 -->
@@ -221,10 +248,14 @@
       const ctrlHandleEl = document.getElementById('ch3-ctrl-handle');
       const btnPremed = document.getElementById('ch3-btn-apply-premed');
       const btnPreO2 = document.getElementById('ch3-btn-preo2');
+      const abxAntagBtn = document.getElementById('ch3-abx-antag-btn');
       const btnTitrate = document.getElementById('ch3-btn-titrate');
       const btnIntubate = document.getElementById('ch3-btn-intubate');
       const evalSubmitBtn = document.getElementById('ch3-eval-submit');
       const stampOverlayEl = document.getElementById('ch3-stamp-overlay');
+      const antagHelpModalEl = document.getElementById('ch3-antag-help-modal');
+      const antagHelpTitleEl = document.getElementById('ch3-antag-help-title');
+      const antagHelpBodyEl = document.getElementById('ch3-antag-help-body');
       const detailModalEl = document.getElementById('ch3-preop-detail-modal');
       const dtHxEl = document.getElementById('ch3-dt-hx');
       const dtPeEl = document.getElementById('ch3-dt-pe');
@@ -235,9 +266,17 @@
       const rvAiEl = document.getElementById('ch3-rv-ai');
       const rvSoapEl = document.getElementById('ch3-rv-soap');
 
+      const ABX_ANTAG_HELP = {
+        title: '항생제 알러지 약물',
+        desc: '피부 두드러기, 안면부종 등의 경증 알러지 반응은 항히스타민제로 완화하나, 아나필락시스 쇼크 등의 중증 반응은 에피네프린과 보조제로 스테로이드를 투여합니다.'
+      };
+
       let currentStageId = 'tutorial';
       let currentCase = null;
       let vitals = { hr: 110, rr: 24, rrMode: '자발 호흡', spo2: 96, sbp: 122, map: 91, dbp: 76, etco2: null, etco2Wave: '파형 없음', depth: '각성' };
+      let abxPicks = new Set();
+      let abxAntagUsed = false;
+      let abxAllergy = { active: false, severity: null, resolved: false, delta: { hr: 0, rr: 0, sbp: 0, map: 0, dbp: 0 } };
       let premedPicks = new Set();
       let indPick = null;
       let ettPick = null;
@@ -465,13 +504,88 @@
         chkBodyEl.innerHTML = `
           <div class="sig-hx-list">
             <div class="sig-hx-row"><span class="sig-hx-k">전산소화:</span><span>${state.preO2Done ? '완료 (SpO₂ 99%)' : '미실시'}</span></div>
-            <div class="sig-hx-row"><span class="sig-hx-k">전처치:</span><span>${state.premedDone ? Array.from(premedPicks).join(', ') : '미실시'}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">전처치:</span><span>${state.premedDone ? ([...abxPicks, ...premedPicks].join(', ') || '완료') : '미실시'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유도 적정:</span><span>${indPick ? `${indPick} (${state.titrateCount}/4)` : '미실시'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">기관삽관:</span><span>${state.intubated ? `ETT #${ettPick} 삽관 · ETCO₂ ${vitals.etco2} (${vitals.etco2Wave})` : '미실시'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유지 전환:</span><span>${state.trans.size} / 4 항목 완료</span></div>
           </div>
         `;
       }
+
+      document.getElementById('ch3-antag-help-close').addEventListener('click', () => antagHelpModalEl.classList.add('hidden'));
+      antagHelpModalEl.addEventListener('click', (e) => { if (e.target === antagHelpModalEl) antagHelpModalEl.classList.add('hidden'); });
+
+      function detectAbxAllergy(c, pickedSet) {
+        if (!c || !pickedSet || !pickedSet.size) return null;
+        if (c.abxAllergy && c.abxAllergy.drug && pickedSet.has(c.abxAllergy.drug)) {
+          return c.abxAllergy.severity || 'mild';
+        }
+        const hxText = `${c.ownerClue || ''} ${(c.history || []).map((h) => h.text).join(' ')}`;
+        if (!/알러지|과민|아나필락시스|두드러기|부종/i.test(hxText)) return null;
+        const hitCefa = pickedSet.has('Cefazolin') && /세파|cefazolin|베타락탐|β-lactam|항생제/i.test(hxText);
+        const hitAmpi = pickedSet.has('Ampi-Sulbac') && /암피|ampicillin|페니실린|penicillin|베타락탐|β-lactam|항생제/i.test(hxText);
+        const hitMetro = pickedSet.has('Metronidazole') && /메트로|metronidazole|항생제/i.test(hxText);
+        if (!hitCefa && !hitAmpi && !hitMetro) return null;
+        if (/아나필락시스|쇼크|중증|저혈압/i.test(hxText)) return 'severe';
+        if (/중등도|호흡|빈호흡/i.test(hxText)) return 'moderate';
+        return 'mild';
+      }
+
+      function applyAbxAllergyReaction(sev) {
+        abxAllergy = { active: true, severity: sev, resolved: false, delta: { hr: 0, rr: 0, sbp: 0, map: 0, dbp: 0 } };
+        if (sev === 'mild') {
+          addLog('항생제 알러지 반응(경증): 피부 두드러기·안면부종 관찰 — 길항 처치 필요');
+        } else if (sev === 'moderate') {
+          abxAllergy.delta.rr = 12;
+          vitals.rr += 12;
+          addLog('항생제 알러지 반응(중등도): 호흡수 증가 발생 — 길항 처치 필요');
+        } else if (sev === 'severe') {
+          abxAllergy.delta = { hr: 30, rr: 16, sbp: -28, map: -22, dbp: -16 };
+          vitals.hr += 30;
+          vitals.rr += 16;
+          vitals.sbp = Math.max(60, vitals.sbp - 28);
+          vitals.map = Math.max(45, vitals.map - 22);
+          vitals.dbp = Math.max(32, vitals.dbp - 16);
+          addLog('항생제 알러지 반응(중증): 호흡수·심박수 증가 및 혈압 저하 발생 — 즉각 길항 처치 필요');
+        }
+      }
+
+      document.querySelectorAll('[data-abx3]').forEach((b) => b.addEventListener('click', () => {
+        if (evaluated || state.premedDone) return;
+        const k = b.dataset.abx3;
+        if (abxPicks.has(k)) abxPicks.delete(k); else abxPicks.add(k);
+        b.classList.toggle('active', abxPicks.has(k));
+        Settings.playTone(540, 0.04, 0.025);
+      }));
+
+      abxAntagBtn.addEventListener('click', () => {
+        if (abxAntagUsed) {
+          Settings.playTone(520, 0.04, 0.025);
+          antagHelpTitleEl.textContent = ABX_ANTAG_HELP.title;
+          antagHelpBodyEl.textContent = ABX_ANTAG_HELP.desc;
+          antagHelpModalEl.classList.remove('hidden');
+          return;
+        }
+        if (evaluated) return;
+        abxAntagUsed = true;
+        if (abxAllergy.active) {
+          vitals.hr = Math.max(40, vitals.hr - abxAllergy.delta.hr);
+          vitals.rr = Math.max(6, vitals.rr - abxAllergy.delta.rr);
+          vitals.sbp = Math.min(200, vitals.sbp - abxAllergy.delta.sbp);
+          vitals.map = Math.min(150, vitals.map - abxAllergy.delta.map);
+          vitals.dbp = Math.min(120, vitals.dbp - abxAllergy.delta.dbp);
+          abxAllergy.active = false;
+          abxAllergy.resolved = true;
+          addLog('항생제 알러지 길항 처치 완료 — 생체 바이탈 회복');
+        } else {
+          addLog('항생제 알러지 길항 처치 확인');
+        }
+        abxAntagBtn.textContent = '?';
+        abxAntagBtn.classList.add('is-help');
+        abxAntagBtn.setAttribute('aria-label', '항생제 알러지 약물 도움말');
+        Settings.playTone(640, 0.06, 0.03);
+        renderMonitor();
+      });
 
       document.querySelectorAll('[data-p3]').forEach((b) => b.addEventListener('click', () => {
         if (evaluated || state.premedDone) return;
@@ -482,18 +596,32 @@
       }));
 
       btnPremed.addEventListener('click', () => {
-        if (evaluated || state.premedDone || !premedPicks.size) return;
+        if (evaluated || state.premedDone || (!premedPicks.size && !abxPicks.size)) return;
         state.premedDone = true;
         btnPremed.classList.add('exam-done');
         btnPremed.disabled = true;
-        vitals.hr = Math.max(55, vitals.hr - (premedPicks.has('Dexmedetomidine') ? 26 : 12));
-        vitals.rr = Math.max(12, vitals.rr - 6);
-        vitals.rrMode = '자발 호흡';
-        vitals.depth = '경도 진정';
+        if (premedPicks.size) {
+          vitals.hr = Math.max(55, vitals.hr - (premedPicks.has('Dexmedetomidine') ? 26 : 12));
+          vitals.rr = Math.max(12, vitals.rr - 6);
+          vitals.rrMode = '자발 호흡';
+          vitals.depth = '경도 진정';
+        }
         if (currentCase.trueAsa >= 4 && premedPicks.has('Dexmedetomidine')) {
           state.mistakes.push('중증/응급 환자에서 Dexmedetomidine 전처치로 혈역학 부담 증가');
         }
-        addLog(`전처치 투여: ${Array.from(premedPicks).join(', ')}`);
+        // 항생제 숨김 감점: Cefa+Ampi, Ampi+Metro 감점 (Cefa+Metro 허용)
+        if (abxPicks.has('Cefazolin') && abxPicks.has('Ampi-Sulbac')) {
+          state.mistakes.push('항생제 중복 병용: Cefazolin + Ampi-Sulbac');
+        }
+        if (abxPicks.has('Ampi-Sulbac') && abxPicks.has('Metronidazole')) {
+          state.mistakes.push('항생제 중복 병용: Ampi-Sulbac + Metronidazole');
+        }
+        addLog(`전처치 투여: ${[...abxPicks, ...premedPicks].join(', ')}`);
+
+        // 환자 항생제 알러지 반응 체크
+        const allergySev = detectAbxAllergy(currentCase, abxPicks);
+        if (allergySev) applyAbxAllergyReaction(allergySev);
+
         Settings.playTone(620, 0.06, 0.03);
         renderMonitor();
       });
@@ -644,6 +772,9 @@
         if (evaluated) { Settings.playTone(540, 0.05, 0.03); setReviewTab('wrong'); reviewModalEl.classList.remove('hidden'); return; }
         evaluated = true;
         stopTimer();
+        if (abxAllergy.active) {
+          state.mistakes.push('항생제 알러지 반응 미처치 (길항 누락)');
+        }
 
         let score = 100;
         if (!state.premedDone) score -= 15;
@@ -687,6 +818,9 @@
       async function loadStage(stageId, opts = {}) {
         const prevCase = currentCase;
         currentStageId = stageId;
+        abxPicks = new Set();
+        abxAntagUsed = false;
+        abxAllergy = { active: false, severity: null, resolved: false, delta: { hr: 0, rr: 0, sbp: 0, map: 0, dbp: 0 } };
         premedPicks = new Set();
         indPick = null;
         ettPick = null;
@@ -696,12 +830,16 @@
         lastReport = null;
         aiText = null; soapText = null;
 
+        antagHelpModalEl.classList.add('hidden');
         detailModalEl.classList.add('hidden');
         reviewModalEl.classList.add('hidden');
         stampOverlayEl.classList.add('hidden');
         evalSubmitBtn.textContent = '도입 완료';
         btnTitrate.textContent = '1/4 용량 적정 투여 (0/4)';
-        document.querySelectorAll('[data-p3], [data-i3], [data-ett]').forEach((b) => b.classList.remove('active'));
+        abxAntagBtn.textContent = '길항';
+        abxAntagBtn.classList.remove('is-help');
+        abxAntagBtn.removeAttribute('aria-label');
+        document.querySelectorAll('[data-abx3], [data-p3], [data-i3], [data-ett]').forEach((b) => b.classList.remove('active'));
         document.querySelectorAll('.exam-main-btn').forEach((b) => { b.classList.remove('exam-done'); b.disabled = false; });
         ['ch3-sec-vitals', 'ch3-sec-chk', 'ch3-sec-log'].forEach((id) => setMonCollapsed(id, false));
         logListEl.innerHTML = '<div class="mon-empty">도입 대기 중</div>';

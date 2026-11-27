@@ -1605,6 +1605,42 @@ body.b11-immersive .app-shell {
   background: var(--beige-soft);
 }
 
+/* Chapter 3 Premed Drug Row + Antagonist/Help Button */
+.ch3-drug-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.ch3-drug-group {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.ch3-drug-group .prog-btn {
+  padding: 6px 4px;
+  font-size: calc(11.5px * var(--text-scale, 1));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ch3-antag-btn {
+  flex: 0 0 48px;
+  padding: 0 6px;
+  border-radius: 12px;
+  font-size: calc(12px * var(--text-scale, 1));
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.ch3-antag-btn.is-help {
+  color: var(--brown);
+  font-size: 14px;
+}
+
 
 
 
