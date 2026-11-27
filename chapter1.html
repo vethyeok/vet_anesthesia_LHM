@@ -1201,8 +1201,9 @@
           <span>${currentCase.name}</span>
           <span class="ch1-sig-meta">${spKr} · ${currentCase.breed} · ${currentCase.age} · ${currentCase.weight} kg · ${currentCase.sex}</span>
         `;
-        appendBubble('owner', currentCase.ownerGreeting || `안녕하세요 선생님, ${currentCase.name} 검사 받으러 왔습니다.`);
-        chatHistory.push({ sender: 'owner', text: currentCase.ownerGreeting || '' });
+        const greet = '안녕하세요, 선생님.';
+        appendBubble('owner', greet);
+        chatHistory.push({ sender: 'owner', text: greet });
       }
 
       const chapterCtrl = Settings.initChapterCommon({
