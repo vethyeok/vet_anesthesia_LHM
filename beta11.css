@@ -2218,33 +2218,37 @@ body.b11-immersive .app-shell {
 }
 .ch4-wave-group {
   background: #231f1b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   overflow: hidden;
 }
 .ch4-wave-band {
   display: grid;
-  grid-template-columns: 1fr 78px;
+  grid-template-columns: 1fr 118px;
   align-items: stretch;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .ch4-wave-band:last-child {
   border-bottom: none;
 }
 .ch4-wave-plot {
   position: relative;
-  background: #171411;
-  padding: 2px 4px;
+  background: #14110f;
+  padding: 2px 3px;
   display: flex;
   align-items: center;
+  min-width: 0;
 }
 .ch4-wave-cv {
   width: 100%;
-  height: 40px;
+  height: 48px;
   display: block;
 }
+.ch4-wave-cv.is-pleth {
+  height: 44px;
+}
 .ch4-wave-cv.is-co2 {
-  height: 52px;
+  height: 58px;
 }
 .ch4-wave-tag {
   position: absolute;
@@ -2252,53 +2256,67 @@ body.b11-immersive .app-shell {
   top: 3px;
   font-size: 9px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.52);
   pointer-events: none;
+  z-index: 2;
 }
 .ch4-wave-readout {
-  background: #26221e;
-  border-left: 1px solid rgba(255, 255, 255, 0.07);
-  padding: 4px 6px;
+  background: #24201c;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 5px 7px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: flex-end;
-  text-align: right;
+  align-items: flex-start;
+  text-align: left;
   font-variant-numeric: tabular-nums;
+  min-width: 0;
 }
 .ch4-wr-k {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.1;
-  opacity: 0.9;
+  opacity: 0.88;
+}
+.ch4-wr-line {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 5px;
+  margin-top: 2px;
 }
 .ch4-wr-v {
   font-size: 20px;
   font-weight: 800;
   line-height: 1.05;
+  flex-shrink: 0;
 }
 .ch4-wr-sub {
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 700;
   line-height: 1.15;
-  margin-top: 1px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ch4-wr-rr {
-  margin-top: 3px;
+  margin-top: 4px;
   padding-top: 3px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   width: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 5px;
 }
 .ch4-wr-rr-val {
   font-size: 12px;
   font-weight: 800;
   color: #f5f5f4;
   line-height: 1.1;
+  flex-shrink: 0;
 }
 .ch4-num-top.hidden {
   display: none;
@@ -2325,16 +2343,25 @@ body.b11-immersive .app-shell {
 }
 @media (max-width: 480px) {
   .ch4-wave-band {
-    grid-template-columns: 1fr 70px;
+    grid-template-columns: 1fr 104px;
   }
   .ch4-wave-cv {
-    height: 34px;
+    height: 42px;
+  }
+  .ch4-wave-cv.is-pleth {
+    height: 40px;
   }
   .ch4-wave-cv.is-co2 {
-    height: 46px;
+    height: 52px;
+  }
+  .ch4-wave-readout {
+    padding: 4px 5px;
   }
   .ch4-wr-v {
     font-size: 17px;
+  }
+  .ch4-wr-sub {
+    font-size: 9px;
   }
   .ch1-ctrl-tabs.ch4-tabs-4 .ch1-tab-btn {
     font-size: 10.5px;

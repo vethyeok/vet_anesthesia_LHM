@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Chapter 4. 마취 유지 — 베타 1.1</title>
-  <link rel="stylesheet" href="beta11.css?v=20261127e" />
+  <link rel="stylesheet" href="beta11.css?v=20261127f" />
   <script src="beta11-settings.js"></script>
   <script src="beta11-ch1-data.js"></script>
 </head>
@@ -51,21 +51,27 @@
                       <div class="ch4-wave-band">
                         <div class="ch4-wave-plot">
                           <span class="ch4-wave-tag">ECG II · 25mm/s</span>
-                          <canvas id="ch4-cv-ecg" class="ch4-wave-cv" width="240" height="40"></canvas>
+                          <canvas id="ch4-cv-ecg" class="ch4-wave-cv"></canvas>
                         </div>
                         <div class="ch4-wave-readout">
                           <span class="ch4-wr-k" style="color:#4ade80;">ECG II · HR</span>
-                          <span class="ch4-wr-v" id="ch4-w-hr" style="color:#4ade80;">--</span>
+                          <div class="ch4-wr-line">
+                            <span class="ch4-wr-v" id="ch4-w-hr" style="color:#4ade80;">--</span>
+                            <span class="ch4-wr-sub" id="ch4-w-hrstatus" style="color:#86efac;">정상파형</span>
+                          </div>
                         </div>
                       </div>
                       <div class="ch4-wave-band">
                         <div class="ch4-wave-plot">
                           <span class="ch4-wave-tag">PLETH</span>
-                          <canvas id="ch4-cv-pleth" class="ch4-wave-cv" width="240" height="40"></canvas>
+                          <canvas id="ch4-cv-pleth" class="ch4-wave-cv is-pleth"></canvas>
                         </div>
                         <div class="ch4-wave-readout">
                           <span class="ch4-wr-k" style="color:#38bdf8;">PLETH · SpO₂</span>
-                          <span class="ch4-wr-v" id="ch4-w-spo2" style="color:#38bdf8;">--%</span>
+                          <div class="ch4-wr-line">
+                            <span class="ch4-wr-v" id="ch4-w-spo2" style="color:#38bdf8;">--%</span>
+                            <span class="ch4-wr-sub" id="ch4-w-spo2status" style="color:#7dd3fc;">정상</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -73,12 +79,14 @@
                       <div class="ch4-wave-band">
                         <div class="ch4-wave-plot">
                           <span class="ch4-wave-tag" id="ch4-w-fico2-tag">CO₂ · 4mm/s · FiCO₂ 0</span>
-                          <canvas id="ch4-cv-co2" class="ch4-wave-cv is-co2" width="240" height="52"></canvas>
+                          <canvas id="ch4-cv-co2" class="ch4-wave-cv is-co2"></canvas>
                         </div>
                         <div class="ch4-wave-readout">
                           <span class="ch4-wr-k" style="color:#facc15;">ETCO₂</span>
-                          <span class="ch4-wr-v" id="ch4-w-etco2" style="color:#facc15;">--</span>
-                          <span class="ch4-wr-sub" id="ch4-w-etwave" style="color:#86efac;">정상 파형</span>
+                          <div class="ch4-wr-line">
+                            <span class="ch4-wr-v" id="ch4-w-etco2" style="color:#facc15;">--</span>
+                            <span class="ch4-wr-sub" id="ch4-w-etwave" style="color:#86efac;">정상파형</span>
+                          </div>
                           <div class="ch4-wr-rr">
                             <span class="ch4-wr-rr-val">RR <span id="ch4-w-rr">--</span></span>
                             <span class="ch4-wr-sub" id="ch4-w-rrmode" style="color:#86efac;">자발</span>
@@ -92,7 +100,7 @@
                   <div class="monitor-row ch4-num-top hidden" id="ch4-num-top">
                     <div class="m-cell">
                       <span class="mk">HR</span>
-                      <span class="mv" id="ch4-v-hr">--</span>
+                      <span class="mv"><span id="ch4-v-hr">--</span> <span id="ch4-v-hrstatus" style="font-size:9.5px; font-weight:700; color:#86efac;">정상파형</span></span>
                     </div>
                     <div class="m-cell">
                       <span class="mk">RR</span>
@@ -583,31 +591,86 @@
         waveState.lastTs = 0;
       }
 
-      function drawChannel(canvas, buf, cursorIdx, color, glow) {
+      function ensureWaveCanvas(canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const cw = Math.round(rect.width || 240);
+        const ch = Math.round(rect.height || 44);
+        if (cw < 10 || ch < 10) return false;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const tw = Math.floor(cw * dpr);
+        const th = Math.floor(ch * dpr);
+        if (canvas.width !== tw || canvas.height !== th) {
+          canvas.width = tw;
+          canvas.height = th;
+        }
+        return dpr;
+      }
+
+      function drawChannel(canvas, buf, cursorIdx, color, glow, isCo2) {
         if (!canvas || !wavesVisible) return;
+        const dpr = ensureWaveCanvas(canvas);
+        if (!dpr) return;
         const ctx = canvas.getContext('2d');
         const w = canvas.width;
         const h = canvas.height;
         ctx.clearRect(0, 0, w, h);
+
+        // 미세 오실로스코프 그리드
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.045)';
+        ctx.lineWidth = 1;
+        const vStep = Math.round(22 * dpr);
+        const hStep = Math.round(14 * dpr);
+        ctx.beginPath();
+        for (let gx = vStep; gx < w; gx += vStep) {
+          ctx.moveTo(gx + 0.5, 0);
+          ctx.lineTo(gx + 0.5, h);
+        }
+        for (let gy = hStep; gy < h; gy += hStep) {
+          ctx.moveTo(0, gy + 0.5);
+          ctx.lineTo(w, gy + 0.5);
+        }
+        ctx.stroke();
+
+        // 기준선
+        const baseY = isCo2 ? (h * 0.54 - (-0.78) * (h * 0.38)) : (h * 0.54);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.09)';
+        ctx.beginPath();
+        ctx.moveTo(0, baseY);
+        ctx.lineTo(w, baseY);
+        ctx.stroke();
+
         const len = buf.length;
-        const gap = 8;
-        ctx.lineWidth = 1.7;
+        const gap = Math.max(8, Math.round(len * 0.032));
+        const ampScale = isCo2 ? h * 0.38 : h * 0.40;
+        const midY = h * 0.54;
+
+        ctx.lineWidth = Math.max(1.8, 1.85 * dpr);
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.strokeStyle = color;
         ctx.shadowColor = glow;
-        ctx.shadowBlur = 4;
+        ctx.shadowBlur = 6 * dpr;
         ctx.beginPath();
         let drawing = false;
         for (let i = 0; i < len; i++) {
           const distAhead = (i - cursorIdx + len) % len;
           if (distAhead < gap) { drawing = false; continue; }
           const px = (i / (len - 1)) * w;
-          const py = h * 0.54 - buf[i] * (h * 0.4);
+          const py = midY - buf[i] * ampScale;
           if (!drawing) { ctx.moveTo(px, py); drawing = true; }
           else ctx.lineTo(px, py);
         }
         ctx.stroke();
+
+        // 스위프 선두 발광 점
+        const headX = (cursorIdx / (len - 1)) * w;
+        const headY = midY - buf[cursorIdx] * ampScale;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 8 * dpr;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(headX, headY, 2.0 * dpr, 0, Math.PI * 2);
+        ctx.fill();
         ctx.shadowBlur = 0;
       }
 
@@ -621,9 +684,21 @@
           for (let s = 0; s < steps; s++) {
             waveState.x = (waveState.x + 1) % BUF_LEN;
             if (!sim.arrested) {
+              const prev = waveState.ecgPhase;
               waveState.ecgPhase = (waveState.ecgPhase + (sim.hr / 60) * subDt) % 1;
+              if (waveState.ecgPhase < prev) waveState.beatCounter = (waveState.beatCounter || 0) + 1;
             }
-            waveState.ecgBuf[waveState.x] = ecgSample(waveState.ecgPhase, sim.arrested);
+            const isVpcBeat = sim.rhythm === 'VPC' && ((waveState.beatCounter || 0) % 4 === 3);
+            if (isVpcBeat && !sim.arrested) {
+              const p = waveState.ecgPhase;
+              waveState.ecgBuf[waveState.x] = (p > 0.25 && p < 0.42)
+                ? Math.sin(((p - 0.25) / 0.17) * Math.PI) * -0.92
+                : (p >= 0.42 && p < 0.62)
+                  ? Math.sin(((p - 0.42) / 0.2) * Math.PI) * 0.42
+                  : 0;
+            } else {
+              waveState.ecgBuf[waveState.x] = ecgSample(waveState.ecgPhase, sim.arrested);
+            }
             waveState.plethBuf[waveState.x] = plethSample(waveState.ecgPhase, sim.map, sim.artifact, sim.arrested);
 
             waveState.co2SubTick++;
@@ -636,9 +711,9 @@
               waveState.co2Buf[waveState.co2X] = co2Sample(waveState.co2Phase, sim.etco2, sim.fiCO2, sim.arrested);
             }
           }
-          drawChannel(cvEcg, waveState.ecgBuf, waveState.x, '#4ade80', 'rgba(74,222,128,0.5)');
-          drawChannel(cvPleth, waveState.plethBuf, waveState.x, '#38bdf8', 'rgba(56,189,248,0.5)');
-          drawChannel(cvCo2, waveState.co2Buf, waveState.co2X, '#facc15', 'rgba(250,204,21,0.5)');
+          drawChannel(cvEcg, waveState.ecgBuf, waveState.x, '#4ade80', 'rgba(74,222,128,0.6)', false);
+          drawChannel(cvPleth, waveState.plethBuf, waveState.x, '#38bdf8', 'rgba(56,189,248,0.6)', false);
+          drawChannel(cvCo2, waveState.co2Buf, waveState.co2X, '#facc15', 'rgba(250,204,21,0.6)', true);
         }
         waveAnimId = requestAnimationFrame(animateWaves);
       }
@@ -755,15 +830,41 @@
         const baseMac = currentCase && currentCase.species === 'cat' ? 1.6 : 1.3;
         const macVal = (sim.iso / baseMac).toFixed(1);
 
+        const isCat = currentCase && currentCase.species === 'cat';
+        const hrStatus = sim.arrested
+          ? '심정지'
+          : sim.rhythm === 'VPC'
+            ? 'VPC'
+            : sim.hr < (isCat ? 100 : 60)
+              ? '서맥'
+              : sim.hr > (isCat ? 200 : 145)
+                ? '빈맥'
+                : '정상파형';
+        const hrStatusCol = hrStatus === '정상파형' ? '#86efac' : (hrStatus === '심정지' || hrStatus === 'VPC') ? '#fca5a5' : '#fde68a';
+        const spo2Status = sim.arrested
+          ? '소실'
+          : sim.artifact === 'spo2_probe'
+            ? '신호불안정'
+            : dispSpo2 < 94
+              ? '저산소'
+              : '정상';
+        const spo2StatusCol = spo2Status === '정상' ? '#7dd3fc' : '#fca5a5';
+
         const hrTxt = sim.arrested ? '0' : String(Math.round(sim.hr));
         const spo2Txt = sim.arrested ? '--%' : `${dispSpo2}%`;
         const etTxt = sim.arrested ? '0' : String(Math.round(sim.etco2));
 
-        // 파형 보기 우측 수치
+        // 파형 보기 우측 수치 (좌측 정렬 + 우측 부가 설명)
         document.getElementById('ch4-w-hr').textContent = hrTxt;
+        const wHrStEl = document.getElementById('ch4-w-hrstatus');
+        wHrStEl.textContent = hrStatus;
+        wHrStEl.style.color = hrStatusCol;
         const wSpo2El = document.getElementById('ch4-w-spo2');
         wSpo2El.textContent = spo2Txt;
         wSpo2El.style.color = dispSpo2 < 94 ? '#fca5a5' : '#38bdf8';
+        const wSpo2StEl = document.getElementById('ch4-w-spo2status');
+        wSpo2StEl.textContent = spo2Status;
+        wSpo2StEl.style.color = spo2StatusCol;
         document.getElementById('ch4-w-etco2').textContent = etTxt;
         const wEtWaveEl = document.getElementById('ch4-w-etwave');
         wEtWaveEl.textContent = etWave;
@@ -776,6 +877,9 @@
 
         // 파형 숨김 상단 4칸
         document.getElementById('ch4-v-hr').textContent = hrTxt;
+        const vHrStEl = document.getElementById('ch4-v-hrstatus');
+        vHrStEl.textContent = hrStatus;
+        vHrStEl.style.color = hrStatusCol;
         document.getElementById('ch4-v-rr').textContent = String(rrVal);
         const vRrModeEl = document.getElementById('ch4-v-rrmode');
         vRrModeEl.textContent = rrMode;
