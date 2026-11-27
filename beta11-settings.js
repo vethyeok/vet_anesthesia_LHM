@@ -873,6 +873,8 @@
 
   function bindCtrlHandle(handleEl, splitEl, onInteract) {
     if (!handleEl || !splitEl) return () => {};
+    const ctrlEl = handleEl.closest('.ch1-control') || splitEl.querySelector('.ch1-control');
+
     function setCollapsed(c) {
       if (window.innerWidth >= 960) {
         splitEl.classList.remove('ctrl-collapsed');
@@ -885,46 +887,86 @@
     let startY = 0;
     let lastDy = 0;
     let moved = false;
-    let activePid = null;
+    let mode = null; // 'touch' | 'mouse'
+
+    function getClientY(e) {
+      if (e.touches && e.touches.length) return e.touches[0].clientY;
+      if (e.changedTouches && e.changedTouches.length) return e.changedTouches[0].clientY;
+      return e.clientY;
+    }
+
+    function applyDragVisual(dy) {
+      if (!ctrlEl) return;
+      const collapsed = splitEl.classList.contains('ctrl-collapsed');
+      const clamped = collapsed
+        ? Math.max(-72, Math.min(18, dy))
+        : Math.max(-18, Math.min(96, dy));
+      ctrlEl.style.transition = 'none';
+      ctrlEl.style.transform = `translateY(${Math.round(clamped)}px)`;
+    }
+
+    function clearDragVisual() {
+      if (!ctrlEl) return;
+      ctrlEl.style.transition = '';
+      ctrlEl.style.transform = '';
+    }
+
+    function startDrag(e, nextMode) {
+      if (window.innerWidth >= 960) return;
+      if (dragging) return;
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      if (typeof onInteract === 'function') onInteract();
+      mode = nextMode;
+      dragging = true;
+      startY = getClientY(e);
+      lastDy = 0;
+      moved = false;
+      if (mode === 'touch') {
+        window.addEventListener('touchmove', onMove, { passive: false });
+        window.addEventListener('touchend', onEnd, { passive: false });
+        window.addEventListener('touchcancel', onEnd, { passive: false });
+      } else {
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onEnd);
+      }
+    }
 
     function onMove(e) {
       if (!dragging) return;
-      if (activePid != null && e.pointerId != null && e.pointerId !== activePid) return;
       if (e.cancelable) e.preventDefault();
-      lastDy = e.clientY - startY;
-      if (Math.abs(lastDy) > 10) moved = true;
+      lastDy = getClientY(e) - startY;
+      if (Math.abs(lastDy) > 8) moved = true;
+      applyDragVisual(lastDy);
     }
 
-    function onUp(e) {
+    function onEnd(e) {
       if (!dragging) return;
-      if (activePid != null && e.pointerId != null && e.pointerId !== activePid) return;
+      if (e && e.cancelable) e.preventDefault();
       dragging = false;
-      activePid = null;
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      window.removeEventListener('pointercancel', onUp);
+      if (mode === 'touch') {
+        window.removeEventListener('touchmove', onMove);
+        window.removeEventListener('touchend', onEnd);
+        window.removeEventListener('touchcancel', onEnd);
+      } else {
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onEnd);
+      }
+      mode = null;
+      clearDragVisual();
       if (typeof onInteract === 'function') onInteract();
       if (moved) {
-        if (Math.abs(lastDy) > 16) setCollapsed(lastDy > 0);
+        if (Math.abs(lastDy) > 14) setCollapsed(lastDy > 0);
       } else {
         setCollapsed(!splitEl.classList.contains('ctrl-collapsed'));
       }
       playTone(480, 0.03, 0.02);
     }
 
-    handleEl.addEventListener('pointerdown', (e) => {
-      if (window.innerWidth >= 960) return;
-      if (e.cancelable) e.preventDefault();
-      e.stopPropagation();
-      if (typeof onInteract === 'function') onInteract();
-      dragging = true;
-      startY = e.clientY;
-      lastDy = 0;
-      moved = false;
-      activePid = e.pointerId != null ? e.pointerId : null;
-      window.addEventListener('pointermove', onMove, { passive: false });
-      window.addEventListener('pointerup', onUp);
-      window.addEventListener('pointercancel', onUp);
+    handleEl.addEventListener('touchstart', (e) => startDrag(e, 'touch'), { passive: false });
+    handleEl.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      startDrag(e, 'mouse');
     });
 
     handleEl.addEventListener('click', (e) => {
@@ -940,7 +982,10 @@
     });
 
     window.addEventListener('resize', () => {
-      if (window.innerWidth >= 960) splitEl.classList.remove('ctrl-collapsed');
+      if (window.innerWidth >= 960) {
+        clearDragVisual();
+        splitEl.classList.remove('ctrl-collapsed');
+      }
     });
 
     return setCollapsed;
