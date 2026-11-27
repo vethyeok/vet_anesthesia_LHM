@@ -1840,8 +1840,11 @@
           ig.cuffMl = Math.max(0, Math.min(6.0, +(nextMl).toFixed(1)));
           ig.cuffPressure = Math.round(ig.cuffMl * 6.0); // 3.0~4.0mL => 18~24 cmH2O (최대 36)
           if (ig.cuffPressure > 24) {
+            const firstOver = !ig.mistakeKeys.has('cuff_overinflate');
             addIgMistakeOnce('cuff_overinflate', '커프 과팽창으로 기관 점막 손상 위험 유발');
-            addLog(`경고: 커프 과팽창 (${ig.cuffPressure} cmH₂O) — 기관 점막 손상 위험`);
+            if (firstOver) {
+              addLog('경고: 커프 과팽창 — 기관 점막 손상 위험');
+            }
             setIgStatus('과팽창 경고! 기관 점막 손상 위험이 있습니다. -0.5 mL 버튼으로 감압하세요.', 'err');
           } else if (ig.cuffPressure >= 18) {
             setIgStatus('적정 밀폐(20 cmH₂O 기준 누출 정지) 달성! 튜브를 고정하세요.', 'ok');
