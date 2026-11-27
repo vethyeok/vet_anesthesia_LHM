@@ -342,7 +342,6 @@
 
   <!-- 3, 2, 1 시작 카운트다운 오버레이 -->
   <div id="ch4-countdown-overlay" class="ch4-cd-backdrop hidden" aria-live="assertive">
-    <div class="ch4-cd-label" id="ch4-cd-label">마취 유지 시작 준비</div>
     <div class="ch4-cd-num font-maru" id="ch4-cd-num">3</div>
   </div>
 
@@ -454,7 +453,6 @@
       const topPauseBtn = document.getElementById('ch4-top-pause-btn');
       const cdOverlayEl = document.getElementById('ch4-countdown-overlay');
       const cdNumEl = document.getElementById('ch4-cd-num');
-      const cdLabelEl = document.getElementById('ch4-cd-label');
       const ICON_PAUSE = '<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3" y="2.5" width="3.5" height="11" rx="1"/><rect x="9.5" y="2.5" width="3.5" height="11" rx="1"/></svg>';
       const ICON_PLAY = '<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5L4 2.5z"/></svg>';
 
@@ -1417,7 +1415,6 @@
           { text: '1', freq: 660, dur: 0.12, vol: 0.055, delay: 800, go: false },
           { text: 'START', freq: 880, dur: 0.22, vol: 0.065, delay: 480, go: true }
         ];
-        cdLabelEl.textContent = currentCase ? `${currentCase.name} · 마취 유지 시작` : '마취 유지 시작 준비';
         cdOverlayEl.classList.remove('hidden');
 
         function runStep(idx) {
@@ -1502,7 +1499,8 @@
         drawChannel(cvPleth, waveState.plethBuf, waveState.x, '#38bdf8', 'rgba(56,189,248,0.6)', false);
         drawChannel(cvCo2, waveState.co2Buf, waveState.co2X, '#facc15', 'rgba(250,204,21,0.6)', true);
 
-        const tutOpen = Boolean(document.getElementById('ch-tut-backdrop'));
+        const tutEl = document.getElementById('ch-tut-backdrop');
+        const tutOpen = Boolean(tutEl && !tutEl.classList.contains('hidden') && window.getComputedStyle(tutEl).display !== 'none');
         if (tutOpen) {
           pendingCountdown = true;
         } else {
