@@ -2031,7 +2031,7 @@
         rvAiEl.innerHTML = '<div class="b-card-soft" style="padding:14px; text-align:center;">AI 로그 분석 중...</div>';
         let t = '';
         try { const r = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(buildAiPayload('debrief')) }); if (r.ok) { const d = await r.json(); t = (d.analysis || d.text || '').trim(); } } catch {}
-        if (!t) t = `[오프라인 도입 로그 분석]\n1) 수행 요약: 전처치(${state.premedDone ? '완료' : '누락'}), 전산소화(${state.preO2Done ? '완료' : '누락'}), 삽관(${state.intubated ? 'ETT #' + ettPick : '미완료'}), 유지전환(${state.trans.size}/4).\n2) 보완 포인트: ${state.mistakes.length ? state.mistakes.join(' / ') : '안정적인 도입 및 기도 확보를 수행했습니다.'}`;
+        if (!t) t = `[오프라인 도입 로그 분석]\n1) 수행 요약: 전처치(${state.premedDone ? '완료' : '누락'}), 전산소화(${state.preO2Done ? '완료' : '누락'}), 삽관(${state.intubated ? 'ETT #' + ettPick : '미완료'}), 유지전환(${state.trans.size}/4).\n2) 보완 포인트: ${lastReport.deductions && lastReport.deductions.length ? lastReport.deductions.map((d) => `${d.text} (-${d.pts}점)`).join(' / ') : '안정적인 도입 및 기도 확보를 수행했습니다.'}`;
         aiText = t;
         rvAiEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(t)}</div>`;
       }
@@ -2059,29 +2059,29 @@
           state.mistakes.push('진정제 부작용 미처치 (길항 누락)');
         }
 
-        let score = 100;
-        if (!state.premedDone) score -= 15;
-        if (state.premedAfterInduct) score -= 15;
-        if (!state.preO2Done) score -= 12;
-        if (!state.intubated) score -= 25;
-        score -= (4 - state.trans.size) * 8;
-        score -= state.earlyTrans.size * 12;
-        score -= state.mistakes.length * 8;
-        score = Math.max(0, Math.min(100, Math.round(score)));
+        const transLabels = {
+          o2: 'O₂ 유량 설정 및 호흡회로 연결',
+          iso: '기화기 개방',
+          apl: 'APL 밸브 완전 개방 확인',
+          mon: '다중 생체 모니터 부착 완료'
+        };
+        const deductions = [];
+        if (!state.premedDone) deductions.push({ text: '전처치 누락 (항생제·진정제 모두 미투여)', pts: 15 });
+        if (state.premedAfterInduct) deductions.push({ text: '유도제 투여 이전 전처치 누락 (항생제·진정제를 유도제 투여 이후 투여)', pts: 15 });
+        if (!state.preO2Done) deductions.push({ text: '전산소화(Pre-oxygenation) 누락', pts: 12 });
+        if (!state.intubated) deductions.push({ text: '기관삽관 미완료', pts: 25 });
+        Object.entries(transLabels).forEach(([k, label]) => {
+          if (!state.trans.has(k)) deductions.push({ text: `유지 전환 누락: ${label}`, pts: 8 });
+        });
+        if (state.earlyTrans.has('o2')) deductions.push({ text: '기관삽관 이전 유지 전환: O₂ 유량 설정 및 호흡회로 연결 시행', pts: 12 });
+        if (state.earlyTrans.has('iso')) deductions.push({ text: '기관삽관 이전 유지 전환: 기화기 개방 시행', pts: 12 });
+        state.mistakes.forEach((m) => deductions.push({ text: m, pts: 8 }));
+
+        const totalDeduct = deductions.reduce((sum, d) => sum + d.pts, 0);
+        const score = Math.max(0, Math.min(100, Math.round(100 - totalDeduct)));
         const grade = score >= 95 ? 'S' : score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 50 ? 'D' : 'F';
 
-        const reviewNotes = [...state.mistakes];
-        if (state.premedAfterInduct) {
-          reviewNotes.push('유도제 투여 이전 전처치 누락: 항생제·진정제를 유도제 투여 이후 투여 (-15점)');
-        }
-        if (state.earlyTrans.has('o2')) {
-          reviewNotes.push('기관삽관 이전 유지 전환: O₂ 유량 설정 및 호흡회로 연결 시행 (-12점)');
-        }
-        if (state.earlyTrans.has('iso')) {
-          reviewNotes.push('기관삽관 이전 유지 전환: 기화기 개방 시행 (-12점)');
-        }
-
-        lastReport = { caseObj: currentCase, score, grade };
+        lastReport = { caseObj: currentCase, score, grade, deductions };
         aiText = null; soapText = null;
         rvWrongEl.innerHTML = `
           <div class="b-card-soft" style="padding:12px; display:flex; flex-direction:column; gap:6px;">
@@ -2094,8 +2094,8 @@
             <div class="modal-row"><span class="muted">유지 전환 체크</span><strong>${state.trans.size} / 4</strong></div>
           </div>
           <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
-            <div class="b-label"><span>오답노트</span></div>
-            ${reviewNotes.length ? reviewNotes.map((m) => `<p style="color:#b91c1c;">• ${escapeHtml(m)}</p>`).join('') : '<p>• 감점 사항 없이 안전하게 마취 도입과 유지 전환을 완료했습니다.</p>'}
+            <div class="b-label"><span>오답노트${totalDeduct ? ` (총 -${totalDeduct}점)` : ''}</span></div>
+            ${deductions.length ? deductions.map((d) => `<p style="color:#b91c1c;">• ${escapeHtml(d.text)} <strong>(-${d.pts}점)</strong></p>`).join('') : '<p>• 감점 사항 없이 안전하게 마취 도입과 유지 전환을 완료했습니다.</p>'}
           </div>
         `;
 
