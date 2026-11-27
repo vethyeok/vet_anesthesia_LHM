@@ -1767,10 +1767,38 @@ body.b11-immersive .app-shell {
 }
 
 /* 4-Stage Intubation Mini-Game Simulator */
+.ch3-ig-modal-wrap {
+  position: relative;
+  width: min(96vw, 660px);
+  max-width: 660px;
+  margin-top: 22px;
+}
+
+.ch3-ig-close-fab {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--ivory);
+  border: 1.5px solid var(--brown-border);
+  color: var(--brown);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(45, 35, 28, 0.22);
+  z-index: 2;
+}
+
 .ch3-ig-modal-card {
   max-width: 660px;
-  width: min(96vw, 660px);
-  max-height: 92dvh;
+  width: 100%;
+  max-height: 86dvh;
   display: flex;
   flex-direction: column;
   padding: 14px 16px;

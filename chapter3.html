@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Chapter 3. 마취 도입 — 베타 1.1</title>
-  <link rel="stylesheet" href="beta11.css?v=20261127a" />
+  <link rel="stylesheet" href="beta11.css?v=20261127b" />
   <script src="beta11-settings.js"></script>
   <script src="beta11-ch1-data.js"></script>
 </head>
@@ -247,34 +247,32 @@
 
   <!-- 기관삽관 4단계 미니게임 시뮬레이터 팝업 -->
   <div id="ch3-intub-game-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch3-intub-game-title" style="backdrop-filter:blur(6px); z-index:118;">
-    <div class="modal-card ch3-ig-modal-card">
-      <div class="ch3-ig-head">
-        <div class="ch3-ig-title-wrap">
-          <h2 id="ch3-intub-game-title" class="font-maru" style="font-size:17px; font-weight:700; color:var(--brown); margin:0;">1단계: 후두 노출</h2>
-          <span id="ch3-ig-species" class="ch3-ig-species-badge">DOG</span>
+    <div class="ch3-ig-modal-wrap">
+      <button id="ch3-intub-cancel-btn" type="button" class="b-btn ch3-ig-close-fab" aria-label="시뮬레이터 닫기">✕</button>
+      <div class="modal-card ch3-ig-modal-card">
+        <div class="ch3-ig-head">
+          <div class="ch3-ig-title-wrap">
+            <h2 id="ch3-intub-game-title" class="font-maru" style="font-size:17px; font-weight:700; color:var(--brown); margin:0;">1단계: 후두 노출</h2>
+            <span id="ch3-ig-species" class="ch3-ig-species-badge">DOG</span>
+          </div>
+          <div class="ch3-ig-vitals-bar">
+            <span id="ch3-ig-apnea" class="ch3-ig-pill font-maru">무호흡 0초</span>
+            <span id="ch3-ig-spo2" class="ch3-ig-pill font-maru">SpO₂ 99%</span>
+          </div>
         </div>
-        <div class="ch3-ig-vitals-bar">
-          <span id="ch3-ig-apnea" class="ch3-ig-pill font-maru">무호흡 0초</span>
-          <span id="ch3-ig-spo2" class="ch3-ig-pill font-maru">SpO₂ 99%</span>
+
+        <div class="ch3-ig-steps" id="ch3-ig-steps">
+          <div class="ch3-ig-step active" data-ig-step="1">1. 후두 노출</div>
+          <div class="ch3-ig-step" data-ig-step="2">2. 성문 조준·삽입</div>
+          <div class="ch3-ig-step" data-ig-step="3">3. ETCO₂·청진</div>
+          <div class="ch3-ig-step" data-ig-step="4">4. 커프 팽창</div>
         </div>
-      </div>
 
-      <div class="ch3-ig-steps" id="ch3-ig-steps">
-        <div class="ch3-ig-step active" data-ig-step="1">1. 후두 노출</div>
-        <div class="ch3-ig-step" data-ig-step="2">2. 성문 조준·삽입</div>
-        <div class="ch3-ig-step" data-ig-step="3">3. ETCO₂·청진</div>
-        <div class="ch3-ig-step" data-ig-step="4">4. 커프 팽창</div>
-      </div>
+        <div class="ch3-ig-body" id="ch3-ig-body"></div>
 
-      <div id="ch3-ig-hypoxia-banner" class="ch3-ig-alert danger" style="display:none; margin-bottom:8px;">
-        저산소 경보! SpO₂가 90% 미만으로 하강했습니다. 신속히 삽관 및 산소 공급을 완료하세요.
-      </div>
-
-      <div class="ch3-ig-body" id="ch3-ig-body"></div>
-
-      <div class="ch3-ig-foot">
-        <div class="ch3-ig-status-msg" id="ch3-intub-status">후두경 핸들을 아래로 드래그해 혀뿌리를 누르세요.</div>
-        <button id="ch3-intub-cancel-btn" type="button" class="b-btn modal-close-btn" style="flex:0 0 74px; height:36px;">닫기</button>
+        <div class="ch3-ig-foot">
+          <div class="ch3-ig-status-msg" id="ch3-intub-status">후두경 핸들을 아래로 드래그해 혀뿌리를 누르세요.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -353,7 +351,6 @@
       const igSpeciesEl = document.getElementById('ch3-ig-species');
       const igApneaEl = document.getElementById('ch3-ig-apnea');
       const igSpo2El = document.getElementById('ch3-ig-spo2');
-      const igHypoxiaEl = document.getElementById('ch3-ig-hypoxia-banner');
       const igBodyEl = document.getElementById('ch3-ig-body');
       const intubStatusEl = document.getElementById('ch3-intub-status');
       const intubCancelBtn = document.getElementById('ch3-intub-cancel-btn');
@@ -962,7 +959,6 @@
         igSpo2El.textContent = `SpO₂ ${spo2Round}%`;
         const lowSpo2 = spo2Round < 90;
         igSpo2El.classList.toggle('warn', lowSpo2);
-        igHypoxiaEl.style.display = lowSpo2 ? 'block' : 'none';
         document.querySelectorAll('#ch3-ig-steps .ch3-ig-step').forEach((el) => {
           const n = Number(el.dataset.igStep);
           el.classList.toggle('active', n === ig.step);
@@ -1412,7 +1408,7 @@
           }
           if (ig.depthPct > 68) {
             ig.placement = 'endobronchial';
-            ig.spo2 = Math.max(70, ig.spo2 - 5);
+            ig.spo2 = Math.max(70, ig.spo2 - 2);
             addLog('튜브 과삽입: 일측 기관지 삽관 의심 — 청진 및 깊이 교정 필요');
             setIgStatus('과삽입으로 일측 기관지 삽관이 발생했습니다! 3단계에서 튜브를 살짝 빼서 교정하세요.', 'err');
           } else {
@@ -1723,9 +1719,9 @@
         intubTickId = setInterval(() => {
           if (!ig) return;
           ig.apneaSec += 0.25;
-          const baseDecay = state.preO2Done ? 0.2 : 1.2;
-          const extraDecay = ig.placement === 'endobronchial' ? 0.8 : 0;
-          ig.spo2 = Math.max(65, ig.spo2 - (baseDecay + extraDecay) * 0.25);
+          const baseDecay = state.preO2Done ? 0.08 : 0.35;
+          const extraDecay = ig.placement === 'endobronchial' ? 0.25 : 0;
+          ig.spo2 = Math.max(70, ig.spo2 - (baseDecay + extraDecay) * 0.25);
           updateIgHeader();
         }, 250);
       }
@@ -1753,11 +1749,20 @@
         state.trans.add(k);
         b.classList.add('exam-done');
         b.disabled = true;
-        if (k === 'o2' && state.intubated && vitals.rrMode === '무호흡') {
-          vitals.rr = 12;
-          vitals.rrMode = '기계 환기';
-          vitals.etco2 = 40;
-          vitals.etco2Wave = '정상 파형';
+        if (k === 'o2' && state.intubated) {
+          if (vitals.rrMode === '무호흡') {
+            vitals.rr = 12;
+            vitals.rrMode = '기계 환기';
+            vitals.etco2 = 40;
+            vitals.etco2Wave = '정상 파형';
+          }
+          if (vitals.spo2 < 99) {
+            vitals.spo2 = 99;
+            addLog(`유지 전환 체크: ${b.textContent.trim()} — SpO₂ 99% 회복`);
+            Settings.playTone(620, 0.05, 0.03);
+            renderMonitor();
+            return;
+          }
         }
         addLog(`유지 전환 체크: ${b.textContent.trim()}`);
         Settings.playTone(620, 0.05, 0.03);
