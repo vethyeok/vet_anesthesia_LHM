@@ -4,68 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Chapter 4. 마취 유지 — 베타 1.1</title>
-  <link rel="stylesheet" href="beta11.css?v=20261127c" />
+  <link rel="stylesheet" href="beta11.css?v=20261127d" />
   <script src="beta11-settings.js"></script>
   <script src="beta11-ch1-data.js"></script>
-  <style>
-    .ch4-wave-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-bottom: 8px;
-      padding: 6px 8px;
-      border-radius: 10px;
-      background: #0b111a;
-      border: 1px solid rgba(148, 163, 184, 0.22);
-    }
-    .ch4-wave-wrap.hidden { display: none; }
-    .ch4-wave-row {
-      display: grid;
-      grid-template-columns: 54px 1fr;
-      align-items: center;
-      gap: 6px;
-    }
-    .ch4-wave-lbl {
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.02em;
-      line-height: 1.15;
-    }
-    .ch4-wave-lbl small {
-      display: block;
-      font-size: 8.5px;
-      font-weight: 600;
-      opacity: 0.72;
-    }
-    .ch4-wave-cv {
-      width: 100%;
-      height: 30px;
-      display: block;
-      border-radius: 4px;
-      background: #070c14;
-    }
-    .ch4-sec-grp {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .ch4-sec-grp + .ch4-sec-grp {
-      margin-top: 8px;
-    }
-    .ch4-tabs-4 {
-      grid-template-columns: repeat(4, 1fr) !important;
-    }
-    .ch4-tabs-4 .ch1-tab-btn {
-      font-size: 11.5px;
-      padding: 0 4px;
-      white-space: nowrap;
-    }
-    @media (max-width: 480px) {
-      .ch4-wave-cv { height: 26px; }
-      .ch4-wave-row { grid-template-columns: 48px 1fr; gap: 4px; }
-      .ch4-tabs-4 .ch1-tab-btn { font-size: 11px; }
-    }
-  </style>
 </head>
 <body>
   <div class="app-shell chapter-shell">
@@ -159,7 +100,7 @@
             <div class="ch1-ctrl-handle-bar"></div>
           </div>
 
-          <div class="ch1-ctrl-tabs ch4-tabs-4" role="tablist">
+          <div class="ch1-ctrl-tabs ch4-tabs-4" role="tablist" style="grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px;">
             <button type="button" class="b-btn ch1-tab-btn active" data-pane="vent">환기·수액</button>
             <button type="button" class="b-btn ch1-tab-btn" data-pane="drug">약물·CRI</button>
             <button type="button" class="b-btn ch1-tab-btn" data-pane="check">점검·평가</button>
