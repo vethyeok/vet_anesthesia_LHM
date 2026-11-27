@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Chapter 2. 마취 계획 — 베타 1.1</title>
-  <link rel="stylesheet" href="beta11.css?v=20261127j" />
+  <link rel="stylesheet" href="beta11.css?v=20261127k" />
   <script src="beta11-settings.js"></script>
   <script src="beta11-ch1-data.js"></script>
 </head>
@@ -721,25 +721,7 @@
       }
 
       /* Mobile Control Drawer Drag (Desktop disabled) */
-      function setCollapsed(c) {
-        if (window.innerWidth >= 960) { splitEl.classList.remove('ctrl-collapsed'); return; }
-        splitEl.classList.toggle('ctrl-collapsed', Boolean(c));
-      }
-      let hY = 0, hDrag = false, hMoved = false;
-      ctrlHandleEl.addEventListener('pointerdown', (e) => {
-        if (window.innerWidth >= 960) return;
-        hDrag = true; hMoved = false; hY = e.clientY;
-        if (ctrlHandleEl.setPointerCapture) ctrlHandleEl.setPointerCapture(e.pointerId);
-      });
-      ctrlHandleEl.addEventListener('pointermove', (e) => {
-        if (!hDrag) return;
-        const dy = e.clientY - hY;
-        if (Math.abs(dy) > 20) { hMoved = true; setCollapsed(dy > 0); }
-      });
-      const endH = () => { if (!hDrag) return; hDrag = false; if (!hMoved) setCollapsed(!splitEl.classList.contains('ctrl-collapsed')); };
-      ctrlHandleEl.addEventListener('pointerup', endH);
-      ctrlHandleEl.addEventListener('pointercancel', endH);
-      window.addEventListener('resize', () => { if (window.innerWidth >= 960) splitEl.classList.remove('ctrl-collapsed'); });
+      const setCollapsed = Settings.bindCtrlHandle(ctrlHandleEl, splitEl);
 
       function activateTab(p) {
         setCollapsed(false);

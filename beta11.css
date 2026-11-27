@@ -1256,6 +1256,7 @@ body.b11-immersive .app-shell {
   flex-direction: column;
   overflow: hidden;
   position: relative;
+  z-index: 4;
   transition: flex 0.25s ease;
 }
 
@@ -1265,21 +1266,26 @@ body.b11-immersive .app-shell {
 
 .ch1-ctrl-handle {
   width: 100%;
-  padding: 8px 0 6px;
+  padding: 12px 0 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: ns-resize;
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   flex-shrink: 0;
+  position: relative;
+  z-index: 6;
   background: var(--ivory);
 }
 
 .ch1-ctrl-handle-bar {
-  width: 44px;
-  height: 4px;
+  width: 48px;
+  height: 5px;
   border-radius: 999px;
   background: #b8b2a7;
+  pointer-events: none;
 }
 
 .ch1-ctrl-tabs {

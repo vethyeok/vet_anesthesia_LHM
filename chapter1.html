@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Chapter 1. 마취 전 검사 — 베타 1.1</title>
-  <link rel="stylesheet" href="beta11.css?v=20261127j" />
+  <link rel="stylesheet" href="beta11.css?v=20261127k" />
   <script src="beta11-settings.js"></script>
   <script src="beta11-ch1-data.js"></script>
 </head>
@@ -246,43 +246,7 @@
         typingTimers = [];
       }
 
-      function setCollapsed(collapsed) {
-        if (window.innerWidth >= 960) {
-          splitEl.classList.remove('ctrl-collapsed');
-          return;
-        }
-        splitEl.classList.toggle('ctrl-collapsed', Boolean(collapsed));
-      }
-
-      /* Thin Gray Bar Drag Down -> Collapse Control Body / Drag Up -> Expand (Mobile only) */
-      let handleStartY = 0;
-      let handleDragging = false;
-      let handleMoved = false;
-      ctrlHandleEl.addEventListener('pointerdown', (e) => {
-        if (window.innerWidth >= 960) return;
-        handleDragging = true;
-        handleMoved = false;
-        handleStartY = e.clientY;
-        if (ctrlHandleEl.setPointerCapture) ctrlHandleEl.setPointerCapture(e.pointerId);
-      });
-      ctrlHandleEl.addEventListener('pointermove', (e) => {
-        if (!handleDragging) return;
-        const dy = e.clientY - handleStartY;
-        if (Math.abs(dy) > 20) {
-          handleMoved = true;
-          setCollapsed(dy > 0);
-        }
-      });
-      const endHandleDrag = () => {
-        if (!handleDragging) return;
-        handleDragging = false;
-        if (!handleMoved) setCollapsed(!splitEl.classList.contains('ctrl-collapsed'));
-      };
-      ctrlHandleEl.addEventListener('pointerup', endHandleDrag);
-      ctrlHandleEl.addEventListener('pointercancel', endHandleDrag);
-      window.addEventListener('resize', () => {
-        if (window.innerWidth >= 960) splitEl.classList.remove('ctrl-collapsed');
-      });
+      const setCollapsed = Settings.bindCtrlHandle(ctrlHandleEl, splitEl);
 
       /* Vertical pointer-drag scrolling on Monitoring Window for desktop mouse convenience */
       let monDrag = false;

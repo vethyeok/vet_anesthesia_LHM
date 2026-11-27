@@ -871,6 +871,81 @@
     };
   }
 
+  function bindCtrlHandle(handleEl, splitEl, onInteract) {
+    if (!handleEl || !splitEl) return () => {};
+    function setCollapsed(c) {
+      if (window.innerWidth >= 960) {
+        splitEl.classList.remove('ctrl-collapsed');
+        return;
+      }
+      splitEl.classList.toggle('ctrl-collapsed', Boolean(c));
+    }
+
+    let dragging = false;
+    let startY = 0;
+    let lastDy = 0;
+    let moved = false;
+    let activePid = null;
+
+    function onMove(e) {
+      if (!dragging) return;
+      if (activePid != null && e.pointerId != null && e.pointerId !== activePid) return;
+      if (e.cancelable) e.preventDefault();
+      lastDy = e.clientY - startY;
+      if (Math.abs(lastDy) > 10) moved = true;
+    }
+
+    function onUp(e) {
+      if (!dragging) return;
+      if (activePid != null && e.pointerId != null && e.pointerId !== activePid) return;
+      dragging = false;
+      activePid = null;
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      if (typeof onInteract === 'function') onInteract();
+      if (moved) {
+        if (Math.abs(lastDy) > 16) setCollapsed(lastDy > 0);
+      } else {
+        setCollapsed(!splitEl.classList.contains('ctrl-collapsed'));
+      }
+      playTone(480, 0.03, 0.02);
+    }
+
+    handleEl.addEventListener('pointerdown', (e) => {
+      if (window.innerWidth >= 960) return;
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      if (typeof onInteract === 'function') onInteract();
+      dragging = true;
+      startY = e.clientY;
+      lastDy = 0;
+      moved = false;
+      activePid = e.pointerId != null ? e.pointerId : null;
+      window.addEventListener('pointermove', onMove, { passive: false });
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onUp);
+    });
+
+    handleEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    handleEl.addEventListener('keydown', (e) => {
+      if (window.innerWidth >= 960) return;
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setCollapsed(!splitEl.classList.contains('ctrl-collapsed'));
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 960) splitEl.classList.remove('ctrl-collapsed');
+    });
+
+    return setCollapsed;
+  }
+
   applyFontLevel(getFontLevel());
   applySavedFullscreen();
 
@@ -894,6 +969,7 @@
     toggleFullscreen,
     shareSimulator,
     navigateTo,
-    initChapterCommon
+    initChapterCommon,
+    bindCtrlHandle
   };
 })();
