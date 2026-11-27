@@ -164,7 +164,7 @@
                   <button type="button" class="b-btn asa-btn" data-ett="6.0">6.0</button>
                   <button type="button" class="b-btn asa-btn" data-ett="9.0">9.0</button>
                 </div>
-                <button type="button" class="b-btn exam-main-btn" id="ch3-btn-intubate">기관삽관</button>
+                <button type="button" class="b-btn exam-main-btn" id="ch3-btn-intubate">기관삽관 (삽관 시뮬레이터)</button>
               </div>
             </div>
 
@@ -1857,9 +1857,21 @@
         chapterTitle: '마취 도입',
         initialStageId: 'tutorial',
         helpSlides: [
-          { mark: '1', label: '전처치 및 전산소화', desc: '전산소화로 산소 예비량을 확보하고 전처치 약물을 선택해 투여합니다.' },
-          { mark: '2', label: '유도제 적정 및 삽관', desc: '1/4씩 적정하여 무호흡을 방지하고 체중에 맞는 ETT로 삽관합니다.' },
-          { mark: '3', label: '유지 전환 체크', desc: 'O₂, 기화기, APL 밸브 개방, 모니터 부착 완료 후 도입을 마칩니다.' }
+          {
+            img: 'assets/help/ch3_help_1.png',
+            label: '1. 전처치 및 전산소화',
+            desc: '적절한 전처치 투여 후 3분 전산소화로 산소 예비량을 확보합니다.'
+          },
+          {
+            img: 'assets/help/ch3_help_2.png',
+            label: '2. 유도제 적정 및 삽관',
+            desc: '1/4씩 적정하여 무호흡을 방지하고 체중에 맞는 ETT로 삽관합니다. 기관삽관 시 삽관 시뮬레이터가 작동됩니다.'
+          },
+          {
+            img: 'assets/help/ch3_help_3.png',
+            label: '3. 유지 전환 체크',
+            desc: 'O₂, 기화기, APL 밸브 개방, 모니터 부착 완료 후 도입을 마칩니다.'
+          }
         ],
         tutorialSteps: [
           { title: '1. 도입 모니터링창', sel: '#ch3-monitor', onEnter: () => activateTab('premed'), text: '실시간 생체 모니터와 도입 체크리스트·처치 로그를 확인합니다.' },
