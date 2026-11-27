@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Chapter 4. 마취 유지 — 베타 1.1</title>
-  <link rel="stylesheet" href="beta11.css?v=20261127h" />
+  <link rel="stylesheet" href="beta11.css?v=20261127i" />
   <script src="beta11-settings.js"></script>
   <script src="beta11-ch1-data.js"></script>
 </head>
@@ -342,12 +342,8 @@
 
   <!-- 모니터 패널 터치 시 스포트라이트 블러 + 관련 처치 팝오버 -->
   <div id="ch4-qa-backdrop" class="ch4-qa-backdrop hidden" role="dialog" aria-modal="true" aria-label="관련 처치 빠른 실행">
-    <div id="ch4-qa-spotlight" class="ch4-qa-spotlight" title="한 번 더 터치하면 관련 조작창으로 이동"></div>
+    <div id="ch4-qa-spotlight" class="ch4-qa-spotlight monitor-mock"></div>
     <div id="ch4-qa-popover" class="ch4-qa-popover">
-      <div class="ch4-qa-head">
-        <span class="ch4-qa-title" id="ch4-qa-title"></span>
-        <span class="ch4-qa-hint">패널 재터치 → 조작창 이동</span>
-      </div>
       <div class="ch4-qa-grid" id="ch4-qa-grid"></div>
     </div>
   </div>
@@ -494,7 +490,6 @@
       const qaBackdropEl = document.getElementById('ch4-qa-backdrop');
       const qaSpotlightEl = document.getElementById('ch4-qa-spotlight');
       const qaPopoverEl = document.getElementById('ch4-qa-popover');
-      const qaTitleEl = document.getElementById('ch4-qa-title');
       const qaGridEl = document.getElementById('ch4-qa-grid');
       let qaState = null; // { key, sourceEl }
 
@@ -934,7 +929,6 @@
         qaSpotlightEl.style.width = `${Math.round(rect.width)}px`;
         qaSpotlightEl.style.height = `${Math.round(rect.height)}px`;
 
-        qaTitleEl.textContent = cfg.title;
         qaGridEl.innerHTML = '';
         cfg.actions.forEach((a) => {
           const btn = document.createElement('button');

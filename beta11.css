@@ -2452,9 +2452,12 @@ body.b11-immersive .app-shell {
   position: fixed;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 0 0 2px rgba(255, 243, 224, 0.85), 0 12px 28px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 0 0 2px rgba(255, 243, 224, 0.88), 0 12px 28px rgba(0, 0, 0, 0.45);
   cursor: pointer;
   background: #231f1b;
+  padding: 0 !important;
+  gap: 0 !important;
+  border: none !important;
   transition: transform 0.14s ease;
 }
 .ch4-qa-spotlight:active {
@@ -2465,38 +2468,39 @@ body.b11-immersive .app-shell {
   height: 100%;
   margin: 0;
   border-radius: 10px;
+  background: #2a2621;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.ch4-qa-spotlight .m-cell .mk {
+  color: rgba(255, 255, 255, 0.65);
+}
+.ch4-qa-spotlight .m-cell .mv {
+  color: #ffffff;
+}
+.ch4-qa-spotlight .ch4-wave-band {
+  width: 100%;
+  height: 100%;
+  border-bottom: none;
 }
 .ch4-qa-popover {
   position: fixed;
   background: var(--ivory);
   border: 1.5px solid var(--brown-border);
   border-radius: 14px;
-  padding: 10px;
+  padding: 8px;
   box-shadow: 0 14px 36px rgba(28, 20, 12, 0.36);
   display: flex;
   flex-direction: column;
-  gap: 8px;
   animation: ch4QaIn 0.16s ease-out;
 }
 @keyframes ch4QaIn {
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
-}
-.ch4-qa-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-.ch4-qa-title {
-  font-size: 12.5px;
-  font-weight: 800;
-  color: var(--brown);
-}
-.ch4-qa-hint {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--brown-soft);
 }
 .ch4-qa-grid {
   display: grid;
