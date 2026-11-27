@@ -4,9 +4,68 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Chapter 4. 마취 유지 — 베타 1.1</title>
-  <link rel="stylesheet" href="beta11.css?v=20261127a" />
+  <link rel="stylesheet" href="beta11.css?v=20261127c" />
   <script src="beta11-settings.js"></script>
   <script src="beta11-ch1-data.js"></script>
+  <style>
+    .ch4-wave-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 8px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: #0b111a;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+    }
+    .ch4-wave-wrap.hidden { display: none; }
+    .ch4-wave-row {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      align-items: center;
+      gap: 6px;
+    }
+    .ch4-wave-lbl {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      line-height: 1.15;
+    }
+    .ch4-wave-lbl small {
+      display: block;
+      font-size: 8.5px;
+      font-weight: 600;
+      opacity: 0.72;
+    }
+    .ch4-wave-cv {
+      width: 100%;
+      height: 30px;
+      display: block;
+      border-radius: 4px;
+      background: #070c14;
+    }
+    .ch4-sec-grp {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .ch4-sec-grp + .ch4-sec-grp {
+      margin-top: 8px;
+    }
+    .ch4-tabs-4 {
+      grid-template-columns: repeat(4, 1fr) !important;
+    }
+    .ch4-tabs-4 .ch1-tab-btn {
+      font-size: 11.5px;
+      padding: 0 4px;
+      white-space: nowrap;
+    }
+    @media (max-width: 480px) {
+      .ch4-wave-cv { height: 26px; }
+      .ch4-wave-row { grid-template-columns: 48px 1fr; gap: 4px; }
+      .ch4-tabs-4 .ch1-tab-btn { font-size: 11px; }
+    }
+  </style>
 </head>
 <body>
   <div class="app-shell chapter-shell">
@@ -23,10 +82,11 @@
         <section class="ch1-monitor" id="ch4-monitor" aria-label="마취 유지 모니터링창">
           <div class="ch1-sig-pinned">
             <div class="ch1-sig-head" id="ch4-sig-head"></div>
+            <div class="ch1-sig-cc" id="ch4-cc-line"></div>
             <div style="margin-top:6px;">
               <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; color:var(--brown-soft); margin-bottom:4px;">
                 <span id="ch4-phase-lbl">수술 준비 · 0%</span>
-                <span id="ch4-clock-lbl">00:00</span>
+                <span id="ch4-clock-lbl" class="font-maru">00:00</span>
               </div>
               <div class="prog-track"><div class="prog-fill" id="ch4-prog-fill" style="width:0%;"></div></div>
             </div>
@@ -36,9 +96,27 @@
             <div class="mon-sec" id="ch4-sec-vitals">
               <div class="mon-sec-title">
                 <span>1. 실시간 생체 모니터</span>
-                <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch4-sec-vitals">접기</button>
+                <div style="display:flex; gap:4px; align-items:center;">
+                  <button type="button" class="b-btn mon-toggle-btn" id="ch4-detail-btn">상세</button>
+                  <button type="button" class="b-btn mon-toggle-btn" id="ch4-wave-toggle">파형 숨김</button>
+                  <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch4-sec-vitals">접기</button>
+                </div>
               </div>
               <div class="mon-sec-body">
+                <div class="ch4-wave-wrap" id="ch4-wave-wrap">
+                  <div class="ch4-wave-row">
+                    <div class="ch4-wave-lbl" style="color:#4ade80;">ECG<small>25mm/s</small></div>
+                    <canvas id="ch4-cv-ecg" class="ch4-wave-cv" width="240" height="32"></canvas>
+                  </div>
+                  <div class="ch4-wave-row">
+                    <div class="ch4-wave-lbl" style="color:#38bdf8;">Pleth<small>SpO₂</small></div>
+                    <canvas id="ch4-cv-pleth" class="ch4-wave-cv" width="240" height="32"></canvas>
+                  </div>
+                  <div class="ch4-wave-row">
+                    <div class="ch4-wave-lbl" style="color:#facc15;">CO₂<small>4mm/s</small></div>
+                    <canvas id="ch4-cv-co2" class="ch4-wave-cv" width="240" height="32"></canvas>
+                  </div>
+                </div>
                 <div class="monitor-mock" style="padding:10px;">
                   <div class="monitor-row">
                     <div class="m-cell"><span class="mk">HR</span><span class="mv" id="ch4-v-hr">--</span></div>
@@ -57,7 +135,7 @@
 
             <div class="mon-sec" id="ch4-sec-state">
               <div class="mon-sec-title">
-                <span>2. 현재 처치 설정</span>
+                <span>2. 현재 처치 · 점검 상태</span>
                 <button type="button" class="b-btn mon-toggle-btn" data-mon-toggle="ch4-sec-state">접기</button>
               </div>
               <div class="mon-sec-body" id="ch4-state-body"></div>
@@ -81,38 +159,95 @@
             <div class="ch1-ctrl-handle-bar"></div>
           </div>
 
-          <div class="ch1-ctrl-tabs" role="tablist">
-            <button type="button" class="b-btn ch1-tab-btn active" data-pane="vent">환기 · 수액</button>
-            <button type="button" class="b-btn ch1-tab-btn" data-pane="drug">약물 · CRI</button>
+          <div class="ch1-ctrl-tabs ch4-tabs-4" role="tablist">
+            <button type="button" class="b-btn ch1-tab-btn active" data-pane="vent">환기·수액</button>
+            <button type="button" class="b-btn ch1-tab-btn" data-pane="drug">약물·CRI</button>
+            <button type="button" class="b-btn ch1-tab-btn" data-pane="check">점검·평가</button>
             <button type="button" class="b-btn ch1-tab-btn" data-pane="finish">유지 종료</button>
           </div>
 
           <div class="ch1-ctrl-body">
             <!-- 1. 환기 · 수액 -->
             <div class="ch1-pane" data-content="vent">
-              <div class="prog-grid">
-                <button type="button" class="b-btn prog-btn" id="ch4-iso-down">Iso -0.5%</button>
-                <button type="button" class="b-btn prog-btn" id="ch4-iso-up">Iso +0.5%</button>
-                <button type="button" class="b-btn prog-btn" id="ch4-btn-vent">IPPV 기계환기</button>
-                <button type="button" class="b-btn prog-btn" id="ch4-btn-warm">능동 가온</button>
-                <button type="button" class="b-btn prog-btn span-2" id="ch4-btn-bolus">결정질 수액 볼루스 (10 mL/kg)</button>
-                <button type="button" class="b-btn prog-btn span-2" id="ch4-btn-pause">일시정지</button>
+              <div class="ch4-sec-grp">
+                <div class="ch3-lbl-row">
+                  <div class="eval-sec-lbl">기화기 (Isoflurane)</div>
+                  <button type="button" class="b-btn ch3-help-q-btn" data-cat-help="vapor" aria-label="기화기 도움말">?</button>
+                </div>
+                <div class="prog-grid" style="grid-template-columns:repeat(3,1fr);">
+                  <button type="button" class="b-btn prog-btn" id="ch4-iso-down">Iso -0.5%</button>
+                  <button type="button" class="b-btn prog-btn" id="ch4-iso-up">Iso +0.5%</button>
+                  <button type="button" class="b-btn prog-btn" id="ch4-iso-off">기화기 OFF</button>
+                </div>
+              </div>
+
+              <div class="ch4-sec-grp">
+                <div class="ch3-lbl-row">
+                  <div class="eval-sec-lbl">환기 · 수액 · 보온</div>
+                  <button type="button" class="b-btn ch3-help-q-btn" data-cat-help="vent" aria-label="환기 및 수액 도움말">?</button>
+                </div>
+                <div class="prog-grid">
+                  <button type="button" class="b-btn prog-btn" id="ch4-btn-vent">IPPV 기계환기</button>
+                  <button type="button" class="b-btn prog-btn" id="ch4-btn-bag">수동 환기 (1회)</button>
+                  <button type="button" class="b-btn prog-btn" id="ch4-btn-warm">능동 가온</button>
+                  <button type="button" class="b-btn prog-btn" id="ch4-btn-pause">일시정지</button>
+                  <button type="button" class="b-btn prog-btn span-2" id="ch4-btn-bolus">결정질 수액 볼루스 (10 mL/kg)</button>
+                </div>
               </div>
             </div>
 
             <!-- 2. 약물 · CRI -->
             <div class="ch1-pane pane-hidden" data-content="drug">
-              <div class="prog-grid">
-                <button type="button" class="b-btn prog-btn" data-drug4="atropine">Atropine (서맥)</button>
-                <button type="button" class="b-btn prog-btn" data-drug4="ephedrine">Ephedrine (저혈압)</button>
-                <button type="button" class="b-btn prog-btn" data-drug4="fentanyl">Fentanyl (통증)</button>
-                <button type="button" class="b-btn prog-btn" data-drug4="norepi">Norepinephrine CRI</button>
-                <button type="button" class="b-btn prog-btn" data-drug4="lidocaine">Lidocaine (부정맥)</button>
-                <button type="button" class="b-btn prog-btn" data-drug4="caglu">Ca Gluconate (고K⁺)</button>
+              <div class="ch4-sec-grp">
+                <div class="ch3-lbl-row">
+                  <div class="eval-sec-lbl">혈역학 · 부정맥 볼루스</div>
+                  <button type="button" class="b-btn ch3-help-q-btn" data-cat-help="bolus" aria-label="혈역학 볼루스 도움말">?</button>
+                </div>
+                <div class="prog-grid">
+                  <button type="button" class="b-btn prog-btn" data-drug4="atropine">Atropine</button>
+                  <button type="button" class="b-btn prog-btn" data-drug4="glyco">Glycopyrrolate</button>
+                  <button type="button" class="b-btn prog-btn" data-drug4="ephedrine">Ephedrine</button>
+                  <button type="button" class="b-btn prog-btn" data-drug4="lidocaine">Lidocaine</button>
+                  <button type="button" class="b-btn prog-btn span-2" data-drug4="caglu">Calcium Gluconate</button>
+                </div>
+              </div>
+
+              <div class="ch4-sec-grp">
+                <div class="ch3-lbl-row">
+                  <div class="eval-sec-lbl">진통 볼루스 · 지속 점적 (CRI)</div>
+                  <button type="button" class="b-btn ch3-help-q-btn" data-cat-help="cri" aria-label="진통 및 CRI 도움말">?</button>
+                </div>
+                <div class="prog-grid">
+                  <button type="button" class="b-btn prog-btn" data-drug4="fentanyl">Fentanyl</button>
+                  <button type="button" class="b-btn prog-btn" data-drug4="norepi">Norepinephrine CRI</button>
+                </div>
               </div>
             </div>
 
-            <!-- 3. 유지 종료 -->
+            <!-- 3. 점검 · 평가 -->
+            <div class="ch1-pane pane-hidden" data-content="check">
+              <div class="ch4-sec-grp">
+                <div class="ch3-lbl-row">
+                  <div class="eval-sec-lbl">마취 심도 평가</div>
+                  <button type="button" class="b-btn ch3-help-q-btn" data-cat-help="depth" aria-label="마취 심도 평가 도움말">?</button>
+                </div>
+                <button type="button" class="b-btn exam-main-btn" id="ch4-btn-depth">심도 평가 (안검반사·안구·턱긴장)</button>
+              </div>
+
+              <div class="ch4-sec-grp">
+                <div class="ch3-lbl-row">
+                  <div class="eval-sec-lbl">모니터 · 마취기 회로 점검</div>
+                  <button type="button" class="b-btn ch3-help-q-btn" data-cat-help="circuit" aria-label="장치 점검 도움말">?</button>
+                </div>
+                <div class="exam-btn-list">
+                  <button type="button" class="b-btn exam-main-btn" id="ch4-chk-sensor">센서 재부착 (ECG · SpO₂ · CO₂)</button>
+                  <button type="button" class="b-btn exam-main-btn" id="ch4-chk-soda">소다라임 · 일방향 밸브 점검</button>
+                  <button type="button" class="b-btn exam-main-btn" id="ch4-chk-ett">기관튜브 개통성 · 연결 확인</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. 유지 종료 -->
             <div class="ch1-pane pane-hidden" data-content="finish">
               <div id="ch4-summary-box" class="b-card-soft" style="padding:12px;"></div>
               <div style="margin-top:auto; padding-top:6px;">
@@ -132,8 +267,21 @@
     </main>
   </div>
 
+  <!-- 실패 팝업 (F 등급 또는 심정지 발생 시 — 외부 클릭으로 닫히지 않음) -->
+  <div id="ch4-fail-modal" class="modal-backdrop no-dismiss hidden" role="dialog" aria-modal="true" aria-labelledby="ch4-fail-title" style="backdrop-filter:blur(6px); z-index:105;">
+    <div class="modal-card" style="text-align:center;">
+      <h2 id="ch4-fail-title" class="font-maru" style="font-size:20px; font-weight:700; color:#dc2626; margin-bottom:8px;">마취 유지 실패</h2>
+      <p id="ch4-fail-desc" class="muted" style="font-size:15px; font-weight:600; line-height:1.5; margin-bottom:16px;"></p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button id="ch4-fail-review" type="button" class="b-btn" style="width:100%; height:42px; border-radius:14px;">해설 보기</button>
+        <button id="ch4-fail-restart" type="button" class="b-btn" style="width:100%; height:42px; border-radius:14px;">재시작</button>
+        <button id="ch4-fail-main" type="button" class="b-btn" style="width:100%; height:42px; border-radius:14px;">메인화면</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 해설 보기 팝업 -->
-  <div id="ch4-review-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" style="backdrop-filter:blur(6px);">
+  <div id="ch4-review-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" style="backdrop-filter:blur(6px); z-index:112;">
     <div class="modal-card" style="max-width:420px; max-height:84dvh; display:flex; flex-direction:column;">
       <h2 class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown); margin-bottom:10px;">해설 보기</h2>
       <div class="step-tabs" role="tablist" style="margin-bottom:10px; flex-shrink:0;">
@@ -152,6 +300,39 @@
     </div>
   </div>
 
+  <!-- 범주별 도움말 팝업 -->
+  <div id="ch4-cat-help-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch4-cat-help-title" style="backdrop-filter:blur(6px); z-index:116;">
+    <div class="modal-card" style="max-width:440px; max-height:84dvh; display:flex; flex-direction:column;">
+      <h2 id="ch4-cat-help-title" class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown); margin-bottom:10px;">도움말</h2>
+      <div id="ch4-cat-help-body" class="ch2-help-list" style="flex:1 1 auto; overflow-y:auto; padding-right:2px;"></div>
+      <div class="modal-close-wrap" style="margin-top:12px; flex-shrink:0;">
+        <button id="ch4-cat-help-close" type="button" class="b-btn modal-close-btn">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chapter 1 마취 전 검사 결과 상세 팝업 -->
+  <div id="ch4-preop-detail-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ch4-detail-title" style="backdrop-filter:blur(6px); z-index:115;">
+    <div class="modal-card" style="max-width:460px; max-height:85dvh; display:flex; flex-direction:column;">
+      <h2 id="ch4-detail-title" class="font-maru" style="font-size:19px; font-weight:600; color:var(--brown); margin-bottom:10px;">마취 전 검사 상세 결과</h2>
+      <div class="step-tabs" role="tablist" style="margin-bottom:10px; flex-shrink:0;">
+        <button type="button" class="step-tab active" data-dt-tab="hx">병력</button>
+        <button type="button" class="step-tab" data-dt-tab="pe">신체</button>
+        <button type="button" class="step-tab" data-dt-tab="lab">혈액</button>
+        <button type="button" class="step-tab" data-dt-tab="img">영상</button>
+      </div>
+      <div style="flex:1 1 auto; overflow-y:auto; min-height:200px; padding-right:2px;">
+        <div id="ch4-dt-hx" data-dt-pane="hx"></div>
+        <div id="ch4-dt-pe" data-dt-pane="pe" class="pane-hidden"></div>
+        <div id="ch4-dt-lab" data-dt-pane="lab" class="pane-hidden"></div>
+        <div id="ch4-dt-img" data-dt-pane="img" class="pane-hidden"></div>
+      </div>
+      <div class="modal-close-wrap" style="margin-top:12px; flex-shrink:0;">
+        <button id="ch4-detail-close" type="button" class="b-btn modal-close-btn">닫기</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       const Data = window.Beta11Ch1Data;
@@ -160,6 +341,7 @@
 
       const splitEl = document.getElementById('ch4-split');
       const sigHeadEl = document.getElementById('ch4-sig-head');
+      const ccLineEl = document.getElementById('ch4-cc-line');
       const phaseLblEl = document.getElementById('ch4-phase-lbl');
       const clockLblEl = document.getElementById('ch4-clock-lbl');
       const progFillEl = document.getElementById('ch4-prog-fill');
@@ -169,34 +351,305 @@
       const ctrlHandleEl = document.getElementById('ch4-ctrl-handle');
       const evalSubmitBtn = document.getElementById('ch4-eval-submit');
       const stampOverlayEl = document.getElementById('ch4-stamp-overlay');
+      const failModalEl = document.getElementById('ch4-fail-modal');
+      const failTitleEl = document.getElementById('ch4-fail-title');
+      const failDescEl = document.getElementById('ch4-fail-desc');
       const reviewModalEl = document.getElementById('ch4-review-modal');
       const rvWrongEl = document.getElementById('ch4-rv-wrong');
       const rvAiEl = document.getElementById('ch4-rv-ai');
       const rvSoapEl = document.getElementById('ch4-rv-soap');
+      const catHelpModalEl = document.getElementById('ch4-cat-help-modal');
+      const catHelpTitleEl = document.getElementById('ch4-cat-help-title');
+      const catHelpBodyEl = document.getElementById('ch4-cat-help-body');
+      const detailModalEl = document.getElementById('ch4-preop-detail-modal');
+      const dtHxEl = document.getElementById('ch4-dt-hx');
+      const dtPeEl = document.getElementById('ch4-dt-pe');
+      const dtLabEl = document.getElementById('ch4-dt-lab');
+      const dtImgEl = document.getElementById('ch4-dt-img');
+      const waveWrapEl = document.getElementById('ch4-wave-wrap');
+      const waveToggleBtn = document.getElementById('ch4-wave-toggle');
+      const cvEcg = document.getElementById('ch4-cv-ecg');
+      const cvPleth = document.getElementById('ch4-cv-pleth');
+      const cvCo2 = document.getElementById('ch4-cv-co2');
+
+      const CAT_HELP = {
+        vapor: {
+          title: '기화기 (Isoflurane)',
+          items: [
+            { name: 'Isoflurane 농도 조절', desc: '용량 의존성 혈관확장·저혈압과 호흡억제를 유발하므로, 저혈압 시 우선 기화기 농도를 낮추고 진통제(Fentanyl)로 MAC을 절감합니다(표준 유지 약 1.2~2.0%).' },
+            { name: '기화기 OFF (0%)', desc: '수술이 100% 완료되면 마취 유지 종료 전에 기화기를 반드시 0%로 끄고 순산소(O₂)로 회로를 비워 회복 단계로 이행합니다.' }
+          ]
+        },
+        vent: {
+          title: '환기 · 수액 · 보온',
+          items: [
+            { name: 'IPPV 기계환기', desc: '고탄산혈증(ETCO₂ > 50 mmHg)이나 호흡억제·무호흡 발생 시 양압 기계환기로 전환해 환기량과 산소화를 안정화합니다.' },
+            { name: '수동 환기 (1회)', desc: '일시적 무호흡이나 폐포 허탈 예방을 위해 1회 수동 양압 환기(Bagging)를 제공합니다.' },
+            { name: '결정질 수액 볼루스 (10 mL/kg)', desc: '혈관확장성·저혈량성 저혈압 시 순환 혈액량을 보강해 MAP를 회복합니다(심질환 환자는 과부하 주의).' },
+            { name: '능동 가온 (Warm air)', desc: '마취 중 체온 하강(BT < 36.0°C)은 회복 지연·서맥·응고 장애를 유발하므로 조기에 능동 가온을 유지합니다.' }
+          ]
+        },
+        bolus: {
+          title: '혈역학 · 부정맥 볼루스',
+          items: [
+            { name: 'Atropine', desc: '미주신경 항진성 서맥(개 < 60, 고양이 < 90 bpm)이나 급성 서맥·저혈압 시 심박수를 빠르게 상승시킵니다. 정상 심박수에서의 불필요한 투여는 빈맥·심근 산소 소모를 유발합니다.' },
+            { name: 'Glycopyrrolate', desc: 'Atropine보다 발현은 느리지만 작용 시간이 길고 심한 빈맥 유발이 적어 안정적인 서맥 교정에 사용합니다.' },
+            { name: 'Ephedrine', desc: 'α·β 교감신경 작용제로 수액·기화기 감량에도 지속되는 일시적 저혈압(MAP < 65)에서 심박출량과 혈압을 빠르게 올립니다.' },
+            { name: 'Lidocaine', desc: '심실성 조기수축(VPC)·심실빈맥 안정화에 사용합니다. 고양이에서는 심혈관·신경 독성 위험이 커 전신 IV 투여를 피합니다.' },
+            { name: 'Calcium Gluconate', desc: '고칼륨혈증(K⁺ 상승, 뾰족한 T파·서맥) 시 심근막 전위를 즉시 안정화하기 위해 서서히 IV 투여합니다.' }
+          ]
+        },
+        cri: {
+          title: '진통 볼루스 · 지속 점적 (CRI)',
+          items: [
+            { name: 'Fentanyl', desc: '수술적 통증 자극으로 인한 빈맥·혈압 상승 시 즉각적인 진통을 제공하고 흡입마취제 요구량(MAC)을 줄입니다.' },
+            { name: 'Norepinephrine CRI', desc: '수액 볼루스와 기화기 감량에도 반응하지 않는 난치성 혈관확장성 저혈압에서 강력한 α1 혈관수축으로 MAP를 유지합니다.' }
+          ]
+        },
+        depth: {
+          title: '마취 심도 평가',
+          items: [
+            { name: '안검반사 · 안구위치 · 턱긴장도', desc: '적정 수술 마취 심도에서는 안구가 복내측으로 회전하고 안검반사가 소실되며 턱긴장도가 이완됩니다. 얕은 마취에서는 안검반사·턱긴장도가 회복되고, 과도하게 깊은 마취에서는 안구가 중앙 고정되며 혈압이 크게 떨어집니다.' }
+          ]
+        },
+        circuit: {
+          title: '모니터 · 마취기 회로 점검',
+          items: [
+            { name: '센서 재부착 (ECG·SpO₂·CO₂)', desc: '갑작스러운 SpO₂ 급락이나 파형 소실이 실제 환자 악화인지 프로브 탈락(아티팩트)인지 확인하고 재부착합니다.' },
+            { name: '소다라임 · 일방향 밸브 점검', desc: '캡노그램 기저선(FiCO₂)이 0으로 떨어지지 않고 들려 있으면 소다라임 소진 또는 일방향 밸브 고장을 의심해 교체·점검합니다.' },
+            { name: '기관튜브 개통성 · 연결 확인', desc: '튜브 꼬임·분비물 폐쇄·회로 분리 여부를 확인해 환기 장애를 즉시 교정합니다.' }
+          ]
+        }
+      };
 
       let currentStageId = 'tutorial';
       let currentCase = null;
       let tickTimer = null;
+      let waveAnimId = null;
       let sim = null;
       let logs = [];
       let evaluated = false;
       let lastReport = null;
       let aiText = null;
       let soapText = null;
+      let wavesVisible = true;
+
+      // 3-channel waveform buffers (ported from maintenance.html)
+      const BUF_LEN = 240;
+      const CO2_BUF_LEN = 320;
+      const waveState = {
+        x: 0,
+        co2X: 0,
+        co2SubTick: 0,
+        lastTs: 0,
+        ecgPhase: 0,
+        co2Phase: 0,
+        ecgBuf: new Array(BUF_LEN).fill(0),
+        plethBuf: new Array(BUF_LEN).fill(-0.5),
+        co2Buf: new Array(CO2_BUF_LEN).fill(-0.78)
+      };
 
       function stopSim() {
         if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+        if (waveAnimId) { cancelAnimationFrame(waveAnimId); waveAnimId = null; }
       }
       window.__b11Cleanup = stopSim;
 
       function escapeHtml(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
       const cl = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
+      function renderLabTable(rows, panel) {
+        return `<table class="lab-tbl"><tbody>${rows.map(([label, key, val, unit]) => {
+          const fl = key ? panel.flagOf(key, Number(val)) : '';
+          const cls = fl === 'H' ? 'lab-high' : fl === 'L' ? 'lab-low' : '';
+          const r = key && panel.ref[key] ? `${panel.ref[key][0]}–${panel.ref[key][1]}` : '';
+          return `<tr><td>${label}</td><td class="lab-val ${cls}">${val}${unit ? ' ' + unit : ''}${fl ? ' ' + fl : ''}</td><td class="lab-ref">${r}</td></tr>`;
+        }).join('')}</tbody></table>`;
+      }
+
+      function renderFullPreopDetail(c) {
+        const P = Data.buildLabPanel(c);
+        const hxRows = (c.history || []).map((h) => `<div class="img-row"><strong>${escapeHtml(h.label)}</strong><br/>${escapeHtml(h.text)}</div>`);
+        dtHxEl.innerHTML = `<div class="img-list"><div class="img-row"><strong>주호소</strong><br/>${escapeHtml(c.chiefComplaint)}</div>${hxRows.join('')}</div>`;
+
+        const p = c.pe;
+        const isCat = c.species === 'cat';
+        const abnBT = p.bt < 37.5 || p.bt > 39.2;
+        const abnBP = p.bpMap < 65 || p.bpSys > 155 || p.bpSys < 95;
+        const abnHR = isCat ? (p.hr < 130 || p.hr > 210) : (p.hr < 65 || p.hr > 145);
+        const abnRR = p.rr > 36;
+        const abnCRT = p.crt > 2.0;
+        const abnMMC = /yellow|pale|cyan|dark|muddy|dry/i.test(p.mmc);
+        const auscHeart = p.auscHeart || '심잡음 없음 (정상 심음)';
+        const auscLung = p.auscLung || '정상 폐포음';
+        const auscBowel = p.auscBowel || '정상 복명음';
+        const abnHeart = /Grade|분마음|부정맥|서맥|빈맥/i.test(auscHeart);
+        const abnLung = /수포음|천명음|거친|감약|Crackle/i.test(auscLung);
+        const abnBowel = /감소|소실|압통|팽만|항진/i.test(auscBowel);
+
+        dtPeEl.innerHTML = `
+          <div class="pe-grid">
+            <div class="pe-cell"><span class="pe-k">BT</span><span class="pe-v ${abnBT ? 'is-abn' : ''}">${p.bt.toFixed(1)} °C</span></div>
+            <div class="pe-cell"><span class="pe-k">BP #${p.cuff}</span><span class="pe-v ${abnBP ? 'is-abn' : ''}">${p.bpSys}/${p.bpDia} (${p.bpMap}) mmHg</span></div>
+            <div class="pe-cell"><span class="pe-k">HR</span><span class="pe-v ${abnHR ? 'is-abn' : ''}">${p.hr} /min</span></div>
+            <div class="pe-cell"><span class="pe-k">RR</span><span class="pe-v ${abnRR ? 'is-abn' : ''}">${p.rr} /min</span></div>
+            <div class="pe-cell"><span class="pe-k">CRT</span><span class="pe-v ${abnCRT ? 'is-abn' : ''}">${p.crt} s</span></div>
+            <div class="pe-cell"><span class="pe-k">MMC</span><span class="pe-v ${abnMMC ? 'is-abn' : ''}">${escapeHtml(p.mmc)}</span></div>
+            <div class="pe-cell span-2">
+              <span class="pe-k">청진</span>
+              <div class="pe-ausc-lines">
+                <div class="pe-ausc-row"><span class="pe-ausc-k">심잡음:</span><span class="pe-v ${abnHeart ? 'is-abn' : ''}" style="font-size:inherit;">${escapeHtml(auscHeart)}</span></div>
+                <div class="pe-ausc-row"><span class="pe-ausc-k">폐음:</span><span class="pe-v ${abnLung ? 'is-abn' : ''}" style="font-size:inherit;">${escapeHtml(auscLung)}</span></div>
+                <div class="pe-ausc-row"><span class="pe-ausc-k">복명음:</span><span class="pe-v ${abnBowel ? 'is-abn' : ''}" style="font-size:inherit;">${escapeHtml(auscBowel)}</span></div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const m = P.vbgM, vc = P.vbgC, cb = P.cbc, ch = P.chem;
+        const vbgMeasured = [['pH','pH',m.pH.toFixed(2),''],['pCO₂','pCO2',m.pCO2,'mmHg'],['pO₂ (정맥)','pO2',m.pO2,'mmHg'],['Na⁺','Na',m.Na,'mmol/L'],['K⁺','K',m.K.toFixed(1),'mmol/L'],['Cl⁻','Cl',m.Cl,'mmol/L'],['iCa','iCa',m.iCa.toFixed(2),'mmol/L'],['Hct','Hct',m.Hct,'%']];
+        const vbgCalc = [['pH(T)','pHT',vc.pHT.toFixed(3),''],['pCO₂(T)','pCO2T',vc.pCO2T,'mmHg'],['pO₂(T)','pO2T',vc.pO2T,'mmHg'],['ctCO₂','ctCO2',vc.ctCO2,'mmol/L'],['cHCO₃⁻','cHCO3',vc.cHCO3,'mmol/L'],['cHCO₃⁻(std)','cHCO3std',vc.cHCO3std,'mmol/L'],['BE(ecf)','BEecf',vc.BEecf,'mmol/L'],['BE(B)','BEB',vc.BEB,'mmol/L'],['ctHb','ctHb',vc.ctHb,'g/dL'],['Ca²⁺(7.4)','iCa74',vc.iCa74.toFixed(2),'mmol/L'],['pO₂(A-a)','pO2Aa',vc.pO2Aa,'mmHg'],['sO₂','sO2',vc.sO2,'%'],['AG(K)','AGK',vc.AGK,'mmol/L']];
+        const cbcRows = [['RBC','RBC',cb.RBC,'M/µL'],['HGB','HGB',cb.HGB,'g/dL'],['HCT','HCT',cb.HCT,'%'],['MCV','MCV',cb.MCV,'fL'],['MCH','MCH',cb.MCH,'pg'],['MCHC','MCHC',cb.MCHC,'g/dL'],['RDW','RDW',cb.RDW,'%'],['RETIC','RETIC',cb.RETIC,'K/µL'],['Retic-HGB','ReticHGB',cb.ReticHGB,'pg'],['WBC','WBC',cb.WBC,'K/µL'],['Neu','Neu',`${cb.Neu} (${cb.neuP}%)`,''],['Lym','Lym',`${cb.Lym} (${cb.lymP}%)`,''],['Mono','Mono',`${cb.Mono} (${cb.monoP}%)`,''],['Eos','Eos',`${cb.Eos} (${cb.eosP}%)`,''],['Baso','Baso',`${cb.Baso} (${cb.basoP}%)`,''],['PLT','PLT',cb.PLT,'K/µL'],['MPV','MPV',cb.MPV,'fL'],['PCT','PCT',cb.PCT,'%']];
+        const chemGeneral = [['ALP','ALP',ch.ALP,'U/L'],['ALT','ALT',ch.ALT,'U/L'],['AST','AST',ch.AST,'U/L'],['GGT','GGT',ch.GGT,'U/L'],['BUN','BUN',ch.BUN,'mg/dL'],['Crea','Crea',ch.Crea,'mg/dL'],['Phos','Phos',ch.Phos,'mg/dL'],['Ca','Ca',ch.Ca,'mg/dL'],['TG','TG',ch.TG,'mg/dL'],['Tchol','Tchol',ch.Tchol,'mg/dL'],['Glu','Glu',ch.Glu,'mg/dL'],['TP','TP',ch.TP,'g/dL'],['ALB','ALB',ch.ALB,'g/dL'],['Glob','Glob',ch.Glob,'g/dL'],['Mg','Mg',ch.Mg,'mg/dL']];
+        const chemSpecial = isCat
+          ? [['SAA','SAA',ch.SAA,'µg/mL'],['fPL','fPL',ch.fPL,'µg/L'],['proBNP','proBNP',ch.proBNP,'pmol/L'],['T4','T4',ch.T4,'µg/dL'],['Cortisol','Cortisol',ch.Cortisol,'µg/dL'],['SDMA','SDMA',ch.SDMA,'µg/dL']]
+          : [['CRP','CRP',ch.CRP,'mg/L'],['cPL','cPL',ch.cPL,'µg/L'],['proBNP','proBNP',ch.proBNP,'pmol/L'],['T4','T4',ch.T4,'µg/dL'],['Cortisol','Cortisol',ch.Cortisol,'µg/dL'],['SDMA','SDMA',ch.SDMA,'µg/dL']];
+        dtLabEl.innerHTML = `<div class="lab-group-lbl">정맥혈액가스 (VBG) — 측정 8종</div>${renderLabTable(vbgMeasured, P)}<div class="lab-group-lbl">정맥혈액가스 (VBG) — 계산 13종</div>${renderLabTable(vbgCalc, P)}<div class="lab-group-lbl">일반혈액검사 (CBC) — 18종</div>${renderLabTable(cbcRows, P)}<div class="lab-group-lbl">혈액화학 (일반 15종)</div>${renderLabTable(chemGeneral, P)}<div class="lab-group-lbl">혈액화학 (특수 6종)</div>${renderLabTable(chemSpecial, P)}`;
+
+        const im = c.imaging || {};
+        const th = im.thoracic || {};
+        const rows = [`<div class="img-row"><strong>흉부 X-ray</strong><br/>VHS: ${escapeHtml(th.vhs || '-')} · VLAS: ${escapeHtml(th.vlas || '-')}<br/>기관직경: ${escapeHtml(th.trachea || '-')}<br/>폐야: ${escapeHtml(th.lung || '-')}${th.extra ? '<br/>추가 소견: ' + escapeHtml(th.extra) : ''}</div>`];
+        if (im.abdominal) rows.push(`<div class="img-row"><strong>복부 X-ray</strong><br/>${escapeHtml(im.abdominal)}</div>`);
+        if (im.ultrasound) rows.push(`<div class="img-row"><strong>초음파 검사</strong><br/>${escapeHtml(im.ultrasound)}</div>`);
+        dtImgEl.innerHTML = `<div class="img-list">${rows.join('')}</div>`;
+      }
+
+      // Waveform generators (maintenance.html algorithm)
+      function ecgSample(phase, arrested) {
+        if (arrested) return 0;
+        let y = 0;
+        if (phase > 0.12 && phase < 0.22) y += Math.sin(((phase - 0.12) / 0.1) * Math.PI) * 0.16;
+        if (phase >= 0.26 && phase < 0.29) y -= 0.14;
+        else if (phase >= 0.29 && phase < 0.34) y += Math.sin(((phase - 0.29) / 0.05) * Math.PI) * 0.95;
+        else if (phase >= 0.34 && phase < 0.37) y -= 0.24;
+        if (phase > 0.48 && phase < 0.66) y += Math.sin(((phase - 0.48) / 0.18) * Math.PI) * 0.26;
+        return y;
+      }
+
+      function plethSample(phase, map, artifact, arrested) {
+        if (arrested) return -0.7;
+        if (artifact === 'spo2_probe') return -0.55 + (Math.random() - 0.5) * 0.22;
+        const amp = cl((map - 28) / 60, 0.15, 1.0);
+        const p = (phase + 0.72) % 1.0;
+        let y = 0;
+        if (p < 0.22) y = Math.sin((p / 0.22) * (Math.PI / 2));
+        else if (p < 0.45) y = 1.0 - ((p - 0.22) / 0.23) * 0.52;
+        else if (p < 0.58) y = 0.48 + Math.sin(((p - 0.45) / 0.13) * Math.PI) * 0.14;
+        else y = 0.48 * Math.pow(1 - (p - 0.58) / 0.42, 1.5);
+        return (y * 1.45 - 0.65) * amp;
+      }
+
+      function co2Sample(phase, etco2, fiCO2, arrested) {
+        if (arrested) return -0.78;
+        const height = cl(etco2 / 58, 0.15, 1.0);
+        let norm = 0;
+        if (phase < 0.06) norm = 0;
+        else if (phase < 0.15) norm = (phase - 0.06) / 0.09;
+        else if (phase < 0.58) norm = 0.92 + ((phase - 0.15) / 0.43) * 0.08;
+        else if (phase < 0.65) norm = 1 - (phase - 0.58) / 0.07;
+        else norm = 0;
+        const baseLift = cl(fiCO2 / 28, 0, 0.42);
+        return -0.78 + baseLift + norm * height * (1.5 - baseLift * 0.7);
+      }
+
+      function prefillWaves() {
+        let eP = 0, cP = 0;
+        const hr = sim ? sim.hr : 110;
+        const map = sim ? sim.map : 80;
+        const et = sim ? sim.etco2 : 40;
+        for (let i = 0; i < BUF_LEN; i++) {
+          eP = (eP + (hr / 60) * (1 / 60)) % 1;
+          waveState.ecgBuf[i] = ecgSample(eP, false);
+          waveState.plethBuf[i] = plethSample(eP, map, null, false);
+        }
+        const slowStepSec = 6 / 60;
+        for (let i = 0; i < CO2_BUF_LEN; i++) {
+          cP = (cP + (12 / 60) * slowStepSec) % 1;
+          waveState.co2Buf[i] = co2Sample(cP, et, 0, false);
+        }
+        waveState.x = 0;
+        waveState.co2X = 0;
+        waveState.co2SubTick = 0;
+        waveState.ecgPhase = eP;
+        waveState.co2Phase = cP;
+        waveState.lastTs = 0;
+      }
+
+      function drawChannel(canvas, buf, cursorIdx, color, glow) {
+        if (!canvas || !wavesVisible) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        const len = buf.length;
+        const gap = 8;
+        ctx.lineWidth = 1.7;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = color;
+        ctx.shadowColor = glow;
+        ctx.shadowBlur = 4;
+        ctx.beginPath();
+        let drawing = false;
+        for (let i = 0; i < len; i++) {
+          const distAhead = (i - cursorIdx + len) % len;
+          if (distAhead < gap) { drawing = false; continue; }
+          const px = (i / (len - 1)) * w;
+          const py = h * 0.54 - buf[i] * (h * 0.4);
+          if (!drawing) { ctx.moveTo(px, py); drawing = true; }
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      function animateWaves(ts) {
+        if (!waveState.lastTs) waveState.lastTs = ts;
+        const dt = Math.min(0.05, (ts - waveState.lastTs) / 1000);
+        waveState.lastTs = ts;
+        if (sim && !sim.paused && !evaluated) {
+          const steps = Math.max(1, Math.round(dt * 60));
+          const subDt = dt / steps;
+          for (let s = 0; s < steps; s++) {
+            waveState.x = (waveState.x + 1) % BUF_LEN;
+            if (!sim.arrested) {
+              waveState.ecgPhase = (waveState.ecgPhase + (sim.hr / 60) * subDt) % 1;
+            }
+            waveState.ecgBuf[waveState.x] = ecgSample(waveState.ecgPhase, sim.arrested);
+            waveState.plethBuf[waveState.x] = plethSample(waveState.ecgPhase, sim.map, sim.artifact, sim.arrested);
+
+            waveState.co2SubTick++;
+            if (waveState.co2SubTick >= 6) {
+              waveState.co2SubTick = 0;
+              waveState.co2X = (waveState.co2X + 1) % CO2_BUF_LEN;
+              const slowDt = subDt * 6;
+              const rr = sim.ippv ? 12 : 10;
+              waveState.co2Phase = (waveState.co2Phase + (rr / 60) * slowDt) % 1;
+              waveState.co2Buf[waveState.co2X] = co2Sample(waveState.co2Phase, sim.etco2, sim.fiCO2, sim.arrested);
+            }
+          }
+          drawChannel(cvEcg, waveState.ecgBuf, waveState.x, '#4ade80', 'rgba(74,222,128,0.5)');
+          drawChannel(cvPleth, waveState.plethBuf, waveState.x, '#38bdf8', 'rgba(56,189,248,0.5)');
+          drawChannel(cvCo2, waveState.co2Buf, waveState.co2X, '#facc15', 'rgba(250,204,21,0.5)');
+        }
+        waveAnimId = requestAnimationFrame(animateWaves);
+      }
+
       function setMonCollapsed(id, c) {
         const sec = document.getElementById(id);
         if (!sec) return;
         sec.classList.toggle('is-collapsed', Boolean(c));
-        const b = sec.querySelector('.mon-toggle-btn');
+        const b = sec.querySelector('[data-mon-toggle]');
         if (b) b.textContent = c ? '열기' : '접기';
       }
       document.querySelectorAll('[data-mon-toggle]').forEach((b) => b.addEventListener('click', (e) => {
@@ -206,6 +659,39 @@
         Settings.playTone(500, 0.04, 0.025);
         setMonCollapsed(b.dataset.monToggle, !sec.classList.contains('is-collapsed'));
       }));
+
+      waveToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        wavesVisible = !wavesVisible;
+        waveWrapEl.classList.toggle('hidden', !wavesVisible);
+        waveToggleBtn.textContent = wavesVisible ? '파형 숨김' : '파형 보기';
+        Settings.playTone(500, 0.04, 0.025);
+      });
+
+      function setDetailTab(k) {
+        document.querySelectorAll('[data-dt-tab]').forEach((b) => b.classList.toggle('active', b.dataset.dtTab === k));
+        document.querySelectorAll('[data-dt-pane]').forEach((p) => p.classList.toggle('pane-hidden', p.dataset.dtPane !== k));
+      }
+      document.querySelectorAll('[data-dt-tab]').forEach((b) => b.addEventListener('click', () => { Settings.playTone(520, 0.04, 0.025); setDetailTab(b.dataset.dtTab); }));
+      document.getElementById('ch4-detail-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        Settings.playTone(540, 0.05, 0.03);
+        setDetailTab('pe');
+        detailModalEl.classList.remove('hidden');
+      });
+      document.getElementById('ch4-detail-close').addEventListener('click', () => detailModalEl.classList.add('hidden'));
+      detailModalEl.addEventListener('click', (e) => { if (e.target === detailModalEl) detailModalEl.classList.add('hidden'); });
+
+      document.querySelectorAll('[data-cat-help]').forEach((b) => b.addEventListener('click', () => {
+        const info = CAT_HELP[b.dataset.catHelp];
+        if (!info) return;
+        Settings.playTone(520, 0.04, 0.025);
+        catHelpTitleEl.textContent = info.title;
+        catHelpBodyEl.innerHTML = info.items.map((it) => `<div class="ch2-help-item"><strong>${escapeHtml(it.name)}</strong><p>${escapeHtml(it.desc)}</p></div>`).join('');
+        catHelpModalEl.classList.remove('hidden');
+      }));
+      document.getElementById('ch4-cat-help-close').addEventListener('click', () => catHelpModalEl.classList.add('hidden'));
+      catHelpModalEl.addEventListener('click', (e) => { if (e.target === catHelpModalEl) catHelpModalEl.classList.add('hidden'); });
 
       function setCollapsed(c) {
         if (window.innerWidth >= 960) { splitEl.classList.remove('ctrl-collapsed'); return; }
@@ -235,95 +721,245 @@
         if (empty) empty.remove();
         const row = document.createElement('div');
         row.className = 'sig-hx-row';
-        row.textContent = line;
+        row.textContent = `• ${line}`;
         logListEl.prepend(row);
+      }
+
+      function computeDepthLabel() {
+        if (!sim) return '적정 마취';
+        if (sim.iso >= 2.3 || sim.map < 58) return '과심도 (안구 중앙 고정 · 안검반사 소실 · 턱 완전 이완)';
+        if (sim.iso <= 0.8 || sim.painActive) return '얕은 마취 (안검반사 약양성 · 턱긴장도 회복)';
+        return '적정 수술 심도 (안구 복내측 회전 · 안검반사 소실 · 턱 이완)';
       }
 
       function renderUI() {
         if (!sim) return;
         const pct = Math.min(100, Math.round(sim.prog));
-        const phase = pct < 25 ? '피부 절개' : pct < 65 ? '본 처치 진행' : pct < 100 ? '지혈 · 봉합' : '수술 종료';
+        const phase = pct < 20 ? '피부 절개' : pct < 70 ? '본 처치 진행' : pct < 100 ? '지혈 · 봉합' : '수술 종료';
         phaseLblEl.textContent = `${phase} · ${pct}%`;
         const mm = String(Math.floor(sim.sec / 60)).padStart(2, '0');
         const ss = String(sim.sec % 60).padStart(2, '0');
         clockLblEl.textContent = `${mm}:${ss}`;
         progFillEl.style.width = `${pct}%`;
 
+        const dispSpo2 = sim.artifact === 'spo2_probe' ? 78 : Math.round(sim.spo2);
         const hrEl = document.getElementById('ch4-v-hr');
         const mapEl = document.getElementById('ch4-v-map');
         const spo2El = document.getElementById('ch4-v-spo2');
         const etEl = document.getElementById('ch4-v-etco2');
         const btEl = document.getElementById('ch4-v-bt');
-        hrEl.textContent = Math.round(sim.hr);
-        spo2El.textContent = `${Math.round(sim.spo2)}%`;
-        etEl.textContent = Math.round(sim.etco2);
-        mapEl.textContent = Math.round(sim.map);
+        hrEl.textContent = sim.arrested ? '0' : Math.round(sim.hr);
+        spo2El.textContent = sim.arrested ? '--%' : `${dispSpo2}%`;
+        etEl.textContent = sim.arrested ? '0' : Math.round(sim.etco2);
+        mapEl.textContent = sim.arrested ? '0' : Math.round(sim.map);
         btEl.textContent = `${sim.bt.toFixed(1)}°`;
         document.getElementById('ch4-v-iso').textContent = `${sim.iso.toFixed(1)}%`;
         document.getElementById('ch4-v-vent').textContent = sim.ippv ? 'IPPV' : '자발';
 
         mapEl.style.color = sim.map < 65 ? '#fca5a5' : '#ffffff';
-        spo2El.style.color = sim.spo2 < 94 ? '#fca5a5' : '#ffffff';
-        etEl.style.color = sim.etco2 > 52 ? '#fde68a' : '#ffffff';
+        spo2El.style.color = dispSpo2 < 94 ? '#fca5a5' : '#ffffff';
+        etEl.style.color = (sim.etco2 > 52 || sim.fiCO2 > 3) ? '#fde68a' : '#ffffff';
+
+        const artTxt = sim.artifact === 'spo2_probe'
+          ? 'SpO₂ 파형 불안정 (점검 필요)'
+          : sim.artifact === 'sodalime'
+            ? `CO₂ 기저선 상승 (FiCO₂ ${Math.round(sim.fiCO2)} mmHg)`
+            : '정상';
 
         stateBodyEl.innerHTML = `
           <div class="sig-hx-list">
             <div class="sig-hx-row"><span class="sig-hx-k">기화기 / 환기:</span><span>Iso ${sim.iso.toFixed(1)}% · ${sim.ippv ? 'IPPV 기계환기' : '자발 호흡'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">능동 가온 / 볼루스:</span><span>${sim.warm ? 'ON' : 'OFF'} · 수액 볼루스 ${sim.bolusCount}회</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">활성 CRI:</span><span>${sim.norepi ? 'Norepinephrine CRI 가동 중' : '없음'}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">최근 심도 평가:</span><span>${escapeHtml(sim.lastDepthCheck || '미평가')}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">모니터 · 회로:</span><span>${escapeHtml(artTxt)}</span></div>
           </div>
         `;
 
         const stabPct = sim.totalTicks ? Math.round((sim.stableTicks / sim.totalTicks) * 100) : 100;
         summaryBoxEl.innerHTML = `
           <div class="modal-row"><span class="muted">수술 진행률</span><strong>${pct}%</strong></div>
-          <div class="modal-row"><span class="muted">혈역학·호흡 안정률</span><strong>${stabPct}%</strong></div>
+          <div class="modal-row"><span class="muted">바이탈 안정 유지율</span><strong>${stabPct}%</strong></div>
+          <div class="modal-row"><span class="muted">기화기 종료 (0%)</span><strong style="color:${sim.iso === 0 ? '#15803d' : '#b91c1c'};">${sim.iso === 0 ? 'OFF 완료' : `가동 중 (${sim.iso.toFixed(1)}%)`}</strong></div>
           <div class="modal-row"><span class="muted">발생 이벤트 / 처치</span><strong>${sim.events}건 / ${sim.actions}회</strong></div>
         `;
+      }
+
+      function finalizeEvaluation(forcedArrestCause) {
+        if (evaluated) return;
+        evaluated = true;
+        stopSim();
+
+        const deductions = [];
+        if (forcedArrestCause) {
+          deductions.push({ text: `심정지(치명적 실패): ${forcedArrestCause}`, pts: 100 });
+        } else {
+          if (sim.prog < 100) {
+            deductions.push({ text: `수술 미완료 조기 종료 (진행률 ${Math.round(sim.prog)}%)`, pts: 25 });
+          }
+          const hypoPen = Math.min(24, Math.floor(sim.lowMapSec / 5) * 4);
+          if (hypoPen > 0) {
+            deductions.push({ text: `저혈압 방치 (MAP < 60 mmHg 누적 ${sim.lowMapSec}초)`, pts: hypoPen });
+          }
+          const hypoxPen = Math.min(25, Math.floor(sim.lowSpo2Sec / 5) * 5);
+          if (hypoxPen > 0) {
+            deductions.push({ text: `저산소혈증 방치 (SpO₂ < 92% 누적 ${sim.lowSpo2Sec}초)`, pts: hypoxPen });
+          }
+          const hyperPen = Math.min(16, Math.floor(sim.highEtco2Sec / 10) * 4);
+          if (hyperPen > 0) {
+            deductions.push({ text: `고탄산혈증 방치 (ETCO₂ > 55 mmHg 누적 ${sim.highEtco2Sec}초)`, pts: hyperPen });
+          }
+          if (sim.bt < 36.0) {
+            deductions.push({ text: `저체온 방치 (종료 체온 ${sim.bt.toFixed(1)}°C)`, pts: 8 });
+          }
+          if (sim.artifact) {
+            deductions.push({
+              text: sim.artifact === 'spo2_probe'
+                ? '장치 아티팩트 미교정 (SpO₂ 프로브 탈락 방치)'
+                : '회로 이상 미교정 (소다라임 소진 · CO₂ 재호흡 방치)',
+              pts: 8
+            });
+          }
+          if (sim.painActive) {
+            deductions.push({ text: '수술 통증성 빈맥 미대응 (진통 처치 누락)', pts: 8 });
+          }
+          let drugMisusePts = 0;
+          sim.drugMistakes.forEach((m) => {
+            if (drugMisusePts < 20) {
+              const p = Math.min(10, 20 - drugMisusePts);
+              drugMisusePts += p;
+              deductions.push({ text: m, pts: p });
+            }
+          });
+          if (sim.prog >= 100 && sim.iso > 0) {
+            deductions.push({ text: `유지 종료 절차 누락 (기화기 ${sim.iso.toFixed(1)}% 미차단)`, pts: 10 });
+          }
+        }
+
+        const totalDeduct = deductions.reduce((s, d) => s + d.pts, 0);
+        const score = cl(Math.round(100 - totalDeduct), 0, 100);
+        const grade = score >= 95 ? 'S' : score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 50 ? 'D' : 'F';
+        const stabPct = sim.totalTicks ? Math.round((sim.stableTicks / sim.totalTicks) * 100) : 100;
+
+        lastReport = { caseObj: currentCase, score, grade, stabPct, deductions, arrestCause: forcedArrestCause || null };
+        aiText = null; soapText = null;
+        rvWrongEl.innerHTML = `
+          <div class="b-card-soft" style="padding:12px; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-family:var(--font-display); font-size:15px;">마취 유지 평가</strong>
+              <strong style="font-family:var(--font-display); font-size:17px; color:#dc2626;">${score}점 (${grade})</strong>
+            </div>
+            <div class="modal-row"><span class="muted">수술 진행률 / 안정률</span><strong>${Math.round(sim.prog)}% / ${stabPct}%</strong></div>
+            <div class="modal-row"><span class="muted">최종 MAP / ETCO₂ / BT</span><strong>${Math.round(sim.map)} / ${Math.round(sim.etco2)} / ${sim.bt.toFixed(1)}°C</strong></div>
+            <div class="modal-row"><span class="muted">기화기 종료</span><strong>${sim.iso === 0 ? 'OFF (0%)' : `${sim.iso.toFixed(1)}%`}</strong></div>
+          </div>
+          <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
+            <div class="b-label"><span>오답노트${totalDeduct ? ` (총 -${totalDeduct}점)` : ''}</span></div>
+            ${deductions.length ? deductions.map((d) => `<p style="color:#b91c1c;">• ${escapeHtml(d.text)} <strong>(-${d.pts}점)</strong></p>`).join('') : '<p>• 감점 사항 없이 안전하게 마취 유지를 완료했습니다.</p>'}
+          </div>
+        `;
+
+        evalSubmitBtn.textContent = '해설 보기';
+        Settings.saveStageResult(4, currentStageId, { grade, score });
+        if (chapterCtrl) chapterCtrl.refreshStages();
+
+        if (forcedArrestCause || grade === 'F') {
+          failTitleEl.textContent = forcedArrestCause ? '심정지 (마취 유지 실패)' : '마취 유지 실패 (F)';
+          failDescEl.textContent = forcedArrestCause
+            ? `${forcedArrestCause} — 해설 보기에서 원인과 교정 방법을 확인하세요.`
+            : `최종 ${score}점 (F)으로 기준 점수(D 이상)에 미달했습니다. 해설 보기를 확인한 뒤 다시 도전하세요.`;
+          failModalEl.classList.remove('hidden');
+          Settings.playTone(220, 0.25, 0.05);
+        } else {
+          document.getElementById('ch4-stamp-asa').textContent = `MAP ${Math.round(sim.map)}`;
+          document.getElementById('ch4-stamp-prog').textContent = 'MAINTAIN';
+          document.getElementById('ch4-stamp-grade').textContent = currentStageId === 'tutorial' ? '완료' : grade;
+          stampOverlayEl.classList.remove('hidden');
+          Settings.playStampSound();
+          Settings.triggerStageGlow();
+        }
+        renderUI();
       }
 
       function stepSim() {
         if (!sim || sim.paused || evaluated) return;
         sim.sec += 1;
-        sim.prog = Math.min(100, sim.prog + 2.5);
+        sim.prog = Math.min(100, sim.prog + 2.0);
         sim.totalTicks += 1;
 
-        // Story events at key progress checkpoints
-        if (sim.prog >= 25 && !sim.ev1) {
+        // Story events at key checkpoints
+        if (sim.prog >= 20 && !sim.ev1) {
           sim.ev1 = true; sim.events += 1;
-          sim.map -= (currentCase.trueAsa >= 3 ? 16 : 10);
-          sim.etco2 += 9;
-          addLog('돌발 이벤트: 마취 심화 및 저혈압·고탄산혈증 경향 발생');
+          sim.map -= (currentCase.trueAsa >= 3 ? 16 : 12);
+          sim.etco2 += 10;
+          addLog('돌발 이벤트: 마취 심화 — 저혈압 및 고탄산혈증 경향 발생');
         }
-        if (sim.prog >= 58 && !sim.ev2) {
+        if (sim.prog >= 45 && !sim.evArt) {
+          sim.evArt = true; sim.events += 1;
+          sim.artifact = (currentCase.trueAsa % 2 === 0) ? 'sodalime' : 'spo2_probe';
+          if (sim.artifact === 'sodalime') {
+            sim.fiCO2 = 9;
+            addLog('모니터 이상: 캡노그램 기저선 상승(FiCO₂↑) 관찰 — 점검·평가 탭을 확인하세요');
+          } else {
+            addLog('모니터 이상: SpO₂ 수치 급락 및 Pleth 파형 흔들림 — 점검·평가 탭을 확인하세요');
+          }
+        }
+        if (sim.prog >= 70 && !sim.ev2) {
           sim.ev2 = true; sim.events += 1;
-          sim.hr += 24; sim.map += 8;
-          addLog('돌발 이벤트: 수술적 통증 자극 — 빈맥 반응 (진통 필요)');
+          sim.painActive = true;
+          sim.hr += 26; sim.map += 10;
+          addLog('돌발 이벤트: 수술적 통증 자극 — 빈맥·혈압 상승 발생');
         }
-        if (sim.prog >= 85 && !sim.ev3) {
+        if (sim.prog >= 90 && !sim.ev3) {
           sim.ev3 = true; sim.events += 1;
-          addLog('수술 막바지: 지혈 및 피부 봉합 단계 진입');
+          addLog('수술 막바지: 지혈·봉합 진행 중 (100% 도달 후 기화기 OFF 준비)');
+        }
+        if (sim.prog >= 100 && !sim.evEnd) {
+          sim.evEnd = true;
+          addLog('수술 종료 (100%) — 기화기 OFF 후 유지 종료 탭에서 완료하세요');
         }
 
         // Physiology drift
-        const isoTargetMap = (currentCase.pe.bpMap || 88) - (sim.iso - 1.2) * 18 + (sim.norepi ? 18 : 0) + sim.bolusBoost;
-        sim.map = cl(sim.map + (isoTargetMap - sim.map) * 0.18, 42, 135);
-        sim.bolusBoost = Math.max(0, sim.bolusBoost - 0.5);
+        const isoTargetMap = (currentCase.pe.bpMap || 86) - (sim.iso - 1.2) * 18 + (sim.norepi ? 18 : 0) + sim.bolusBoost + (sim.painActive ? 10 : 0);
+        sim.map = cl(sim.map + (isoTargetMap - sim.map) * 0.16, 32, 140);
+        sim.bolusBoost = Math.max(0, sim.bolusBoost - 0.45);
 
-        const targetEtco2 = sim.ippv ? 39 : (40 + sim.iso * 6);
-        sim.etco2 = cl(sim.etco2 + (targetEtco2 - sim.etco2) * 0.16, 26, 72);
-        sim.spo2 = cl(sim.ippv ? 99 : (sim.etco2 > 55 ? sim.spo2 - 0.5 : 98), 86, 100);
-        sim.bt = cl(sim.bt + (sim.warm ? 0.02 : -0.03), 35.0, 39.5);
+        const targetEtco2 = (sim.ippv ? 39 : (40 + sim.iso * 6)) + (sim.artifact === 'sodalime' ? 8 : 0);
+        sim.etco2 = cl(sim.etco2 + (targetEtco2 - sim.etco2) * 0.15, 26, 76);
+        if (sim.artifact === 'sodalime') sim.fiCO2 = cl(sim.fiCO2 + 0.15, 6, 14);
+        else sim.fiCO2 = Math.max(0, sim.fiCO2 - 1.5);
+
+        sim.spo2 = cl(sim.ippv ? 99 : (sim.etco2 > 55 ? sim.spo2 - 0.6 : 98), 70, 100);
+        sim.bt = cl(sim.bt + (sim.warm ? 0.025 : -0.035), 34.8, 39.5);
+
+        // Track abnormal duration for deduction scoring
+        if (sim.map < 60) sim.lowMapSec += 1;
+        if (sim.spo2 < 92) sim.lowSpo2Sec += 1;
+        if (sim.etco2 > 55) sim.highEtco2Sec += 1;
 
         const isStable = sim.map >= 65 && sim.spo2 >= 94 && sim.etco2 <= 50 && sim.bt >= 36.2;
         if (isStable) sim.stableTicks += 1;
+
+        // Fatal cardiac arrest check
+        if (sim.map < 40 || sim.spo2 < 75) {
+          sim.criticalSec += 1;
+          if (sim.criticalSec >= 10) {
+            sim.arrested = true;
+            const cause = sim.map < 40 ? '극심한 저혈압(MAP < 40 mmHg) 방치' : '중증 저산소혈증(SpO₂ < 75%) 방치';
+            addLog(`심정지 발생 — ${cause}`);
+            finalizeEvaluation(cause);
+            return;
+          }
+        } else {
+          sim.criticalSec = 0;
+        }
 
         renderUI();
       }
 
       document.getElementById('ch4-iso-down').addEventListener('click', () => {
         if (!sim || evaluated) return;
-        sim.iso = cl(Math.round((sim.iso - 0.5) * 10) / 10, 0.5, 3.0);
+        sim.iso = cl(Math.round((sim.iso - 0.5) * 10) / 10, 0.0, 3.0);
         sim.actions += 1;
         addLog(`기화기 Iso 감량 → ${sim.iso.toFixed(1)}%`);
         Settings.playTone(520, 0.04, 0.025);
@@ -331,10 +967,18 @@
       });
       document.getElementById('ch4-iso-up').addEventListener('click', () => {
         if (!sim || evaluated) return;
-        sim.iso = cl(Math.round((sim.iso + 0.5) * 10) / 10, 0.5, 3.0);
+        sim.iso = cl(Math.round((sim.iso + 0.5) * 10) / 10, 0.0, 3.0);
         sim.actions += 1;
         addLog(`기화기 Iso 증량 → ${sim.iso.toFixed(1)}%`);
         Settings.playTone(560, 0.04, 0.025);
+        renderUI();
+      });
+      document.getElementById('ch4-iso-off').addEventListener('click', () => {
+        if (!sim || evaluated) return;
+        sim.iso = 0;
+        sim.actions += 1;
+        addLog('기화기 OFF (0.0%) — 순산소 유지');
+        Settings.playTone(620, 0.05, 0.03);
         renderUI();
       });
       document.getElementById('ch4-btn-vent').addEventListener('click', (e) => {
@@ -344,6 +988,15 @@
         e.currentTarget.classList.toggle('active', sim.ippv);
         addLog(sim.ippv ? 'IPPV 기계환기 전환 (ETCO₂ 교정)' : '자발 호흡 전환');
         Settings.playTone(580, 0.05, 0.03);
+        renderUI();
+      });
+      document.getElementById('ch4-btn-bag').addEventListener('click', () => {
+        if (!sim || evaluated) return;
+        sim.actions += 1;
+        sim.etco2 = cl(sim.etco2 - 4, 28, 76);
+        sim.spo2 = cl(sim.spo2 + 2, 70, 100);
+        addLog('수동 양압 환기 (Bagging) 1회 실시');
+        Settings.playTone(560, 0.05, 0.03);
         renderUI();
       });
       document.getElementById('ch4-btn-warm').addEventListener('click', (e) => {
@@ -359,7 +1012,7 @@
         if (!sim || evaluated) return;
         sim.bolusCount += 1;
         sim.bolusBoost = Math.min(20, sim.bolusBoost + 10);
-        sim.map = cl(sim.map + 8, 45, 130);
+        sim.map = cl(sim.map + 8, 40, 135);
         sim.actions += 1;
         addLog('결정질 수액 볼루스 (10 mL/kg) 투여 — 혈압 보강');
         Settings.playTone(620, 0.05, 0.03);
@@ -373,19 +1026,99 @@
         Settings.playTone(500, 0.04, 0.025);
       });
 
+      function pushDrugMistake(msg) {
+        if (!sim.drugMistakes.includes(msg)) sim.drugMistakes.push(msg);
+      }
+
       document.querySelectorAll('[data-drug4]').forEach((b) => b.addEventListener('click', () => {
         if (!sim || evaluated) return;
         const d = b.dataset.drug4;
         sim.actions += 1;
-        if (d === 'atropine') { sim.hr = cl(sim.hr + 28, 50, 210); addLog('Atropine IV 투여 — 심박수 상승'); }
-        else if (d === 'ephedrine') { sim.map = cl(sim.map + 14, 45, 135); sim.hr = cl(sim.hr + 8, 50, 210); addLog('Ephedrine IV 투여 — MAP 상승'); }
-        else if (d === 'fentanyl') { sim.hr = cl(sim.hr - 20, 55, 200); sim.map = cl(sim.map - 4, 50, 130); addLog('Fentanyl 볼루스 IV — 수술 통증 진통'); }
-        else if (d === 'norepi') { sim.norepi = !sim.norepi; b.classList.toggle('active', sim.norepi); addLog(sim.norepi ? 'Norepinephrine CRI 시작' : 'Norepinephrine CRI 중단'); }
-        else if (d === 'lidocaine') { sim.hr = cl(sim.hr - 10, 60, 200); addLog('Lidocaine IV 투여 — 심실성 부정맥 안정화'); }
-        else if (d === 'caglu') { sim.hr = cl(sim.hr + 6, 60, 200); addLog('Calcium Gluconate 서서히 IV — 심근막 안정화'); }
+        const isCat = currentCase && currentCase.species === 'cat';
+
+        if (sim.artifact === 'spo2_probe' && (d === 'atropine' || d === 'ephedrine' || d === 'norepi')) {
+          pushDrugMistake('센서 아티팩트 감별 전 불필요한 응급약물 투여');
+        }
+
+        if (d === 'atropine' || d === 'glyco') {
+          const bradyCut = isCat ? 95 : 70;
+          if (sim.hr >= bradyCut + 15) {
+            pushDrugMistake(`정상 심박수(${Math.round(sim.hr)} bpm)에서 항콜린제(${d === 'atropine' ? 'Atropine' : 'Glycopyrrolate'}) 오투여`);
+          }
+          sim.hr = cl(sim.hr + (d === 'atropine' ? 28 : 18), 50, 220);
+          addLog(`${d === 'atropine' ? 'Atropine' : 'Glycopyrrolate'} IV 투여 — 심박수 상승`);
+        } else if (d === 'ephedrine') {
+          sim.map = cl(sim.map + 14, 45, 138);
+          sim.hr = cl(sim.hr + 8, 50, 210);
+          addLog('Ephedrine IV 투여 — MAP 상승');
+        } else if (d === 'fentanyl') {
+          sim.painActive = false;
+          sim.hr = cl(sim.hr - 22, 55, 200);
+          sim.map = cl(sim.map - 5, 50, 130);
+          addLog('Fentanyl IV 투여 — 수술 통증 진통 및 심박수 안정');
+        } else if (d === 'norepi') {
+          sim.norepi = !sim.norepi;
+          b.classList.toggle('active', sim.norepi);
+          addLog(sim.norepi ? 'Norepinephrine CRI 시작' : 'Norepinephrine CRI 중단');
+        } else if (d === 'lidocaine') {
+          if (isCat) {
+            pushDrugMistake('고양이 환자에서 전신 Lidocaine IV 투여 (심혈관·신경 독성 위험)');
+            sim.map = cl(sim.map - 10, 40, 135);
+          }
+          sim.hr = cl(sim.hr - 10, 55, 200);
+          addLog('Lidocaine IV 투여');
+        } else if (d === 'caglu') {
+          sim.hr = cl(sim.hr + 6, 55, 200);
+          addLog('Calcium Gluconate 서서히 IV 투여 — 심근막 안정화');
+        }
         Settings.playTone(640, 0.05, 0.03);
         renderUI();
       }));
+
+      // 점검 · 평가 탭
+      document.getElementById('ch4-btn-depth').addEventListener('click', () => {
+        if (!sim || evaluated) return;
+        sim.actions += 1;
+        sim.lastDepthCheck = computeDepthLabel();
+        addLog(`마취 심도 평가: ${sim.lastDepthCheck}`);
+        Settings.playTone(580, 0.05, 0.03);
+        renderUI();
+      });
+
+      document.getElementById('ch4-chk-sensor').addEventListener('click', () => {
+        if (!sim || evaluated) return;
+        sim.actions += 1;
+        if (sim.artifact === 'spo2_probe') {
+          sim.artifact = null;
+          addLog('센서 점검 완료: SpO₂ 프로브 재부착 — 정상 파형 및 수치 회복');
+        } else {
+          addLog('센서 점검 완료: ECG · SpO₂ · CO₂ 프로브 정상 장착 확인');
+        }
+        Settings.playTone(620, 0.05, 0.03);
+        renderUI();
+      });
+
+      document.getElementById('ch4-chk-soda').addEventListener('click', () => {
+        if (!sim || evaluated) return;
+        sim.actions += 1;
+        if (sim.artifact === 'sodalime') {
+          sim.artifact = null;
+          sim.fiCO2 = 0;
+          addLog('회로 점검 완료: 소다라임 교체 및 일방향 밸브 교정 — FiCO₂ 0 mmHg 정상화');
+        } else {
+          addLog('회로 점검 완료: 소다라임 색상 및 일방향 밸브 정상');
+        }
+        Settings.playTone(620, 0.05, 0.03);
+        renderUI();
+      });
+
+      document.getElementById('ch4-chk-ett').addEventListener('click', () => {
+        if (!sim || evaluated) return;
+        sim.actions += 1;
+        addLog('기관튜브 점검 완료: 개통성 양호 · 회로 연결 정상');
+        Settings.playTone(600, 0.05, 0.03);
+        renderUI();
+      });
 
       function setReviewTab(k) {
         document.querySelectorAll('[data-rv-tab]').forEach((b) => b.classList.toggle('active', b.dataset.rvTab === k));
@@ -397,23 +1130,42 @@
       document.getElementById('ch4-review-close').addEventListener('click', () => reviewModalEl.classList.add('hidden'));
       reviewModalEl.addEventListener('click', (e) => { if (e.target === reviewModalEl) reviewModalEl.classList.add('hidden'); });
 
+      document.getElementById('ch4-fail-review').addEventListener('click', () => {
+        Settings.playTone(540, 0.05, 0.03);
+        setReviewTab('wrong');
+        reviewModalEl.classList.remove('hidden');
+      });
+      document.getElementById('ch4-fail-restart').addEventListener('click', () => {
+        Settings.playTone(540, 0.05, 0.03);
+        loadStage(currentStageId, { preserveCase: true });
+      });
+      document.getElementById('ch4-fail-main').addEventListener('click', () => {
+        Settings.playTone(520, 0.04, 0.025);
+        window.location.href = 'index.html';
+      });
+
       function buildAiPayload(task) {
         const c = lastReport.caseObj;
         return {
           task, phase: 'chapter4', chapterLabel: 'Chapter 4 마취 유지',
           species: c.species === 'cat' ? '고양이' : '개',
           scenario: `${c.name} (${c.breed}, ${c.weight}kg) - ${c.chiefComplaint}`,
-          chatSummary: logs.slice(0, 10).join(' | '),
+          chatSummary: logs.slice(0, 12).join(' | '),
           examSummary: `진행률 ${Math.round(sim.prog)}%, 안정률 ${lastReport.stabPct}%, 최종 HR ${Math.round(sim.hr)}, MAP ${Math.round(sim.map)}, ETCO2 ${Math.round(sim.etco2)}, BT ${sim.bt.toFixed(1)}`,
           studentEval: `점수 ${lastReport.score}점 (${lastReport.grade})`,
-          trueEval: '수술 진행 100%, MAP ≥ 65, SpO2 ≥ 94, ETCO2 ≤ 50, BT ≥ 36.5 유지'
+          trueEval: '수술 진행 100%, 기화기 OFF(0%), MAP ≥ 60, SpO2 ≥ 92, ETCO2 ≤ 55, BT ≥ 36.0 및 아티팩트 교정'
         };
       }
       async function runAiDebrief() {
         rvAiEl.innerHTML = '<div class="b-card-soft" style="padding:14px; text-align:center;">AI 로그 분석 중...</div>';
         let t = '';
         try { const r = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(buildAiPayload('debrief')) }); if (r.ok) { const d = await r.json(); t = (d.analysis || d.text || '').trim(); } } catch {}
-        if (!t) t = `[오프라인 마취 유지 분석]\n1) 수술 진행률 ${Math.round(sim.prog)}%, 생체 안정 유지율 ${lastReport.stabPct}%.\n2) 총 ${sim.actions}회 조작(수액 볼루스 ${sim.bolusCount}회, IPPV ${sim.ippv ? '사용' : '미사용'}, 가온 ${sim.warm ? '사용' : '미사용'}).\n3) 보완 사항: 저혈압·고탄산혈증 이벤트 발생 시 Iso 감량, IPPV, 진통·승압 처치를 신속히 연계하세요.`;
+        if (!t) {
+          const dStr = lastReport.deductions && lastReport.deductions.length
+            ? lastReport.deductions.map((d) => `${d.text} (-${d.pts}점)`).join(' / ')
+            : '감점 사항 없이 안정적으로 마취를 유지했습니다.';
+          t = `[오프라인 마취 유지 분석]\n1) 수술 진행률 ${Math.round(sim.prog)}%, 생체 안정 유지율 ${lastReport.stabPct}%.\n2) 총 ${sim.actions}회 조작(수액 볼루스 ${sim.bolusCount}회, IPPV ${sim.ippv ? '사용' : '미사용'}, 가온 ${sim.warm ? '사용' : '미사용'}).\n3) 감점 및 보완 포인트: ${dStr}`;
+        }
         aiText = t;
         rvAiEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(t)}</div>`;
       }
@@ -423,7 +1175,7 @@
         try { const r = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(buildAiPayload('soap_record')) }); if (r.ok) { const d = await r.json(); t = (d.text || d.analysis || '').trim(); } } catch {}
         if (!t) {
           const c = lastReport.caseObj;
-          t = `S: ${c.name} (${c.breed}, ${c.weight}kg) 마취 유지 모니터링\nO: 최종 HR ${Math.round(sim.hr)}, SpO₂ ${Math.round(sim.spo2)}%, ETCO₂ ${Math.round(sim.etco2)}, MAP ${Math.round(sim.map)}, BT ${sim.bt.toFixed(1)}°C\nA: 마취 유지 안정률 ${lastReport.stabPct}%, 최종 ${lastReport.score}점 (${lastReport.grade})\nP: 수술 종료 확인 후 Chapter 5 마취 회복 단계로 이행`;
+          t = `S: ${c.name} (${c.breed}, ${c.weight}kg) 마취 유지 모니터링\nO: 최종 HR ${Math.round(sim.hr)}, SpO₂ ${Math.round(sim.spo2)}%, ETCO₂ ${Math.round(sim.etco2)}, MAP ${Math.round(sim.map)}, BT ${sim.bt.toFixed(1)}°C\nA: 마취 유지 안정률 ${lastReport.stabPct}%, 최종 ${lastReport.score}점 (${lastReport.grade})\nP: 기화기 OFF 및 순산소 유지 확인 후 Chapter 5 마취 회복 단계로 이행`;
         }
         soapText = t;
         rvSoapEl.innerHTML = `<div class="b-card" style="padding:12px; white-space:pre-line; line-height:1.6;">${escapeHtml(t)}</div>`;
@@ -432,43 +1184,7 @@
       evalSubmitBtn.addEventListener('click', () => {
         if (!currentCase || !sim) return;
         if (evaluated) { Settings.playTone(540, 0.05, 0.03); setReviewTab('wrong'); reviewModalEl.classList.remove('hidden'); return; }
-        evaluated = true;
-        stopSim();
-
-        const stabPct = sim.totalTicks ? Math.round((sim.stableTicks / sim.totalTicks) * 100) : 100;
-        let score = Math.round(stabPct * 0.7 + (sim.prog >= 50 ? 20 : 10) + (sim.actions > 0 ? 10 : 0));
-        score = cl(score, 0, 100);
-        const grade = score >= 95 ? 'S' : score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 50 ? 'D' : 'F';
-
-        lastReport = { caseObj: currentCase, score, grade, stabPct };
-        aiText = null; soapText = null;
-        rvWrongEl.innerHTML = `
-          <div class="b-card-soft" style="padding:12px; display:flex; flex-direction:column; gap:6px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <strong style="font-family:var(--font-display); font-size:15px;">마취 유지 평가</strong>
-              <strong style="font-family:var(--font-display); font-size:17px; color:#dc2626;">${score}점 (${grade})</strong>
-            </div>
-            <div class="modal-row"><span class="muted">수술 진행률</span><strong>${Math.round(sim.prog)}%</strong></div>
-            <div class="modal-row"><span class="muted">바이탈 안정 유지율</span><strong>${stabPct}%</strong></div>
-            <div class="modal-row"><span class="muted">최종 MAP / ETCO₂ / BT</span><strong>${Math.round(sim.map)} / ${Math.round(sim.etco2)} / ${sim.bt.toFixed(1)}°C</strong></div>
-          </div>
-          <div class="b-card" style="padding:12px; margin-top:8px; line-height:1.55;">
-            <div class="b-label"><span>오답노트</span></div>
-            <p>• ${sim.map < 65 ? '종료 시 저혈압(MAP < 65)이 남아 있었습니다. Iso 감량 및 승압/수액 보강이 필요합니다.' : '혈압(MAP)을 안정 범위로 유지했습니다.'}</p>
-            <p style="margin-top:4px;">• ${sim.etco2 > 50 ? '고탄산혈증(ETCO₂ > 50)이 관찰되었습니다. IPPV 기계환기 전환을 권장합니다.' : '환기 및 ETCO₂가 안정적으로 관리되었습니다.'}</p>
-          </div>
-        `;
-
-        evalSubmitBtn.textContent = '해설 보기';
-        document.getElementById('ch4-stamp-asa').textContent = `MAP ${Math.round(sim.map)}`;
-        document.getElementById('ch4-stamp-prog').textContent = 'MAINTAIN';
-        document.getElementById('ch4-stamp-grade').textContent = currentStageId === 'tutorial' ? '완료' : grade;
-        stampOverlayEl.classList.remove('hidden');
-        Settings.playStampSound();
-
-        Settings.saveStageResult(4, currentStageId, { grade, score });
-        if (chapterCtrl) chapterCtrl.refreshStages();
-        Settings.triggerStageGlow();
+        finalizeEvaluation(null);
       });
 
       async function loadStage(stageId, opts = {}) {
@@ -480,7 +1196,10 @@
         lastReport = null;
         aiText = null; soapText = null;
 
+        failModalEl.classList.add('hidden');
         reviewModalEl.classList.add('hidden');
+        catHelpModalEl.classList.add('hidden');
+        detailModalEl.classList.add('hidden');
         stampOverlayEl.classList.add('hidden');
         evalSubmitBtn.textContent = '마취 유지 완료';
         document.querySelectorAll('#ch4-btn-vent, #ch4-btn-warm, #ch4-btn-pause, [data-drug4]').forEach((b) => b.classList.remove('active'));
@@ -494,23 +1213,34 @@
             currentCase = prevCase;
           } else {
             sigHeadEl.innerHTML = '<span>환자 생성 중...</span>';
+            ccLineEl.innerHTML = '';
             currentCase = await Data.generatePracticeCase(stageId === 'practice_cat' ? 'cat' : 'dog');
           }
         } else {
           currentCase = Data.getFixedCase(stageId);
         }
 
-        const spKr = currentCase.species === 'cat' ? '고양이' : '개';
-        sigHeadEl.innerHTML = `<span>${currentCase.name}</span><span class="ch1-sig-meta">${spKr} · ${currentCase.breed} · ${currentCase.age} · ${currentCase.weight} kg</span>`;
+        sigHeadEl.innerHTML = `<span>${escapeHtml(currentCase.name)}</span><span class="ch1-sig-meta">${escapeHtml(currentCase.breed)} · ${escapeHtml(currentCase.age)} · ${currentCase.weight} kg · ${escapeHtml(currentCase.sex)} · ASA ${currentCase.trueAsa}${currentCase.trueEmergency ? 'E' : ''} (${escapeHtml(currentCase.truePrognosis)})</span>`;
+        ccLineEl.innerHTML = `<strong>주호소:</strong> ${escapeHtml(currentCase.chiefComplaint)}`;
+        renderFullPreopDetail(currentCase);
+
         sim = {
-          sec: 0, prog: 0, paused: false,
-          hr: currentCase.pe.hr, spo2: 98, etco2: 41, map: Math.max(66, currentCase.pe.bpMap - 6), bt: currentCase.pe.bt,
-          iso: 1.5, ippv: false, warm: false, norepi: false, bolusCount: 0, bolusBoost: 0,
-          events: 0, actions: 0, stableTicks: 0, totalTicks: 0, ev1: false, ev2: false, ev3: false
+          sec: 0, prog: 0, paused: false, arrested: false,
+          hr: currentCase.pe.hr, spo2: 98, etco2: 41, fiCO2: 0,
+          map: Math.max(66, currentCase.pe.bpMap - 6), bt: currentCase.pe.bt,
+          iso: 1.5, ippv: false, warm: false, norepi: false,
+          bolusCount: 0, bolusBoost: 0,
+          artifact: null, painActive: false, lastDepthCheck: null,
+          events: 0, actions: 0, stableTicks: 0, totalTicks: 0,
+          lowMapSec: 0, lowSpo2Sec: 0, highEtco2Sec: 0, criticalSec: 0,
+          drugMistakes: [],
+          ev1: false, evArt: false, ev2: false, ev3: false, evEnd: false
         };
         addLog('마취 유지 시작 — 피부 절개 준비');
+        prefillWaves();
         renderUI();
         tickTimer = setInterval(stepSim, 1000);
+        waveAnimId = requestAnimationFrame(animateWaves);
       }
 
       const chapterCtrl = Settings.initChapterCommon({
@@ -518,15 +1248,15 @@
         chapterTitle: '마취 유지',
         initialStageId: 'tutorial',
         helpSlides: [
-          { mark: '1', label: '수술 진행률 및 생체 모니터', desc: 'HR·SpO₂·ETCO₂·MAP·BT와 수술 진행률을 실시간으로 모니터링합니다.' },
-          { mark: '2', label: '환기 · 기화기 · 수액 조절', desc: '저혈압·고탄산혈증·저체온에 맞춰 Iso·IPPV·볼루스·가온을 조절합니다.' },
-          { mark: '3', label: '응급 약물 & CRI 대응', desc: '통증성 빈맥, 서맥, 저혈압에 적절한 볼루스 및 CRI를 적용합니다.' }
+          { mark: '1', label: '실시간 파형 · 생체 모니터', desc: 'ECG·SpO₂·초저속 Capnography 파형과 수치, 상세 팝업의 마취 전 검사 결과를 대조합니다.' },
+          { mark: '2', label: '환기 · 기화기 · 약물 대응', desc: '저혈압·고탄산혈증·통증성 빈맥·저체온에 맞춰 Iso·IPPV·수액·가온·약물/CRI를 조절합니다.' },
+          { mark: '3', label: '심도 평가 · 장치 점검 · 종료', desc: '아티팩트 발생 시 약물 투여 전 점검·평가 탭에서 감별하고, 수술 100% 완료 후 기화기 OFF로 종료합니다.' }
         ],
         tutorialSteps: [
-          { title: '1. 실시간 유지 모니터', sel: '#ch4-monitor', onEnter: () => activateTab('vent'), text: '수술 진행률 바와 실시간 바이탈(HR·SpO₂·ETCO₂·MAP·BT), 수술 스토리 로그를 모니터링합니다.' },
-          { title: '2. 환기 · 수액 조절', sel: '#ch4-control', onEnter: () => activateTab('vent'), text: '저혈압·고탄산혈증·저체온에 맞춰 Iso 농도, IPPV 기계환기, 수액 볼루스, 능동 가온을 조절합니다.' },
-          { title: '3. 약물 · CRI 대응', sel: '#ch4-control', onEnter: () => activateTab('drug'), text: '돌발 서맥·저혈압·통증성 빈맥·부정맥 발생 시 적절한 응급 약물 및 CRI를 투여합니다.' },
-          { title: '4. 유지 종료 및 시작', sel: '#ch4-control', onEnter: () => activateTab('finish'), text: '바이탈을 안정적으로 유지한 뒤 마취 유지 완료를 누릅니다. 이제 튜토리얼 케이스를 시작합니다.' }
+          { title: '1. 실시간 파형 · 생체 모니터', sel: '#ch4-monitor', onEnter: () => activateTab('vent'), text: 'ECG·SpO₂·Capnography 파형과 바이탈, 수술 진행률을 모니터링합니다. 우측 상세 버튼으로 마취 전 검사 결과를 확인할 수 있습니다.' },
+          { title: '2. 환기 · 기화기 · 수액 조절', sel: '#ch4-control', onEnter: () => activateTab('vent'), text: '저혈압·고탄산혈증·저체온에 맞춰 기화기(Iso), IPPV, 수액 볼루스, 능동 가온을 조절합니다. 각 범주 우측 ? 버튼으로 도움말을 볼 수 있습니다.' },
+          { title: '3. 약물 · CRI & 점검 · 평가', sel: '#ch4-control', onEnter: () => activateTab('check'), text: '돌발 이벤트 시 약물·CRI로 대응하되, 파형·수치 이상이 장치 아티팩트인지 점검·평가 탭에서 먼저 확인하세요.' },
+          { title: '4. 유지 종료 및 시작', sel: '#ch4-control', onEnter: () => activateTab('finish'), text: '수술 100% 완료 후 기화기를 OFF(0%)로 전환하고 마취 유지 완료를 누릅니다. 이제 튜토리얼 케이스를 시작합니다.' }
         ],
         onTutorialFinish: () => activateTab('vent'),
         onSelectStage: (stageId, opts) => loadStage(stageId, opts)
