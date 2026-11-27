@@ -1351,7 +1351,7 @@
       });
       document.getElementById('ch4-fail-restart').addEventListener('click', () => {
         Settings.playTone(540, 0.05, 0.03);
-        loadStage(currentStageId, { preserveCase: true });
+        loadStage(currentStageId, { preserveCase: true, autoStart: true });
       });
       document.getElementById('ch4-fail-main').addEventListener('click', () => {
         Settings.playTone(520, 0.04, 0.025);
@@ -1499,12 +1499,10 @@
         drawChannel(cvPleth, waveState.plethBuf, waveState.x, '#38bdf8', 'rgba(56,189,248,0.6)', false);
         drawChannel(cvCo2, waveState.co2Buf, waveState.co2X, '#facc15', 'rgba(250,204,21,0.6)', true);
 
-        const tutEl = document.getElementById('ch-tut-backdrop');
-        const tutOpen = Boolean(tutEl && !tutEl.classList.contains('hidden') && window.getComputedStyle(tutEl).display !== 'none');
-        if (tutOpen) {
-          pendingCountdown = true;
-        } else {
+        if (opts && opts.autoStart) {
           startCountdownAndRun();
+        } else if (opts && opts.waitForTutorial) {
+          pendingCountdown = true;
         }
       }
 
@@ -1527,10 +1525,17 @@
           activateTab('vent');
           if (pendingCountdown) startCountdownAndRun();
         },
-        onSelectStage: (stageId, opts) => loadStage(stageId, opts)
+        onSelectStage: (stageId, opts) => {
+          if (stageId === 'tutorial') {
+            loadStage('tutorial', { ...(opts || {}), autoStart: false, waitForTutorial: true });
+          } else {
+            loadStage(stageId, { ...(opts || {}), autoStart: true });
+          }
+        }
       });
 
-      loadStage('tutorial');
+      const tutDoneAlready = Settings.isStageComplete(4, 'tutorial');
+      loadStage('tutorial', { autoStart: false, waitForTutorial: !tutDoneAlready });
     })();
   </script>
 </body>
