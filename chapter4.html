@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Chapter 4. 마취 유지 — 베타 1.1</title>
-  <link rel="stylesheet" href="beta11.css?v=20261127d" />
+  <link rel="stylesheet" href="beta11.css?v=20261127e" />
   <script src="beta11-settings.js"></script>
   <script src="beta11-ch1-data.js"></script>
 </head>
@@ -44,31 +44,84 @@
                 </div>
               </div>
               <div class="mon-sec-body">
-                <div class="ch4-wave-wrap" id="ch4-wave-wrap">
-                  <div class="ch4-wave-row">
-                    <div class="ch4-wave-lbl" style="color:#4ade80;">ECG<small>25mm/s</small></div>
-                    <canvas id="ch4-cv-ecg" class="ch4-wave-cv" width="240" height="32"></canvas>
+                <div class="monitor-mock" style="padding:8px;">
+                  <!-- 파형 보기 모드 (이미지 2 구성 · 베타 1.1 다크 차콜 통일) -->
+                  <div class="ch4-wave-wrap" id="ch4-wave-wrap">
+                    <div class="ch4-wave-group">
+                      <div class="ch4-wave-band">
+                        <div class="ch4-wave-plot">
+                          <span class="ch4-wave-tag">ECG II · 25mm/s</span>
+                          <canvas id="ch4-cv-ecg" class="ch4-wave-cv" width="240" height="40"></canvas>
+                        </div>
+                        <div class="ch4-wave-readout">
+                          <span class="ch4-wr-k" style="color:#4ade80;">ECG II · HR</span>
+                          <span class="ch4-wr-v" id="ch4-w-hr" style="color:#4ade80;">--</span>
+                        </div>
+                      </div>
+                      <div class="ch4-wave-band">
+                        <div class="ch4-wave-plot">
+                          <span class="ch4-wave-tag">PLETH</span>
+                          <canvas id="ch4-cv-pleth" class="ch4-wave-cv" width="240" height="40"></canvas>
+                        </div>
+                        <div class="ch4-wave-readout">
+                          <span class="ch4-wr-k" style="color:#38bdf8;">PLETH · SpO₂</span>
+                          <span class="ch4-wr-v" id="ch4-w-spo2" style="color:#38bdf8;">--%</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="ch4-wave-group">
+                      <div class="ch4-wave-band">
+                        <div class="ch4-wave-plot">
+                          <span class="ch4-wave-tag" id="ch4-w-fico2-tag">CO₂ · 4mm/s · FiCO₂ 0</span>
+                          <canvas id="ch4-cv-co2" class="ch4-wave-cv is-co2" width="240" height="52"></canvas>
+                        </div>
+                        <div class="ch4-wave-readout">
+                          <span class="ch4-wr-k" style="color:#facc15;">ETCO₂</span>
+                          <span class="ch4-wr-v" id="ch4-w-etco2" style="color:#facc15;">--</span>
+                          <span class="ch4-wr-sub" id="ch4-w-etwave" style="color:#86efac;">정상 파형</span>
+                          <div class="ch4-wr-rr">
+                            <span class="ch4-wr-rr-val">RR <span id="ch4-w-rr">--</span></span>
+                            <span class="ch4-wr-sub" id="ch4-w-rrmode" style="color:#86efac;">자발</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="ch4-wave-row">
-                    <div class="ch4-wave-lbl" style="color:#38bdf8;">Pleth<small>SpO₂</small></div>
-                    <canvas id="ch4-cv-pleth" class="ch4-wave-cv" width="240" height="32"></canvas>
+
+                  <!-- 파형 숨김 모드 (이미지 3 구성: 상단 4칸 HR · RR · ETCO2 · SpO2) -->
+                  <div class="monitor-row ch4-num-top hidden" id="ch4-num-top">
+                    <div class="m-cell">
+                      <span class="mk">HR</span>
+                      <span class="mv" id="ch4-v-hr">--</span>
+                    </div>
+                    <div class="m-cell">
+                      <span class="mk">RR</span>
+                      <span class="mv"><span id="ch4-v-rr">--</span> <span id="ch4-v-rrmode" style="font-size:10px; font-weight:700; color:#86efac;">자발</span></span>
+                    </div>
+                    <div class="m-cell">
+                      <span class="mk">ETCO₂</span>
+                      <span class="mv"><span id="ch4-v-etco2">--</span> <span id="ch4-v-etwave" style="font-size:9.5px; font-weight:700; color:#86efac;">정상</span></span>
+                    </div>
+                    <div class="m-cell">
+                      <span class="mk">SpO₂</span>
+                      <span class="mv" id="ch4-v-spo2">--%</span>
+                    </div>
                   </div>
-                  <div class="ch4-wave-row">
-                    <div class="ch4-wave-lbl" style="color:#facc15;">CO₂<small>4mm/s</small></div>
-                    <canvas id="ch4-cv-co2" class="ch4-wave-cv" width="240" height="32"></canvas>
-                  </div>
-                </div>
-                <div class="monitor-mock" style="padding:10px;">
-                  <div class="monitor-row">
-                    <div class="m-cell"><span class="mk">HR</span><span class="mv" id="ch4-v-hr">--</span></div>
-                    <div class="m-cell"><span class="mk">SpO₂</span><span class="mv" id="ch4-v-spo2">--%</span></div>
-                    <div class="m-cell"><span class="mk">ETCO₂</span><span class="mv" id="ch4-v-etco2">--</span></div>
-                    <div class="m-cell"><span class="mk">MAP</span><span class="mv" id="ch4-v-map">--</span></div>
-                  </div>
+
+                  <!-- 공통 하단 3칸: SBP/MBP/DBP · BT (°C) · ISO % / MAC -->
                   <div class="monitor-row" style="grid-template-columns:repeat(3,1fr);">
-                    <div class="m-cell"><span class="mk">BT</span><span class="mv" id="ch4-v-bt" style="font-size:14px;">--.-°</span></div>
-                    <div class="m-cell"><span class="mk">Iso %</span><span class="mv" id="ch4-v-iso" style="font-size:14px;">1.5%</span></div>
-                    <div class="m-cell"><span class="mk">환기</span><span class="mv" id="ch4-v-vent" style="font-size:13px;">자발</span></div>
+                    <div class="m-cell">
+                      <span class="mk">SBP/MBP/DBP</span>
+                      <span class="mv" id="ch4-v-bp" style="font-size:13px;">--/--/--</span>
+                    </div>
+                    <div class="m-cell">
+                      <span class="mk">BT (°C)</span>
+                      <span class="mv" id="ch4-v-bt" style="font-size:13.5px;">--.-°C</span>
+                    </div>
+                    <div class="m-cell">
+                      <span class="mk">ISO % / MAC</span>
+                      <span class="mv" id="ch4-v-iso" style="font-size:13px;">1.5% / 1.2</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -625,6 +678,8 @@
         e.stopPropagation();
         wavesVisible = !wavesVisible;
         waveWrapEl.classList.toggle('hidden', !wavesVisible);
+        const numTopEl = document.getElementById('ch4-num-top');
+        if (numTopEl) numTopEl.classList.toggle('hidden', wavesVisible);
         waveToggleBtn.textContent = wavesVisible ? '파형 숨김' : '파형 보기';
         Settings.playTone(500, 0.04, 0.025);
       });
@@ -704,22 +759,61 @@
         progFillEl.style.width = `${pct}%`;
 
         const dispSpo2 = sim.artifact === 'spo2_probe' ? 78 : Math.round(sim.spo2);
-        const hrEl = document.getElementById('ch4-v-hr');
-        const mapEl = document.getElementById('ch4-v-map');
-        const spo2El = document.getElementById('ch4-v-spo2');
-        const etEl = document.getElementById('ch4-v-etco2');
-        const btEl = document.getElementById('ch4-v-bt');
-        hrEl.textContent = sim.arrested ? '0' : Math.round(sim.hr);
-        spo2El.textContent = sim.arrested ? '--%' : `${dispSpo2}%`;
-        etEl.textContent = sim.arrested ? '0' : Math.round(sim.etco2);
-        mapEl.textContent = sim.arrested ? '0' : Math.round(sim.map);
-        btEl.textContent = `${sim.bt.toFixed(1)}°`;
-        document.getElementById('ch4-v-iso').textContent = `${sim.iso.toFixed(1)}%`;
-        document.getElementById('ch4-v-vent').textContent = sim.ippv ? 'IPPV' : '자발';
+        const sbp = sim.arrested ? 0 : Math.round(sim.map * 1.32);
+        const mbp = sim.arrested ? 0 : Math.round(sim.map);
+        const dbp = sim.arrested ? 0 : Math.round(sim.map * 0.82);
+        const rrMode = sim.arrested ? '무호흡' : sim.ippv ? '기계환기' : (sim.iso >= 2.5 ? '무호흡' : '자발');
+        const rrVal = sim.arrested ? 0 : sim.ippv ? 12 : (sim.iso >= 2.5 ? 4 : Math.round(cl(18 - sim.iso * 3.5 + (sim.painActive ? 6 : 0), 6, 28)));
+        const etWave = sim.arrested ? '파형 없음' : sim.artifact === 'sodalime' ? '기저선 상승' : '정상 파형';
+        const etWaveShort = sim.arrested ? '없음' : sim.artifact === 'sodalime' ? '이상' : '정상';
+        const etWaveCol = sim.arrested ? '#fca5a5' : sim.artifact === 'sodalime' ? '#fde68a' : '#86efac';
+        const rrModeCol = rrMode === '무호흡' ? '#fca5a5' : rrMode === '기계환기' ? '#93c5fd' : '#86efac';
+        const baseMac = currentCase && currentCase.species === 'cat' ? 1.6 : 1.3;
+        const macVal = (sim.iso / baseMac).toFixed(1);
 
-        mapEl.style.color = sim.map < 65 ? '#fca5a5' : '#ffffff';
-        spo2El.style.color = dispSpo2 < 94 ? '#fca5a5' : '#ffffff';
-        etEl.style.color = (sim.etco2 > 52 || sim.fiCO2 > 3) ? '#fde68a' : '#ffffff';
+        const hrTxt = sim.arrested ? '0' : String(Math.round(sim.hr));
+        const spo2Txt = sim.arrested ? '--%' : `${dispSpo2}%`;
+        const etTxt = sim.arrested ? '0' : String(Math.round(sim.etco2));
+
+        // 파형 보기 우측 수치
+        document.getElementById('ch4-w-hr').textContent = hrTxt;
+        const wSpo2El = document.getElementById('ch4-w-spo2');
+        wSpo2El.textContent = spo2Txt;
+        wSpo2El.style.color = dispSpo2 < 94 ? '#fca5a5' : '#38bdf8';
+        document.getElementById('ch4-w-etco2').textContent = etTxt;
+        const wEtWaveEl = document.getElementById('ch4-w-etwave');
+        wEtWaveEl.textContent = etWave;
+        wEtWaveEl.style.color = etWaveCol;
+        document.getElementById('ch4-w-rr').textContent = String(rrVal);
+        const wRrModeEl = document.getElementById('ch4-w-rrmode');
+        wRrModeEl.textContent = rrMode;
+        wRrModeEl.style.color = rrModeCol;
+        document.getElementById('ch4-w-fico2-tag').textContent = `CO₂ · 4mm/s · FiCO₂ ${Math.round(sim.fiCO2)}`;
+
+        // 파형 숨김 상단 4칸
+        document.getElementById('ch4-v-hr').textContent = hrTxt;
+        document.getElementById('ch4-v-rr').textContent = String(rrVal);
+        const vRrModeEl = document.getElementById('ch4-v-rrmode');
+        vRrModeEl.textContent = rrMode;
+        vRrModeEl.style.color = rrModeCol;
+        const vEtEl = document.getElementById('ch4-v-etco2');
+        vEtEl.textContent = etTxt;
+        vEtEl.style.color = (sim.etco2 > 52 || sim.fiCO2 > 3) ? '#fde68a' : '#ffffff';
+        const vEtWaveEl = document.getElementById('ch4-v-etwave');
+        vEtWaveEl.textContent = etWaveShort;
+        vEtWaveEl.style.color = etWaveCol;
+        const vSpo2El = document.getElementById('ch4-v-spo2');
+        vSpo2El.textContent = spo2Txt;
+        vSpo2El.style.color = dispSpo2 < 94 ? '#fca5a5' : '#ffffff';
+
+        // 공통 하단 3칸
+        const bpEl = document.getElementById('ch4-v-bp');
+        bpEl.textContent = sim.arrested ? '0/0/0' : `${sbp}/${mbp}/${dbp}`;
+        bpEl.style.color = sim.map < 65 ? '#fca5a5' : '#ffffff';
+        const btEl = document.getElementById('ch4-v-bt');
+        btEl.textContent = `${sim.bt.toFixed(1)}°C`;
+        btEl.style.color = sim.bt < 36.0 ? '#fde68a' : '#ffffff';
+        document.getElementById('ch4-v-iso').textContent = `${sim.iso.toFixed(1)}% / ${macVal}`;
 
         const artTxt = sim.artifact === 'spo2_probe'
           ? 'SpO₂ 파형 불안정 (점검 필요)'
