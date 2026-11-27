@@ -32,7 +32,7 @@
               <div class="mon-sec-title">
                 <div style="display:flex; align-items:center; gap:8px;">
                   <span>1. 생체 모니터링</span>
-                  <span id="ch3-timer" style="font-family:var(--font-mono, monospace); font-size:12px; font-weight:700; color:var(--brown-soft); background:var(--beige-soft); border:1px solid var(--border); padding:1px 7px; border-radius:8px;">00:00</span>
+                  <span id="ch3-timer" class="font-maru" style="font-size:12px; font-weight:700; color:var(--brown-soft); background:var(--beige-soft); border:1px solid var(--border); padding:1px 7px; border-radius:8px; font-variant-numeric:tabular-nums;">00:00</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
                   <button type="button" class="b-btn mon-toggle-btn" id="ch3-preop-detail-btn">상세</button>
@@ -111,6 +111,18 @@
                     <button type="button" class="b-btn prog-btn" data-abx3="Metronidazole">Metronidazole</button>
                   </div>
                   <button type="button" class="b-btn ch3-antag-btn" id="ch3-abx-antag-btn">길항</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="eval-sec-lbl">진정제</div>
+                <div class="ch3-drug-row">
+                  <div class="ch3-drug-group">
+                    <button type="button" class="b-btn prog-btn" data-sed3="α2-agonist">α2-agonist</button>
+                    <button type="button" class="b-btn prog-btn" data-sed3="Acepromazine">Acepromazine</button>
+                    <button type="button" class="b-btn prog-btn" data-sed3="Benzodiazepines">Benzodiazepines</button>
+                  </div>
+                  <button type="button" class="b-btn ch3-antag-btn is-dose" id="ch3-sed-action-btn">투약</button>
                 </div>
               </div>
 
@@ -249,6 +261,7 @@
       const btnPremed = document.getElementById('ch3-btn-apply-premed');
       const btnPreO2 = document.getElementById('ch3-btn-preo2');
       const abxAntagBtn = document.getElementById('ch3-abx-antag-btn');
+      const sedActionBtn = document.getElementById('ch3-sed-action-btn');
       const btnTitrate = document.getElementById('ch3-btn-titrate');
       const btnIntubate = document.getElementById('ch3-btn-intubate');
       const evalSubmitBtn = document.getElementById('ch3-eval-submit');
@@ -270,6 +283,10 @@
         title: '항생제 알러지 약물',
         desc: '피부 두드러기, 안면부종 등의 경증 알러지 반응은 항히스타민제로 완화하나, 아나필락시스 쇼크 등의 중증 반응은 에피네프린과 보조제로 스테로이드를 투여합니다.'
       };
+      const SED_ANTAG_HELP = {
+        title: '진정제 길항제',
+        desc: 'α2-agonist에 의한 심각한 서맥·과진정은 Atipamezole로, Benzodiazepines에 의한 과진정·역설적 흥분은 Flumazenil로 길항하며, Acepromazine은 특이 길항제가 없어 저혈압 등 부작용 발생 시 수액과 승압제로 대증 교정합니다.'
+      };
 
       let currentStageId = 'tutorial';
       let currentCase = null;
@@ -277,7 +294,11 @@
       let abxPicks = new Set();
       let abxAntagUsed = false;
       let abxAllergy = { active: false, severity: null, resolved: false, delta: { hr: 0, rr: 0, sbp: 0, map: 0, dbp: 0 } };
+      let sedPicks = new Set();
+      let sedPhase = 'dose'; // 'dose' -> 'antag' -> 'help'
+      let sedAdverse = { active: false, issues: [], resolved: false, delta: { hr: 0, rr: 0, sbp: 0, map: 0, dbp: 0 } };
       let premedPicks = new Set();
+      let premedBtnDone = false;
       let indPick = null;
       let ettPick = null;
       let state = { premedDone: false, preO2Done: false, titrateCount: 0, intubated: false, trans: new Set(), mistakes: [] };
@@ -501,10 +522,15 @@
                 : '전처치 대기';
         statusLineEl.innerHTML = `<strong>진행 상태:</strong> ${stText}`;
 
+        const administeredPremeds = [
+          ...(premedBtnDone ? [...abxPicks] : []),
+          ...(sedPhase !== 'dose' ? [...sedPicks] : []),
+          ...(premedBtnDone ? [...premedPicks] : [])
+        ];
         chkBodyEl.innerHTML = `
           <div class="sig-hx-list">
             <div class="sig-hx-row"><span class="sig-hx-k">전산소화:</span><span>${state.preO2Done ? '완료 (SpO₂ 99%)' : '미실시'}</span></div>
-            <div class="sig-hx-row"><span class="sig-hx-k">전처치:</span><span>${state.premedDone ? ([...abxPicks, ...premedPicks].join(', ') || '완료') : '미실시'}</span></div>
+            <div class="sig-hx-row"><span class="sig-hx-k">전처치:</span><span>${state.premedDone ? (administeredPremeds.join(', ') || '완료') : '미실시'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유도 적정:</span><span>${indPick ? `${indPick} (${state.titrateCount}/4)` : '미실시'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">기관삽관:</span><span>${state.intubated ? `ETT #${ettPick} 삽관 · ETCO₂ ${vitals.etco2} (${vitals.etco2Wave})` : '미실시'}</span></div>
             <div class="sig-hx-row"><span class="sig-hx-k">유지 전환:</span><span>${state.trans.size} / 4 항목 완료</span></div>
@@ -550,8 +576,64 @@
         }
       }
 
+      function detectSedAdverse(c, pickedSet) {
+        if (!c || !pickedSet || !pickedSet.size) return [];
+        const issues = [];
+        const forced = c.sedAdverse && c.sedAdverse.drug ? c.sedAdverse.drug : null;
+        if (pickedSet.has('α2-agonist') && (forced === 'α2-agonist' || c.trueAsa >= 3 || vitals.hr <= 90)) {
+          issues.push({
+            drug: 'α2-agonist',
+            delta: { hr: -36, rr: -6, sbp: 18, map: 14, dbp: 12 },
+            log: '진정제 부작용(α2-agonist): 심각한 서맥 및 과진정 발생 — 길항 처치 필요'
+          });
+        }
+        if (pickedSet.has('Acepromazine') && (forced === 'Acepromazine' || c.trueAsa >= 3 || vitals.map <= 85)) {
+          issues.push({
+            drug: 'Acepromazine',
+            delta: { hr: 14, rr: 0, sbp: -28, map: -22, dbp: -16 },
+            log: '진정제 부작용(Acepromazine): 말초 혈관확장성 저혈압 발생 — 대증 교정 필요'
+          });
+        }
+        if (pickedSet.has('Benzodiazepines')) {
+          if (forced === 'Benzodiazepines' || (c.trueAsa <= 2 && !pickedSet.has('α2-agonist') && !pickedSet.has('Acepromazine'))) {
+            issues.push({
+              drug: 'Benzodiazepines',
+              delta: { hr: 22, rr: 10, sbp: 10, map: 8, dbp: 6 },
+              log: '진정제 부작용(Benzodiazepines): 역설적 흥분(심박수·호흡수 상승) 발생 — 길항 처치 필요'
+            });
+          } else if (c.trueAsa >= 4) {
+            issues.push({
+              drug: 'Benzodiazepines',
+              delta: { hr: -8, rr: -8, sbp: -10, map: -8, dbp: -6 },
+              log: '진정제 부작용(Benzodiazepines): 과진정 및 호흡억제 발생 — 길항 처치 필요'
+            });
+          }
+        }
+        return issues;
+      }
+
+      function applySedAdverseEffects(issues) {
+        if (!issues || !issues.length) return;
+        const tot = { hr: 0, rr: 0, sbp: 0, map: 0, dbp: 0 };
+        issues.forEach((it) => {
+          const prevHr = vitals.hr, prevRr = vitals.rr, prevSbp = vitals.sbp, prevMap = vitals.map, prevDbp = vitals.dbp;
+          vitals.hr = Math.max(36, Math.min(220, vitals.hr + it.delta.hr));
+          vitals.rr = Math.max(6, Math.min(60, vitals.rr + it.delta.rr));
+          vitals.sbp = Math.max(58, Math.min(210, vitals.sbp + it.delta.sbp));
+          vitals.map = Math.max(42, Math.min(160, vitals.map + it.delta.map));
+          vitals.dbp = Math.max(30, Math.min(130, vitals.dbp + it.delta.dbp));
+          tot.hr += (vitals.hr - prevHr);
+          tot.rr += (vitals.rr - prevRr);
+          tot.sbp += (vitals.sbp - prevSbp);
+          tot.map += (vitals.map - prevMap);
+          tot.dbp += (vitals.dbp - prevDbp);
+          addLog(it.log);
+        });
+        sedAdverse = { active: true, issues, resolved: false, delta: tot };
+      }
+
       document.querySelectorAll('[data-abx3]').forEach((b) => b.addEventListener('click', () => {
-        if (evaluated || state.premedDone) return;
+        if (evaluated || premedBtnDone) return;
         const k = b.dataset.abx3;
         if (abxPicks.has(k)) abxPicks.delete(k); else abxPicks.add(k);
         b.classList.toggle('active', abxPicks.has(k));
@@ -587,8 +669,69 @@
         renderMonitor();
       });
 
+      document.querySelectorAll('[data-sed3]').forEach((b) => b.addEventListener('click', () => {
+        if (evaluated || sedPhase !== 'dose') return;
+        const k = b.dataset.sed3;
+        if (sedPicks.has(k)) sedPicks.delete(k); else sedPicks.add(k);
+        b.classList.toggle('active', sedPicks.has(k));
+        Settings.playTone(540, 0.04, 0.025);
+      }));
+
+      sedActionBtn.addEventListener('click', () => {
+        if (sedPhase === 'help') {
+          Settings.playTone(520, 0.04, 0.025);
+          antagHelpTitleEl.textContent = SED_ANTAG_HELP.title;
+          antagHelpBodyEl.textContent = SED_ANTAG_HELP.desc;
+          antagHelpModalEl.classList.remove('hidden');
+          return;
+        }
+        if (evaluated) return;
+        if (sedPhase === 'dose') {
+          if (!sedPicks.size) return;
+          sedPhase = 'antag';
+          state.premedDone = true;
+          vitals.hr = Math.max(55, vitals.hr - (sedPicks.has('α2-agonist') ? 16 : 8));
+          vitals.rr = Math.max(12, vitals.rr - 4);
+          vitals.rrMode = '자발 호흡';
+          if (vitals.depth === '각성') vitals.depth = '경도 진정';
+          // 진정제 숨김 감점: ASA IV 이상 환자에서 α2-agonist 선택 시 감점
+          if (currentCase && currentCase.trueAsa >= 4 && sedPicks.has('α2-agonist')) {
+            state.mistakes.push('ASA IV 이상 환자에서 α2-agonist 진정제 투여로 심혈관계 부담 증가');
+          }
+          addLog(`진정제 투여: ${Array.from(sedPicks).join(', ')}`);
+          const issues = detectSedAdverse(currentCase, sedPicks);
+          if (issues.length) applySedAdverseEffects(issues);
+          sedActionBtn.textContent = '길항';
+          sedActionBtn.classList.remove('is-dose');
+          sedActionBtn.setAttribute('aria-label', '진정제 길항');
+          Settings.playTone(620, 0.06, 0.03);
+          renderMonitor();
+          return;
+        }
+        if (sedPhase === 'antag') {
+          sedPhase = 'help';
+          if (sedAdverse.active) {
+            vitals.hr = Math.max(40, Math.min(200, vitals.hr - sedAdverse.delta.hr));
+            vitals.rr = Math.max(6, Math.min(60, vitals.rr - sedAdverse.delta.rr));
+            vitals.sbp = Math.max(60, Math.min(200, vitals.sbp - sedAdverse.delta.sbp));
+            vitals.map = Math.max(45, Math.min(150, vitals.map - sedAdverse.delta.map));
+            vitals.dbp = Math.max(32, Math.min(120, vitals.dbp - sedAdverse.delta.dbp));
+            sedAdverse.active = false;
+            sedAdverse.resolved = true;
+            addLog('진정제 길항/대증 처치 완료 — 생체 바이탈 회복');
+          } else {
+            addLog('진정제 길항 처치 확인');
+          }
+          sedActionBtn.textContent = '?';
+          sedActionBtn.classList.add('is-help');
+          sedActionBtn.setAttribute('aria-label', '진정제 길항제 도움말');
+          Settings.playTone(640, 0.06, 0.03);
+          renderMonitor();
+        }
+      });
+
       document.querySelectorAll('[data-p3]').forEach((b) => b.addEventListener('click', () => {
-        if (evaluated || state.premedDone) return;
+        if (evaluated || premedBtnDone) return;
         const k = b.dataset.p3;
         if (premedPicks.has(k)) premedPicks.delete(k); else premedPicks.add(k);
         b.classList.toggle('active', premedPicks.has(k));
@@ -596,7 +739,8 @@
       }));
 
       btnPremed.addEventListener('click', () => {
-        if (evaluated || state.premedDone || (!premedPicks.size && !abxPicks.size)) return;
+        if (evaluated || premedBtnDone || (!premedPicks.size && !abxPicks.size)) return;
+        premedBtnDone = true;
         state.premedDone = true;
         btnPremed.classList.add('exam-done');
         btnPremed.disabled = true;
@@ -775,6 +919,9 @@
         if (abxAllergy.active) {
           state.mistakes.push('항생제 알러지 반응 미처치 (길항 누락)');
         }
+        if (sedAdverse.active) {
+          state.mistakes.push('진정제 부작용 미처치 (길항 누락)');
+        }
 
         let score = 100;
         if (!state.premedDone) score -= 15;
@@ -821,7 +968,11 @@
         abxPicks = new Set();
         abxAntagUsed = false;
         abxAllergy = { active: false, severity: null, resolved: false, delta: { hr: 0, rr: 0, sbp: 0, map: 0, dbp: 0 } };
+        sedPicks = new Set();
+        sedPhase = 'dose';
+        sedAdverse = { active: false, issues: [], resolved: false, delta: { hr: 0, rr: 0, sbp: 0, map: 0, dbp: 0 } };
         premedPicks = new Set();
+        premedBtnDone = false;
         indPick = null;
         ettPick = null;
         state = { premedDone: false, preO2Done: false, titrateCount: 0, intubated: false, trans: new Set(), mistakes: [] };
@@ -839,7 +990,11 @@
         abxAntagBtn.textContent = '길항';
         abxAntagBtn.classList.remove('is-help');
         abxAntagBtn.removeAttribute('aria-label');
-        document.querySelectorAll('[data-abx3], [data-p3], [data-i3], [data-ett]').forEach((b) => b.classList.remove('active'));
+        sedActionBtn.textContent = '투약';
+        sedActionBtn.classList.add('is-dose');
+        sedActionBtn.classList.remove('is-help');
+        sedActionBtn.removeAttribute('aria-label');
+        document.querySelectorAll('[data-abx3], [data-sed3], [data-p3], [data-i3], [data-ett]').forEach((b) => b.classList.remove('active'));
         document.querySelectorAll('.exam-main-btn').forEach((b) => { b.classList.remove('exam-done'); b.disabled = false; });
         ['ch3-sec-vitals', 'ch3-sec-chk', 'ch3-sec-log'].forEach((id) => setMonCollapsed(id, false));
         logListEl.innerHTML = '<div class="mon-empty">도입 대기 중</div>';

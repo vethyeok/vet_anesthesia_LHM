@@ -1636,6 +1636,11 @@ body.b11-immersive .app-shell {
   color: #b91c1c;
 }
 
+.ch3-antag-btn.is-dose {
+  color: var(--brown);
+  background: var(--beige-soft);
+}
+
 .ch3-antag-btn.is-help {
   color: var(--brown);
   font-size: 14px;
