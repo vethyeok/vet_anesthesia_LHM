@@ -2470,10 +2470,6 @@ body.b11-immersive .app-shell {
   border-radius: 10px;
   background: #2a2621;
   color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   text-align: center;
 }
 .ch4-qa-spotlight .m-cell .mk {
