@@ -155,12 +155,18 @@ h1, h2, h3, .font-maru {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .b-btn:hover:not(.active):not(:disabled):not(.prog-btn):not(.asa-btn) {
+  .b-btn:hover:not(.active):not(:disabled):not(.prog-btn):not(.asa-btn):not(.ch3-antag-btn) {
     background: var(--beige-soft);
     border-color: var(--brown);
   }
 }
 
+.ch1-control .b-btn:not(.active):not(:disabled):not(.exam-loading):not(.exam-done):not(.ch3-antag-btn),
+.ch1-control .b-btn:not(.active):not(:disabled):not(.exam-loading):not(.exam-done):not(.ch3-antag-btn):hover,
+.ch1-control .b-btn:not(.active):not(:disabled):not(.exam-loading):not(.exam-done):not(.ch3-antag-btn):focus,
+.ch4-qa-popover .b-btn:not(.active):not(:disabled),
+.ch4-qa-popover .b-btn:not(.active):not(:disabled):hover,
+.ch4-qa-popover .b-btn:not(.active):not(:disabled):focus,
 .b-btn.prog-btn:not(.active):not(:disabled),
 .b-btn.prog-btn:not(.active):not(:disabled):hover,
 .b-btn.prog-btn:not(.active):not(:disabled):focus,
@@ -169,6 +175,12 @@ h1, h2, h3, .font-maru {
 .b-btn.asa-btn:not(.active):not(:disabled):focus {
   background: var(--ivory-deep);
   color: var(--brown);
+  border-color: var(--brown-border);
+  outline: none;
+}
+
+.ch1-control .ch3-antag-btn:not(.active):not(:disabled):hover,
+.ch1-control .ch3-antag-btn:not(.active):not(:disabled):focus {
   border-color: var(--brown-border);
   outline: none;
 }
