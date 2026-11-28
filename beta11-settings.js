@@ -1054,6 +1054,17 @@
   applyFontLevel(getFontLevel());
   applySavedFullscreen();
 
+  if (!window.__beta11BtnBlurBound) {
+    window.__beta11BtnBlurBound = true;
+    document.addEventListener('click', (e) => {
+      if (e.detail === 0) return; // keep keyboard focus
+      const btn = e.target && e.target.closest ? e.target.closest('.b-btn') : null;
+      if (btn && typeof btn.blur === 'function') {
+        btn.blur();
+      }
+    });
+  }
+
   window.Beta11Settings = {
     getFontLevel,
     applyFontLevel,

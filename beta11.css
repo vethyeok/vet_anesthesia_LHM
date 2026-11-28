@@ -9,6 +9,7 @@
   --ivory: #FAF6EE;
   --ivory-deep: #EAE0CE;
   --ivory-card: #F3ECE0;
+  --beige-soft: #F3ECE0;
   --brown: #4A3423;
   --brown-soft: #755943;
   --brown-border: #D4C3AA;
@@ -154,10 +155,22 @@ h1, h2, h3, .font-maru {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .b-btn:hover:not(.active):not(:disabled) {
+  .b-btn:hover:not(.active):not(:disabled):not(.prog-btn):not(.asa-btn) {
     background: var(--beige-soft);
     border-color: var(--brown);
   }
+}
+
+.b-btn.prog-btn:not(.active):not(:disabled),
+.b-btn.prog-btn:not(.active):not(:disabled):hover,
+.b-btn.prog-btn:not(.active):not(:disabled):focus,
+.b-btn.asa-btn:not(.active):not(:disabled),
+.b-btn.asa-btn:not(.active):not(:disabled):hover,
+.b-btn.asa-btn:not(.active):not(:disabled):focus {
+  background: var(--ivory-deep);
+  color: var(--brown);
+  border-color: var(--brown-border);
+  outline: none;
 }
 
 .b-btn:active {
